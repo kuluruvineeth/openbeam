@@ -1,0 +1,74 @@
+---
+title: Sync Behavior
+description: How Zendesk data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Cursor-based export (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Ticket Sync**: Use the Incremental Exports API with a cursor to fetch new and updated tickets
+2. **Article Sync**: Query Help Center articles filtered by `updated_after` timestamp
+3. **Comment Sync**: Fetch comments for newly updated tickets (when enabled)
+4. **Transform**: Convert Zendesk records to searchable documents with metadata
+
+## Cursor-Based Incremental Sync
+
+Zendesk ticket incremental sync uses the Incremental Exports API with cursor pagination:
+
+```text
+GET /api/v2/incremental/tickets/cursor.json?start_time={unix_timestamp}
+```
+
+- Returns tickets created or updated since the given timestamp
+- Each response includes an `after_cursor` for pagination and an `end_of_stream` flag
+- Subsequent syncs use the stored cursor to resume from where the last sync ended
+- Returns up to 1,000 tickets per page
+
+## Help Center Article Sync
+
+Articles are synced using the `updated_after` filter:
+
+```text
+GET /api/v2/help_center/articles.json?sort_by=updated_at&sort_order=asc&updated_after={timestamp}
+```
+
+- Fetches articles modified since the last sync timestamp
+- Includes draft and published articles based on the authenticating user's permissions
+- Paginated via `next_page` link in the response
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| API rate limit (Team/Professional) | 700 requests/minute |
+| API rate limit (Enterprise) | 2,500 requests/minute |
+| Incremental export page size | 1,000 tickets per response |
+| Request concurrency | 2 concurrent requests per connector |
+
+OpenBeam respects the `Retry-After` header and pauses sync when rate limited.
+
+<Callout type="warn">
+Zendesk rate limits vary by plan. Check your current usage in Admin Center > Account > Usage to avoid exhausting limits for other integrations.
+</Callout>
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Zendesk > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

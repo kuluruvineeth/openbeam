@@ -1,0 +1,39 @@
+---
+title: ServiceNow
+description: Search incidents, knowledge articles, and change requests from ServiceNow with Table API incremental sync
+---
+
+# ServiceNow
+
+Index ITSM data from ServiceNow including incidents, knowledge articles, and change requests. Supports OAuth 2.0 with instance-based URLs and incremental sync via the Table API filtered by `sys_updated_on`.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Incidents** | Short description, description, state, priority, assigned to, category |
+| **Knowledge Articles** | Title, body, knowledge base, category, workflow state |
+| **Change Requests** | Short description, description, state, risk, assigned to |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** Custom scope for Table API read access
+
+Create an OAuth Application Registry entry in your ServiceNow instance and configure the redirect URL.
+
+## Quick Start
+
+1. Create an OAuth Application in ServiceNow System OAuth settings
+2. Note your instance name (e.g., `yourcompany` from `yourcompany.service-now.com`)
+3. Add the ServiceNow connector in OpenBeam with your Client ID, Secret, and instance
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/servicenow/setup" description="OAuth application creation and authorization" />
+  <Card title="Features" href="/docs/connectors/servicenow/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/servicenow/configuration" description="Instance, content selection, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/servicenow/sync" description="Full sync, Table API incremental sync, and deletion detection" />
+  <Card title="Troubleshooting" href="/docs/connectors/servicenow/troubleshooting" description="Common issues and fixes" />
+</Cards>

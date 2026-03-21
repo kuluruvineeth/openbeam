@@ -17,6 +17,8 @@
     "confluence",
     "jira",
     "salesforce",
+    "zendesk",
+    "servicenow",
     "samsara",
     "aws-iot",
     "azure-iot",

@@ -1,0 +1,62 @@
+---
+title: Features
+description: Zendesk connector capabilities
+---
+
+# Zendesk Features
+
+## Search
+
+- **Full-text**: Ticket subjects, descriptions, and comment bodies
+- **Knowledge base**: Help center article titles and content
+- **Metadata**: Status, priority, assignee, tag filtering
+- **Cross-content**: Unified search across tickets and articles
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Tickets | Subject, description, status, priority, type, assignee, requester, tags |
+| Help Center Articles | Title, body, section name, labels, author, publish status |
+| Comments | Body text, author name, creation timestamp, public/private flag |
+
+## Ticket Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Subject | Yes | Yes |
+| Status | Yes | Yes |
+| Priority | Yes | Yes |
+| Assignee | Yes | Yes |
+| Requester | Yes | Yes |
+| Tags | Yes | Yes |
+| Type | Yes | Yes |
+| Group | Yes | Yes |
+| Created Date | Yes | Yes |
+| Updated Date | Yes | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | Cursor-based (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all ticket and article content
+- Question answering about support history, common issues, and resolutions
+- Related ticket discovery linking similar issues by topic and metadata
+- Knowledge article recommendations based on ticket content
+- Trend analysis from ticket status, priority, and tag distributions
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Zendesk API rate limit | 700 requests/minute (Team/Professional), 2500 (Enterprise) |
+| Incremental export page size | 1,000 tickets per page |
+| Help Center articles | Fetched via `updated_after` filter |
+| Ticket attachments | Not extracted (text content only) |
+| Suspended tickets | Not indexed |
+| Archived tickets | Included if accessible via API |

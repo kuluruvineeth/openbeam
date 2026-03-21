@@ -1,0 +1,39 @@
+---
+title: Zendesk
+description: Search tickets, help center articles, and comments from Zendesk with cursor-based incremental sync
+---
+
+# Zendesk
+
+Index support data from Zendesk including tickets, help center articles, and ticket comments. Supports OAuth 2.0 with subdomain-based URLs and cursor-based incremental sync for tickets.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Tickets** | Subject, description, status, priority, assignee, tags |
+| **Help Center Articles** | Title, body, section, labels, publish status |
+| **Comments** | Ticket comments with author and timestamp |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `read`, `tickets:read`, `hc:read`
+
+Create an OAuth client in your Zendesk Admin Center and configure the callback URL.
+
+## Quick Start
+
+1. Create an OAuth client in Zendesk Admin Center
+2. Note your Zendesk subdomain (e.g., `yourcompany` from `yourcompany.zendesk.com`)
+3. Add the Zendesk connector in OpenBeam with your Client ID, Secret, and subdomain
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/zendesk/setup" description="OAuth client creation and authorization" />
+  <Card title="Features" href="/docs/connectors/zendesk/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/zendesk/configuration" description="Subdomain, content selection, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/zendesk/sync" description="Full sync, cursor incremental sync, and article updates" />
+  <Card title="Troubleshooting" href="/docs/connectors/zendesk/troubleshooting" description="Common issues and fixes" />
+</Cards>

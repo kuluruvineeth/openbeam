@@ -1,0 +1,65 @@
+---
+title: Configuration
+description: Zendesk connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `subdomain` | Required | Your Zendesk subdomain (e.g., `yourcompany`) |
+| `sync_comments` | `false` | Index ticket comments alongside tickets |
+| `sync_articles` | `true` | Index Help Center articles |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of ticket history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Incremental sync frequency |
+
+## Environment Variables
+
+```bash
+ZENDESK_CLIENT_ID=your-client-id
+ZENDESK_CLIENT_SECRET=your-client-secret
+ZENDESK_SUBDOMAIN=yourcompany
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Subdomain Configuration
+
+All Zendesk API calls use your subdomain to construct the base URL:
+
+| Component | URL Pattern |
+|-----------|-------------|
+| API Base | `https://{subdomain}.zendesk.com/api/v2` |
+| OAuth Authorize | `https://{subdomain}.zendesk.com/oauth/authorizations/new` |
+| Help Center API | `https://{subdomain}.zendesk.com/api/v2/help_center` |
+
+<Callout type="info">
+Your subdomain is the part before `.zendesk.com` in your Zendesk URL. For `acme.zendesk.com`, the subdomain is `acme`.
+</Callout>
+
+## Data Access
+
+Zendesk OAuth grants access to:
+- All tickets the authenticating agent can view based on their role
+- Help Center articles based on user segment visibility
+- Comments on accessible tickets (public and internal based on role)
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Enable comments sync | Full sync |
+| Enable/disable articles | Full sync |
+| Change lookback days | Full sync |
+| Change subdomain | Full reconnection |
+| New tickets created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

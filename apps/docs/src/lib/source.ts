@@ -37,6 +37,7 @@ import {
   SalesforceIcon,
   SamsaraIcon,
   SecurityShieldIcon,
+  ServiceNowIcon,
   SharePointIcon,
   SlackIcon,
   SmartThingsIcon,
@@ -44,6 +45,7 @@ import {
   ThingsBoardIcon,
   VerkadaIcon,
   ViamIcon,
+  ZendeskIcon,
 } from "@/components/connector-icons";
 
 type IconType = HugeiconsIconProps["icon"];
@@ -96,6 +98,8 @@ const customIconMap: Record<
   GoogleCalendar: GoogleCalendarIcon,
   MicrosoftCalendar: MicrosoftCalendarIcon,
   SecurityShield: SecurityShieldIcon,
+  ServiceNow: ServiceNowIcon,
+  Zendesk: ZendeskIcon,
 };
 
 export const source = loader({

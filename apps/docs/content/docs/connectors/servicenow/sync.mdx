@@ -1,0 +1,70 @@
+---
+title: Sync Behavior
+description: How ServiceNow data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Table API query (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Table Selection**: Determine which ServiceNow tables to sync based on configuration
+2. **Full Sync**: Query all records per table using the Table API with pagination
+3. **Incremental Sync**: Query records modified since last sync using `sys_updated_on`
+4. **Transform**: Convert ServiceNow records to searchable documents with table-specific metadata
+
+## Table API Incremental Sync
+
+ServiceNow incremental sync uses the Table API with `sysparm_query` filtered by modification timestamp:
+
+```text
+GET /api/now/table/incident?sysparm_query=sys_updated_on>{last_sync_time}^ORDERBYsys_updated_on
+```
+
+- Each enabled table gets its own API query
+- Records are paginated using `sysparm_offset` and `sysparm_limit`
+- The `sys_updated_on` field tracks all record modifications including workflow updates
+- Deleted records are detected by querying for records no longer present
+
+## Table Queries
+
+| Table | API Path | Key Fields |
+|-------|----------|------------|
+| Incidents | `/api/now/table/incident` | short_description, description, state, priority |
+| Knowledge Articles | `/api/now/table/kb_knowledge` | short_description, text, workflow_state |
+| Change Requests | `/api/now/table/change_request` | short_description, description, state, risk |
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Concurrent API requests | Instance-dependent |
+| Table API page size | Up to 10,000 rows per request |
+| Request concurrency | 2 concurrent requests per connector |
+| OAuth token lifetime | Configurable per instance (default 30 minutes) |
+
+OpenBeam monitors response times and backs off if the instance is under heavy load.
+
+<Callout type="warn">
+ServiceNow instances under heavy load may throttle API requests. Monitor your instance performance in System Diagnostics if sync times increase unexpectedly.
+</Callout>
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > ServiceNow > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

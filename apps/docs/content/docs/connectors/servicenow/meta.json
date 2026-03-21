@@ -1,0 +1,12 @@
+{
+  "title": "ServiceNow",
+  "icon": "ServiceNow",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

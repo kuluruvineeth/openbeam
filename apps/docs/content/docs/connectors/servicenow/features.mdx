@@ -1,0 +1,63 @@
+---
+title: Features
+description: ServiceNow connector capabilities
+---
+
+# ServiceNow Features
+
+## Search
+
+- **Full-text**: Incident descriptions, knowledge article content, change request details
+- **ITSM data**: Cross-table search across incidents, knowledge, and changes
+- **Metadata**: State, priority, category, assignment group filtering
+- **Knowledge**: Knowledge base article search for self-service and support
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Incidents | Short description, description, state, priority, category, assigned to, assignment group |
+| Knowledge Articles | Title, body, knowledge base, category, workflow state, author |
+| Change Requests | Short description, description, state, risk, category, assigned to, assignment group |
+
+## ITSM Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Short Description | Yes | Yes |
+| State | Yes | Yes |
+| Priority | Yes | Yes |
+| Category | Yes | Yes |
+| Assigned To | Yes | Yes |
+| Assignment Group | Yes | Yes |
+| Risk | Yes | Yes |
+| Impact | Yes | Yes |
+| Urgency | Yes | Yes |
+| Created Date | Yes | Yes |
+| Updated Date | Yes | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | Table API query (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all ITSM data with state, priority, and category filtering
+- Question answering about incident history, resolutions, and common workarounds
+- Related incident discovery linking similar issues by category and description
+- Knowledge article search for self-service and agent-assisted support
+- Change request analysis for impact assessment and risk evaluation
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Table API rate limit | Instance-dependent (typically no hard cap, but throttled under load) |
+| Table API page size | 10,000 rows per request (configurable) |
+| Attachment extraction | Not extracted (record data only) |
+| Custom tables | Not indexed by default (standard ITSM tables only) |
+| ACL enforcement | Records filtered by the authenticating user's ACL rules |
+| Sub-production instances | Supported with the appropriate instance name |

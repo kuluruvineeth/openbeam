@@ -1,0 +1,92 @@
+---
+title: Troubleshooting
+description: Common Zendesk connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `invalid_client` | Client ID does not match — verify in Admin Center > APIs > OAuth Clients |
+| `invalid_secret` | Client Secret is wrong — create a new OAuth client if secret was lost |
+| `redirect_uri_mismatch` | Callback URL must match exactly in OAuth client configuration |
+| `invalid_grant` | Refresh token expired or revoked — reconnect OAuth flow |
+| `access_denied` | User denied authorization — retry the OAuth flow |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| No tickets syncing | Verify the authenticating user has Agent or Admin role |
+| Articles missing | Enable `sync_articles` in settings and verify Help Center is active |
+| Comments not appearing | Enable `sync_comments` in settings |
+| Internal comments missing | The authenticating user must be an Agent or Admin to see internal notes |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| Rate limit exceeded | Check plan limits; reduce sync frequency for Team/Professional plans |
+| Incremental export errors | Cursor may be stale — trigger a full resync to reset |
+| Articles not updating | Verify Help Center is enabled in Zendesk; check article visibility settings |
+| Deleted tickets still in results | Deleted tickets are detected during incremental sync — verify sync is running |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify subdomain, Client ID, and Client Secret |
+| Wrong subdomain | The subdomain is the part before `.zendesk.com` in your URL |
+| API not enabled | Enable the Zendesk API in Admin Center > Apps and integrations > APIs |
+| OAuth client inactive | Verify the OAuth client status in Admin Center |
+| API errors | Check [Zendesk Status](https://status.zendesk.com/) |
+
+<Callout type="info">
+Ensure the Zendesk API is enabled in your Admin Center. Navigate to Apps and integrations > APIs > Zendesk API and confirm the toggle is on.
+</Callout>
+
+## Debug Commands
+
+```bash
+curl https://api.your-domain.com/webhooks/zendesk/health
+
+tail -f logs/worker.log | grep -i zendesk
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `Couldn't authenticate you` | 401 | Reconnect OAuth — token expired or revoked |
+| `Forbidden` | 403 | User lacks permission — verify Agent/Admin role |
+| `RecordNotFound` | 404 | Ticket or article deleted |
+| `Too Many Requests` | 429 | Rate limited — wait for `Retry-After` period |
+| `Internal Server Error` | 500 | Zendesk-side issue — retry later |
+
+## Common Patterns
+
+### Issue: "No tickets appearing in search"
+
+1. Check connector status is Active
+2. Verify the authenticating user has Agent or Admin role
+3. Confirm the Zendesk API is enabled
+4. Check that the subdomain is correct
+5. Try manual Full Resync
+
+### Issue: "Slow initial sync"
+
+Large Zendesk instances take time. Progress shown in connector status.
+- 10,000 tickets: ~5 minutes
+- 100,000 tickets: ~30 minutes
+- 500,000+ tickets: Several hours
+
+### Issue: "Rate limit warnings"
+
+1. Check your Zendesk plan's rate limit in Admin Center
+2. Reduce `incrementalInterval` to sync less frequently
+3. Disable comment sync if not needed
+4. Enterprise plans have higher limits (2,500 requests/minute vs 700)
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with error messages and logs.

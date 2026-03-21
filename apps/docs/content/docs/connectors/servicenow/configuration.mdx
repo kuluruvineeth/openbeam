@@ -1,0 +1,66 @@
+---
+title: Configuration
+description: ServiceNow connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `instance` | Required | Your ServiceNow instance name (e.g., `yourcompany`) |
+| `sync_incidents` | `true` | Index incidents from the `incident` table |
+| `sync_knowledge` | `true` | Index knowledge articles from the `kb_knowledge` table |
+| `sync_changes` | `false` | Index change requests from the `change_request` table |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Incremental sync frequency |
+
+## Environment Variables
+
+```bash
+SERVICENOW_CLIENT_ID=your-client-id
+SERVICENOW_CLIENT_SECRET=your-client-secret
+SERVICENOW_INSTANCE=yourcompany
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Instance URL
+
+All ServiceNow API calls use your instance name to construct the base URL:
+
+| Component | URL Pattern |
+|-----------|-------------|
+| API Base | `https://{instance}.service-now.com/api/now/table` |
+| OAuth Authorize | `https://{instance}.service-now.com/oauth_auth.do` |
+| OAuth Token | `https://{instance}.service-now.com/oauth_token.do` |
+
+<Callout type="info">
+Your instance name is the part before `.service-now.com` in your ServiceNow URL. For `acme.service-now.com`, the instance is `acme`.
+</Callout>
+
+## Data Access
+
+ServiceNow OAuth grants access to:
+- Records the authenticating user can view based on Access Control Lists (ACLs)
+- Table-level and row-level security applies
+- Field-level read access is respected
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Enable change requests | Full sync |
+| Enable/disable knowledge | Full sync |
+| Change lookback days | Full sync |
+| Change instance | Full reconnection |
+| New records created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

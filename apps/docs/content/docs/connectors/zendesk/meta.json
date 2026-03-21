@@ -1,0 +1,12 @@
+{
+  "title": "Zendesk",
+  "icon": "Zendesk",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

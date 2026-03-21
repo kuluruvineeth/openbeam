@@ -1,0 +1,72 @@
+---
+title: Quick Start
+description: Connect ServiceNow to OpenBeam
+---
+
+# ServiceNow Quick Start
+
+## Prerequisites
+
+- ServiceNow instance with Admin access
+- Your instance name (e.g., `yourcompany` from `yourcompany.service-now.com`)
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create an OAuth Application
+
+1. Log in to your ServiceNow instance at `https://yourcompany.service-now.com`
+2. Navigate to **System OAuth > Application Registry**
+3. Click **New** and select **Create an OAuth API endpoint for external clients**
+4. Fill in:
+   - **Name**: OpenBeam
+   - **Redirect URL**:
+     ```text
+     https://your-domain.com/connectors/setup/servicenow/oauth/callback
+     ```
+   - **Active**: Checked
+5. Click **Submit**
+
+## 2. Get Credentials
+
+1. Open the newly created application record
+2. Copy:
+   - **Client ID** (auto-generated)
+   - **Client Secret** (click the lock icon to reveal)
+
+<Callout type="info">
+ServiceNow OAuth applications are active immediately after creation. No activation delay like some other platforms.
+</Callout>
+
+## 3. Create an Integration User (Recommended)
+
+For production use, create a dedicated integration user:
+
+1. Navigate to **User Administration > Users**
+2. Create a new user with a descriptive name (e.g., `openbeam.integration`)
+3. Assign the following roles:
+   - `itil` (for incident and change request access)
+   - `knowledge` (for knowledge article access)
+4. Use this user to authorize the OAuth connection
+
+## 4. Configure Environment
+
+```bash
+SERVICENOW_CLIENT_ID=your-client-id
+SERVICENOW_CLIENT_SECRET=your-client-secret
+SERVICENOW_INSTANCE=yourcompany
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 5. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > ServiceNow**
+2. Enter your **instance name**, **Client ID**, and **Client Secret**
+3. Click **Connect** and authorize in ServiceNow
+4. Initial sync starts automatically
+
+The initial sync indexes all incidents and optionally knowledge articles and change requests. Large instances with millions of records may take significant time.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/servicenow/configuration" description="Instance, content selection, and sync settings" />
+  <Card title="Features" href="/docs/connectors/servicenow/features" description="What gets indexed and search capabilities" />
+</Cards>
