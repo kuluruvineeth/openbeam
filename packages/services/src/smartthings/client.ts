@@ -93,6 +93,12 @@ export interface SmartThingsClient {
     page?: number;
     max?: number;
   }): Promise<{ scenes: SmartThingsScene[]; hasMore: boolean }>;
+  executeDeviceCommand(
+    deviceId: string,
+    capability: string,
+    command: string,
+    args?: unknown[]
+  ): Promise<{ results: Array<{ status: string }> }>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -286,12 +292,46 @@ export function createSmartThingsClient(
     }
   }
 
+  async function executeDeviceCommand(
+    deviceId: string,
+    capability: string,
+    command: string,
+    args?: unknown[]
+  ): Promise<{ results: Array<{ status: string }> }> {
+    await checkRateLimit();
+    const url = `https://api.smartthings.com/v1/devices/${deviceId}/commands`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        commands: [
+          { component: "main", capability, command, arguments: args ?? [] },
+        ],
+      }),
+      signal: AbortSignal.timeout(timeout),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new SmartThingsApiError({
+        message: `SmartThings command failed ${response.status}: ${text}`,
+        code: "COMMAND_FAILED",
+        retryable: response.status >= 500,
+      });
+    }
+    return response.json() as Promise<{ results: Array<{ status: string }> }>;
+  }
+
   return {
     connectorId,
     listDevices,
     listLocations,
     listRooms,
     listScenes,
+    executeDeviceCommand,
     healthCheck,
   };
 }

@@ -23,6 +23,7 @@ const RATE_LIMITS: RateLimitConfig = {
 export interface VerkadaClient {
   readonly connectorId: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
+  post<T>(path: string, body: unknown): Promise<T>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -201,9 +202,36 @@ export function createVerkadaClient(
     }
   }
 
+  async function postJson<T>(path: string, body: unknown): Promise<T> {
+    await checkRateLimit();
+    const token = await getToken();
+    const url = `${baseUrl}${path}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "x-verkada-token": token,
+        "x-verkada-auth": apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeout),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new VerkadaApiError({
+        message: `Verkada API POST ${response.status}: ${text}`,
+        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
+        retryable: response.status >= 500,
+      });
+    }
+    return response.json() as Promise<T>;
+  }
+
   return {
     connectorId,
     get: fetchJson,
+    post: postJson,
     healthCheck,
   };
 }
