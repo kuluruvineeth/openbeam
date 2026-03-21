@@ -16,6 +16,7 @@ type IntegrationName =
   | "linear"
   | "github"
   | "microsoft-calendar"
+  | "servicenow"
   | "zendesk";
 
 const INTEGRATION_HANDLERS: Record<
@@ -63,6 +64,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  servicenow: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/servicenow/callback", {
+      code,
+      state,
+    }),
   zendesk: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/zendesk/callback", {
       code,

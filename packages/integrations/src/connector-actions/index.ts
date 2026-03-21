@@ -12,6 +12,7 @@ import { notionActionsRegistry } from "./notion";
 import { outlookActionsRegistry } from "./outlook";
 import { salesforceActionsRegistry } from "./salesforce";
 import { samsaraActionsRegistry } from "./samsara";
+import { servicenowActionsRegistry } from "./servicenow";
 import { sharePointActionsRegistry } from "./sharepoint";
 import { slackActionsRegistry } from "./slack";
 import { smartThingsActionsRegistry } from "./smartthings";
@@ -38,5 +39,6 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   awsIotActionsRegistry,
   smartThingsActionsRegistry,
   microsoftCalendarActionsRegistry,
+  servicenowActionsRegistry,
   zendeskActionsRegistry,
 ];

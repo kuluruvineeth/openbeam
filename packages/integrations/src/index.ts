@@ -23,6 +23,7 @@ import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
+import { servicenowApp } from "./servicenow/config";
 import { sharePointApp } from "./sharepoint/config";
 import { slackApp } from "./slack/config";
 import { smartThingsApp } from "./smartthings/config";
@@ -59,6 +60,7 @@ export {
   owaspApp,
   salesforceApp,
   samsaraApp,
+  servicenowApp,
   sharePointApp,
   slackApp,
   smartThingsApp,
@@ -228,6 +230,19 @@ export {
   SecretResolutionError,
 } from "./secrets";
 export type {
+  ExchangeServiceNowCodeParams,
+  GenerateServiceNowAuthUrlParams,
+  RefreshServiceNowTokenParams,
+  RefreshServiceNowTokenResult,
+  ServiceNowOAuthResult,
+} from "./servicenow";
+export {
+  exchangeServiceNowCode,
+  generateServiceNowAuthUrl,
+  refreshServiceNowToken,
+  ServiceNowOAuthError,
+} from "./servicenow";
+export type {
   ExchangeSharePointCodeParams,
   GenerateSharePointAuthUrlParams,
   RefreshSharePointTokenParams,
@@ -294,6 +309,7 @@ export const appStore: UnifiedApp[] = [
   confluenceApp,
   jiraApp,
   salesforceApp,
+  servicenowApp,
   zendeskApp,
   googleCalendarApp,
   microsoftCalendarApp,

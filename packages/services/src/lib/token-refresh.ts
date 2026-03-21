@@ -20,6 +20,7 @@ import {
   refreshMicrosoftCalendarToken,
   refreshOutlookToken,
   refreshSalesforceToken,
+  refreshServiceNowToken,
   refreshSharePointToken,
   refreshTeamsToken,
   salesforceApp,
@@ -212,6 +213,28 @@ export async function refreshConnectorToken(
         newToken = {
           accessToken: sfResult.accessToken,
           expiresIn: sfResult.expiresIn,
+        };
+        break;
+      }
+
+      case "SERVICENOW": {
+        const snConfig = connector.config as Record<string, unknown> | null;
+        const snInstance = (snConfig?.instance as string) ?? "";
+        if (!snInstance) {
+          throw new Error(
+            "ServiceNow instance name not found in connector config"
+          );
+        }
+        const snResult = await refreshServiceNowToken({
+          instance: snInstance,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: snResult.accessToken,
+          expiresIn: snResult.expiresIn,
+          refreshToken: snResult.refreshToken,
         };
         break;
       }

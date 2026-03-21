@@ -31,6 +31,7 @@ import {
   createOwaspClient,
   createSalesforceClient,
   createSamsaraClient,
+  createServiceNowClient,
   createSlackClient,
   createSmartThingsClient,
   createThingsboardClient,
@@ -73,6 +74,8 @@ import {
   salesforceIncrementalSync,
   samsaraFullSync,
   samsaraIncrementalSync,
+  servicenowFullSync,
+  servicenowIncrementalSync,
   sharepointFullSync,
   sharepointIncrementalSync,
   incrementalSync as slackIncrementalSync,
@@ -2359,6 +2362,56 @@ export function registerAllSyncFactories(): void {
             cursor,
             batchSize: 100,
             syncComments,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "SERVICENOW",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const instance = (config?.instance as string) ?? "";
+
+      if (!instance) {
+        throw ApplicationFailure.nonRetryable(
+          "ServiceNow instance name not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, instance }, "ServiceNow sync config loaded");
+
+      const client = createServiceNowClient({
+        connectorId,
+        accessToken,
+        instance,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        instance,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? servicenowFullSync(client, context, { batchSize: 100 })
+        : servicenowIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
           });
 
       for await (const batch of syncGenerator) {

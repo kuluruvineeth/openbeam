@@ -27,6 +27,7 @@ import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
+import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
 import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
 import { Logo as SmartThingsLogo } from "./smartthings/assets/logo";
@@ -64,6 +65,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.CONFLUENCE]: ConfluenceLogo,
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,
+  [AppType.SERVICENOW]: ServiceNowLogo,
   [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
   [AppType.MICROSOFT_CALENDAR]: MicrosoftCalendarLogo,
   [AppType.AWS_IOT]: AwsIotLogo,

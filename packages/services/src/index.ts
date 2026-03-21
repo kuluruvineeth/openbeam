@@ -654,6 +654,27 @@ export {
   publicStreamOverview,
 } from "./search/public";
 export { buildPermissionFilter } from "./search/retrieval/query-builder";
+export type {
+  ServiceNowChangeRequest,
+  ServiceNowClient,
+  ServiceNowClientConfig,
+  ServiceNowIncident,
+  ServiceNowIncidentActionResult,
+  ServiceNowKnowledgeArticle,
+} from "./servicenow";
+export {
+  addServiceNowComment,
+  createServiceNowClient,
+  createServiceNowIncident,
+  ServiceNowApiError,
+  ServiceNowAuth,
+  servicenowFullSync,
+  servicenowIncrementalSync,
+  transformServiceNowChangeRequest,
+  transformServiceNowIncident,
+  transformServiceNowKnowledgeArticle,
+  updateServiceNowIncident,
+} from "./servicenow";
 export type { SharePointFileInfo } from "./sharepoint";
 export {
   SharePointAuth,

@@ -14,6 +14,7 @@ import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
 import salesforce from "./salesforce/salesforce.index";
 import samsara from "./samsara/samsara.index";
+import servicenow from "./servicenow/servicenow.index";
 import sharepoint from "./sharepoint/sharepoint.index";
 import slack from "./slack/slack.index";
 import smartthings from "./smartthings/smartthings.index";
@@ -42,6 +43,7 @@ integrations.route("/jira", jira);
 integrations.route("/salesforce", salesforce);
 integrations.route("/google-calendar", googleCalendar);
 integrations.route("/microsoft-calendar", microsoftCalendar);
+integrations.route("/servicenow", servicenow);
 integrations.route("/zendesk", zendesk);
 
 integrations.get("/health", (c) =>
