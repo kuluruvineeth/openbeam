@@ -1,0 +1,56 @@
+---
+title: Features
+description: OWASP connector capabilities and indexed data.
+---
+
+# OWASP Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Top 10 Entries | Risk ID, name, description, impact analysis, prevention guidance, example attack scenarios, CWE mappings |
+| Cheat Sheets | Title, full content, related vulnerabilities, programming language examples |
+| ASVS Requirements | Requirement ID, description, verification level (L1/L2/L3), chapter, CWE mapping |
+| WSTG Test Cases | Test ID, name, objective, methodology, tools, remediation guidance |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Title/Name | Yes | Yes |
+| Risk ID | Yes | Yes |
+| Content | Yes | No |
+| OWASP Project | Yes | Yes |
+| CWE Mapping | Yes | Yes |
+| Verification Level | Yes | Yes |
+
+## Search Operators
+
+- `type:owasp` -- Filter to OWASP records
+- `project:top10` -- OWASP Top 10 entries only
+- `project:cheatsheet` -- Cheat Sheet Series only
+- `cwe:CWE-89` -- Documents mapped to SQL injection
+- `"cross-site scripting"` -- Full-text search across all content
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | 1-2 minutes |
+| Incremental | Scheduled (commit check) | < 1 minute |
+
+## AI Capabilities
+
+- Semantic search across security guidance for specific vulnerability types
+- Developer-focused remediation advice from cheat sheets and ASVS requirements
+- Testing methodology lookup from WSTG test cases
+- Cross-referencing OWASP categories with NVD CVEs and MITRE techniques
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Total documents | ~250 across all projects |
+| Update frequency | Projects update independently, typically monthly |
+| Content format | Markdown parsed from GitHub repositories |

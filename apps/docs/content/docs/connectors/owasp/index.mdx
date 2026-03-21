@@ -1,0 +1,56 @@
+---
+title: OWASP
+description: Search across OWASP Top 10, cheat sheets, ASVS, and WSTG security guides
+---
+
+# OWASP
+
+Index security guides and standards from the Open Worldwide Application Security Project. The connector fetches content from OWASP GitHub repositories including the Top 10, Cheat Sheet Series, Application Security Verification Standard (ASVS), and Web Security Testing Guide (WSTG). No authentication is required.
+
+OWASP provides the most widely referenced application security standards. The connector indexes actionable guidance for developers and security teams.
+
+## Authentication
+
+**Method:** None required (public dataset)
+
+All OWASP content is published on GitHub under open licenses.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Top 10** | Top 10 risk categories with descriptions, impact, and prevention guidance | Incremental | 24 hours |
+| **Cheat Sheets** | Developer-focused security cheat sheets (~80 topics) | Incremental | 24 hours |
+| **ASVS** | Application Security Verification Standard requirements | Incremental | 24 hours |
+| **WSTG** | Web Security Testing Guide test cases and methodology | Incremental | 24 hours |
+
+All streams support full backfill.
+
+## Setup
+
+1. In OpenBeam, go to **Settings** > **Connectors** > **Add Connector**
+2. Select **OWASP**
+3. No credentials needed -- click **Connect** to start syncing
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Top 10 | On | Include OWASP Top 10 entries |
+| Sync Cheat Sheets | On | Include Cheat Sheet Series |
+| Sync ASVS | On | Include ASVS requirements |
+| Sync WSTG | On | Include Web Security Testing Guide |
+
+## Sync Details
+
+**Full sync** clones or fetches the latest content from OWASP GitHub repositories and parses Markdown files into searchable documents.
+
+**Incremental sync** checks for new commits since the last sync and re-processes only changed files.
+
+## Related Connectors
+
+<Cards>
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records with CVSS scores" />
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known Exploited Vulnerabilities catalog" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques, tactics, and groups" />
+</Cards>

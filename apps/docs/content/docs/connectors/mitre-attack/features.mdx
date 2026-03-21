@@ -1,0 +1,59 @@
+---
+title: Features
+description: MITRE ATT&CK connector capabilities and indexed data.
+---
+
+# MITRE ATT&CK Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Techniques | ATT&CK ID, name, description, kill chain phases (tactics), platforms, permissions required, data sources, detection methods, sub-techniques |
+| Tactics | Tactic ID, name, shortname, description |
+| Groups | Group name, aliases, description, associated techniques and software |
+| Malware | Malware name, aliases, platforms, type, description, associated techniques |
+| Mitigations | Mitigation ID, name, description, techniques addressed |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| ATT&CK ID | Yes | Yes |
+| Name | Yes | Yes |
+| Description | Yes | No |
+| Tactic | Yes | Yes |
+| Platform | Yes | Yes |
+| Matrix | Yes | Yes |
+| Group aliases | Yes | Yes |
+| Data source | Yes | Yes |
+
+## Search Operators
+
+- `type:technique` -- Filter to techniques
+- `type:group` -- Filter to threat groups
+- `tactic:persistence` -- Techniques in the Persistence tactic
+- `platform:windows` -- Windows-specific techniques
+- `"phishing"` -- Full-text search across all ATT&CK objects
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | 2-5 minutes |
+| Incremental | Scheduled (release check) | < 1 minute |
+
+## AI Capabilities
+
+- Semantic search across technique descriptions and detection guidance
+- Threat group profiling by associated techniques and targeted platforms
+- Attack chain analysis by linking techniques across tactics
+- Mitigation gap analysis by mapping techniques to available mitigations
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Total objects | ~2,400 across all matrices |
+| Update frequency | MITRE releases quarterly, with interim updates |
+| Data format | STIX 2.1 JSON bundles |

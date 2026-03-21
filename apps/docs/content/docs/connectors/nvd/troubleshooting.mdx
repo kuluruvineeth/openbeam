@@ -1,0 +1,95 @@
+---
+title: Troubleshooting
+description: Common NVD connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="403 Forbidden — Rate limit exceeded">
+    The NVD enforces strict rate limits. Without an API key, only 5 requests per 30 seconds are allowed.
+
+    **Symptoms:**
+    - Sync progress stalls temporarily
+    - Connector logs show `403` status codes
+    - Full sync takes significantly longer than expected
+
+    **Fix:**
+    1. Add an NVD API key to increase limits to 50 requests per 30 seconds
+    2. Request a key at [nvd.nist.gov/developers/request-an-api-key](https://nvd.nist.gov/developers/request-an-api-key)
+    3. The connector automatically retries rate-limited requests with backoff
+  </Accordion>
+
+  <Accordion title="Full sync taking 20+ hours">
+    Without an API key, full sync of 200,000+ CVEs requires conservative rate limiting.
+
+    **Fix:**
+    - Add an NVD API key to reduce sync time to approximately 2 hours
+    - Full sync only needs to run once -- subsequent incremental syncs complete in minutes
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="CVE records missing CVSS scores">
+    Some CVE records are in "Awaiting Analysis" or "Undergoing Analysis" status and do not yet have CVSS scores assigned.
+
+    **Fix:**
+    - This is expected NVD behavior, not a connector issue
+    - Scores are added when NIST analysts complete their assessment
+    - The next incremental sync picks up newly scored CVEs automatically
+  </Accordion>
+
+  <Accordion title="Recently published CVE not appearing">
+    New CVEs may take up to 2 hours to appear in the NVD API after initial publication.
+
+    **Fix:**
+    - Wait for the next scheduled incremental sync
+    - If urgent, trigger a manual incremental sync from the connector settings
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync fails with timeout errors">
+    The NVD API can be slow during peak hours or maintenance windows.
+
+    **Fix:**
+    1. Check [NVD status](https://nvd.nist.gov/) for maintenance announcements
+    2. The connector retries failed requests automatically
+    3. If persistent, schedule syncs during off-peak hours (US evenings)
+  </Accordion>
+
+  <Accordion title="Duplicate CVE records in search results">
+    CVE records are deduplicated by CVE ID. If duplicates appear, the index may need rebuilding.
+
+    **Fix:**
+    - Trigger a full resync to rebuild the index from scratch
+    - Duplicates are resolved during the re-indexing process
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test NVD API without key
+curl "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1"
+
+# Test NVD API with key
+curl "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1&apiKey=YOUR_KEY"
+
+# Check a specific CVE
+curl "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-0001"
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/nvd/setup" description="Reconfigure the connector" />
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known Exploited Vulnerabilities catalog" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques and tactics" />
+</Cards>

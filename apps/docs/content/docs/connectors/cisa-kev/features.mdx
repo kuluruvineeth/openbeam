@@ -1,0 +1,54 @@
+---
+title: Features
+description: CISA KEV connector capabilities and indexed data.
+---
+
+# CISA KEV Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| KEV Records | CVE ID, vendor name, product name, vulnerability name, short description, date added, due date, required action, known ransomware campaign use |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| CVE ID | Yes | Yes |
+| Vendor | Yes | Yes |
+| Product | Yes | Yes |
+| Vulnerability Name | Yes | No |
+| Description | Yes | No |
+| Date Added | No | Yes |
+| Due Date | No | Yes |
+| Ransomware Use | Yes | Yes |
+
+## Search Operators
+
+- `type:kev` -- Filter to KEV records
+- `vendor:Microsoft` -- Vulnerabilities in Microsoft products
+- `ransomware:known` -- Vulnerabilities used in ransomware campaigns
+- `"remote code execution"` -- Full-text search across descriptions
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | < 1 minute |
+| Incremental | Scheduled (catalog diff) | < 1 minute |
+
+## AI Capabilities
+
+- Prioritization of vulnerabilities by exploitation status and ransomware association
+- Vendor-specific vulnerability trend analysis
+- Remediation timeline tracking against CISA-mandated due dates
+- Cross-referencing KEV entries with NVD CVSS scores
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Catalog size | ~1,700 entries |
+| Update frequency | CISA updates as new exploits are confirmed |
+| Data format | Single JSON catalog file |

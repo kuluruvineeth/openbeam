@@ -1,0 +1,67 @@
+---
+title: Troubleshooting
+description: Common MITRE ATT&CK connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="STIX bundle download fails">
+    The GitHub raw content URL may be temporarily unavailable or rate-limited.
+
+    **Fix:**
+    1. The connector retries failed downloads automatically
+    2. GitHub rate limits unauthenticated requests to 60 per hour -- the connector needs only 3 requests (one per matrix)
+    3. If persistent, verify network connectivity to `raw.githubusercontent.com`
+  </Accordion>
+
+  <Accordion title="Relationships not resolved">
+    STIX relationship objects link techniques to groups, tactics, and mitigations. Missing relationships usually indicate a partial download.
+
+    **Fix:**
+    - Trigger a full resync to re-download all STIX bundles
+    - Verify all enabled matrices completed successfully in the sync status
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Sub-techniques not appearing">
+    Sub-techniques (e.g., T1566.001) are separate STIX objects linked to parent techniques via relationships.
+
+    **Fix:**
+    - Verify the sync completed successfully
+    - Search by the full sub-technique ID: `T1566.001`
+    - If missing, trigger a full resync
+  </Accordion>
+
+  <Accordion title="ICS or Mobile techniques missing">
+    These matrices may be disabled in the connector configuration.
+
+    **Fix:**
+    1. Go to the connector settings
+    2. Verify the desired matrices are enabled
+    3. Trigger a full resync after enabling a new matrix
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test STIX bundle download
+curl -sL "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json" | head -c 500
+
+# Count objects in Enterprise ATT&CK
+curl -sL "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d['objects']))"
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/mitre-attack/setup" description="Reconfigure the connector" />
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records" />
+  <Card title="OWASP" href="/docs/connectors/owasp" description="Application security standards" />
+</Cards>

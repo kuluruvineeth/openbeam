@@ -1,0 +1,57 @@
+---
+title: Setup
+description: Connect the NVD vulnerability database to OpenBeam.
+---
+
+# NVD Setup
+
+## Prerequisites
+
+- OpenBeam instance running
+- Optional: NVD API key for higher rate limits
+
+## 1. Add the Connector in OpenBeam
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **NVD** from the Security Datasets category
+
+## 2. Configure API Key (Optional)
+
+The NVD is a public dataset and does not require authentication. However, an API key significantly improves sync speed.
+
+| With API Key | Without API Key |
+|-------------|----------------|
+| 50 requests per 30 seconds | 5 requests per 30 seconds |
+| Full sync in ~2 hours | Full sync in ~20 hours |
+
+To get an API key:
+
+1. Visit [nvd.nist.gov/developers/request-an-api-key](https://nvd.nist.gov/developers/request-an-api-key)
+2. Enter your email address and organization
+3. The key is delivered via email within minutes
+4. Paste the key into the **API Key** field in OpenBeam
+
+<Callout type="info">
+  The API key is sent as the `apiKey` query parameter. It grants higher rate limits but does not unlock additional data -- all CVE data is public.
+</Callout>
+
+## 3. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify CVE records appear in search within a few minutes
+
+<Callout type="warn">
+  The NVD contains 200,000+ CVE records. Initial full sync takes 2-20 hours depending on whether an API key is configured. Subsequent incremental syncs complete in minutes.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| CVE Records | CVE ID, description, CVSS score, severity, affected products (CPE), CWE IDs, reference URLs, published date, last modified date |
+
+<Cards>
+  <Card title="Features" href="/docs/connectors/nvd/features" description="Content types and search operators" />
+  <Card title="Troubleshooting" href="/docs/connectors/nvd/troubleshooting" description="Rate limits and sync issues" />
+</Cards>

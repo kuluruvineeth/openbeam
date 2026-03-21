@@ -1,0 +1,45 @@
+---
+title: Configuration
+description: MITRE ATT&CK connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+No authentication required. The ATT&CK data is publicly available on GitHub.
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `matrices` | array | `["enterprise", "mobile", "ics"]` | ATT&CK matrices to sync |
+| `sync_groups` | boolean | `true` | Include threat group profiles |
+| `sync_malware` | boolean | `true` | Include malware family profiles |
+| `sync_mitigations` | boolean | `true` | Include mitigation recommendations |
+
+## Advanced
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_interval` | number | `1440` | Minutes between incremental syncs (default: 24 hours) |
+
+## Data Sources
+
+| Source | URL |
+|--------|-----|
+| Enterprise ATT&CK | `https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json` |
+| Mobile ATT&CK | `https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json` |
+| ICS ATT&CK | `https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json` |
+
+<Callout type="info">
+  The STIX bundles are fetched from the official MITRE CTI GitHub repository. Each bundle is a single JSON file containing all objects for that matrix.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Enable/disable matrix | Full resync |
+| Enable/disable groups or malware | Incremental sync |
+| ATT&CK version update | Automatic on next sync |

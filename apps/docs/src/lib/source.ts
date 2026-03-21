@@ -35,6 +35,7 @@ import {
   OutlookIcon,
   SalesforceIcon,
   SamsaraIcon,
+  SecurityShieldIcon,
   SharePointIcon,
   SlackIcon,
   SmartThingsIcon,
@@ -92,6 +93,7 @@ const customIconMap: Record<
   Jira: JiraIcon,
   Salesforce: SalesforceIcon,
   GoogleCalendar: GoogleCalendarIcon,
+  SecurityShield: SecurityShieldIcon,
 };
 
 export const source = loader({

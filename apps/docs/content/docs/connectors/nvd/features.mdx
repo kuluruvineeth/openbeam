@@ -1,0 +1,55 @@
+---
+title: Features
+description: NVD connector capabilities and indexed data.
+---
+
+# NVD Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| CVE Records | CVE ID, description, CVSS v3.1 score, CVSS v4.0 score, severity, attack vector, affected products (CPE match strings), CWE weakness IDs, reference URLs, published date, last modified date |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| CVE ID | Yes | Yes |
+| Description | Yes | No |
+| CVSS Score | No | Yes |
+| Severity | Yes | Yes |
+| CWE ID | Yes | Yes |
+| Affected Product (CPE) | Yes | Yes |
+| Published Date | No | Yes |
+| Last Modified Date | No | Yes |
+
+## Search Operators
+
+- `type:cve` -- Filter to CVE records
+- `severity:critical` -- Critical severity CVEs (CVSS 9.0+)
+- `cwe:CWE-79` -- Cross-site scripting vulnerabilities
+- `"remote code execution"` -- Full-text search across descriptions
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | 2-20 hours |
+| Incremental | Scheduled (lastModStartDate) | Minutes |
+
+## AI Capabilities
+
+- Semantic search across vulnerability descriptions and impact analysis
+- Vulnerability correlation by affected product and weakness type
+- Severity trend analysis across time ranges and product families
+- CWE pattern detection across related CVEs
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit (with key) | 50 req/30s |
+| API rate limit (no key) | 5 req/30s |
+| Page size | 2,000 records per API page |
+| Total CVE records | 200,000+ |

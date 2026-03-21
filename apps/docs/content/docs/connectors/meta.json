@@ -29,6 +29,10 @@
     "fhir",
     "matterport",
     "omniverse",
-    "viam"
+    "viam",
+    "nvd",
+    "cisa-kev",
+    "mitre-attack",
+    "owasp"
   ]
 }

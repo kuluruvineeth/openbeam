@@ -1,0 +1,12 @@
+{
+  "title": "MITRE ATT&CK",
+  "icon": "SecurityShield",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}

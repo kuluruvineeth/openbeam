@@ -1,0 +1,49 @@
+---
+title: Sync Behavior
+description: How NVD data is synced to OpenBeam.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 2-20 hours |
+| **Incremental** | Scheduled | 1-10 minutes |
+
+## Full Sync Process
+
+1. **Fetch CVEs**: Paginated requests to `/rest/json/cves/2.0` with `startIndex` offset (2,000 per page)
+2. **Transform**: Convert each CVE to a searchable document with CVSS scores, CPE strings, CWE IDs, and references
+3. **Index**: Batch index documents (50 per batch)
+
+## Incremental Sync
+
+Uses the `lastModStartDate` and `lastModEndDate` query parameters to fetch only CVEs modified since the last successful sync. The NVD updates CVE records when scores change, references are added, or descriptions are revised.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-20T00:00:00.000Z",
+  "totalResults": 245832
+}
+```
+
+## Rate Limits
+
+| Quota | With API Key | Without API Key |
+|-------|-------------|----------------|
+| Requests per 30 seconds | 50 | 5 |
+| Recommended delay | 600ms | 6,000ms |
+
+The connector tracks rate limits and adds appropriate delays between requests. Rate-limited responses (403) are retried with exponential backoff.
+
+## Duration Estimates
+
+| Scenario | With API Key | Without API Key |
+|----------|-------------|----------------|
+| Full sync (200K+ CVEs) | ~2 hours | ~20 hours |
+| Incremental (daily) | 1-5 minutes | 5-10 minutes |
+| Incremental (hourly) | < 1 minute | 1-3 minutes |

@@ -1,0 +1,53 @@
+---
+title: NVD
+description: Search across CVE vulnerability records from the National Vulnerability Database
+---
+
+# NVD
+
+Index CVE vulnerability records from NIST's National Vulnerability Database. The connector fetches structured CVE data including CVSS scores, affected products, weakness enumerations, and reference links. No authentication is required -- an optional API key increases rate limits.
+
+The NVD connector is the primary vulnerability intelligence source, covering 200,000+ CVE records with daily incremental updates.
+
+## Authentication
+
+**Method:** None required (public dataset)
+
+An optional API key from [nvd.nist.gov/developers/request-an-api-key](https://nvd.nist.gov/developers/request-an-api-key) increases the rate limit from 5 requests per 30 seconds to 50 requests per 30 seconds.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **CVE Records** | ID, description, CVSS v3.1/v4.0 scores, severity, affected products (CPE), CWE, references | Incremental | 60 min |
+
+All streams support full backfill.
+
+## Setup
+
+1. In OpenBeam, go to **Settings** > **Connectors** > **Add Connector**
+2. Select **NVD**
+3. Optionally enter an NVD API key for higher rate limits
+4. Start the initial sync
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| API Key | -- | NVD API key (optional, increases rate limits) |
+| CVSS Severity Filter | All | Filter by severity: none, low, medium, high, critical |
+| Sync Interval | 60 min | How often to check for updated CVEs |
+
+## Sync Details
+
+**Full sync** fetches all CVE records from the NVD 2.0 API using paginated requests with `startIndex` and `resultsPerPage` parameters.
+
+**Incremental sync** uses the `lastModStartDate` and `lastModEndDate` parameters to fetch only CVEs modified since the last sync.
+
+## Related Connectors
+
+<Cards>
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known Exploited Vulnerabilities catalog" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques, tactics, and groups" />
+  <Card title="OWASP" href="/docs/connectors/owasp" description="Application security guides and standards" />
+</Cards>

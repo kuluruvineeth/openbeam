@@ -1,0 +1,12 @@
+{
+  "title": "CISA KEV",
+  "icon": "SecurityShield",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}

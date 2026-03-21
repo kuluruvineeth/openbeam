@@ -1,0 +1,33 @@
+---
+title: Configuration
+description: CISA KEV connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+No authentication required. The KEV catalog is a public dataset.
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_interval` | number | `60` | Minutes between incremental syncs |
+
+## API Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| KEV Catalog JSON | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` |
+
+<Callout type="info">
+  The catalog is a single JSON file containing all KEV entries. Each sync re-downloads the full file and diffs against the previous state. The file is small (~2 MB) so this is efficient.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Initial setup | Full sync (automatic) |
+| Manual resync | Full re-download and re-index |

@@ -1,0 +1,50 @@
+---
+title: CISA KEV
+description: Search across Known Exploited Vulnerabilities from the CISA catalog
+---
+
+# CISA KEV
+
+Index Known Exploited Vulnerabilities from the Cybersecurity and Infrastructure Security Agency (CISA) catalog. The connector fetches the KEV JSON catalog containing vulnerabilities that are confirmed to be actively exploited in the wild. No authentication is required.
+
+The CISA KEV catalog is a curated list of high-priority vulnerabilities that federal agencies are required to remediate. It serves as a critical prioritization signal for vulnerability management.
+
+## Authentication
+
+**Method:** None required (public dataset)
+
+The KEV catalog is published as a JSON file at a public URL with no authentication.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **KEV Records** | CVE ID, vendor, product, vulnerability name, description, date added, due date, required action, known ransomware use | Incremental | 60 min |
+
+All streams support full backfill.
+
+## Setup
+
+1. In OpenBeam, go to **Settings** > **Connectors** > **Add Connector**
+2. Select **CISA KEV**
+3. No credentials needed -- click **Connect** to start syncing
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Interval | 60 min | How often to check for new KEV entries |
+
+## Sync Details
+
+**Full sync** downloads the complete KEV JSON catalog and indexes all entries.
+
+**Incremental sync** re-downloads the catalog and compares against the last sync timestamp to identify new or modified entries. The catalog is small (~1,700 entries) so full re-download is efficient.
+
+## Related Connectors
+
+<Cards>
+  <Card title="NVD" href="/docs/connectors/nvd" description="Full CVE vulnerability database" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques, tactics, and groups" />
+  <Card title="OWASP" href="/docs/connectors/owasp" description="Application security guides and standards" />
+</Cards>

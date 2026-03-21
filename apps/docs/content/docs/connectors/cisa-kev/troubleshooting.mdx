@@ -1,0 +1,57 @@
+---
+title: Troubleshooting
+description: Common CISA KEV connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Catalog download fails">
+    The CISA website may be temporarily unavailable during maintenance.
+
+    **Fix:**
+    1. The connector retries failed downloads automatically with exponential backoff
+    2. Check [cisa.gov](https://www.cisa.gov/) for maintenance announcements
+    3. If persistent, verify network connectivity to `www.cisa.gov`
+  </Accordion>
+
+  <Accordion title="No new entries appearing after sync">
+    CISA adds new KEV entries only when active exploitation is confirmed. There may be no new entries for several days.
+
+    **Fix:**
+    - Check the [KEV catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) directly to verify the latest entries
+    - Compare the last sync timestamp with the most recent `dateAdded` values in the catalog
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="KEV entry missing detailed description">
+    KEV entries contain short descriptions. Detailed analysis is available in the corresponding NVD CVE record.
+
+    **Fix:**
+    - Enable the NVD connector for full CVE descriptions and CVSS scores
+    - Search by CVE ID to find the matching NVD record
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test catalog download
+curl -sL "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json" | head -c 500
+
+# Count entries
+curl -sL "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['vulnerabilities']))"
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/cisa-kev/setup" description="Reconfigure the connector" />
+  <Card title="NVD" href="/docs/connectors/nvd" description="Full CVE vulnerability database" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques and tactics" />
+</Cards>

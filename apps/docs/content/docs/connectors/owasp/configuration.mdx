@@ -1,0 +1,45 @@
+---
+title: Configuration
+description: OWASP connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+No authentication required. All OWASP content is publicly available on GitHub.
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_top10` | boolean | `true` | Include OWASP Top 10 entries |
+| `sync_cheatsheets` | boolean | `true` | Include Cheat Sheet Series |
+| `sync_asvs` | boolean | `true` | Include ASVS requirements |
+| `sync_wstg` | boolean | `true` | Include Web Security Testing Guide |
+
+## Advanced
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_interval` | number | `1440` | Minutes between incremental syncs (default: 24 hours) |
+
+## Data Sources
+
+| Project | GitHub Repository |
+|---------|------------------|
+| Top 10 | `OWASP/Top10` |
+| Cheat Sheets | `OWASP/CheatSheetSeries` |
+| ASVS | `OWASP/ASVS` |
+| WSTG | `OWASP/wstg` |
+
+<Callout type="info">
+  Content is fetched from GitHub raw URLs. No GitHub authentication is needed since all repositories are public.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Enable/disable a project | Full resync |
+| OWASP version update | Automatic on next sync |

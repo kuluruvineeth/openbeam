@@ -701,6 +701,26 @@ export const SalesforceIcon = ({ size = 16 }: IconProps): ReactElement => (
   </svg>
 );
 
+export const SecurityShieldIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    fill="none"
+    height={size}
+    viewBox="0 0 24 24"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5Zm0 2.18L19 8.3v3.7c0 4.52-3.13 8.69-7 9.93-3.87-1.24-7-5.41-7-9.93V8.3l7-4.12Z"
+      fill="#6366F1"
+    />
+    <path
+      d="M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM10 15.5c0-.828.895-1.5 2-1.5s2 .672 2 1.5V17h-4v-1.5Z"
+      fill="#6366F1"
+    />
+  </svg>
+);
+
 export const GoogleCalendarIcon = ({ size = 16 }: IconProps): ReactElement => (
   // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
   <svg

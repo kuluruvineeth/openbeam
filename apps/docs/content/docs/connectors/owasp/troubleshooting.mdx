@@ -1,0 +1,67 @@
+---
+title: Troubleshooting
+description: Common OWASP connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="GitHub download fails">
+    GitHub raw content URLs may be temporarily unavailable or rate-limited.
+
+    **Fix:**
+    1. The connector retries failed downloads automatically
+    2. GitHub rate limits unauthenticated requests to 60 per hour -- the connector needs only a few requests per project
+    3. If persistent, verify network connectivity to `raw.githubusercontent.com`
+  </Accordion>
+
+  <Accordion title="Markdown parsing errors">
+    Some OWASP documents contain non-standard Markdown formatting that may not parse correctly.
+
+    **Fix:**
+    - Check the sync status for specific file errors
+    - The connector skips unparseable files and continues with the rest
+    - Report persistent parsing issues as a GitHub issue
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Cheat sheets not appearing">
+    The Cheat Sheet Series may be disabled in the connector configuration.
+
+    **Fix:**
+    1. Go to the connector settings
+    2. Verify **Sync Cheat Sheets** is enabled
+    3. Trigger a full resync after enabling
+  </Accordion>
+
+  <Accordion title="ASVS requirements missing CWE mappings">
+    Not all ASVS requirements have CWE mappings. This is a limitation of the source data, not the connector.
+
+    **Fix:**
+    - Search by requirement text instead of CWE ID
+    - Use the NVD connector to search by CWE for vulnerability-level data
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test Top 10 repository access
+curl -sL "https://api.github.com/repos/OWASP/Top10/commits?per_page=1" | head -c 500
+
+# Test Cheat Sheet repository access
+curl -sL "https://api.github.com/repos/OWASP/CheatSheetSeries/commits?per_page=1" | head -c 500
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/owasp/setup" description="Reconfigure the connector" />
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Threat techniques and tactics" />
+</Cards>

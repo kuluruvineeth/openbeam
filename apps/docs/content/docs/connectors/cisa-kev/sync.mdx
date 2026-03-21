@@ -1,0 +1,41 @@
+---
+title: Sync Behavior
+description: How CISA KEV data is synced to OpenBeam.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | < 1 minute |
+| **Incremental** | Scheduled | < 1 minute |
+
+## Full Sync Process
+
+1. **Download catalog**: Fetch the complete KEV JSON file from CISA
+2. **Parse entries**: Extract all vulnerability records from the `vulnerabilities` array
+3. **Transform**: Convert each entry to a searchable document with vendor, product, CVE ID, and remediation details
+4. **Index**: Batch index documents (50 per batch)
+
+## Incremental Sync
+
+Re-downloads the full catalog JSON and compares the `dateAdded` field of each entry against the last sync timestamp. Only new entries are indexed. The catalog is small enough that full re-download is more reliable than attempting delta detection.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-20T00:00:00.000Z",
+  "catalogVersion": "2026.03.20",
+  "totalEntries": 1699
+}
+```
+
+## Duration Estimates
+
+| Scenario | Duration |
+|----------|----------|
+| Full sync | < 1 minute |
+| Incremental sync | < 30 seconds |

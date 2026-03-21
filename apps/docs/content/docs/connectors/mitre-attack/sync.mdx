@@ -1,0 +1,55 @@
+---
+title: Sync Behavior
+description: How MITRE ATT&CK data is synced to OpenBeam.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 2-5 minutes |
+| **Incremental** | Scheduled | < 1 minute |
+
+## Full Sync Process
+
+1. **Download STIX bundles**: Fetch JSON files from the MITRE CTI GitHub repository for each enabled matrix
+2. **Parse objects**: Extract STIX objects by type (attack-pattern, intrusion-set, malware, course-of-action, x-mitre-tactic)
+3. **Resolve relationships**: Link techniques to tactics, groups to techniques, and mitigations to techniques using STIX relationship objects
+4. **Transform**: Convert each object to a searchable document with resolved references
+5. **Index**: Batch index documents (50 per batch)
+
+## Incremental Sync
+
+Checks the GitHub repository for new commits or releases since the last sync. If the STIX bundles have been updated, re-downloads and re-processes only the changed files. MITRE ATT&CK updates quarterly with occasional interim patches.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-20T00:00:00.000Z",
+  "enterpriseVersion": "16.1",
+  "lastCommitSha": "abc123def456"
+}
+```
+
+## Object Counts (Approximate)
+
+| Object Type | Enterprise | Mobile | ICS | Total |
+|------------|-----------|--------|-----|-------|
+| Techniques | ~625 | ~100 | ~80 | ~805 |
+| Sub-techniques | ~450 | ~40 | ~20 | ~510 |
+| Groups | ~150 | -- | -- | ~150 |
+| Malware | ~550 | ~30 | ~10 | ~590 |
+| Mitigations | ~45 | ~15 | ~10 | ~70 |
+| Tactics | 14 | 14 | 12 | 40 |
+
+## Duration Estimates
+
+| Scenario | Duration |
+|----------|----------|
+| Full sync (all matrices) | 2-5 minutes |
+| Full sync (Enterprise only) | 1-3 minutes |
+| Incremental (no changes) | < 10 seconds |
+| Incremental (new release) | 1-2 minutes |

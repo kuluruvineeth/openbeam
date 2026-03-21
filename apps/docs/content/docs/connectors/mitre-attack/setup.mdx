@@ -1,0 +1,54 @@
+---
+title: Setup
+description: Connect the MITRE ATT&CK framework to OpenBeam.
+---
+
+# MITRE ATT&CK Setup
+
+## Prerequisites
+
+- OpenBeam instance running
+
+## 1. Add the Connector in OpenBeam
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **MITRE ATT&CK** from the Security Datasets category
+
+## 2. Select Matrices
+
+Choose which ATT&CK matrices to index:
+
+| Matrix | Content | Records |
+|--------|---------|---------|
+| Enterprise | Windows, macOS, Linux, Cloud, Network, Containers | ~800 techniques |
+| Mobile | Android, iOS | ~100 techniques |
+| ICS | Industrial Control Systems | ~80 techniques |
+
+<Callout type="info">
+  All three matrices are enabled by default. Disable matrices you do not need to reduce index size.
+</Callout>
+
+## 3. Connect
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify techniques and threat groups appear in search within minutes
+
+<Callout type="info">
+  The ATT&CK dataset contains approximately 2,400 objects total (techniques, groups, malware, mitigations). Initial sync completes in under 5 minutes.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Techniques | ATT&CK ID (e.g., T1566), name, description, tactics, platforms, data sources, detection guidance |
+| Tactics | Tactic ID, name, description |
+| Groups | Group name, aliases, country attribution, description, associated techniques |
+| Malware | Malware name, aliases, platforms, type, associated techniques |
+| Mitigations | Mitigation ID, name, description, addressed techniques |
+
+<Cards>
+  <Card title="Features" href="/docs/connectors/mitre-attack/features" description="Content types and search operators" />
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known exploited vulnerabilities" />
+</Cards>

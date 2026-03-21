@@ -1,0 +1,12 @@
+{
+  "title": "OWASP",
+  "icon": "SecurityShield",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,54 @@
+---
+title: Setup
+description: Connect OWASP security guides to OpenBeam.
+---
+
+# OWASP Setup
+
+## Prerequisites
+
+- OpenBeam instance running
+
+## 1. Add the Connector in OpenBeam
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **OWASP** from the Security Datasets category
+
+## 2. Select Content Sources
+
+Choose which OWASP projects to index:
+
+| Project | Content | Documents |
+|---------|---------|-----------|
+| Top 10 | Risk categories, descriptions, prevention | ~10 entries |
+| Cheat Sheet Series | Developer security guides | ~80 cheat sheets |
+| ASVS | Verification requirements by level | ~300 requirements |
+| WSTG | Testing methodology and test cases | ~90 test cases |
+
+<Callout type="info">
+  All four projects are enabled by default. Each project adds targeted, actionable security guidance to your search index.
+</Callout>
+
+## 3. Connect
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify OWASP entries appear in search within minutes
+
+<Callout type="info">
+  The OWASP dataset contains approximately 250 documents total. Initial sync completes in under 2 minutes.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Top 10 Entries | Risk ID (e.g., A01:2021), name, description, impact, prevention guidance, example attack scenarios |
+| Cheat Sheets | Title, content, related vulnerabilities, code examples |
+| ASVS Requirements | Requirement ID, description, verification level (L1/L2/L3), CWE mapping |
+| WSTG Test Cases | Test ID, objective, description, testing methodology, remediation guidance |
+
+<Cards>
+  <Card title="Features" href="/docs/connectors/owasp/features" description="Content types and search operators" />
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records" />
+</Cards>

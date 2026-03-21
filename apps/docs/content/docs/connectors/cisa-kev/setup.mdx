@@ -1,0 +1,38 @@
+---
+title: Setup
+description: Connect the CISA KEV catalog to OpenBeam.
+---
+
+# CISA KEV Setup
+
+## Prerequisites
+
+- OpenBeam instance running
+
+## 1. Add the Connector in OpenBeam
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **CISA KEV** from the Security Datasets category
+
+## 2. Connect
+
+No credentials are needed. The CISA KEV catalog is a publicly available JSON file.
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify KEV records appear in search within minutes
+
+<Callout type="info">
+  The KEV catalog contains approximately 1,700 entries. Initial sync completes in under a minute.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| KEV Records | CVE ID, vendor name, product name, vulnerability name, description, date added to catalog, remediation due date, required action, known ransomware campaign use |
+
+<Cards>
+  <Card title="Features" href="/docs/connectors/cisa-kev/features" description="Content types and search operators" />
+  <Card title="NVD" href="/docs/connectors/nvd" description="Full CVE vulnerability database with CVSS scores" />
+</Cards>

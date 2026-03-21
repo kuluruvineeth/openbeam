@@ -1,0 +1,44 @@
+---
+title: Configuration
+description: NVD connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `api_key` | string | No | -- | NVD API key for higher rate limits |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `severity_filter` | enum | `all` | Filter by CVSS severity: `all`, `low`, `medium`, `high`, `critical` |
+| `include_rejected` | boolean | `false` | Include rejected/disputed CVE records |
+
+## Advanced
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_interval` | number | `60` | Minutes between incremental syncs |
+| `results_per_page` | number | `2000` | Records per API page (max 2000) |
+
+## API Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| CVE 2.0 API | `https://services.nvd.nist.gov/rest/json/cves/2.0` |
+
+<Callout type="info">
+  The NVD 2.0 API is the only supported endpoint. The legacy 1.0 API was retired in December 2023.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Change severity filter | Incremental sync |
+| Enable rejected CVEs | Full resync |
+| Add/remove API key | None (rate limit change only) |

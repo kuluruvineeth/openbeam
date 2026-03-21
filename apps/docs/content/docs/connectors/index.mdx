@@ -1,6 +1,6 @@
 ---
 title: Connectors
-description: 27 connectors for SaaS, enterprise productivity, CRM, IoT, industrial protocols, and physical AI platforms
+description: 31 connectors for SaaS, enterprise productivity, CRM, IoT, industrial protocols, physical AI platforms, and security datasets
 ---
 
 # Connectors
@@ -83,6 +83,17 @@ Connectors for healthcare, 3D spatial data, digital twins, and robotics.
   <Card title="Viam Robotics" href="/docs/connectors/viam" description="Robot fleet, sensor telemetry, camera captures" />
 </Cards>
 
+## Security Datasets
+
+Public vulnerability and threat intelligence databases. No authentication required.
+
+<Cards>
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records from the National Vulnerability Database" />
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known Exploited Vulnerabilities catalog" />
+  <Card title="MITRE ATT&CK" href="/docs/connectors/mitre-attack" description="Techniques, tactics, threat groups, malware, mitigations" />
+  <Card title="OWASP" href="/docs/connectors/owasp" description="Top 10, cheat sheets, ASVS, WSTG security guides" />
+</Cards>
+
 ## Connector Reference
 
 | Connector | Category | Auth Method | Sync Modes | Status |
@@ -114,6 +125,10 @@ Connectors for healthcare, 3D spatial data, digital twins, and robotics.
 | [Matterport](/docs/connectors/matterport) | Spatial | API Token | Full, Incremental | Active |
 | [Omniverse](/docs/connectors/omniverse) | Digital Twin | API Token | Full, Incremental | Active |
 | [Viam](/docs/connectors/viam) | Robotics | API Key | Full, Incremental | Active |
+| [NVD](/docs/connectors/nvd) | Security | None (optional API key) | Full, Incremental | Active |
+| [CISA KEV](/docs/connectors/cisa-kev) | Security | None | Full, Incremental | Active |
+| [MITRE ATT&CK](/docs/connectors/mitre-attack) | Security | None | Full, Incremental | Active |
+| [OWASP](/docs/connectors/owasp) | Security | None | Full, Incremental | Active |
 
 ## How Connectors Work
 

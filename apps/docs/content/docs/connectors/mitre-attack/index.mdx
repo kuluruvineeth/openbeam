@@ -1,0 +1,57 @@
+---
+title: MITRE ATT&CK
+description: Search across techniques, tactics, threat groups, malware, and mitigations from MITRE ATT&CK
+---
+
+# MITRE ATT&CK
+
+Index the MITRE ATT&CK knowledge base of adversary tactics, techniques, and procedures. The connector fetches STIX/TAXII-formatted data from the ATT&CK GitHub repository including techniques, tactics, threat groups, malware families, tools, and mitigations. No authentication is required.
+
+MITRE ATT&CK is the industry standard framework for understanding adversary behavior. The connector indexes all Enterprise, Mobile, and ICS matrices.
+
+## Authentication
+
+**Method:** None required (public dataset)
+
+The ATT&CK data is published as STIX 2.1 bundles on GitHub with no authentication.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Techniques** | Technique ID, name, description, tactics, platforms, data sources, detection methods | Incremental | 24 hours |
+| **Tactics** | Tactic ID, name, description, shortname | Incremental | 24 hours |
+| **Groups** | Threat group name, aliases, description, associated techniques | Incremental | 24 hours |
+| **Malware** | Malware name, aliases, platforms, associated techniques | Incremental | 24 hours |
+| **Mitigations** | Mitigation ID, name, description, techniques addressed | Incremental | 24 hours |
+
+All streams support full backfill.
+
+## Setup
+
+1. In OpenBeam, go to **Settings** > **Connectors** > **Add Connector**
+2. Select **MITRE ATT&CK**
+3. No credentials needed -- click **Connect** to start syncing
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Matrices | Enterprise, Mobile, ICS | Which ATT&CK matrices to sync |
+| Sync Groups | On | Include threat group profiles |
+| Sync Malware | On | Include malware family profiles |
+| Sync Mitigations | On | Include mitigation recommendations |
+
+## Sync Details
+
+**Full sync** downloads the STIX bundles from the ATT&CK GitHub repository and parses all objects by type (attack-pattern, intrusion-set, malware, course-of-action, x-mitre-tactic).
+
+**Incremental sync** checks the repository for new releases and fetches only updated STIX bundles.
+
+## Related Connectors
+
+<Cards>
+  <Card title="NVD" href="/docs/connectors/nvd" description="CVE vulnerability records with CVSS scores" />
+  <Card title="CISA KEV" href="/docs/connectors/cisa-kev" description="Known Exploited Vulnerabilities catalog" />
+  <Card title="OWASP" href="/docs/connectors/owasp" description="Application security guides and standards" />
+</Cards>

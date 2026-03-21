@@ -1,0 +1,54 @@
+---
+title: Sync Behavior
+description: How OWASP data is synced to OpenBeam.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 1-2 minutes |
+| **Incremental** | Scheduled | < 1 minute |
+
+## Full Sync Process
+
+1. **Fetch content**: Download Markdown files from each enabled OWASP GitHub repository
+2. **Parse Markdown**: Extract structured content, headings, code examples, and metadata
+3. **Transform**: Convert each document to a searchable record with project attribution and CWE mappings
+4. **Index**: Batch index documents (50 per batch)
+
+## Incremental Sync
+
+Checks each GitHub repository for new commits since the last sync. If changes are detected, re-fetches and re-processes only the modified files. Most OWASP projects update monthly with occasional patch releases.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-20T00:00:00.000Z",
+  "top10CommitSha": "abc123",
+  "cheatsheetCommitSha": "def456",
+  "asvsCommitSha": "ghi789",
+  "wstgCommitSha": "jkl012"
+}
+```
+
+## Document Counts (Approximate)
+
+| Project | Documents |
+|---------|-----------|
+| Top 10 | ~10 |
+| Cheat Sheets | ~80 |
+| ASVS | ~300 requirements across 14 chapters |
+| WSTG | ~90 test cases across 11 categories |
+
+## Duration Estimates
+
+| Scenario | Duration |
+|----------|----------|
+| Full sync (all projects) | 1-2 minutes |
+| Full sync (Top 10 only) | < 30 seconds |
+| Incremental (no changes) | < 10 seconds |
+| Incremental (updated project) | < 30 seconds |
