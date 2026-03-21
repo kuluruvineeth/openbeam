@@ -1,4 +1,5 @@
 import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import { confluenceActionsRegistry } from "./confluence";
 import { githubActionsRegistry } from "./github";
 import { gmailActionsRegistry } from "./gmail";
 import { googleDriveActionsRegistry } from "./google-drive";
@@ -15,4 +16,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   googleDriveActionsRegistry,
   linearActionsRegistry,
   jiraActionsRegistry,
+  confluenceActionsRegistry,
 ];

@@ -1,0 +1,122 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const confluenceActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "confluence",
+  connectorName: "Confluence",
+  connectorIcon: "confluence",
+  actions: [
+    {
+      id: "page_create",
+      name: "Create Page",
+      description: "Create a new Confluence page in a space",
+      connectorType: "confluence",
+      resource: "page",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "space_id",
+          name: "Space ID",
+          type: "string",
+          required: true,
+          description: "Confluence space ID",
+        },
+        {
+          id: "title",
+          name: "Title",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "body",
+          name: "Body",
+          type: "string",
+          required: true,
+          description: "Page content in XHTML storage format or plain text",
+        },
+        {
+          id: "parent_id",
+          name: "Parent Page ID",
+          type: "string",
+          required: false,
+          description: "Parent page for nesting",
+        },
+      ],
+      outputs: [
+        { id: "pageId", name: "Page ID", type: "string" },
+        { id: "url", name: "Page URL", type: "string" },
+      ],
+    },
+    {
+      id: "page_update",
+      name: "Update Page",
+      description: "Update the title and body of an existing Confluence page",
+      connectorType: "confluence",
+      resource: "page",
+      category: "update",
+      stakes: "medium",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "page_id",
+          name: "Page ID",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "title",
+          name: "Title",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "body",
+          name: "Body",
+          type: "string",
+          required: true,
+          description: "Updated content",
+        },
+        {
+          id: "version_message",
+          name: "Version Message",
+          type: "string",
+          required: false,
+          description: "Change description for version history",
+        },
+      ],
+      outputs: [
+        { id: "pageId", name: "Page ID", type: "string" },
+        { id: "url", name: "Page URL", type: "string" },
+      ],
+    },
+    {
+      id: "comment_add",
+      name: "Add Comment",
+      description: "Add a comment to a Confluence page",
+      connectorType: "confluence",
+      resource: "comment",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "page_id",
+          name: "Page ID",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "body",
+          name: "Comment Body",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [{ id: "commentId", name: "Comment ID", type: "string" }],
+    },
+  ],
+};
