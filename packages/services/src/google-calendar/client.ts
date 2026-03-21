@@ -266,18 +266,50 @@ export function createGoogleCalendarClient(
     } while (pageToken);
   }
 
+  async function mutate<T>(
+    url: string,
+    method: string,
+    body?: unknown
+  ): Promise<T> {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+
+    if (!response.ok) {
+      const errBody = (await response.json().catch(() => ({}))) as {
+        error?: { message?: string };
+      };
+      throw new GoogleCalendarApiError({
+        message:
+          errBody.error?.message ?? `${method} failed: ${response.status}`,
+        statusCode: response.status,
+        code: "MUTATION_ERROR",
+        retryable: response.status >= 500,
+      });
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return response.json() as Promise<T>;
+  }
+
   function createEvent(
     calendarId: string,
     event: Partial<CalendarEvent>
   ): Promise<CalendarEvent> {
     const encodedCalendarId = encodeURIComponent(calendarId);
-    return request<CalendarEvent>(
+    return mutate<CalendarEvent>(
       buildUrl(`/calendars/${encodedCalendarId}/events`),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(event),
-      }
+      "POST",
+      event
     );
   }
 
@@ -288,13 +320,10 @@ export function createGoogleCalendarClient(
   ): Promise<CalendarEvent> {
     const encodedCalendarId = encodeURIComponent(calendarId);
     const encodedEventId = encodeURIComponent(eventId);
-    return request<CalendarEvent>(
+    return mutate<CalendarEvent>(
       buildUrl(`/calendars/${encodedCalendarId}/events/${encodedEventId}`),
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(event),
-      }
+      "PUT",
+      event
     );
   }
 
@@ -304,9 +333,9 @@ export function createGoogleCalendarClient(
   ): Promise<void> {
     const encodedCalendarId = encodeURIComponent(calendarId);
     const encodedEventId = encodeURIComponent(eventId);
-    await request<unknown>(
+    await mutate<void>(
       buildUrl(`/calendars/${encodedCalendarId}/events/${encodedEventId}`),
-      { method: "DELETE" }
+      "DELETE"
     );
   }
 

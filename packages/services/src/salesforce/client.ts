@@ -161,12 +161,31 @@ export function createSalesforceClient(
     }
   }
 
-  function post<T>(path: string, body: unknown): Promise<T> {
-    return request<T>(buildUrl(path), {
+  async function post<T>(path: string, body: unknown): Promise<T> {
+    const url = buildUrl(path);
+    const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(body),
     });
+    if (!response.ok) {
+      const errBody = (await response.json().catch(() => [{}])) as Array<{
+        message?: string;
+        errorCode?: string;
+      }>;
+      const err = errBody[0] ?? {};
+      throw new SalesforceApiError({
+        message: err.message ?? `POST failed: ${response.status}`,
+        statusCode: response.status,
+        code: err.errorCode ?? "POST_FAILED",
+        retryable: response.status >= 500,
+      });
+    }
+    return response.json() as Promise<T>;
   }
 
   async function patch(path: string, body: unknown): Promise<void> {
