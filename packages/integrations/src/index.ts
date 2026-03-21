@@ -4,6 +4,7 @@ import { confluenceApp } from "./confluence/config";
 import { fhirApp } from "./fhir/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
+import { googleCalendarApp } from "./google-calendar/config";
 import { googleDriveApp } from "./google-drive/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
@@ -33,6 +34,7 @@ export {
   fhirApp,
   gmailApp,
   githubApp,
+  googleCalendarApp,
   googleDriveApp,
   jiraApp,
   linearApp,
@@ -120,6 +122,17 @@ export {
   generateGoogleAuthUrl,
   refreshGoogleToken,
 } from "./google";
+export type {
+  ExchangeGoogleCalendarCodeParams,
+  GenerateGoogleCalendarAuthUrlParams,
+  GoogleCalendarOAuthResult,
+  RefreshGoogleCalendarTokenParams,
+} from "./google-calendar/oauth";
+export {
+  exchangeGoogleCalendarCode,
+  generateGoogleCalendarAuthUrl,
+  refreshGoogleCalendarToken,
+} from "./google-calendar/oauth";
 export {
   exchangeGoogleDriveCode,
   generateGoogleDriveAuthUrl,
@@ -244,4 +257,5 @@ export const appStore: UnifiedApp[] = [
   confluenceApp,
   jiraApp,
   salesforceApp,
+  googleCalendarApp,
 ];

@@ -5,6 +5,7 @@ import azureIot from "./azure-iot/azure-iot.index";
 import confluence from "./confluence/confluence.index";
 import github from "./github/github.index";
 import gmail from "./gmail/gmail.index";
+import googleCalendar from "./google-calendar/google-calendar.index";
 import googleDrive from "./google-drive/google-drive.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
@@ -37,6 +38,7 @@ integrations.route("/teams", teams);
 integrations.route("/confluence", confluence);
 integrations.route("/jira", jira);
 integrations.route("/salesforce", salesforce);
+integrations.route("/google-calendar", googleCalendar);
 
 integrations.get("/health", (c) =>
   c.json({

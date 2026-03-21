@@ -13,6 +13,7 @@ import {
   refreshConfluenceToken,
   refreshGitHubToken,
   refreshGmailToken,
+  refreshGoogleCalendarToken,
   refreshGoogleDriveToken,
   refreshJiraToken,
   refreshLinearToken,
@@ -86,6 +87,14 @@ export async function refreshConnectorToken(
 
       case "GOOGLE_DRIVE":
         newToken = await refreshGoogleDriveToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "GOOGLE_CALENDAR":
+        newToken = await refreshGoogleCalendarToken({
           clientId,
           clientSecret,
           refreshToken,

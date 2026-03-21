@@ -13,6 +13,7 @@ import {
   createAzureIotClient,
   createGitHubClient,
   createGmailClient,
+  createGoogleCalendarClient,
   createGoogleDriveClient,
   createLinearClient,
   createMicrosoftGraphClient,
@@ -28,6 +29,8 @@ import {
   githubFullSync,
   githubIncrementalSync,
   gmailIncrementalSync,
+  googleCalendarFullSync,
+  googleCalendarIncrementalSync,
   googleDriveIncrementalSync,
   jiraFullSync,
   jiraIncrementalSync,
@@ -1599,6 +1602,66 @@ export function registerAllSyncFactories(): void {
             cursor,
             batchSize: 200,
             syncCases,
+            lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GOOGLE_CALENDAR",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : 90;
+      const includeCalendars = config?.include_calendars
+        ? String(config.include_calendars)
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info(
+        { connectorId, userEmail },
+        "Google Calendar sync config loaded"
+      );
+
+      const client = createGoogleCalendarClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator = forceFullSync
+        ? googleCalendarFullSync(client, context, {
+            batchSize: 100,
+            includeCalendars,
+            lookbackDays,
+          })
+        : googleCalendarIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            includeCalendars,
             lookbackDays,
           });
 

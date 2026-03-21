@@ -255,6 +255,20 @@ export {
   verifyPubSubToken,
 } from "./gmail";
 export type {
+  CalendarEvent,
+  CalendarListEntry,
+  GoogleCalendarClient,
+  GoogleCalendarClientConfig,
+} from "./google-calendar";
+export {
+  createGoogleCalendarClient,
+  GoogleCalendarApiError,
+  GoogleCalendarAuth,
+  googleCalendarFullSync,
+  googleCalendarIncrementalSync,
+  transformCalendarEvent,
+} from "./google-calendar";
+export type {
   DriveNotification,
   DriveWatchState,
   GoogleDriveClient,

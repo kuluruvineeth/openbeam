@@ -8,6 +8,7 @@ import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
+import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
@@ -57,6 +58,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.CONFLUENCE]: ConfluenceLogo,
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,
+  [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
