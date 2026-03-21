@@ -1,0 +1,31 @@
+---
+title: Dropbox
+description: Connect Dropbox to search across files and folders.
+---
+
+The Dropbox connector indexes files and folders from your Dropbox account, making them searchable across your organization.
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Method** | OAuth 2.0 |
+| **Data Streams** | Files, Folders |
+| **Sync Type** | Full + Incremental (cursor-based) |
+| **Rate Limits** | ~1000 calls/min per app |
+
+## Quick Setup
+
+<Steps>
+<Step>Create a Dropbox App in the [App Console](https://www.dropbox.com/developers/apps)</Step>
+<Step>Add the connector in OpenBeam and enter your App Key and Secret</Step>
+<Step>Authorize the OAuth connection</Step>
+<Step>Files begin syncing automatically</Step>
+</Steps>
+
+## What Gets Indexed
+
+- All files with metadata (name, path, size, modification date)
+- Folder structure for navigation context
+- Sharing information for access awareness
+- File type classification (document, spreadsheet, presentation, image)

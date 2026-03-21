@@ -3,6 +3,7 @@ import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { confluenceApp } from "./confluence/config";
+import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
@@ -40,6 +41,7 @@ export {
   bacnetApp,
   cisaKevApp,
   confluenceApp,
+  dropboxApp,
   fhirApp,
   gmailApp,
   githubApp,
@@ -94,6 +96,22 @@ export {
   generateConfluenceAuthUrl,
   refreshConfluenceToken,
 } from "./confluence/oauth";
+export type {
+  DropboxAccountInfo,
+  DropboxOAuthResult,
+  DropboxTokenResponse,
+  ExchangeDropboxCodeParams,
+  GenerateDropboxAuthUrlParams,
+  RefreshDropboxTokenParams,
+  RefreshDropboxTokenResult,
+} from "./dropbox";
+export {
+  DROPBOX_TOKEN_LIFETIME_SECONDS,
+  DropboxOAuthError,
+  exchangeDropboxCode,
+  generateDropboxAuthUrl,
+  refreshDropboxToken,
+} from "./dropbox";
 export {
   exchangeGitHubCode,
   generateGitHubAuthUrl,
@@ -308,6 +326,7 @@ export const appStore: UnifiedApp[] = [
   teamsApp,
   confluenceApp,
   jiraApp,
+  dropboxApp,
   salesforceApp,
   servicenowApp,
   zendeskApp,

@@ -1,0 +1,12 @@
+{
+  "title": "Dropbox",
+  "icon": "Dropbox",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

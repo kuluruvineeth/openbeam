@@ -78,6 +78,7 @@ export enum AppType {
   ZENDESK = "ZENDESK",
   SERVICENOW = "SERVICENOW",
   MICROSOFT_CALENDAR = "MICROSOFT_CALENDAR",
+  DROPBOX = "DROPBOX",
 }
 
 export enum SyncMode {

@@ -1,0 +1,55 @@
+---
+title: Setup
+description: Step-by-step instructions to connect Dropbox.
+---
+
+## Prerequisites
+
+- A Dropbox account (Basic, Plus, Professional, or Business)
+- Admin access to create a Dropbox App
+
+## Create a Dropbox App
+
+<Steps>
+<Step>
+Go to the [Dropbox App Console](https://www.dropbox.com/developers/apps) and click **Create app**.
+</Step>
+<Step>
+Select **Scoped access** as the API type.
+</Step>
+<Step>
+Choose **Full Dropbox** access type.
+</Step>
+<Step>
+Name your app and click **Create app**.
+</Step>
+<Step>
+In the **Permissions** tab, enable:
+- `files.metadata.read`
+- `files.content.read`
+- `account_info.read`
+- `sharing.read`
+
+Click **Submit** to save permissions.
+</Step>
+<Step>
+In the **Settings** tab, add the OAuth redirect URI:
+```
+https://your-domain.com/connectors/setup/dropbox/oauth/callback
+```
+</Step>
+<Step>
+Copy the **App key** and **App secret**.
+</Step>
+</Steps>
+
+## Connect in OpenBeam
+
+<Steps>
+<Step>Navigate to **Settings > Connectors** and click **Add Connector**.</Step>
+<Step>Select **Dropbox** from the list.</Step>
+<Step>Enter the **App Key** and **App Secret** from your Dropbox App.</Step>
+<Step>Click **Connect** to start the OAuth flow.</Step>
+<Step>Authorize the app in the Dropbox consent screen.</Step>
+<Step>Files will begin syncing within minutes.</Step>
+</Steps>

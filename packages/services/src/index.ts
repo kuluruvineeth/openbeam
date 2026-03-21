@@ -159,6 +159,22 @@ export {
 } from "./confluence";
 export * from "./control";
 export type {
+  DropboxClient,
+  DropboxClientConfig,
+  DropboxEntry,
+} from "./dropbox";
+export {
+  createDropboxClient,
+  createDropboxFolder,
+  DropboxApiError,
+  DropboxAuth,
+  deleteDropboxEntry,
+  dropboxFullSync,
+  dropboxIncrementalSync,
+  moveDropboxEntry,
+  transformDropboxFile,
+} from "./dropbox";
+export type {
   ChunkOptions,
   ChunkResponse,
   DocumentChunk,

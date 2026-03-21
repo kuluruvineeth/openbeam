@@ -1,0 +1,38 @@
+---
+title: Sync
+description: How Dropbox data synchronization works.
+---
+
+## Full Sync
+
+The initial sync uses `list_folder` with `recursive: true` to enumerate all files and folders. This traverses the entire Dropbox account in a single API call chain with cursor-based pagination.
+
+## Incremental Sync
+
+After the initial sync, the connector uses Dropbox's cursor-based delta API (`list_folder/continue`) to detect changes. This returns only files that were added, modified, or deleted since the last sync.
+
+### How Cursors Work
+
+1. Full sync stores the final cursor from `list_folder`
+2. Incremental sync calls `list_folder/continue` with the stored cursor
+3. Dropbox returns only changed entries since that cursor
+4. Deleted entries are marked with `.tag: "deleted"` and removed from the index
+
+### Cursor Expiration
+
+If a cursor expires (typically after extended periods), the Dropbox API returns a 409 error with a `reset` tag. The connector automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Type | Default Interval |
+|------|-----------------|
+| Full | On first connect |
+| Incremental | Every 15 minutes |
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| Create Folder | Create a new folder at a specified path |
+| Move File | Move a file or folder to a new location |
+| Delete File | Delete a file or folder |

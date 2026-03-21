@@ -1561,6 +1561,14 @@ export function registerAllSyncFactories(): void {
             .map((s) => s.trim())
             .filter(Boolean)
         : undefined;
+      const syncComments = config?.sync_comments !== false;
+      const labelsFilter = config?.labels_filter
+        ? String(config.labels_filter)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+      const syncArchived = config?.sync_archived === true;
 
       if (!cloudId) {
         throw ApplicationFailure.nonRetryable(
@@ -1570,7 +1578,7 @@ export function registerAllSyncFactories(): void {
       }
 
       logger.info(
-        { connectorId, cloudId, siteUrl },
+        { connectorId, cloudId, siteUrl, syncComments, syncArchived },
         "Confluence sync config loaded"
       );
 
@@ -1597,12 +1605,18 @@ export function registerAllSyncFactories(): void {
             batchSize: 100,
             includeSpaces,
             excludeSpaces,
+            syncComments,
+            labelsFilter,
+            syncArchived,
           })
         : confluenceIncrementalSync(client, context, {
             cursor,
             batchSize: 100,
             includeSpaces,
             excludeSpaces,
+            syncComments,
+            labelsFilter,
+            syncArchived,
           });
 
       for await (const batch of syncGenerator) {

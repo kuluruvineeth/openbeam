@@ -1,0 +1,28 @@
+---
+title: Configuration
+description: Settings and environment variables for the Dropbox connector.
+---
+
+## Connector Settings
+
+| Setting | Type | Required | Description |
+|---------|------|----------|-------------|
+| App Key | text | Yes | From Dropbox App Console |
+| App Secret | password | Yes | From Dropbox App Console |
+
+## Environment Variables
+
+No additional environment variables are required. The connector uses the App Key and App Secret entered during setup.
+
+## OAuth Scopes
+
+| Scope | Purpose |
+|-------|---------|
+| `files.metadata.read` | Read file and folder metadata |
+| `files.content.read` | Read file contents |
+| `account_info.read` | Read account information |
+| `sharing.read` | Read sharing information |
+
+## Rate Limits
+
+Dropbox enforces approximately 1000 API calls per minute per app. The connector handles rate limiting automatically with exponential backoff.

@@ -1,0 +1,48 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Dropbox connector.
+---
+
+## Common Issues
+
+<Accordions>
+<Accordion title="OAuth authorization fails">
+Verify that:
+- The redirect URI matches exactly (including protocol and path)
+- The App Key and App Secret are correct
+- Required permissions are enabled in the Dropbox App Console
+- You clicked **Submit** after enabling permissions
+</Accordion>
+
+<Accordion title="Token refresh fails">
+Dropbox access tokens are short-lived (4 hours). If refresh fails:
+- Verify the refresh token is still valid
+- Check that the app has not been revoked in Dropbox settings
+- Re-authorize the connection if the refresh token is invalid
+</Accordion>
+
+<Accordion title="Sync shows zero files">
+- Confirm the Dropbox account has files
+- Check that `files.metadata.read` scope is enabled
+- Verify the app has **Full Dropbox** access (not just an App folder)
+</Accordion>
+
+<Accordion title="Rate limit errors (429)">
+The connector handles rate limits automatically with exponential backoff. If persistent:
+- Check if other applications share the same Dropbox app credentials
+- Reduce sync frequency in connector settings
+</Accordion>
+
+<Accordion title="Cursor expired (409 reset)">
+This is normal after extended periods without sync. The connector automatically falls back to a full sync to re-establish the cursor.
+</Accordion>
+</Accordions>
+
+## Error Codes
+
+| Code | Description | Action |
+|------|-------------|--------|
+| `INVALID_ACCESS_TOKEN` | Token expired or revoked | Re-authorize connection |
+| `RATE_LIMITED` | Too many API calls | Wait and retry (automatic) |
+| `CURSOR_RESET` | Sync cursor expired | Full resync (automatic) |
+| `ENDPOINT_ERROR` | Dropbox API error | Check error details in logs |

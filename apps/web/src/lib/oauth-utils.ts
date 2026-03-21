@@ -17,7 +17,8 @@ type IntegrationName =
   | "github"
   | "microsoft-calendar"
   | "servicenow"
-  | "zendesk";
+  | "zendesk"
+  | "dropbox";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -71,6 +72,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   zendesk: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/zendesk/callback", {
+      code,
+      state,
+    }),
+  dropbox: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/dropbox/callback", {
       code,
       state,
     }),

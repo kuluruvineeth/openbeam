@@ -10,7 +10,9 @@ import prisma, {
   updateOAuthTokens,
 } from "@openbeam/db";
 import {
+  dropboxApp,
   refreshConfluenceToken,
+  refreshDropboxToken,
   refreshGitHubToken,
   refreshGmailToken,
   refreshGoogleCalendarToken,
@@ -213,6 +215,27 @@ export async function refreshConnectorToken(
         newToken = {
           accessToken: sfResult.accessToken,
           expiresIn: sfResult.expiresIn,
+        };
+        break;
+      }
+
+      case "DROPBOX": {
+        const dbxConfig =
+          dropboxApp.auth.type === "OAUTH2"
+            ? dropboxApp.auth.config
+            : undefined;
+        if (!dbxConfig) {
+          throw new Error("Dropbox OAuth config not found");
+        }
+        const dbxResult = await refreshDropboxToken({
+          config: dbxConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: dbxResult.accessToken,
+          expiresIn: dbxResult.expiresIn,
         };
         break;
       }
