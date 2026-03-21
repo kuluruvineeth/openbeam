@@ -844,7 +844,7 @@ export function registerAllSyncFactories(): void {
   );
 
   registerSyncFactory(
-    "AWS_IOT_CORE",
+    "AWS_IOT",
     async function* (connectorId, connector, cursor) {
       const config = connector.config as Record<string, unknown> | null;
       const accessKeyId = config?.access_key_id as string | undefined;
@@ -917,7 +917,7 @@ export function registerAllSyncFactories(): void {
   );
 
   registerSyncFactory(
-    "AZURE_IOT_HUB",
+    "AZURE_IOT",
     async function* (connectorId, connector, cursor) {
       const config = connector.config as Record<string, unknown> | null;
       const connectionString = config?.connection_string as string | undefined;
