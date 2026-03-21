@@ -1,0 +1,40 @@
+---
+title: Google Calendar
+description: Search calendar events, meetings, and schedules from Google Calendar via the Google Calendar API
+---
+
+# Google Calendar
+
+Index calendar events, meetings, and schedules from Google Calendar. Supports OAuth 2.0 via Google Cloud, full and incremental sync using the Calendar API syncToken mechanism.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Events** | Title, description, start/end time, location, organizer |
+| **Attendees** | Names, email addresses, response status |
+| **Recurring Events** | Expanded instances with individual occurrence data |
+| **Cancelled Events** | Detected and removed from index automatically |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Google Cloud
+
+**Scopes:** `https://www.googleapis.com/auth/calendar.readonly`
+
+Create an OAuth 2.0 client in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with the Calendar API enabled.
+
+## Quick Start
+
+1. Create a project in Google Cloud Console and enable the Calendar API
+2. Create OAuth 2.0 credentials and configure the redirect URI
+3. Add the Google Calendar connector in OpenBeam with your credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/google-calendar/setup" description="Google Cloud project and OAuth configuration" />
+  <Card title="Features" href="/docs/connectors/google-calendar/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/google-calendar/configuration" description="Calendar filters, lookback days, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/google-calendar/sync" description="Full sync, syncToken delta sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/google-calendar/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -1,0 +1,61 @@
+---
+title: Features
+description: Google Calendar connector capabilities
+---
+
+# Google Calendar Features
+
+## Search
+
+- **Full-text**: Event titles, descriptions, location names
+- **Attendees**: Search by attendee name or email address
+- **Metadata**: Date range, calendar name, organizer filtering
+- **Recurring**: Individual occurrences of recurring events are searchable
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Events | Title, description, start/end time, location, organizer |
+| Attendees | Name, email, response status (accepted, declined, tentative) |
+| Recurring Events | Expanded instances with per-occurrence start/end times |
+| All-day Events | Date range, title, description |
+
+## Event Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Title | Yes | Yes |
+| Description | Yes | No |
+| Location | Yes | Yes |
+| Organizer | Yes | Yes |
+| Attendees | Yes | Yes |
+| Start Time | Yes | Yes |
+| End Time | Yes | Yes |
+| Calendar Name | Yes | Yes |
+| Status (confirmed/cancelled) | No | Yes |
+| Recurring | No | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes |
+| Incremental | syncToken delta (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across calendar events with date, attendee, and location filtering
+- Meeting preparation by finding related events, attendees, and context
+- Schedule analysis and meeting pattern discovery across calendars
+- Conflict detection and free/busy insights from indexed event data
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Google Calendar API quota | 1,000,000 queries per day |
+| Events per calendar list request | 2,500 |
+| syncToken expiry | Approximately 7 days of inactivity |
+| Declined events | Indexed but flagged as declined |
+| Shared calendars | Only calendars visible to the authenticated user |

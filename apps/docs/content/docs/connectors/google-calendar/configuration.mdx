@@ -1,0 +1,49 @@
+---
+title: Configuration
+description: Google Calendar connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_calendars` | All | Comma-separated calendar IDs or names to sync |
+| `exclude_calendars` | None | Comma-separated calendar IDs or names to skip |
+| `sync_recurring` | `true` | Expand and index individual recurring event instances |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | `90` | Days of event history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | syncToken delta check frequency |
+
+## Environment Variables
+
+```bash
+GOOGLE_CALENDAR_CLIENT_ID=your-oauth-client-id
+GOOGLE_CALENDAR_CLIENT_SECRET=your-oauth-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Calendar Access
+
+Google Calendar OAuth grants access to:
+- All calendars visible to the authenticated user
+- Primary calendar and subscribed calendars
+- Shared calendars where the user has read access
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change calendar filters | Full sync |
+| Increase lookback days | Full sync |
+| Enable recurring event expansion | Full sync |
+| New calendars added | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

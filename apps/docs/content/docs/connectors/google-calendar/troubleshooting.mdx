@@ -1,0 +1,80 @@
+---
+title: Troubleshooting
+description: Common Google Calendar connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `redirect_uri_mismatch` | Redirect URI in Google Cloud Console does not match your OpenBeam URL |
+| `access_denied` | User denied consent or app is in testing mode — add user as test user |
+| `invalid_client` | Client ID or Client Secret is incorrect |
+| `invalid_grant` | Refresh token expired or revoked — reconnect the OAuth flow |
+| `unauthorized_client` | OAuth client not configured for web application type |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| No events syncing | Verify `calendar.readonly` scope is granted during consent |
+| Calendar not found | Check calendar ID spelling in include/exclude filters |
+| Shared calendar missing | User must have the calendar visible in their calendar list |
+| Only primary calendar syncing | Verify include_calendars is set to All or includes the target calendar IDs |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| HTTP 410 Gone | syncToken expired — full resync triggered automatically |
+| Rate limit exceeded (403) | Auto-backoff; wait for quota reset (per-user: 100 seconds, daily: 24 hours) |
+| Recurring events missing | Verify `sync_recurring` is enabled in configuration |
+| Old events missing | Increase `lookback_days` setting and trigger full resync |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify Google Calendar API is enabled in Google Cloud Console |
+| Token expired | OAuth auto-refreshes; reconnect if persistent |
+| API errors | Check [Google Workspace Status](https://www.google.com/appsstatus/dashboard/) |
+
+## Debug Commands
+
+```bash
+curl https://api.your-domain.com/webhooks/google-calendar/health
+
+tail -f logs/worker.log | grep -i google-calendar
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `AuthenticationError` | 401 | Reconnect OAuth |
+| `Forbidden` | 403 | Check API quota or scope permissions |
+| `NotFound` | 404 | Calendar ID does not exist |
+| `Gone` | 410 | syncToken expired — automatic full resync |
+| `TooManyRequests` | 429 | Wait for quota reset window |
+| `ServiceUnavailable` | 503 | Google Calendar API temporary outage — retry later |
+
+## Common Patterns
+
+### Issue: "No events appearing in search"
+
+1. Check connector status is Active
+2. Verify `calendar.readonly` scope was granted during OAuth
+3. Check calendar filters are not excluding all calendars
+4. Verify `lookback_days` covers the desired date range
+5. Try manual Full Resync
+
+### Issue: "Slow initial sync"
+
+Large accounts with many calendars take time. Progress shown in connector status.
+- 1 calendar, 500 events: ~30 seconds
+- 5 calendars, 5,000 events: ~3 minutes
+- 20+ calendars, 50,000+ events: 10+ minutes
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with error messages and logs.

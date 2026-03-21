@@ -1,0 +1,76 @@
+---
+title: Quick Start
+description: Connect Google Calendar to OpenBeam
+---
+
+# Google Calendar Quick Start
+
+## Prerequisites
+
+- Google Workspace or personal Google account
+- Access to [Google Cloud Console](https://console.cloud.google.com/)
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create a Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Click the project selector at the top and click **New Project**
+3. Enter a project name (e.g., OpenBeam Calendar Connector)
+4. Click **Create**
+
+## 2. Enable the Calendar API
+
+1. In your project, go to **APIs & Services > Library**
+2. Search for **Google Calendar API**
+3. Click **Enable**
+
+## 3. Configure the OAuth Consent Screen
+
+1. Go to **APIs & Services > OAuth consent screen**
+2. Select **Internal** (Google Workspace) or **External** (personal accounts)
+3. Fill in:
+   - **App name**: OpenBeam Calendar Connector
+   - **User support email**: Your email
+   - **Developer contact information**: Your email
+4. Under **Scopes**, add `https://www.googleapis.com/auth/calendar.readonly`
+5. Click **Save and Continue**
+
+<Callout type="info">
+For External apps, the consent screen will be in "Testing" mode. Add test users under the OAuth consent screen settings until you publish the app.
+</Callout>
+
+## 4. Create OAuth 2.0 Credentials
+
+1. Go to **APIs & Services > Credentials**
+2. Click **Create Credentials > OAuth client ID**
+3. Select **Web application**
+4. Add an authorized redirect URI:
+   ```text
+   https://your-domain.com/connectors/setup/google-calendar/oauth/callback
+   ```
+5. Click **Create**
+6. Copy the **Client ID** and **Client Secret**
+
+## 5. Configure Environment
+
+```bash
+GOOGLE_CALENDAR_CLIENT_ID=your-client-id
+GOOGLE_CALENDAR_CLIENT_SECRET=your-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 6. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Google Calendar**
+2. Enter **Client ID** and **Client Secret**
+3. Click **Connect** and authorize in the Google login window
+4. Initial sync starts automatically
+
+Accounts with many calendars and events may take several minutes for full sync. Configure calendar filters to speed up initial indexing.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/google-calendar/configuration" description="Calendar filters, lookback days, and sync settings" />
+  <Card title="Gmail Setup" href="/docs/connectors/gmail/setup" description="Reuse the same Google Cloud project for Gmail" />
+  <Card title="Google Drive Setup" href="/docs/connectors/google-drive/setup" description="Reuse the same Google Cloud project for Google Drive" />
+</Cards>

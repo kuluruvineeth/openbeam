@@ -1,0 +1,63 @@
+---
+title: Sync Behavior
+description: How Google Calendar data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes |
+| **Incremental** | syncToken delta (scheduled) | Seconds |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Calendar Discovery**: List all calendars from the user's calendar list
+2. **Full Sync**: For each calendar, fetch all events within the lookback window using `events.list` with `timeMin`
+3. **syncToken Capture**: Store the `nextSyncToken` returned at the end of each full event listing
+4. **Incremental Sync**: Call `events.list` with the stored `syncToken` to receive only created, updated, and cancelled events
+5. **Cancelled Event Handling**: Events with `status: "cancelled"` are removed from the index
+6. **Transform**: Convert events to searchable documents with attendee, location, and time metadata
+
+## syncToken Delta Sync
+
+The Google Calendar API uses syncTokens for efficient incremental sync:
+
+- The final page of an `events.list` response includes a `nextSyncToken`
+- Subsequent calls pass this token via the `syncToken` parameter to get only changes
+- Cancelled events appear with `status: "cancelled"` for deletion handling
+- If a syncToken is invalidated (HTTP 410), a full resync is triggered automatically
+
+```text
+GET https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events?syncToken={token}
+```
+
+<Callout type="warn">
+syncTokens expire after approximately 7 days of inactivity. When this happens, the API returns HTTP 410 Gone and the connector falls back to a full resync automatically.
+</Callout>
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Queries per day | 1,000,000 |
+| Queries per 100 seconds per user | 500 |
+| Request concurrency | 4 concurrent requests per connector |
+
+OpenBeam handles throttling with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Google Calendar > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync
