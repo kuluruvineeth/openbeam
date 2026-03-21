@@ -129,6 +129,23 @@ export const outlookApp: UnifiedApp = {
       value: "",
       placeholder: "Unlimited",
     },
+    {
+      id: "max_attachment_size_mb",
+      label: "Max Attachment Size (MB)",
+      description: "Skip attachments larger than this size.",
+      type: "text",
+      required: false,
+      value: "25",
+      placeholder: "25",
+    },
+    {
+      id: "sync_calendar_invites",
+      label: "Sync Calendar Invites",
+      description: "Include calendar invite emails in sync.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
   ],
 };
 

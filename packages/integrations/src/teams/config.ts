@@ -148,6 +148,22 @@ export const teamsApp: UnifiedApp = {
       value: "",
       placeholder: "Unlimited",
     },
+    {
+      id: "sync_files",
+      label: "Sync Files",
+      description: "Index files shared in channels.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
+      id: "sync_meeting_notes",
+      label: "Sync Meeting Notes",
+      description: "Index meeting transcripts and notes.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
   ],
 };
 

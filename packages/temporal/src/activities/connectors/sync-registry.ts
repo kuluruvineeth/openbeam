@@ -2492,7 +2492,25 @@ export function registerAllSyncFactories(): void {
         );
       }
 
-      logger.info({ connectorId, instance }, "ServiceNow sync config loaded");
+      const syncKnowledge = (config?.sync_knowledge as boolean) ?? true;
+      const syncChanges = (config?.sync_changes as boolean) ?? true;
+      const lookbackDays = (config?.lookback_days as string) ?? "";
+      const categoryFilter = (config?.category_filter as string) ?? "";
+      const assignmentGroupFilter =
+        (config?.assignment_group_filter as string) ?? "";
+
+      logger.info(
+        {
+          connectorId,
+          instance,
+          syncKnowledge,
+          syncChanges,
+          lookbackDays,
+          categoryFilter,
+          assignmentGroupFilter,
+        },
+        "ServiceNow sync config loaded"
+      );
 
       const client = createServiceNowClient({
         connectorId,
@@ -2508,13 +2526,26 @@ export function registerAllSyncFactories(): void {
         instance,
       };
 
+      const syncOptions = {
+        batchSize: 100,
+        syncKnowledge,
+        syncChanges,
+        lookbackDays: lookbackDays ? Number(lookbackDays) : undefined,
+        categoryFilter: categoryFilter
+          ? categoryFilter.split(",").map((s: string) => s.trim())
+          : undefined,
+        assignmentGroupFilter: assignmentGroupFilter
+          ? assignmentGroupFilter.split(",").map((s: string) => s.trim())
+          : undefined,
+      };
+
       const runFull = shouldRunFullSync(syncType, cursor);
 
       const syncGenerator = runFull
-        ? servicenowFullSync(client, context, { batchSize: 100 })
+        ? servicenowFullSync(client, context, syncOptions)
         : servicenowIncrementalSync(client, context, {
+            ...syncOptions,
             cursor,
-            batchSize: 100,
           });
 
       for await (const batch of syncGenerator) {

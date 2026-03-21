@@ -113,6 +113,33 @@ export const microsoftCalendarApp: UnifiedApp = {
       value: "90",
       placeholder: "90",
     },
+    {
+      id: "exclude_declined",
+      label: "Exclude Declined Events",
+      description: "Skip declined events.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
+      id: "include_calendars",
+      label: "Include Calendars",
+      description:
+        "Only sync these calendar names. Leave empty for all calendars.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "",
+    },
+    {
+      id: "forward_days",
+      label: "Forward Days",
+      description: "How far ahead to sync events.",
+      type: "text",
+      required: false,
+      value: "365",
+      placeholder: "365",
+    },
   ],
 };
 

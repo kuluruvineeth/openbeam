@@ -117,6 +117,23 @@ export const googleCalendarApp: UnifiedApp = {
       value: "90",
       placeholder: "90",
     },
+    {
+      id: "exclude_declined",
+      label: "Exclude Declined Events",
+      description: "Skip events the user declined.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
+      id: "time_zone",
+      label: "Timezone Override",
+      description: "Override timezone for date display.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "America/New_York",
+    },
   ],
 };
 

@@ -155,6 +155,24 @@ export const sharePointApp: UnifiedApp = {
       value: "100",
       placeholder: "100",
     },
+    {
+      id: "sync_pages",
+      label: "Sync Site Pages",
+      description: "Index SharePoint site pages.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "file_types_filter",
+      label: "File Types Filter",
+      description:
+        "Only sync files with these extensions. Leave empty for all file types.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: ".docx, .pdf, .xlsx, .pptx",
+    },
   ],
 };
 
