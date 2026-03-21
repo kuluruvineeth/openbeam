@@ -22,6 +22,7 @@ import {
   FHIRIcon,
   GitHubIcon,
   GmailIcon,
+  GoogleCalendarIcon,
   GoogleDriveIcon,
   JiraIcon,
   LinearIcon,
@@ -90,6 +91,7 @@ const customIconMap: Record<
   Confluence: ConfluenceIcon,
   Jira: JiraIcon,
   Salesforce: SalesforceIcon,
+  GoogleCalendar: GoogleCalendarIcon,
 };
 
 export const source = loader({

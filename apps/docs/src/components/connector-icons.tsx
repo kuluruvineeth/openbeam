@@ -700,3 +700,31 @@ export const SalesforceIcon = ({ size = 16 }: IconProps): ReactElement => (
     />
   </svg>
 );
+
+export const GoogleCalendarIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 200 200"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M152.637 47.363H47.363v105.274h105.274z" fill="#fff" />
+    <path d="M152.637 200L200 152.637h-47.363z" fill="#1A73E8" />
+    <path d="M200 47.363h-47.363v105.274H200z" fill="#4285F4" />
+    <path d="M152.637 152.637H47.363V200h105.274z" fill="#34A853" />
+    <path
+      d="M0 152.637v23.681A23.682 23.682 0 0 0 23.681 200h23.682v-47.363z"
+      fill="#188038"
+    />
+    <path
+      d="M200 47.363V23.681A23.682 23.682 0 0 0 176.319 0h-23.682v47.363z"
+      fill="#1967D2"
+    />
+    <path
+      d="M176.319 0H23.681A23.682 23.682 0 0 0 0 23.681v128.956h47.363V47.363h105.274V0z"
+      fill="#4285F4"
+    />
+    <path d="M0 47.363v105.274h47.363V47.363z" fill="#FBBC04" />
+  </svg>
+);
