@@ -1,8 +1,10 @@
 export type { CommentActionResult, IssueActionResult } from "./actions";
 export {
   addComment,
+  addWatcher,
   assignIssue,
   createIssue,
+  deleteIssue,
   transitionIssueStatus,
   updateIssue,
 } from "./actions";

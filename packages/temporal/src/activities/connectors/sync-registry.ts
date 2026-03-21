@@ -14,6 +14,7 @@ import {
   createAwsIotClient,
   createAzureIotClient,
   createBacnetClient,
+  createDropboxClient,
   createFhirClient,
   createGitHubClient,
   createGmailClient,
@@ -38,6 +39,8 @@ import {
   createVerkadaClient,
   createViamClient,
   createZendeskClient,
+  dropboxFullSync,
+  dropboxIncrementalSync,
   fhirFullSync,
   fhirIncrementalSync,
   getValidAccessToken,
@@ -1086,6 +1089,18 @@ export function registerAllSyncFactories(): void {
             .map((p) => p.trim())
             .filter(Boolean)
         : undefined;
+      const issueTypes = config?.issue_types
+        ? String(config.issue_types)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
+      const statusFilter = config?.status_filter
+        ? String(config.status_filter)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
 
       if (!cloudId) {
         throw ApplicationFailure.nonRetryable(
@@ -1121,6 +1136,8 @@ export function registerAllSyncFactories(): void {
             excludeProjects,
             syncComments,
             lookbackDays,
+            issueTypes,
+            statusFilter,
           })
         : jiraIncrementalSync(client, context, {
             cursor,
@@ -1129,6 +1146,8 @@ export function registerAllSyncFactories(): void {
             excludeProjects,
             syncComments,
             lookbackDays,
+            issueTypes,
+            statusFilter,
           });
 
       for await (const batch of syncGenerator) {
@@ -1646,6 +1665,45 @@ export function registerAllSyncFactories(): void {
             batchSize: 200,
             syncCases,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "DROPBOX",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const accountId = (config?.accountId as string) ?? "";
+
+      logger.info({ connectorId, accountId }, "Dropbox sync config loaded");
+
+      const client = createDropboxClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        accountId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? dropboxFullSync(client, context, { batchSize: 100 })
+        : dropboxIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
           });
 
       for await (const batch of syncGenerator) {

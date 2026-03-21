@@ -167,6 +167,40 @@ export async function transitionIssueStatus(
   }
 }
 
+export async function addWatcher(
+  client: AtlassianClient,
+  issueIdOrKey: string,
+  watcherAccountId: string
+): Promise<IssueActionResult> {
+  try {
+    await client.post(
+      `/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}/watchers`,
+      watcherAccountId
+    );
+    return { success: true, issueKey: issueIdOrKey };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to add watcher",
+    };
+  }
+}
+
+export async function deleteIssue(
+  client: AtlassianClient,
+  issueIdOrKey: string
+): Promise<IssueActionResult> {
+  try {
+    await client.del(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`);
+    return { success: true, issueKey: issueIdOrKey };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete issue",
+    };
+  }
+}
+
 export async function assignIssue(
   client: AtlassianClient,
   issueIdOrKey: string,

@@ -21,6 +21,8 @@ export async function* jiraIncrementalSync(
     excludeProjects?: string[];
     syncComments?: boolean;
     lookbackDays?: number;
+    issueTypes?: string[];
+    statusFilter?: string[];
   } = {}
 ): AsyncGenerator<JiraSyncBatch<GenericDocument>, void, undefined> {
   const { cursor, batchSize = 50, syncComments = true } = options;
@@ -32,6 +34,8 @@ export async function* jiraIncrementalSync(
       excludeProjects: options.excludeProjects,
       syncComments,
       lookbackDays: options.lookbackDays,
+      issueTypes: options.issueTypes,
+      statusFilter: options.statusFilter,
     });
     return;
   }
@@ -51,6 +55,16 @@ export async function* jiraIncrementalSync(
   } else if (options.excludeProjects?.length) {
     const projects = options.excludeProjects.map((p) => `"${p}"`).join(", ");
     jql = `project NOT IN (${projects}) AND ${jql}`;
+  }
+
+  if (options.issueTypes?.length) {
+    const types = options.issueTypes.map((t) => `"${t}"`).join(", ");
+    jql = `issuetype IN (${types}) AND ${jql}`;
+  }
+
+  if (options.statusFilter?.length) {
+    const statuses = options.statusFilter.map((s) => `"${s}"`).join(", ");
+    jql = `status IN (${statuses}) AND ${jql}`;
   }
 
   let nextPageToken: string | undefined;
@@ -172,6 +186,8 @@ export async function* jiraIncrementalSync(
       excludeProjects: options.excludeProjects,
       syncComments,
       lookbackDays: options.lookbackDays,
+      issueTypes: options.issueTypes,
+      statusFilter: options.statusFilter,
     });
   }
 }

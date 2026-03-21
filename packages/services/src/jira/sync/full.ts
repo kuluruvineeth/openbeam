@@ -19,6 +19,8 @@ export async function* jiraFullSync(
     excludeProjects?: string[];
     syncComments?: boolean;
     lookbackDays?: number;
+    issueTypes?: string[];
+    statusFilter?: string[];
   } = {}
 ): AsyncGenerator<JiraSyncBatch<GenericDocument>, void, undefined> {
   const batchSize = options.batchSize ?? 50;
@@ -37,6 +39,18 @@ export async function* jiraFullSync(
   } else if (options.excludeProjects?.length) {
     const projects = options.excludeProjects.map((p) => `"${p}"`).join(", ");
     jql = `project NOT IN (${projects}) ${jql}`;
+  }
+
+  if (options.issueTypes?.length) {
+    const types = options.issueTypes.map((t) => `"${t}"`).join(", ");
+    const clause = `issuetype IN (${types})`;
+    jql = jql.startsWith("ORDER") ? `${clause} ${jql}` : `${clause} AND ${jql}`;
+  }
+
+  if (options.statusFilter?.length) {
+    const statuses = options.statusFilter.map((s) => `"${s}"`).join(", ");
+    const clause = `status IN (${statuses})`;
+    jql = jql.startsWith("ORDER") ? `${clause} ${jql}` : `${clause} AND ${jql}`;
   }
 
   if (options.lookbackDays) {
