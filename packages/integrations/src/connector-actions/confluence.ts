@@ -118,5 +118,26 @@ export const confluenceActionsRegistry: ConnectorActionsRegistry = {
       ],
       outputs: [{ id: "commentId", name: "Comment ID", type: "string" }],
     },
+    {
+      id: "page_archive",
+      name: "Archive Page",
+      description: "Archive a Confluence page",
+      connectorType: "confluence",
+      resource: "page",
+      category: "update",
+      stakes: "high",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "page_id",
+          name: "Page ID",
+          type: "string",
+          required: true,
+          description: "ID of the page to archive",
+        },
+      ],
+      outputs: [{ id: "pageId", name: "Page ID", type: "string" }],
+    },
   ],
 };

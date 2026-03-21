@@ -52,3 +52,18 @@ export function updatePage(
     params
   );
 }
+
+export async function archivePage(
+  client: AtlassianClient,
+  pageId: string
+): Promise<ConfluencePageResponse> {
+  const current = await getPage(client, pageId);
+  const currentVersion = current.version?.number ?? 1;
+
+  return client.put<ConfluencePageResponse>(`/wiki/api/v2/pages/${pageId}`, {
+    id: pageId,
+    title: current.title,
+    status: "archived",
+    version: { number: currentVersion + 1, message: "Archived" },
+  });
+}

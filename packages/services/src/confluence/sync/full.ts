@@ -6,6 +6,8 @@ import type {
 import type { GenericDocument } from "@openbeam/vespa";
 import type { AtlassianClient } from "../../atlassian/client";
 import { logger } from "../../lib/logger";
+import { listBlogpostComments, listPageComments } from "../api/comments";
+import { transformConfluenceComment } from "../transformers/comment";
 import {
   type ConfluencePage,
   type ConfluenceSpaceInfo,
@@ -20,16 +22,24 @@ type ConfluenceSpace = {
   status: string;
 };
 
+type FullSyncOptions = {
+  batchSize?: number;
+  includeSpaces?: string[];
+  excludeSpaces?: string[];
+  syncComments?: boolean;
+  labelsFilter?: string[];
+  syncArchived?: boolean;
+};
+
 export async function* confluenceFullSync(
   client: AtlassianClient,
   context: ConfluenceTransformContext,
-  options: {
-    batchSize?: number;
-    includeSpaces?: string[];
-    excludeSpaces?: string[];
-  } = {}
+  options: FullSyncOptions = {}
 ): AsyncGenerator<ConfluenceSyncBatch<GenericDocument>, void, undefined> {
   const batchSize = options.batchSize ?? 100;
+  const syncComments = options.syncComments ?? false;
+  const labelsFilter = options.labelsFilter ?? [];
+  const syncArchived = options.syncArchived ?? false;
   let documents: GenericDocument[] = [];
   let processed = 0;
   let skipped = 0;
@@ -60,6 +70,16 @@ export async function* confluenceFullSync(
           continue;
         }
 
+        if (page.status === "archived" && !syncArchived) {
+          skipped += 1;
+          continue;
+        }
+
+        if (labelsFilter.length > 0 && !pageMatchesLabels(page, labelsFilter)) {
+          skipped += 1;
+          continue;
+        }
+
         try {
           const doc = transformConfluencePage(page, context, spaceInfo, "page");
           documents.push(doc);
@@ -68,6 +88,17 @@ export async function* confluenceFullSync(
           trackLatestModified(page, latestModified, (ts) => {
             latestModified = ts;
           });
+
+          if (syncComments) {
+            const commentDocs = await fetchPageComments({
+              client,
+              page,
+              context,
+              spaceInfo,
+            });
+            documents.push(...commentDocs);
+            processed += commentDocs.length;
+          }
 
           if (documents.length >= batchSize) {
             yield {
@@ -106,6 +137,11 @@ export async function* confluenceFullSync(
           continue;
         }
 
+        if (post.status === "archived" && !syncArchived) {
+          skipped += 1;
+          continue;
+        }
+
         try {
           const doc = transformConfluencePage(
             post,
@@ -119,6 +155,17 @@ export async function* confluenceFullSync(
           trackLatestModified(post, latestModified, (ts) => {
             latestModified = ts;
           });
+
+          if (syncComments) {
+            const commentDocs = await fetchBlogpostComments({
+              client,
+              page: post,
+              context,
+              spaceInfo,
+            });
+            documents.push(...commentDocs);
+            processed += commentDocs.length;
+          }
 
           if (documents.length >= batchSize) {
             yield {
@@ -154,6 +201,82 @@ export async function* confluenceFullSync(
     hasMore: false,
     stats: { processed, skipped, errors },
   };
+}
+
+type FetchCommentsParams = {
+  client: AtlassianClient;
+  page: ConfluencePage;
+  context: ConfluenceTransformContext;
+  spaceInfo: ConfluenceSpaceInfo;
+};
+
+async function fetchPageComments(
+  params: FetchCommentsParams
+): Promise<GenericDocument[]> {
+  const { client, page, context, spaceInfo } = params;
+  const docs: GenericDocument[] = [];
+  const commentIterator = listPageComments(client, page.id);
+
+  try {
+    for await (const comments of commentIterator) {
+      for (const comment of comments) {
+        docs.push(
+          transformConfluenceComment(comment, context, {
+            pageId: page.id,
+            pageTitle: page.title,
+            spaceKey: spaceInfo.key,
+            spaceName: spaceInfo.name,
+          })
+        );
+      }
+    }
+  } catch (error) {
+    logger.warn(
+      { error, pageId: page.id },
+      "Failed to fetch comments for page"
+    );
+  }
+
+  return docs;
+}
+
+async function fetchBlogpostComments(
+  params: FetchCommentsParams
+): Promise<GenericDocument[]> {
+  const { client, page, context, spaceInfo } = params;
+  const docs: GenericDocument[] = [];
+  const commentIterator = listBlogpostComments(client, page.id);
+
+  try {
+    for await (const comments of commentIterator) {
+      for (const comment of comments) {
+        docs.push(
+          transformConfluenceComment(comment, context, {
+            pageId: page.id,
+            pageTitle: page.title,
+            spaceKey: spaceInfo.key,
+            spaceName: spaceInfo.name,
+          })
+        );
+      }
+    }
+  } catch (error) {
+    logger.warn(
+      { error, pageId: page.id },
+      "Failed to fetch comments for blogpost"
+    );
+  }
+
+  return docs;
+}
+
+function pageMatchesLabels(
+  page: ConfluencePage,
+  labelsFilter: string[]
+): boolean {
+  const pageLabels =
+    page.labels?.results?.map((l) => l.name.toLowerCase()) ?? [];
+  return labelsFilter.some((f) => pageLabels.includes(f.toLowerCase()));
 }
 
 async function fetchSpaces(

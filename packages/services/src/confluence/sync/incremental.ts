@@ -6,6 +6,8 @@ import type {
 import type { GenericDocument } from "@openbeam/vespa";
 import type { AtlassianClient } from "../../atlassian/client";
 import { logger } from "../../lib/logger";
+import type { ConfluenceComment } from "../api/comments";
+import { transformConfluenceComment } from "../transformers/comment";
 import {
   type ConfluencePage,
   transformConfluencePage,
@@ -43,23 +45,34 @@ type CqlSearchResult = {
   _links?: { next?: string };
 };
 
+type IncrementalSyncOptions = {
+  cursor?: ConfluenceSyncCursor;
+  batchSize?: number;
+  includeSpaces?: string[];
+  excludeSpaces?: string[];
+  syncComments?: boolean;
+  labelsFilter?: string[];
+  syncArchived?: boolean;
+};
+
 export async function* confluenceIncrementalSync(
   client: AtlassianClient,
   context: ConfluenceTransformContext,
-  options: {
-    cursor?: ConfluenceSyncCursor;
-    batchSize?: number;
-    includeSpaces?: string[];
-    excludeSpaces?: string[];
-  } = {}
+  options: IncrementalSyncOptions = {}
 ): AsyncGenerator<ConfluenceSyncBatch<GenericDocument>, void, undefined> {
   const { cursor, batchSize = 100 } = options;
+  const syncComments = options.syncComments ?? false;
+  const labelsFilter = options.labelsFilter ?? [];
+  const syncArchived = options.syncArchived ?? false;
 
   if (!(cursor?.lastSyncTime && cursor?.lastFullSync)) {
     yield* confluenceFullSync(client, context, {
       batchSize,
       includeSpaces: options.includeSpaces,
       excludeSpaces: options.excludeSpaces,
+      syncComments,
+      labelsFilter,
+      syncArchived,
     });
     return;
   }
@@ -71,7 +84,11 @@ export async function* confluenceIncrementalSync(
   let latestModified: string | undefined = cursor.lastSyncTime;
 
   const formattedDate = cursor.lastSyncTime.slice(0, 16).replace("T", " ");
-  const cql = `lastModified>="${formattedDate}" ORDER BY lastModified ASC`;
+
+  const typeFilter = syncComments
+    ? 'type IN ("page","blogpost","comment")'
+    : 'type IN ("page","blogpost")';
+  const cql = `lastModified>="${formattedDate}" AND ${typeFilter} ORDER BY lastModified ASC`;
 
   let start = 0;
   const limit = 50;
@@ -91,6 +108,50 @@ export async function* confluenceIncrementalSync(
 
       for (const item of result.results) {
         const c = item.content;
+
+        if (c.type === "comment") {
+          if (!syncComments) {
+            continue;
+          }
+
+          const comment: ConfluenceComment = {
+            id: c.id,
+            status: c.status,
+            title: c.title,
+            body: c.body as ConfluenceComment["body"],
+            version: c.version
+              ? {
+                  number: c.version.number,
+                  createdAt: c.version.when,
+                  authorId: c.version.by?.accountId,
+                }
+              : undefined,
+            createdAt:
+              c.history?.createdDate ??
+              c.version?.when ??
+              new Date().toISOString(),
+            authorId: c.history?.createdBy?.accountId,
+          };
+
+          try {
+            const doc = transformConfluenceComment(comment, context, {
+              pageId: c.space?.key ?? "",
+              pageTitle: c.title,
+              spaceKey: c.space?.key,
+              spaceName: c.space?.name,
+            });
+            documents.push(doc);
+            processed += 1;
+          } catch (error) {
+            logger.error(
+              { error, commentId: c.id },
+              "Error transforming Confluence comment"
+            );
+            errors += 1;
+          }
+          continue;
+        }
+
         if (c.status === "trashed") {
           const docType = c.type === "blogpost" ? "blogpost" : "page";
           documents.push({
@@ -108,6 +169,21 @@ export async function* confluenceIncrementalSync(
           } as unknown as GenericDocument);
           processed += 1;
           continue;
+        }
+
+        if (c.status === "archived" && !syncArchived) {
+          continue;
+        }
+
+        if (labelsFilter.length > 0) {
+          const pageLabels =
+            c.metadata?.labels?.results?.map((l) => l.name.toLowerCase()) ?? [];
+          const matches = labelsFilter.some((f) =>
+            pageLabels.includes(f.toLowerCase())
+          );
+          if (!matches) {
+            continue;
+          }
         }
 
         const docType =
@@ -183,6 +259,9 @@ export async function* confluenceIncrementalSync(
         batchSize,
         includeSpaces: options.includeSpaces,
         excludeSpaces: options.excludeSpaces,
+        syncComments,
+        labelsFilter,
+        syncArchived,
       });
       return;
     }
