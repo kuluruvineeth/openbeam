@@ -36,6 +36,8 @@ export type SalesforceClient = {
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   query<T>(soql: string): Promise<SoqlQueryResponse<T>>;
   queryAll<T>(soql: string): AsyncGenerator<T[], void, undefined>;
+  post<T>(path: string, body: unknown): Promise<T>;
+  patch(path: string, body: unknown): Promise<void>;
   getDeleted(
     sobject: string,
     start: string,
@@ -159,6 +161,39 @@ export function createSalesforceClient(
     }
   }
 
+  function post<T>(path: string, body: unknown): Promise<T> {
+    return request<T>(buildUrl(path), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  async function patch(path: string, body: unknown): Promise<void> {
+    const url = buildUrl(path);
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const errBody = (await response.json().catch(() => [{}])) as Array<{
+        message?: string;
+        errorCode?: string;
+      }>;
+      const err = errBody[0] ?? {};
+      throw new SalesforceApiError({
+        message: err.message ?? `PATCH failed: ${response.status}`,
+        statusCode: response.status,
+        code: err.errorCode ?? "UPDATE_FAILED",
+        retryable: response.status >= 500,
+      });
+    }
+  }
+
   function getDeleted(
     sobject: string,
     start: string,
@@ -173,6 +208,8 @@ export function createSalesforceClient(
     connectorId,
     instanceUrl,
     get,
+    post,
+    patch,
     query,
     queryAll,
     getDeleted,

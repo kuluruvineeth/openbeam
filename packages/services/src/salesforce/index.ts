@@ -1,3 +1,6 @@
+export type { RecordActionResult as SalesforceRecordActionResult } from "./actions";
+export { createSalesforceRecord, updateSalesforceRecord } from "./actions";
+export { createRecord, describeSObject, updateRecord } from "./api";
 export { SalesforceAuth } from "./auth";
 export type { SalesforceClient, SalesforceClientConfig } from "./client";
 export { createSalesforceClient } from "./client";

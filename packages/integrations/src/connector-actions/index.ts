@@ -6,6 +6,7 @@ import { googleDriveActionsRegistry } from "./google-drive";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { notionActionsRegistry } from "./notion";
+import { salesforceActionsRegistry } from "./salesforce";
 import { slackActionsRegistry } from "./slack";
 
 export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
@@ -17,4 +18,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   linearActionsRegistry,
   jiraActionsRegistry,
   confluenceActionsRegistry,
+  salesforceActionsRegistry,
 ];
