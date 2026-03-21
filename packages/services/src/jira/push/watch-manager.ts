@@ -147,8 +147,7 @@ export class JiraWatchManager {
     await redis.set(
       `${REDIS_KEY_PREFIX}${this.connectorId}`,
       JSON.stringify(state),
-      "EX",
-      WEBHOOK_TTL_DAYS * 86_400
+      { EX: WEBHOOK_TTL_DAYS * 86_400 }
     );
   }
 
