@@ -12,18 +12,34 @@ import { transformZendeskArticle } from "../transformers/article";
 import { transformZendeskComment } from "../transformers/comment";
 import { transformZendeskTicket } from "../transformers/ticket";
 
+export type ZendeskFullSyncOptions = {
+  batchSize?: number;
+  syncComments?: boolean;
+  syncArticles?: boolean;
+  lookbackDays?: number;
+  tagsFilter?: string[];
+  excludeClosedDays?: number;
+};
+
 export async function* zendeskFullSync(
   client: ZendeskClient,
   context: ZendeskTransformContext,
-  options: {
-    batchSize?: number;
-    syncComments?: boolean;
-  } = {}
+  options: ZendeskFullSyncOptions = {}
 ): AsyncGenerator<ZendeskSyncBatch<GenericDocument>, void, undefined> {
   const batchSize = options.batchSize ?? 100;
   const syncComments = options.syncComments ?? false;
+  const syncArticles = options.syncArticles ?? true;
+  const tagsFilter = options.tagsFilter ?? [];
+  const lookbackCutoff = options.lookbackDays
+    ? Date.now() - options.lookbackDays * 86_400_000
+    : undefined;
+  const closedCutoff = options.excludeClosedDays
+    ? Date.now() - options.excludeClosedDays * 86_400_000
+    : undefined;
+
   let documents: GenericDocument[] = [];
   let processed = 0;
+  let skipped = 0;
   let errors = 0;
   let latestUpdatedAt = 0;
 
@@ -32,6 +48,13 @@ export async function* zendeskFullSync(
     const userLookup = await buildUserLookup(client, userIds);
 
     for (const ticket of tickets) {
+      if (
+        shouldSkipTicket(ticket, { tagsFilter, lookbackCutoff, closedCutoff })
+      ) {
+        skipped += 1;
+        continue;
+      }
+
       try {
         documents.push(transformZendeskTicket(ticket, context, userLookup));
         processed += 1;
@@ -59,7 +82,7 @@ export async function* zendeskFullSync(
     if (documents.length >= batchSize) {
       yield makeBatch({
         items: documents,
-        stats: { processed, skipped: 0, errors },
+        stats: { processed, skipped, errors },
         hasMore: true,
         latestUpdatedAt,
       });
@@ -67,40 +90,47 @@ export async function* zendeskFullSync(
     }
   }
 
-  try {
-    for await (const articles of getAllArticles(client)) {
-      const userIds = articles.map((a) => a.author_id);
-      const userLookup = await buildUserLookup(client, userIds);
+  if (syncArticles) {
+    try {
+      for await (const articles of getAllArticles(client)) {
+        const userIds = articles.map((a) => a.author_id);
+        const userLookup = await buildUserLookup(client, userIds);
 
-      for (const article of articles) {
-        try {
-          documents.push(transformZendeskArticle(article, context, userLookup));
-          processed += 1;
-          latestUpdatedAt = trackTimestamp(article.updated_at, latestUpdatedAt);
-        } catch (error) {
-          logger.error(
-            { error, articleId: article.id },
-            "Error transforming Zendesk article"
-          );
-          errors += 1;
+        for (const article of articles) {
+          try {
+            documents.push(
+              transformZendeskArticle(article, context, userLookup)
+            );
+            processed += 1;
+            latestUpdatedAt = trackTimestamp(
+              article.updated_at,
+              latestUpdatedAt
+            );
+          } catch (error) {
+            logger.error(
+              { error, articleId: article.id },
+              "Error transforming Zendesk article"
+            );
+            errors += 1;
+          }
+        }
+
+        if (documents.length >= batchSize) {
+          yield makeBatch({
+            items: documents,
+            stats: { processed, skipped, errors },
+            hasMore: true,
+            latestUpdatedAt,
+          });
+          documents = [];
         }
       }
-
-      if (documents.length >= batchSize) {
-        yield makeBatch({
-          items: documents,
-          stats: { processed, skipped: 0, errors },
-          hasMore: true,
-          latestUpdatedAt,
-        });
-        documents = [];
-      }
+    } catch (error) {
+      logger.warn(
+        { error },
+        "Help Center articles query failed — org may not have Guide enabled"
+      );
     }
-  } catch (error) {
-    logger.warn(
-      { error },
-      "Help Center articles query failed — org may not have Guide enabled"
-    );
   }
 
   const cursor: ZendeskSyncCursor = {
@@ -112,7 +142,7 @@ export async function* zendeskFullSync(
     items: documents,
     cursor,
     hasMore: false,
-    stats: { processed, skipped: 0, errors },
+    stats: { processed, skipped, errors },
   };
 }
 
@@ -154,4 +184,41 @@ function makeBatch(params: {
 function trackTimestamp(dateStr: string, current: number): number {
   const ts = new Date(dateStr).getTime();
   return ts > current ? ts : current;
+}
+
+function shouldSkipTicket(
+  ticket: {
+    tags: string[];
+    status: string;
+    created_at: string;
+    updated_at: string;
+  },
+  filters: {
+    tagsFilter: string[];
+    lookbackCutoff?: number;
+    closedCutoff?: number;
+  }
+): boolean {
+  if (
+    filters.tagsFilter.length > 0 &&
+    !ticket.tags.some((tag) => filters.tagsFilter.includes(tag))
+  ) {
+    return true;
+  }
+
+  if (filters.lookbackCutoff) {
+    const createdAt = new Date(ticket.created_at).getTime();
+    if (createdAt < filters.lookbackCutoff) {
+      return true;
+    }
+  }
+
+  if (filters.closedCutoff && ticket.status === "closed") {
+    const updatedAt = new Date(ticket.updated_at).getTime();
+    if (updatedAt < filters.closedCutoff) {
+      return true;
+    }
+  }
+
+  return false;
 }

@@ -133,6 +133,44 @@ export const zendeskApp: UnifiedApp = {
       required: false,
       value: false,
     },
+    {
+      id: "sync_articles",
+      label: "Sync Articles",
+      description: "Index Help Center articles from Zendesk Guide.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "lookback_days",
+      label: "Lookback Days",
+      description:
+        "Only sync tickets created within this many days. Leave empty for unlimited.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Unlimited",
+    },
+    {
+      id: "tags_filter",
+      label: "Tags Filter",
+      description:
+        "Only sync tickets with at least one of these tags (comma-separated). Leave empty for all tickets.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "priority, escalated",
+    },
+    {
+      id: "exclude_closed_days",
+      label: "Exclude Closed After (Days)",
+      description:
+        "Skip tickets that have been closed for more than this many days. Leave empty to include all.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "90",
+    },
   ],
 };
 

@@ -2405,6 +2405,15 @@ export function registerAllSyncFactories(): void {
       const config = connector.config as Record<string, unknown> | null;
       const subdomain = (config?.subdomain as string) ?? "";
       const syncComments = config?.sync_comments === true;
+      const syncArticles = config?.sync_articles !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+      const excludeClosedDays = parseNumericConfig(config?.exclude_closed_days);
+      const tagsFilter = config?.tags_filter
+        ? String(config.tags_filter)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
 
       if (!subdomain) {
         throw ApplicationFailure.nonRetryable(
@@ -2413,7 +2422,18 @@ export function registerAllSyncFactories(): void {
         );
       }
 
-      logger.info({ connectorId, subdomain }, "Zendesk sync config loaded");
+      logger.info(
+        {
+          connectorId,
+          subdomain,
+          syncComments,
+          syncArticles,
+          lookbackDays,
+          excludeClosedDays,
+          tagsFilter,
+        },
+        "Zendesk sync config loaded"
+      );
 
       const client = createZendeskClient({
         connectorId,
@@ -2429,17 +2449,22 @@ export function registerAllSyncFactories(): void {
         subdomain,
       };
 
+      const syncOptions = {
+        batchSize: 100,
+        syncComments,
+        syncArticles,
+        lookbackDays,
+        tagsFilter,
+        excludeClosedDays,
+      };
+
       const runFull = shouldRunFullSync(syncType, cursor);
 
       const syncGenerator = runFull
-        ? zendeskFullSync(client, context, {
-            batchSize: 100,
-            syncComments,
-          })
+        ? zendeskFullSync(client, context, syncOptions)
         : zendeskIncrementalSync(client, context, {
+            ...syncOptions,
             cursor,
-            batchSize: 100,
-            syncComments,
           });
 
       for await (const batch of syncGenerator) {

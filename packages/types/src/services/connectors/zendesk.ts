@@ -13,6 +13,10 @@ export const ZendeskSyncOptionsSchema = z.object({
   cursor: ZendeskSyncCursorSchema.optional(),
   batchSize: z.number().optional().default(100),
   syncComments: z.boolean().optional().default(false),
+  syncArticles: z.boolean().optional().default(true),
+  lookbackDays: z.number().optional(),
+  tagsFilter: z.array(z.string()).optional(),
+  excludeClosedDays: z.number().optional(),
 });
 
 export type ZendeskSyncOptions = z.infer<typeof ZendeskSyncOptionsSchema>;

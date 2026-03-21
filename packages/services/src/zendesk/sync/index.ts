@@ -1,2 +1,5 @@
-export { zendeskFullSync } from "./full";
-export { zendeskIncrementalSync } from "./incremental";
+export { type ZendeskFullSyncOptions, zendeskFullSync } from "./full";
+export {
+  type ZendeskIncrementalSyncOptions,
+  zendeskIncrementalSync,
+} from "./incremental";
