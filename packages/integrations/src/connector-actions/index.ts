@@ -7,6 +7,7 @@ import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleDriveActionsRegistry } from "./google-drive";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
+import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
 import { notionActionsRegistry } from "./notion";
 import { outlookActionsRegistry } from "./outlook";
 import { salesforceActionsRegistry } from "./salesforce";
@@ -35,4 +36,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   verkadaActionsRegistry,
   awsIotActionsRegistry,
   smartThingsActionsRegistry,
+  microsoftCalendarActionsRegistry,
 ];

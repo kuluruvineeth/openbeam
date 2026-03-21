@@ -1,0 +1,23 @@
+---
+title: Configuration
+description: Configure the Microsoft Calendar connector settings
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Application (client) ID** | Azure AD app registration client ID | Required |
+| **Client Secret** | Azure AD app registration secret | Required |
+| **Tenant ID** | Azure AD tenant ID for single-tenant apps | `common` |
+| **History (days)** | How far back to sync events | `90` |
+
+## Lookback Days
+
+The connector syncs events from the configured number of days in the past up to 1 year in the future. Adjust the lookback based on your needs:
+
+- **30 days**: Recent meetings only, fast initial sync
+- **90 days** (default): Good balance of history and performance
+- **365 days**: Full year of calendar history

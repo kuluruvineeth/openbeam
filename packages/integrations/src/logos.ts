@@ -15,6 +15,7 @@ import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
+import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
 import { Logo as MQTTLogo } from "./mqtt/assets/logo";
 import { Logo as NodeREDLogo } from "./nodered/assets/logo";
@@ -63,6 +64,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,
   [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
+  [AppType.MICROSOFT_CALENDAR]: MicrosoftCalendarLogo,
   [AppType.AWS_IOT]: AwsIotLogo,
   [AppType.AZURE_IOT]: AzureIotLogo,
   [AppType.SMARTTHINGS]: SmartThingsLogo,

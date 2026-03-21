@@ -51,6 +51,8 @@ import {
   linearIncrementalSync,
   matterportFullSync,
   matterportIncrementalSync,
+  microsoftCalendarFullSync,
+  microsoftCalendarIncrementalSync,
   mitreAttackFullSync,
   mqttFullSync,
   mqttIncrementalSync,
@@ -1697,6 +1699,58 @@ export function registerAllSyncFactories(): void {
             cursor,
             batchSize: 100,
             includeCalendars,
+            lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MICROSOFT_CALENDAR",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : 90;
+
+      logger.info(
+        { connectorId, userEmail },
+        "Microsoft Calendar sync config loaded"
+      );
+
+      const client = createMicrosoftGraphClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? microsoftCalendarFullSync(client, context, {
+            batchSize: 100,
+            lookbackDays,
+          })
+        : microsoftCalendarIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
             lookbackDays,
           });
 

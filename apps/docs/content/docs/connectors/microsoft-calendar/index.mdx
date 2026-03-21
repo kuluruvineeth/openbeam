@@ -1,0 +1,41 @@
+---
+title: Microsoft Calendar
+description: Search calendar events, meetings, and schedules from Microsoft Calendar (Outlook Calendar) via Microsoft Graph API
+---
+
+# Microsoft Calendar
+
+Index calendar events, meetings, and schedules from Microsoft Calendar (Outlook Calendar). Supports OAuth 2.0 via Azure AD and delta sync via the Microsoft Graph API for efficient incremental updates.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Events** | Subject, body, start/end time, location, organizer |
+| **Attendees** | Names, email addresses, response status |
+| **Recurring Events** | Expanded instances with individual occurrence data |
+| **Cancelled Events** | Detected and removed from index automatically |
+| **All-Day Events** | Full-day events with date-only start/end |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Azure AD (Microsoft identity platform)
+
+**Scopes:** `Calendars.Read`, `User.Read`, `offline_access`
+
+Register an application in the [Azure AD portal](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) with the Microsoft Graph Calendar permissions.
+
+## Quick Start
+
+1. Register an app in Azure AD and configure the redirect URI
+2. Add `Calendars.Read` and `User.Read` delegated permissions
+3. Add the Microsoft Calendar connector in OpenBeam with your credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/microsoft-calendar/setup" description="Azure AD app registration and OAuth configuration" />
+  <Card title="Features" href="/docs/connectors/microsoft-calendar/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/microsoft-calendar/configuration" description="Lookback days and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/microsoft-calendar/sync" description="Full sync, delta sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/microsoft-calendar/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -9,6 +9,7 @@ import googleCalendar from "./google-calendar/google-calendar.index";
 import googleDrive from "./google-drive/google-drive.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
+import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
 import salesforce from "./salesforce/salesforce.index";
@@ -39,6 +40,7 @@ integrations.route("/confluence", confluence);
 integrations.route("/jira", jira);
 integrations.route("/salesforce", salesforce);
 integrations.route("/google-calendar", googleCalendar);
+integrations.route("/microsoft-calendar", microsoftCalendar);
 
 integrations.get("/health", (c) =>
   c.json({

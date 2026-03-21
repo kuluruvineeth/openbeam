@@ -1,0 +1,28 @@
+---
+title: Sync Behavior
+description: How the Microsoft Calendar connector syncs data
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial full sync uses the Microsoft Graph `calendarView/delta` endpoint to fetch all events within the configured date range (lookback days to 1 year ahead). Events are processed in batches and indexed incrementally.
+
+Cancelled events and removed items are automatically skipped during full sync.
+
+## Incremental Sync (Delta)
+
+After the initial full sync, incremental syncs use the delta link returned by the Microsoft Graph API. This efficiently fetches only events that have been created, modified, or deleted since the last sync.
+
+- **New/updated events**: Indexed or re-indexed with current data
+- **Cancelled events**: Marked as deleted in the search index
+- **Removed items** (`@removed` marker): Treated as deletions
+
+## Delta Token Expiration
+
+If the delta token expires (HTTP 410 or `syncStateNotFound`), the connector automatically falls back to a full sync and obtains a new delta token.
+
+## Sync Schedule
+
+The default sync interval is 15 minutes. Calendar events change less frequently than email, so this interval provides a good balance of freshness and API usage.

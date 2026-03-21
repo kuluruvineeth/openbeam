@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Microsoft Calendar connector
+---
+
+# Troubleshooting
+
+## Authentication Issues
+
+### "Insufficient privileges" error
+Ensure the Azure AD app has `Calendars.Read` and `User.Read` delegated permissions, and admin consent has been granted.
+
+### Token refresh failures
+If the connector shows `AUTH_EXPIRED` status, the refresh token may have expired. Re-authorize by disconnecting and reconnecting the connector.
+
+### Multi-tenant vs single-tenant
+If you see "Application not found in tenant" errors, verify the tenant ID setting matches your Azure AD configuration. Use `common` for multi-tenant apps.
+
+## Sync Issues
+
+### Delta token expired
+The connector automatically falls back to a full sync when the delta token expires. No action is needed, but you may see a longer sync time on the next run.
+
+### Missing events
+Verify the lookback days setting covers the date range you expect. Events outside the configured range are not synced.
+
+### Slow initial sync
+Large calendars with many events may take longer for the initial full sync. Subsequent incremental syncs will be significantly faster.
+
+## API Limits
+
+Microsoft Graph API has rate limits of approximately 10,000 requests per 10 minutes per app. The connector handles rate limiting with automatic retry and exponential backoff.

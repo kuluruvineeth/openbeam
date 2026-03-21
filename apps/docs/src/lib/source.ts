@@ -27,6 +27,7 @@ import {
   JiraIcon,
   LinearIcon,
   MatterportIcon,
+  MicrosoftCalendarIcon,
   MQTTIcon,
   NodeREDIcon,
   NotionIcon,
@@ -93,6 +94,7 @@ const customIconMap: Record<
   Jira: JiraIcon,
   Salesforce: SalesforceIcon,
   GoogleCalendar: GoogleCalendarIcon,
+  MicrosoftCalendar: MicrosoftCalendarIcon,
   SecurityShield: SecurityShieldIcon,
 };
 

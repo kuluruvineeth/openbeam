@@ -1,0 +1,12 @@
+{
+  "title": "Microsoft Calendar",
+  "icon": "MicrosoftCalendar",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

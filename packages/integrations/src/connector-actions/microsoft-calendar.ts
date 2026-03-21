@@ -1,0 +1,138 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const microsoftCalendarActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "microsoft_calendar",
+  connectorName: "Microsoft Calendar",
+  connectorIcon: "microsoft-calendar",
+  actions: [
+    {
+      id: "event_create",
+      name: "Create Event",
+      description: "Create a new calendar event",
+      connectorType: "microsoft_calendar",
+      resource: "event",
+      category: "create",
+      stakes: "medium",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "subject",
+          name: "Subject",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "start_date_time",
+          name: "Start Time",
+          type: "date",
+          required: true,
+          description: "ISO 8601 datetime",
+        },
+        {
+          id: "end_date_time",
+          name: "End Time",
+          type: "date",
+          required: true,
+          description: "ISO 8601 datetime",
+        },
+        {
+          id: "body",
+          name: "Body",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "location",
+          name: "Location",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "attendees",
+          name: "Attendees",
+          type: "array",
+          required: false,
+          description: "Email addresses of attendees",
+        },
+      ],
+      outputs: [
+        { id: "eventId", name: "Event ID", type: "string" },
+        { id: "url", name: "Event URL", type: "string" },
+      ],
+    },
+    {
+      id: "event_update",
+      name: "Update Event",
+      description: "Update an existing calendar event",
+      connectorType: "microsoft_calendar",
+      resource: "event",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "event_id",
+          name: "Event ID",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "subject",
+          name: "Subject",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "start_date_time",
+          name: "Start Time",
+          type: "date",
+          required: false,
+        },
+        {
+          id: "end_date_time",
+          name: "End Time",
+          type: "date",
+          required: false,
+        },
+        {
+          id: "body",
+          name: "Body",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "location",
+          name: "Location",
+          type: "string",
+          required: false,
+        },
+      ],
+      outputs: [
+        { id: "eventId", name: "Event ID", type: "string" },
+        { id: "url", name: "Event URL", type: "string" },
+      ],
+    },
+    {
+      id: "event_delete",
+      name: "Delete Event",
+      description: "Delete a calendar event",
+      connectorType: "microsoft_calendar",
+      resource: "event",
+      category: "delete",
+      stakes: "high",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "event_id",
+          name: "Event ID",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [{ id: "eventId", name: "Event ID", type: "string" }],
+    },
+  ],
+};

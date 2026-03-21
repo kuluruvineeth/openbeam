@@ -433,6 +433,19 @@ export {
   createMicrosoftGraphClient,
   MicrosoftGraphApiError,
 } from "./microsoft";
+export type {
+  MicrosoftCalendarEvent,
+  MicrosoftCalendarEventActionResult,
+} from "./microsoft-calendar";
+export {
+  createMicrosoftCalendarEvent,
+  deleteMicrosoftCalendarEvent,
+  MicrosoftCalendarAuth,
+  microsoftCalendarFullSync,
+  microsoftCalendarIncrementalSync,
+  transformMicrosoftCalendarEvent,
+  updateMicrosoftCalendarEvent,
+} from "./microsoft-calendar";
 export {
   TeamsAuth,
   teamsFullSync,

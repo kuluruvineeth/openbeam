@@ -1,0 +1,46 @@
+---
+title: Setup
+description: Register an Azure AD application and connect Microsoft Calendar to OpenBeam
+---
+
+# Microsoft Calendar Setup
+
+## Prerequisites
+
+- A Microsoft 365 account (personal or organizational)
+- Access to the [Azure AD portal](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+
+## Step 1: Register an Azure AD Application
+
+1. Go to **Azure Active Directory** > **App registrations** > **New registration**
+2. Set the name (e.g., "OpenBeam Calendar Connector")
+3. Choose **Accounts in any organizational directory and personal Microsoft accounts** for multi-tenant support
+4. Set the redirect URI to your OpenBeam callback URL:
+   ```
+   https://your-domain.com/connectors/setup/microsoft-calendar/oauth/callback
+   ```
+5. Click **Register**
+
+## Step 2: Configure API Permissions
+
+1. Go to **API permissions** > **Add a permission**
+2. Select **Microsoft Graph** > **Delegated permissions**
+3. Add these permissions:
+   - `Calendars.Read`
+   - `User.Read`
+   - `offline_access`
+4. Click **Grant admin consent** (if available)
+
+## Step 3: Create Client Secret
+
+1. Go to **Certificates & secrets** > **New client secret**
+2. Set a description and expiration period
+3. Copy the secret value immediately (it will not be shown again)
+
+## Step 4: Connect in OpenBeam
+
+1. Navigate to **Connectors** > **Add Connector** > **Microsoft Calendar**
+2. Enter your **Application (client) ID** and **Client Secret**
+3. Optionally set the **Tenant ID** (leave as "common" for multi-tenant)
+4. Click **Connect** to start the OAuth flow
+5. Sign in with your Microsoft account and grant permissions

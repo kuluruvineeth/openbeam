@@ -14,7 +14,8 @@ type IntegrationName =
   | "google-drive"
   | "notion"
   | "linear"
-  | "github";
+  | "github"
+  | "microsoft-calendar";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -53,6 +54,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  "microsoft-calendar": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/microsoft-calendar/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

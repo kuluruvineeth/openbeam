@@ -75,6 +75,7 @@ export enum AppType {
   CONFLUENCE = "CONFLUENCE",
   JIRA = "JIRA",
   SALESFORCE = "SALESFORCE",
+  MICROSOFT_CALENDAR = "MICROSOFT_CALENDAR",
 }
 
 export enum SyncMode {

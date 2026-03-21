@@ -17,6 +17,7 @@ import {
   refreshGoogleDriveToken,
   refreshJiraToken,
   refreshLinearToken,
+  refreshMicrosoftCalendarToken,
   refreshOutlookToken,
   refreshSalesforceToken,
   refreshSharePointToken,
@@ -133,6 +134,14 @@ export async function refreshConnectorToken(
         };
         break;
       }
+
+      case "MICROSOFT_CALENDAR":
+        newToken = await refreshMicrosoftCalendarToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
 
       case "OUTLOOK":
         newToken = await refreshOutlookToken({

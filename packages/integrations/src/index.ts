@@ -11,6 +11,7 @@ import { googleDriveApp } from "./google-drive/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
+import { microsoftCalendarApp } from "./microsoft-calendar/config";
 import { mitreAttackApp } from "./mitre-attack/config";
 import { mqttApp } from "./mqtt/config";
 import { noderedApp } from "./nodered/config";
@@ -44,6 +45,7 @@ export {
   googleDriveApp,
   jiraApp,
   linearApp,
+  microsoftCalendarApp,
   matterportApp,
   mitreAttackApp,
   mqttApp,
@@ -179,6 +181,17 @@ export type {
   LinearViewer,
 } from "./linear/types";
 export { appLogos, connectorLogos } from "./logos";
+export type {
+  ExchangeMicrosoftCalendarCodeParams,
+  GenerateMicrosoftCalendarAuthUrlParams,
+  MicrosoftCalendarOAuthResult,
+  RefreshMicrosoftCalendarTokenParams,
+} from "./microsoft-calendar/oauth";
+export {
+  exchangeMicrosoftCalendarCode,
+  generateMicrosoftCalendarAuthUrl,
+  refreshMicrosoftCalendarToken,
+} from "./microsoft-calendar/oauth";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
 export type {
@@ -270,4 +283,5 @@ export const appStore: UnifiedApp[] = [
   jiraApp,
   salesforceApp,
   googleCalendarApp,
+  microsoftCalendarApp,
 ];
