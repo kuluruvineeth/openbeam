@@ -5,6 +5,7 @@ import {
 import { Logo as AwsIotLogo } from "./aws-iot/assets/logo";
 import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
+import { Logo as BoxLogo } from "./box/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
@@ -64,6 +65,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.SHAREPOINT]: SharePointLogo,
   [AppType.MICROSOFT_TEAMS]: TeamsLogo,
   [AppType.CONFLUENCE]: ConfluenceLogo,
+  [AppType.BOX]: BoxLogo,
   [AppType.DROPBOX]: DropboxLogo,
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,

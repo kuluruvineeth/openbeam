@@ -6,6 +6,8 @@ import {
   azureIotIncrementalSync,
   bacnetFullSync,
   bacnetIncrementalSync,
+  boxFullSync,
+  boxIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
   confluenceFullSync,
@@ -14,6 +16,7 @@ import {
   createAwsIotClient,
   createAzureIotClient,
   createBacnetClient,
+  createBoxClient,
   createDropboxClient,
   createFhirClient,
   createGitHubClient,
@@ -1685,6 +1688,47 @@ export function registerAllSyncFactories(): void {
             syncLeads,
             syncCampaigns,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "BOX",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const enterpriseId = (config?.enterpriseId as string) ?? "";
+      const rootFolderId = (config?.root_folder_id as string) || "0";
+
+      logger.info({ connectorId, enterpriseId }, "Box sync config loaded");
+
+      const client = createBoxClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        enterpriseId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? boxFullSync(client, context, { batchSize: 100, rootFolderId })
+        : boxIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            rootFolderId,
           });
 
       for await (const batch of syncGenerator) {

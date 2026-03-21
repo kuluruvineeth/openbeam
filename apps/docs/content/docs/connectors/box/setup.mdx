@@ -1,0 +1,49 @@
+---
+title: Setup
+description: Step-by-step instructions to connect Box.
+---
+
+## Prerequisites
+
+- A Box account (Personal, Business, or Enterprise)
+- Admin access to create a Box app (or ask your admin)
+
+## Step 1: Create a Box Application
+
+1. Go to the [Box Developer Console](https://app.box.com/developers/console)
+2. Click **Create New App**
+3. Select **Custom App**
+4. Choose **User Authentication (OAuth 2.0)**
+5. Name your app (e.g., "OpenBeam Integration")
+6. Under **Configuration**, note the **Client ID** and **Client Secret**
+
+## Step 2: Configure Redirect URI
+
+In the Box app settings under **OAuth 2.0 Redirect URI**, add:
+
+```
+https://your-openbeam-domain.com/connectors/setup/box/oauth/callback
+```
+
+For local development:
+```
+http://localhost:3001/connectors/setup/box/oauth/callback
+```
+
+## Step 3: Set Application Scopes
+
+Under **Application Scopes**, enable:
+- **Read all files and folders stored in Box**
+- **Write all files and folders stored in Box**
+
+## Step 4: Add Connector in OpenBeam
+
+1. Go to **Settings > Connectors**
+2. Click **Add Connector** and select **Box**
+3. Enter the **Client ID** and **Client Secret** from Step 1
+4. Click **Connect** to start the OAuth flow
+5. Authorize the app in the Box consent screen
+
+## Step 5: Verify Connection
+
+After authorization, Box will appear as an active connector. The initial sync starts automatically.

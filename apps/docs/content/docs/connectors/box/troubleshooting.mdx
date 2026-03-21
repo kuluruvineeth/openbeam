@@ -1,0 +1,44 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Box connector.
+---
+
+## OAuth Connection Fails
+
+- Verify the Client ID and Client Secret are correct
+- Check that the redirect URI matches exactly in the Box Developer Console
+- Ensure the app has OAuth 2.0 enabled (not JWT or Client Credentials)
+
+## Token Refresh Fails
+
+Box access tokens expire after 60 minutes, and refresh tokens are single-use. If refresh fails:
+
+- Check that the app has not been revoked in Box account settings
+- Re-authorize the connection from OpenBeam settings
+- Ensure the refresh token has not been used by another process
+
+## No Files Synced
+
+- Confirm the Box account has files in the configured root folder
+- Check if **Root Folder ID** is set correctly (use `0` for the entire account)
+- Verify the app has **Read all files and folders** scope enabled
+
+## Rate Limiting
+
+Box allows 10 API calls per second per user. The connector handles rate limits automatically with exponential backoff. If you see persistent rate limit errors:
+
+- Check if other applications share the same Box app credentials
+- Consider using a dedicated Box app for OpenBeam
+
+## Events Stream Position Expired
+
+Box retains events for 2 weeks to 2 months. If the stream position expires, the connector falls back to a full resync automatically.
+
+## Error Codes
+
+| Code | Meaning | Resolution |
+|------|---------|------------|
+| `INVALID_ACCESS_TOKEN` | Token expired or revoked | Re-authorize the connector |
+| `RATE_LIMITED` | Too many API calls | Wait and retry (automatic) |
+| `NOT_FOUND` | Item deleted or inaccessible | Check item exists in Box |
+| `SERVER_ERROR` | Box API issue | Retry (automatic with backoff) |

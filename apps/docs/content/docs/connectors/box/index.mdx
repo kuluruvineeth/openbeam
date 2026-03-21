@@ -1,0 +1,32 @@
+---
+title: Box
+description: Connect Box to search across files, folders, and web links.
+---
+
+The Box connector indexes files, folders, and web links from your Box account, making them searchable across your organization.
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Method** | OAuth 2.0 |
+| **Data Streams** | Files, Folders, Web Links |
+| **Sync Type** | Full + Incremental (events stream) |
+| **Rate Limits** | 10 API calls/second per user |
+
+## Quick Setup
+
+<Steps>
+<Step>Create a Box App in the [Developer Console](https://app.box.com/developers/console)</Step>
+<Step>Add the connector in OpenBeam and enter your Client ID and Secret</Step>
+<Step>Authorize the OAuth connection</Step>
+<Step>Files begin syncing automatically</Step>
+</Steps>
+
+## What Gets Indexed
+
+- All files with metadata (name, path, size, modification date, SHA1)
+- Folder structure for navigation context
+- Web links (bookmarks) with target URLs
+- Sharing information and shared link detection
+- File type classification (document, spreadsheet, presentation, image)

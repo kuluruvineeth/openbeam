@@ -1,6 +1,7 @@
 import { awsIotApp } from "./aws-iot/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
+import { boxApp } from "./box/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
@@ -39,6 +40,7 @@ export {
   awsIotApp,
   azureIotApp,
   bacnetApp,
+  boxApp,
   cisaKevApp,
   confluenceApp,
   dropboxApp,
@@ -85,6 +87,22 @@ export {
   generateAtlassianAuthUrl,
   refreshAtlassianToken,
 } from "./atlassian";
+export type {
+  BoxOAuthResult,
+  BoxTokenResponse,
+  BoxUserInfo,
+  ExchangeBoxCodeParams,
+  GenerateBoxAuthUrlParams,
+  RefreshBoxTokenParams,
+  RefreshBoxTokenResult,
+} from "./box";
+export {
+  BOX_TOKEN_LIFETIME_SECONDS,
+  BoxOAuthError,
+  exchangeBoxCode,
+  generateBoxAuthUrl,
+  refreshBoxToken,
+} from "./box";
 export type {
   ConfluenceOAuthResult,
   ExchangeConfluenceCodeParams,
@@ -327,6 +345,7 @@ export const appStore: UnifiedApp[] = [
   confluenceApp,
   jiraApp,
   dropboxApp,
+  boxApp,
   salesforceApp,
   servicenowApp,
   zendeskApp,

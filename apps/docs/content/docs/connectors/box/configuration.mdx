@@ -1,0 +1,42 @@
+---
+title: Configuration
+description: Configuration options for the Box connector.
+---
+
+## Authentication
+
+| Setting | Required | Description |
+|---------|----------|-------------|
+| Client ID | Yes | From the Box Developer Console |
+| Client Secret | Yes | From the Box Developer Console |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Root Folder ID | `0` (root) | Folder ID to start syncing from |
+| Include Shared Folders | `true` | Index folders shared with the authenticated user |
+| Sync Web Links | `true` | Index web link bookmarks |
+| File Types Filter | (all) | Comma-separated extensions to include |
+| Max File Size (MB) | (no limit) | Skip files larger than this size |
+| Exclude Trashed | `true` | Skip items in the trash |
+
+## Filtering
+
+### By File Type
+
+Set **File Types Filter** to only index specific file types:
+
+```
+pdf,docx,xlsx,pptx,txt
+```
+
+### By Folder
+
+Set **Root Folder ID** to limit sync to a specific folder subtree. Find the folder ID from the Box URL:
+
+```
+https://app.box.com/folder/123456789
+                            ^^^^^^^^^
+                            This is the folder ID
+```

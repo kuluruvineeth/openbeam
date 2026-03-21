@@ -10,7 +10,9 @@ import prisma, {
   updateOAuthTokens,
 } from "@openbeam/db";
 import {
+  boxApp,
   dropboxApp,
+  refreshBoxToken,
   refreshConfluenceToken,
   refreshDropboxToken,
   refreshGitHubToken,
@@ -215,6 +217,26 @@ export async function refreshConnectorToken(
         newToken = {
           accessToken: sfResult.accessToken,
           expiresIn: sfResult.expiresIn,
+        };
+        break;
+      }
+
+      case "BOX": {
+        const boxConfig =
+          boxApp.auth.type === "OAUTH2" ? boxApp.auth.config : undefined;
+        if (!boxConfig) {
+          throw new Error("Box OAuth config not found");
+        }
+        const boxResult = await refreshBoxToken({
+          config: boxConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: boxResult.accessToken,
+          expiresIn: boxResult.expiresIn,
+          refreshToken: boxResult.refreshToken,
         };
         break;
       }

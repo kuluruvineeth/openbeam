@@ -1,0 +1,12 @@
+{
+  "title": "Box",
+  "icon": "Box",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

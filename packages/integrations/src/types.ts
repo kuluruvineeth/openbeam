@@ -79,6 +79,7 @@ export enum AppType {
   SERVICENOW = "SERVICENOW",
   MICROSOFT_CALENDAR = "MICROSOFT_CALENDAR",
   DROPBOX = "DROPBOX",
+  BOX = "BOX",
 }
 
 export enum SyncMode {

@@ -1,5 +1,6 @@
 import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
 import { awsIotActionsRegistry } from "./aws-iot";
+import { boxActionsRegistry } from "./box";
 import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
 import { githubActionsRegistry } from "./github";
@@ -43,4 +44,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   servicenowActionsRegistry,
   zendeskActionsRegistry,
   dropboxActionsRegistry,
+  boxActionsRegistry,
 ];

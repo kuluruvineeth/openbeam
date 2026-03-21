@@ -1,0 +1,41 @@
+---
+title: Features
+description: Capabilities of the Box connector.
+---
+
+## Supported Entity Types
+
+| Entity | Indexed | Searchable | Actions |
+|--------|---------|------------|---------|
+| Files | Yes | Name, path, description, extension | Move, Delete, Share |
+| Folders | Yes | Name, path, description | Create, Move, Delete, Share |
+| Web Links | Yes | Name, target URL, description | - |
+
+## Sync Capabilities
+
+| Feature | Supported |
+|---------|-----------|
+| Full Sync | Yes |
+| Incremental Sync | Yes (Events API) |
+| Deletion Detection | Yes (ITEM_TRASH, ITEM_DELETE events) |
+| Recursive Traversal | Yes |
+
+## Actions
+
+The Box connector supports the following write operations:
+
+- **Create Folder** - Create a new folder in any location
+- **Move Item** - Move files or folders to a new parent
+- **Delete Item** - Delete files or folders (with recursive support)
+- **Share Item** - Create shared links with configurable access levels
+
+## File Type Detection
+
+Files are automatically classified by extension:
+
+| Category | Extensions |
+|----------|------------|
+| Document | doc, docx, odt, rtf, txt, md, pdf |
+| Spreadsheet | xls, xlsx, csv, ods, tsv |
+| Presentation | ppt, pptx, odp, key |
+| Image | png, jpg, jpeg, gif, bmp, svg, webp, tiff, heic |

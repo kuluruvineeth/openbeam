@@ -1,0 +1,34 @@
+---
+title: Sync
+description: How Box data is synced to OpenBeam.
+---
+
+## Full Sync
+
+The initial sync recursively traverses all folders starting from the configured root folder. Every file, folder, and web link is indexed with full metadata.
+
+After the full sync completes, the current events stream position is recorded for future incremental syncs.
+
+## Incremental Sync
+
+Subsequent syncs use the Box Events API with `stream_type=changes` to detect modifications since the last sync:
+
+| Event Type | Action |
+|------------|--------|
+| `ITEM_CREATE` | Index new item |
+| `ITEM_UPLOAD` | Index uploaded file |
+| `ITEM_MOVE` | Re-index with new path |
+| `ITEM_COPY` | Index the copy |
+| `ITEM_RENAME` | Re-index with new name |
+| `ITEM_TRASH` | Mark as deleted |
+| `ITEM_DELETE` | Mark as deleted |
+
+Duplicate events are deduplicated by event type and item ID within each sync run.
+
+## Sync Schedule
+
+By default, syncs run every 15 minutes. This can be adjusted in the connector settings.
+
+## Cursor Recovery
+
+If the events stream position expires (Box retains events for 2 weeks to 2 months), the connector automatically falls back to a full resync.
