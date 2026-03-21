@@ -1,3 +1,9 @@
+export type { EventActionResult as CalendarEventActionResult } from "./actions";
+export {
+  createCalendarEvent,
+  deleteCalendarEvent,
+  updateCalendarEvent,
+} from "./actions";
 export { GoogleCalendarAuth } from "./auth";
 export type {
   CalendarEvent,

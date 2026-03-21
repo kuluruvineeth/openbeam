@@ -82,6 +82,16 @@ export type GoogleCalendarClient = {
     void,
     undefined
   >;
+  createEvent(
+    calendarId: string,
+    event: Partial<CalendarEvent>
+  ): Promise<CalendarEvent>;
+  updateEvent(
+    calendarId: string,
+    eventId: string,
+    event: Partial<CalendarEvent>
+  ): Promise<CalendarEvent>;
+  deleteEvent(calendarId: string, eventId: string): Promise<void>;
 };
 
 export function createGoogleCalendarClient(
@@ -256,9 +266,56 @@ export function createGoogleCalendarClient(
     } while (pageToken);
   }
 
+  function createEvent(
+    calendarId: string,
+    event: Partial<CalendarEvent>
+  ): Promise<CalendarEvent> {
+    const encodedCalendarId = encodeURIComponent(calendarId);
+    return request<CalendarEvent>(
+      buildUrl(`/calendars/${encodedCalendarId}/events`),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }
+    );
+  }
+
+  function updateEvent(
+    calendarId: string,
+    eventId: string,
+    event: Partial<CalendarEvent>
+  ): Promise<CalendarEvent> {
+    const encodedCalendarId = encodeURIComponent(calendarId);
+    const encodedEventId = encodeURIComponent(eventId);
+    return request<CalendarEvent>(
+      buildUrl(`/calendars/${encodedCalendarId}/events/${encodedEventId}`),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }
+    );
+  }
+
+  async function deleteEvent(
+    calendarId: string,
+    eventId: string
+  ): Promise<void> {
+    const encodedCalendarId = encodeURIComponent(calendarId);
+    const encodedEventId = encodeURIComponent(eventId);
+    await request<unknown>(
+      buildUrl(`/calendars/${encodedCalendarId}/events/${encodedEventId}`),
+      { method: "DELETE" }
+    );
+  }
+
   return {
     connectorId,
     listCalendars,
     listEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
   };
 }
