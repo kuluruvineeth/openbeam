@@ -15,7 +15,8 @@ type IntegrationName =
   | "notion"
   | "linear"
   | "github"
-  | "microsoft-calendar";
+  | "microsoft-calendar"
+  | "zendesk";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -62,6 +63,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  zendesk: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/zendesk/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(

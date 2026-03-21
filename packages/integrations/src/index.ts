@@ -31,6 +31,7 @@ import { thingsboardApp } from "./thingsboard/config";
 import type { UnifiedApp } from "./types";
 import { verkadaApp } from "./verkada/config";
 import { viamApp } from "./viam/config";
+import { zendeskApp } from "./zendesk/config";
 
 export {
   awsIotApp,
@@ -65,6 +66,7 @@ export {
   thingsboardApp,
   verkadaApp,
   viamApp,
+  zendeskApp,
 };
 
 export type {
@@ -250,6 +252,16 @@ export {
   refreshTeamsToken,
 } from "./teams/oauth";
 export * from "./types";
+export type {
+  ExchangeZendeskCodeParams,
+  GenerateZendeskAuthUrlParams,
+  ZendeskOAuthResult,
+} from "./zendesk";
+export {
+  exchangeZendeskCode,
+  generateZendeskAuthUrl,
+  ZendeskOAuthError,
+} from "./zendesk";
 
 export const appStore: UnifiedApp[] = [
   gmailApp,
@@ -282,6 +294,7 @@ export const appStore: UnifiedApp[] = [
   confluenceApp,
   jiraApp,
   salesforceApp,
+  zendeskApp,
   googleCalendarApp,
   microsoftCalendarApp,
 ];

@@ -35,6 +35,7 @@ import { Logo as ThingsBoardLogo } from "./thingsboard/assets/logo";
 import { AppType, type LogoComponent } from "./types";
 import { Logo as VerkadaLogo } from "./verkada/assets/logo";
 import { Logo as ViamLogo } from "./viam/assets/logo";
+import { Logo as ZendeskLogo } from "./zendesk/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
   [AppType.GMAIL]: GmailLogo,
@@ -69,6 +70,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.AZURE_IOT]: AzureIotLogo,
   [AppType.SMARTTHINGS]: SmartThingsLogo,
   [AppType.VERKADA]: VerkadaLogo,
+  [AppType.ZENDESK]: ZendeskLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

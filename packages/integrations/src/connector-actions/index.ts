@@ -17,6 +17,7 @@ import { slackActionsRegistry } from "./slack";
 import { smartThingsActionsRegistry } from "./smartthings";
 import { teamsActionsRegistry } from "./teams";
 import { verkadaActionsRegistry } from "./verkada";
+import { zendeskActionsRegistry } from "./zendesk";
 
 export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   slackActionsRegistry,
@@ -37,4 +38,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   awsIotActionsRegistry,
   smartThingsActionsRegistry,
   microsoftCalendarActionsRegistry,
+  zendeskActionsRegistry,
 ];

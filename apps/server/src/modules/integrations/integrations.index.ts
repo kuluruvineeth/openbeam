@@ -19,6 +19,7 @@ import slack from "./slack/slack.index";
 import smartthings from "./smartthings/smartthings.index";
 import teams from "./teams/teams.index";
 import verkada from "./verkada/verkada.index";
+import zendesk from "./zendesk/zendesk.index";
 
 const integrations = new OpenAPIHono<AuthEnv>();
 
@@ -41,6 +42,7 @@ integrations.route("/jira", jira);
 integrations.route("/salesforce", salesforce);
 integrations.route("/google-calendar", googleCalendar);
 integrations.route("/microsoft-calendar", microsoftCalendar);
+integrations.route("/zendesk", zendesk);
 
 integrations.get("/health", (c) =>
   c.json({

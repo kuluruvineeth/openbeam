@@ -216,6 +216,9 @@ export async function refreshConnectorToken(
         break;
       }
 
+      case "ZENDESK":
+        throw new Error("Zendesk tokens do not expire");
+
       case "SLACK":
         throw new Error("Slack token refresh not implemented");
 

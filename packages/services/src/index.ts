@@ -1055,3 +1055,24 @@ export {
   validateQuerySafety,
   WorkspaceDuckDBError,
 } from "./workspace";
+export type {
+  ZendeskArticle,
+  ZendeskClient,
+  ZendeskClientConfig,
+  ZendeskComment,
+  ZendeskTicket,
+  ZendeskTicketActionResult,
+} from "./zendesk";
+export {
+  addZendeskComment,
+  createZendeskClient,
+  createZendeskTicket,
+  transformZendeskArticle,
+  transformZendeskComment,
+  transformZendeskTicket,
+  updateZendeskTicket,
+  ZendeskApiError,
+  ZendeskAuth,
+  zendeskFullSync,
+  zendeskIncrementalSync,
+} from "./zendesk";

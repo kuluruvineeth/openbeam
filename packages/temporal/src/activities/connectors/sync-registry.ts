@@ -36,6 +36,7 @@ import {
   createThingsboardClient,
   createVerkadaClient,
   createViamClient,
+  createZendeskClient,
   fhirFullSync,
   fhirIncrementalSync,
   getValidAccessToken,
@@ -84,6 +85,8 @@ import {
   verkadaIncrementalSync,
   viamFullSync,
   viamIncrementalSync,
+  zendeskFullSync,
+  zendeskIncrementalSync,
 } from "@openbeam/services";
 import { logger } from "@openbeam/services/lib/logger";
 import type { GenericDocument } from "@openbeam/vespa";
@@ -151,7 +154,7 @@ function createDeleteMarker(params: {
 }
 
 // biome-ignore lint/suspicious/useAwait: async required for AsyncGenerator type compatibility
-async function* createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
+async function* _createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
   yield { items: [], hasMore: false };
 }
 
@@ -2313,5 +2316,58 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("ZENDESK", createEmptySyncGenerator);
+  registerSyncFactory(
+    "ZENDESK",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const subdomain = (config?.subdomain as string) ?? "";
+      const syncComments = config?.sync_comments === true;
+
+      if (!subdomain) {
+        throw ApplicationFailure.nonRetryable(
+          "Zendesk subdomain not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, subdomain }, "Zendesk sync config loaded");
+
+      const client = createZendeskClient({
+        connectorId,
+        accessToken,
+        subdomain,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        subdomain,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? zendeskFullSync(client, context, {
+            batchSize: 100,
+            syncComments,
+          })
+        : zendeskIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            syncComments,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
 }
