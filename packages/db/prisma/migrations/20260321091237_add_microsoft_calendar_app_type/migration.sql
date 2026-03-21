@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AppType" ADD VALUE 'MICROSOFT_CALENDAR';
