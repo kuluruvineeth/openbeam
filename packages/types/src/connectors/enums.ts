@@ -23,6 +23,7 @@ export const AppTypeSchema = z.enum([
   "GMAIL",
   "OUTLOOK",
   "GOOGLE_DRIVE",
+  "GOOGLE_CALENDAR",
   "ONEDRIVE",
   "SHAREPOINT",
   "DROPBOX",
