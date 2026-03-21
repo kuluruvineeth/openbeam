@@ -20,6 +20,7 @@ import {
   searchService,
 } from "./search.service";
 
+// @ts-expect-error RouteHandler type instantiation too deep for this complex schema
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
   AuthEnv
