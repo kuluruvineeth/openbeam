@@ -2,6 +2,8 @@ import {
   type ConnectorType,
   normalizeToConnectorType,
 } from "@openbeam/types/services/connectors/events";
+import { Logo as AwsIotLogo } from "./aws-iot/assets/logo";
+import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
@@ -26,9 +28,11 @@ import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
 import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
+import { Logo as SmartThingsLogo } from "./smartthings/assets/logo";
 import { Logo as TeamsLogo } from "./teams/assets/logo";
 import { Logo as ThingsBoardLogo } from "./thingsboard/assets/logo";
 import { AppType, type LogoComponent } from "./types";
+import { Logo as VerkadaLogo } from "./verkada/assets/logo";
 import { Logo as ViamLogo } from "./viam/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
@@ -59,6 +63,10 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,
   [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
+  [AppType.AWS_IOT]: AwsIotLogo,
+  [AppType.AZURE_IOT]: AzureIotLogo,
+  [AppType.SMARTTHINGS]: SmartThingsLogo,
+  [AppType.VERKADA]: VerkadaLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
