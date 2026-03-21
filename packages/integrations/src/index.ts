@@ -1,3 +1,5 @@
+import { awsIotApp } from "./aws-iot/config";
+import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { confluenceApp } from "./confluence/config";
@@ -22,12 +24,16 @@ import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
 import { sharePointApp } from "./sharepoint/config";
 import { slackApp } from "./slack/config";
+import { smartThingsApp } from "./smartthings/config";
 import { teamsApp } from "./teams/config";
 import { thingsboardApp } from "./thingsboard/config";
 import type { UnifiedApp } from "./types";
+import { verkadaApp } from "./verkada/config";
 import { viamApp } from "./viam/config";
 
 export {
+  awsIotApp,
+  azureIotApp,
   bacnetApp,
   cisaKevApp,
   confluenceApp,
@@ -52,8 +58,10 @@ export {
   samsaraApp,
   sharePointApp,
   slackApp,
+  smartThingsApp,
   teamsApp,
   thingsboardApp,
+  verkadaApp,
   viamApp,
 };
 
@@ -237,6 +245,10 @@ export const appStore: UnifiedApp[] = [
   linearApp,
   notionApp,
   samsaraApp,
+  verkadaApp,
+  awsIotApp,
+  azureIotApp,
+  smartThingsApp,
   slackApp,
   mqttApp,
   opcuaApp,

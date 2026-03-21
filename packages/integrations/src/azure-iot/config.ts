@@ -7,11 +7,11 @@ import {
 } from "../types";
 
 export const azureIotApp: UnifiedApp = {
-  id: AppType.AZURE_IOT_HUB,
+  id: AppType.AZURE_IOT,
   name: "Azure IoT Hub",
   category: "IoT",
   active: true,
-  logo: AppType.AZURE_IOT_HUB,
+  logo: AppType.AZURE_IOT,
   short_description:
     "Search across IoT devices, device twins, and device groups.",
   description:

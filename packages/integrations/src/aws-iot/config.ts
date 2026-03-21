@@ -7,11 +7,11 @@ import {
 } from "../types";
 
 export const awsIotApp: UnifiedApp = {
-  id: AppType.AWS_IOT_CORE,
+  id: AppType.AWS_IOT,
   name: "AWS IoT Core",
   category: "IoT",
   active: true,
-  logo: AppType.AWS_IOT_CORE,
+  logo: AppType.AWS_IOT,
   short_description:
     "Search across IoT things, device shadows, and thing groups.",
   description:
