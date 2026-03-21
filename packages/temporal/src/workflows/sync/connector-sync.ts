@@ -174,6 +174,7 @@ export async function connectorSyncWorkflow(
         connector,
         cursor: state.cursor,
         batchSize: 100,
+        syncType: input.syncType,
       });
 
       if (batch.progressMessage) {

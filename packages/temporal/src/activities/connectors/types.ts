@@ -22,6 +22,7 @@ export interface FetchBatchInput {
   connector: ConnectorRecord;
   cursor?: SyncCursor;
   batchSize: number;
+  syncType?: "FULL" | "INCREMENTAL" | "PERMISSIONS";
 }
 
 export interface DiscoveredResourceRecord {

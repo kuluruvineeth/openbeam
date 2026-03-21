@@ -27,7 +27,8 @@ type SyncGenerator = AsyncGenerator<SyncBatch>;
 type ConnectorSyncFactory = (
   connectorId: string,
   connector: ConnectorRecord,
-  cursor?: SyncCursor
+  cursor?: SyncCursor,
+  syncType?: "FULL" | "INCREMENTAL" | "PERMISSIONS"
 ) => SyncGenerator;
 
 const syncFactories = new Map<string, ConnectorSyncFactory>();
@@ -46,7 +47,8 @@ function buildGeneratorKey(connector: ConnectorRecord): string {
 
 function getOrCreateGenerator(
   connector: ConnectorRecord,
-  cursor?: SyncCursor
+  cursor?: SyncCursor,
+  syncType?: "FULL" | "INCREMENTAL" | "PERMISSIONS"
 ): SyncGenerator {
   const key = buildGeneratorKey(connector);
 
@@ -69,7 +71,7 @@ function getOrCreateGenerator(
     );
   }
 
-  const generator = factory(connector.id, connector, cursor);
+  const generator = factory(connector.id, connector, cursor, syncType);
   activeGenerators.set(key, generator);
   return generator;
 }
@@ -200,7 +202,11 @@ export function createUnifiedFetchBatchActivity(
 ): ConnectorSyncActivities {
   return {
     async fetchBatch(input: FetchBatchInput): Promise<FetchBatchOutput> {
-      const generator = getOrCreateGenerator(input.connector, input.cursor);
+      const generator = getOrCreateGenerator(
+        input.connector,
+        input.cursor,
+        input.syncType
+      );
       return await fetchNextBatch(generator, input.connector, input.batchSize);
     },
   };

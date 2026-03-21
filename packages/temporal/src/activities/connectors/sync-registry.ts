@@ -4,6 +4,8 @@ import {
   awsIotIncrementalSync,
   azureIotFullSync,
   azureIotIncrementalSync,
+  bacnetFullSync,
+  bacnetIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
   confluenceFullSync,
@@ -11,20 +13,31 @@ import {
   createAtlassianClient,
   createAwsIotClient,
   createAzureIotClient,
+  createBacnetClient,
+  createFhirClient,
   createGitHubClient,
   createGmailClient,
   createGoogleCalendarClient,
   createGoogleDriveClient,
   createLinearClient,
+  createMatterportClient,
   createMicrosoftGraphClient,
+  createMqttConnectorClient,
+  createNodeRedClient,
   createNotionClient,
   createNvdClient,
+  createOmniverseClient,
+  createOpcUaClient,
   createOwaspClient,
   createSalesforceClient,
   createSamsaraClient,
   createSlackClient,
   createSmartThingsClient,
+  createThingsboardClient,
   createVerkadaClient,
+  createViamClient,
+  fhirFullSync,
+  fhirIncrementalSync,
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
@@ -36,11 +49,21 @@ import {
   jiraIncrementalSync,
   linearFullSync,
   linearIncrementalSync,
+  matterportFullSync,
+  matterportIncrementalSync,
   mitreAttackFullSync,
+  mqttFullSync,
+  mqttIncrementalSync,
+  nodeRedFullSync,
+  nodeRedIncrementalSync,
   notionFullSync,
   notionIncrementalSync,
   nvdFullSync,
   nvdIncrementalSync,
+  omniverseFullSync,
+  omniverseIncrementalSync,
+  opcUaFullSync,
+  opcUaIncrementalSync,
   outlookIncrementalSync,
   owaspFullSync,
   salesforceFullSync,
@@ -53,8 +76,12 @@ import {
   smartThingsFullSync,
   smartThingsIncrementalSync,
   teamsIncrementalSync,
+  thingsboardFullSync,
+  thingsboardIncrementalSync,
   verkadaFullSync,
   verkadaIncrementalSync,
+  viamFullSync,
+  viamIncrementalSync,
 } from "@openbeam/services";
 import { logger } from "@openbeam/services/lib/logger";
 import type { GenericDocument } from "@openbeam/vespa";
@@ -126,10 +153,28 @@ async function* createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
   yield { items: [], hasMore: false };
 }
 
+function shouldRunFullSync(
+  syncType: string | undefined,
+  cursor: SyncCursor | undefined
+): boolean {
+  if (syncType === "FULL") {
+    return true;
+  }
+  if (syncType === "INCREMENTAL") {
+    return false;
+  }
+  const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+  if (forceFullSync) {
+    return true;
+  }
+  const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+  return typeof lastSyncTime !== "number";
+}
+
 export function registerAllSyncFactories(): void {
   registerSyncFactory(
     "LINEAR",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -148,30 +193,29 @@ export function registerAllSyncFactories(): void {
       };
 
       const pendingResources: DiscoveredResourceRecord[] = [];
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? linearIncrementalSync(client, context, {
-              lastSyncTime,
-              batchSize: 100,
-            })
-          : linearFullSync(client, context, {
-              batchSize: 100,
-              // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-              onTeamsDiscovered: async (teams) => {
-                for (const team of teams) {
-                  pendingResources.push({
-                    externalId: team.id,
-                    resourceType: "team",
-                    name: team.name,
-                    isPublic: true,
-                    metadata: {},
-                  });
-                }
-              },
-            });
+      const syncGenerator = runFull
+        ? linearFullSync(client, context, {
+            batchSize: 100,
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onTeamsDiscovered: async (teams) => {
+              for (const team of teams) {
+                pendingResources.push({
+                  externalId: team.id,
+                  resourceType: "team",
+                  name: team.name,
+                  isPublic: true,
+                  metadata: {},
+                });
+              }
+            },
+          })
+        : linearIncrementalSync(client, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            batchSize: 100,
+          });
 
       for await (const batch of syncGenerator) {
         const resourcesToYield =
@@ -310,7 +354,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "GOOGLE_DRIVE",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -362,7 +406,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of googleDriveIncrementalSync(client, context, {
         batchSize: 100,
         cursor,
-        forceFullSync: parseBooleanConfig(cursor?.forceFullSync) === true,
+        forceFullSync: shouldRunFullSync(syncType, cursor),
         includeSharedDrives,
         lookbackDays,
         indexMedia,
@@ -441,7 +485,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "SLACK",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const token = await getValidAccessToken(connectorId);
       const client = createSlackClient({ token, connectorId });
 
@@ -485,7 +529,7 @@ export function registerAllSyncFactories(): void {
 
       for await (const batch of slackIncrementalSync(client, context, {
         cursor,
-        forceFullSync: parseBooleanConfig(cursor?.forceFullSync) === true,
+        forceFullSync: shouldRunFullSync(syncType, cursor),
         channelOptions: {
           indexDms,
           indexGroupDms,
@@ -565,7 +609,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "NOTION",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -602,17 +646,16 @@ export function registerAllSyncFactories(): void {
       );
 
       const pendingResources: DiscoveredResourceRecord[] = [];
-      const useIncremental =
-        typeof parseNumericConfig(cursor?.lastSyncTime) === "number" &&
-        parseBooleanConfig(cursor?.forceFullSync) !== true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator = useIncremental
-        ? notionIncrementalSync(client, context, {
+      const syncGenerator = runFull
+        ? notionFullSync(client, context, {
             batchSize: 5,
             cursor,
             extractContent,
             extractComments,
             maxBlockDepth,
+            lookbackDays,
             // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
             onDatabasesDiscovered: async (databases) => {
               for (const db of databases) {
@@ -653,13 +696,12 @@ export function registerAllSyncFactories(): void {
               }
             },
           })
-        : notionFullSync(client, context, {
+        : notionIncrementalSync(client, context, {
             batchSize: 5,
             cursor,
             extractContent,
             extractComments,
             maxBlockDepth,
-            lookbackDays,
             // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
             onDatabasesDiscovered: async (databases) => {
               for (const db of databases) {
@@ -720,7 +762,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "SAMSARA",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const config = connector.config as Record<string, unknown> | null;
       const apiToken = config?.api_token as string | undefined;
       if (!apiToken) {
@@ -757,20 +799,18 @@ export function registerAllSyncFactories(): void {
         region,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? samsaraIncrementalSync(client, context, {
-              cursor,
-              batchSize: 100,
-            })
-          : samsaraFullSync(client, context, {
-              batchSize: 100,
-              syncAlerts,
-              lookbackDays,
-            });
+      const syncGenerator = runFull
+        ? samsaraFullSync(client, context, {
+            batchSize: 100,
+            syncAlerts,
+            lookbackDays,
+          })
+        : samsaraIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+          });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -784,7 +824,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "VERKADA",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const config = connector.config as Record<string, unknown> | null;
       const apiKey = config?.api_key as string | undefined;
       if (!apiKey) {
@@ -820,18 +860,16 @@ export function registerAllSyncFactories(): void {
         region,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? verkadaIncrementalSync(client, context, { pageSize: 100 })
-          : verkadaFullSync(client, context, {
-              pageSize: 100,
-              syncCameras,
-              syncDoors,
-              syncSensors,
-            });
+      const syncGenerator = runFull
+        ? verkadaFullSync(client, context, {
+            pageSize: 100,
+            syncCameras,
+            syncDoors,
+            syncSensors,
+          })
+        : verkadaIncrementalSync(client, context, { pageSize: 100 });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -845,7 +883,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "AWS_IOT",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const config = connector.config as Record<string, unknown> | null;
       const accessKeyId = config?.access_key_id as string | undefined;
       const secretAccessKey = config?.secret_access_key as string | undefined;
@@ -891,20 +929,18 @@ export function registerAllSyncFactories(): void {
         accountId: (config?.account_id as string) ?? undefined,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? awsIotIncrementalSync(client, context, {
-              pageSize: 250,
-              syncShadows,
-            })
-          : awsIotFullSync(client, context, {
-              pageSize: 250,
-              syncThingGroups,
-              syncShadows,
-            });
+      const syncGenerator = runFull
+        ? awsIotFullSync(client, context, {
+            pageSize: 250,
+            syncThingGroups,
+            syncShadows,
+          })
+        : awsIotIncrementalSync(client, context, {
+            pageSize: 250,
+            syncShadows,
+          });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -918,7 +954,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "AZURE_IOT",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const config = connector.config as Record<string, unknown> | null;
       const connectionString = config?.connection_string as string | undefined;
       if (!connectionString) {
@@ -943,18 +979,17 @@ export function registerAllSyncFactories(): void {
         hubName: client.hubName,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? azureIotIncrementalSync(client, context, {
-              pageSize: 100,
-              lastSyncTime,
-            })
-          : azureIotFullSync(client, context, {
-              pageSize: 100,
-            });
+      const syncGenerator = runFull
+        ? azureIotFullSync(client, context, {
+            pageSize: 100,
+          })
+        : azureIotIncrementalSync(client, context, {
+            pageSize: 100,
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+          });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -968,7 +1003,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "SMARTTHINGS",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const config = connector.config as Record<string, unknown> | null;
       const accessToken = config?.access_token as string | undefined;
       if (!accessToken) {
@@ -997,19 +1032,17 @@ export function registerAllSyncFactories(): void {
         workspaceId: connector.workspaceExternalId,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? smartThingsIncrementalSync(client, context, {
-              pageSize: 200,
-              syncScenes,
-            })
-          : smartThingsFullSync(client, context, {
-              pageSize: 200,
-              syncScenes,
-            });
+      const syncGenerator = runFull
+        ? smartThingsFullSync(client, context, {
+            pageSize: 200,
+            syncScenes,
+          })
+        : smartThingsIncrementalSync(client, context, {
+            pageSize: 200,
+            syncScenes,
+          });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -1021,85 +1054,88 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("JIRA", async function* (connectorId, connector, cursor) {
-    const accessToken = await getValidAccessToken(connectorId);
+  registerSyncFactory(
+    "JIRA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
 
-    const config = connector.config as Record<string, unknown> | null;
-    const cloudId = (config?.cloudId as string) ?? "";
-    const siteUrl = (config?.siteUrl as string) ?? "";
-    const syncComments = config?.sync_comments !== false;
-    const lookbackDays = config?.lookback_days
-      ? Number(config.lookback_days)
-      : undefined;
-    const includeProjects = config?.include_projects
-      ? String(config.include_projects)
-          .split(",")
-          .map((p) => p.trim())
-          .filter(Boolean)
-      : undefined;
-    const excludeProjects = config?.exclude_projects
-      ? String(config.exclude_projects)
-          .split(",")
-          .map((p) => p.trim())
-          .filter(Boolean)
-      : undefined;
+      const config = connector.config as Record<string, unknown> | null;
+      const cloudId = (config?.cloudId as string) ?? "";
+      const siteUrl = (config?.siteUrl as string) ?? "";
+      const syncComments = config?.sync_comments !== false;
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : undefined;
+      const includeProjects = config?.include_projects
+        ? String(config.include_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeProjects = config?.exclude_projects
+        ? String(config.exclude_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
 
-    if (!cloudId) {
-      throw ApplicationFailure.nonRetryable(
-        "Jira cloudId not found in connector config",
-        "ConfigurationError"
-      );
-    }
+      if (!cloudId) {
+        throw ApplicationFailure.nonRetryable(
+          "Jira cloudId not found in connector config",
+          "ConfigurationError"
+        );
+      }
 
-    logger.info({ connectorId, cloudId, siteUrl }, "Jira sync config loaded");
+      logger.info({ connectorId, cloudId, siteUrl }, "Jira sync config loaded");
 
-    const client = createAtlassianClient({
-      connectorId,
-      accessToken,
-      cloudId,
-      product: "jira",
-    });
+      const client = createAtlassianClient({
+        connectorId,
+        accessToken,
+        cloudId,
+        product: "jira",
+      });
 
-    const context = {
-      connectorId: connector.id,
-      connectorType: connector.type,
-      teamId: connector.teamId,
-      workspaceId: connector.workspaceExternalId ?? "",
-      siteUrl,
-      cloudId,
-    };
-
-    const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
-
-    const syncGenerator = forceFullSync
-      ? jiraFullSync(client, context, {
-          batchSize: 50,
-          includeProjects,
-          excludeProjects,
-          syncComments,
-          lookbackDays,
-        })
-      : jiraIncrementalSync(client, context, {
-          cursor,
-          batchSize: 50,
-          includeProjects,
-          excludeProjects,
-          syncComments,
-          lookbackDays,
-        });
-
-    for await (const batch of syncGenerator) {
-      yield {
-        items: batch.items as GenericDocument[],
-        cursor: batch.cursor as SyncCursor,
-        hasMore: batch.hasMore,
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        siteUrl,
+        cloudId,
       };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? jiraFullSync(client, context, {
+            batchSize: 50,
+            includeProjects,
+            excludeProjects,
+            syncComments,
+            lookbackDays,
+          })
+        : jiraIncrementalSync(client, context, {
+            cursor,
+            batchSize: 50,
+            includeProjects,
+            excludeProjects,
+            syncComments,
+            lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
     }
-  });
+  );
 
   registerSyncFactory(
     "GITHUB",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -1146,18 +1182,10 @@ export function registerAllSyncFactories(): void {
 
       const pendingResources: DiscoveredResourceRecord[] = [];
 
-      const useIncremental = cursor?.lastSyncTime && !cursor?.forceFullSync;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator = useIncremental
-        ? githubIncrementalSync(client, context, {
-            lastSyncTime: cursor.lastSyncTime as number,
-            batchSize: 100,
-            syncPRs,
-            syncDiscussions,
-            syncCommits,
-            syncComments,
-          })
-        : githubFullSync(client, context, {
+      const syncGenerator = runFull
+        ? githubFullSync(client, context, {
             batchSize: 100,
             syncPRs,
             syncDiscussions,
@@ -1180,6 +1208,14 @@ export function registerAllSyncFactories(): void {
                 });
               }
             },
+          })
+        : githubIncrementalSync(client, context, {
+            lastSyncTime: (cursor?.lastSyncTime as number) ?? Date.now(),
+            batchSize: 100,
+            syncPRs,
+            syncDiscussions,
+            syncCommits,
+            syncComments,
           });
 
       for await (const batch of syncGenerator) {
@@ -1199,40 +1235,15 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("NVD", async function* (connectorId, connector, cursor) {
-    const config = connector.config as Record<string, unknown> | null;
-    const apiKey =
-      (config?.api_key as string) || process.env.NVD_API_KEY || undefined;
-
-    const client = createNvdClient({ connectorId, apiKey });
-
-    const context = {
-      connectorId: connector.id,
-      connectorType: connector.type,
-      teamId: connector.teamId,
-      workspaceId: connector.workspaceExternalId,
-    };
-
-    const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-    const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
-
-    const syncGenerator =
-      !forceFullSync && typeof lastSyncTime === "number"
-        ? nvdIncrementalSync(client, context, { cursor, batchSize: 50 })
-        : nvdFullSync(client, context, { cursor, batchSize: 50 });
-
-    for await (const batch of syncGenerator) {
-      yield {
-        items: batch.items as GenericDocument[],
-        cursor: batch.cursor,
-        hasMore: batch.hasMore,
-      };
-    }
-  });
-
   registerSyncFactory(
-    "CISA_KEV",
-    async function* (_connectorId, connector, cursor) {
+    "NVD",
+    async function* (_connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey =
+        (config?.api_key as string) || process.env.NVD_API_KEY || undefined;
+
+      const client = createNvdClient({ connectorId: connector.id, apiKey });
+
       const context = {
         connectorId: connector.id,
         connectorType: connector.type,
@@ -1240,13 +1251,37 @@ export function registerAllSyncFactories(): void {
         workspaceId: connector.workspaceExternalId,
       };
 
-      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator =
-        !forceFullSync && typeof lastSyncTime === "number"
-          ? cisaKevIncrementalSync(context, { cursor, batchSize: 50 })
-          : cisaKevFullSync(context, { batchSize: 50 });
+      const syncGenerator = runFull
+        ? nvdFullSync(client, context, { cursor, batchSize: 50 })
+        : nvdIncrementalSync(client, context, { cursor, batchSize: 50 });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "CISA_KEV",
+    async function* (_connectorId, connector, cursor, syncType) {
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? cisaKevFullSync(context, { batchSize: 50 })
+        : cisaKevIncrementalSync(context, { cursor, batchSize: 50 });
 
       for await (const batch of syncGenerator) {
         yield {
@@ -1366,7 +1401,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "SHAREPOINT",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = await getValidAccessToken(connectorId);
 
       const config = connector.config as Record<string, unknown> | null;
@@ -1389,7 +1424,7 @@ export function registerAllSyncFactories(): void {
 
       const pendingResources: DiscoveredResourceRecord[] = [];
 
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
       const hasValidCursor =
         cursor?.deltaLinks &&
         Object.keys(cursor.deltaLinks as Record<string, string>).length > 0;
@@ -1412,7 +1447,7 @@ export function registerAllSyncFactories(): void {
       };
 
       const syncGenerator =
-        !forceFullSync && hasValidCursor
+        !runFull && hasValidCursor
           ? sharepointIncrementalSync(client, context, {
               cursor,
               batchSize: 100,
@@ -1481,7 +1516,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "CONFLUENCE",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = await getValidAccessToken(connectorId);
 
       const config = connector.config as Record<string, unknown> | null;
@@ -1528,9 +1563,9 @@ export function registerAllSyncFactories(): void {
         cloudId,
       };
 
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator = forceFullSync
+      const syncGenerator = runFull
         ? confluenceFullSync(client, context, {
             batchSize: 100,
             includeSpaces,
@@ -1554,7 +1589,7 @@ export function registerAllSyncFactories(): void {
   );
   registerSyncFactory(
     "SALESFORCE",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = await getValidAccessToken(connectorId);
 
       const config = connector.config as Record<string, unknown> | null;
@@ -1590,9 +1625,9 @@ export function registerAllSyncFactories(): void {
         instanceUrl,
       };
 
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator = forceFullSync
+      const syncGenerator = runFull
         ? salesforceFullSync(client, context, {
             batchSize: 200,
             syncCases,
@@ -1617,7 +1652,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "GOOGLE_CALENDAR",
-    async function* (connectorId, connector, cursor) {
+    async function* (connectorId, connector, cursor, syncType) {
       const accessToken = await getValidAccessToken(connectorId);
 
       const config = connector.config as Record<string, unknown> | null;
@@ -1650,9 +1685,9 @@ export function registerAllSyncFactories(): void {
         userEmail,
       };
 
-      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const runFull = shouldRunFullSync(syncType, cursor);
 
-      const syncGenerator = forceFullSync
+      const syncGenerator = runFull
         ? googleCalendarFullSync(client, context, {
             batchSize: 100,
             includeCalendars,
@@ -1663,6 +1698,526 @@ export function registerAllSyncFactories(): void {
             batchSize: 100,
             includeCalendars,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MQTT",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const brokerUrl = config?.broker_url as string | undefined;
+      if (!brokerUrl) {
+        throw ApplicationFailure.nonRetryable(
+          `No broker URL for MQTT connector ${connectorId}`,
+          "ConfigurationError"
+        );
+      }
+
+      const port = parseNumericConfig(config?.port, 8883) ?? 8883;
+      const protocol = ((config?.protocol as string) ?? "mqtts") as
+        | "mqtt"
+        | "mqtts"
+        | "ws"
+        | "wss";
+      const username = (config?.username as string) ?? undefined;
+      const password = (config?.password as string) ?? undefined;
+      const clientId =
+        (config?.client_id as string) ?? `openbeam_${connectorId}`;
+
+      logger.info(
+        { connectorId, brokerUrl, port, protocol },
+        "MQTT sync config loaded"
+      );
+
+      const client = createMqttConnectorClient({
+        connection: {
+          connectorId,
+          brokerUrl,
+          protocol,
+          port,
+          clientId,
+          username,
+          password,
+          mqttVersion: ((config?.mqtt_version as string) ?? "5.0") as
+            | "3.1.1"
+            | "5.0",
+          cleanStart: config?.clean_start !== false,
+          sessionExpiryInterval:
+            parseNumericConfig(config?.session_expiry_interval, 3600) ?? 3600,
+          keepAlive: parseNumericConfig(config?.keep_alive, 60) ?? 60,
+          reconnectPeriod:
+            parseNumericConfig(config?.reconnect_period, 5000) ?? 5000,
+          connectTimeout:
+            parseNumericConfig(config?.connect_timeout, 30_000) ?? 30_000,
+        },
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        brokerUrl,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? mqttFullSync(client, context, { batchSize: 100 })
+        : mqttIncrementalSync(client, context, { batchSize: 100 });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "OPCUA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const endpointUrl = config?.endpoint_url as string | undefined;
+      if (!endpointUrl) {
+        throw ApplicationFailure.nonRetryable(
+          `No endpoint URL for OPC-UA connector ${connectorId}`,
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, endpointUrl }, "OPC-UA sync config loaded");
+
+      const client = createOpcUaClient({
+        connectorId,
+        endpointUrl,
+        applicationName:
+          (config?.application_name as string) ?? "OpenBeam Gateway",
+        keepAliveInterval:
+          parseNumericConfig(config?.keep_alive_interval, 10_000) ?? 10_000,
+        connectionTimeout:
+          parseNumericConfig(config?.connection_timeout, 30_000) ?? 30_000,
+        requestTimeout:
+          parseNumericConfig(config?.request_timeout, 60_000) ?? 60_000,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        endpointUrl,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? opcUaFullSync(client, context, { batchSize: 100 })
+        : opcUaIncrementalSync(client, context, { batchSize: 100 });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "BACNET",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const networkInterface =
+        (config?.interface as string) ??
+        (config?.network_interface as string) ??
+        "0.0.0.0";
+      const port = parseNumericConfig(config?.port, 47_808) ?? 47_808;
+      const broadcastAddress =
+        (config?.broadcast_address as string) ?? "255.255.255.255";
+
+      logger.info(
+        { connectorId, networkInterface, port, broadcastAddress },
+        "BACnet sync config loaded"
+      );
+
+      const client = createBacnetClient({
+        connectorId,
+        interface: networkInterface,
+        port,
+        broadcastAddress,
+        discoveryTimeout:
+          parseNumericConfig(config?.discovery_timeout, 5000) ?? 5000,
+        readTimeout: parseNumericConfig(config?.read_timeout, 3000) ?? 3000,
+        covLifetime: parseNumericConfig(config?.cov_lifetime, 300) ?? 300,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        networkInterface,
+        siteName: (config?.site_name as string) ?? undefined,
+        buildingName: (config?.building_name as string) ?? undefined,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? bacnetFullSync(client, context, { batchSize: 100 })
+        : bacnetIncrementalSync(client, context);
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "THINGSBOARD",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const baseUrl = config?.base_url as string | undefined;
+      const username = config?.username as string | undefined;
+      const password = config?.password as string | undefined;
+      if (!(baseUrl && username && password)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing credentials for ThingsBoard connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncAlarms = config?.sync_alarms !== false;
+      const syncDashboards = config?.sync_dashboards !== false;
+
+      logger.info(
+        { connectorId, baseUrl, syncAlarms, syncDashboards },
+        "ThingsBoard sync config loaded"
+      );
+
+      const client = createThingsboardClient({
+        connectorId,
+        baseUrl,
+        username,
+        password,
+        timeout: parseNumericConfig(config?.timeout, 30_000) ?? 30_000,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        baseUrl,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? thingsboardFullSync(client, context, {
+            pageSize: 100,
+            syncAlarms,
+            syncDashboards,
+          })
+        : thingsboardIncrementalSync(client, context, {
+            pageSize: 100,
+            syncAlarms,
+            syncDashboards,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "NODERED",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const baseUrl = config?.base_url as string | undefined;
+      const accessToken = config?.access_token as string | undefined;
+      if (!(baseUrl && accessToken)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing credentials for Node-RED connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncNodes = config?.sync_nodes !== false;
+
+      logger.info(
+        { connectorId, baseUrl, syncNodes },
+        "Node-RED sync config loaded"
+      );
+
+      const client = createNodeRedClient({
+        connectorId,
+        baseUrl,
+        accessToken,
+        timeout: parseNumericConfig(config?.timeout, 30_000) ?? 30_000,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        baseUrl,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? nodeRedFullSync(client, context, { syncNodes })
+        : nodeRedIncrementalSync(client, context, { syncNodes });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MATTERPORT",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const tokenId = config?.token_id as string | undefined;
+      const tokenSecret = config?.token_secret as string | undefined;
+      if (!(tokenId && tokenSecret)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing API credentials for Matterport connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      logger.info({ connectorId }, "Matterport sync config loaded");
+
+      const client = createMatterportClient({
+        connectorId,
+        tokenId,
+        tokenSecret,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        apiEndpoint: "https://api.matterport.com/api/models/graph",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? matterportFullSync(client, context, { batchSize: 50 })
+        : matterportIncrementalSync(client, context, {
+            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            batchSize: 50,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "OMNIVERSE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const nucleusUrl = config?.nucleus_url as string | undefined;
+      const apiToken = config?.api_token as string | undefined;
+      if (!(nucleusUrl && apiToken)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing credentials for Omniverse connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const projectPath = (config?.project_path as string) ?? "/";
+      const stagePaths = config?.stage_paths
+        ? String(config.stage_paths)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : ["/"];
+
+      logger.info(
+        { connectorId, nucleusUrl, projectPath },
+        "Omniverse sync config loaded"
+      );
+
+      const client = createOmniverseClient({
+        connectorId,
+        nucleusUrl,
+        apiToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        nucleusUrl,
+        projectPath,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? omniverseFullSync(client, context, {
+            batchSize: 100,
+            stagePaths,
+          })
+        : omniverseIncrementalSync(client, context, {
+            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            batchSize: 100,
+            stagePaths,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "VIAM",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      const apiKeyId = config?.api_key_id as string | undefined;
+      const organizationId = config?.organization_id as string | undefined;
+      if (!(apiKey && apiKeyId && organizationId)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing API credentials for Viam connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      logger.info({ connectorId, organizationId }, "Viam sync config loaded");
+
+      const client = createViamClient({
+        connectorId,
+        apiKey,
+        apiKeyId,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        organizationId,
+        apiKeyId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? viamFullSync(client, context, { batchSize: 50 })
+        : viamIncrementalSync(client, context, {
+            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            batchSize: 50,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "FHIR",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const fhirBaseUrl = config?.fhir_base_url as string | undefined;
+      const accessToken = config?.access_token as string | undefined;
+      if (!(fhirBaseUrl && accessToken)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing credentials for FHIR connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const fhirVersion = ((config?.fhir_version as string) ?? "R4") as
+        | "R4"
+        | "R5";
+      const deidentify = config?.deidentify !== false;
+      const deidentificationStrategy = deidentify
+        ? ((config?.deidentification_strategy as string) ?? "safe_harbor")
+        : "none";
+
+      logger.info(
+        { connectorId, fhirBaseUrl, fhirVersion, deidentify },
+        "FHIR sync config loaded"
+      );
+
+      const client = createFhirClient({
+        connectorId,
+        fhirBaseUrl,
+        accessToken,
+        fhirVersion,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        fhirBaseUrl,
+        fhirVersion,
+        deidentificationStrategy: deidentificationStrategy as
+          | "safe_harbor"
+          | "expert_determination"
+          | "none",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? fhirFullSync(client, context, { batchSize: 50 })
+        : fhirIncrementalSync(client, context, {
+            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            batchSize: 50,
           });
 
       for await (const batch of syncGenerator) {
