@@ -1,3 +1,28 @@
+export type { CommentActionResult, IssueActionResult } from "./actions";
+export {
+  addComment,
+  assignIssue,
+  createIssue,
+  transitionIssueStatus,
+  updateIssue,
+} from "./actions";
+export type {
+  JiraIssueFields,
+  JiraIssueResponse,
+  JiraProject,
+  JiraTransition,
+  JiraUser,
+} from "./api";
+export {
+  getIssue,
+  getProject,
+  getUser,
+  listProjects,
+  listTransitions,
+  searchIssues,
+  searchUsers,
+  transitionIssue,
+} from "./api";
 export { JiraAuth } from "./auth";
 export type {
   JiraDocumentChange,
