@@ -11,6 +11,7 @@ import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
+import { Logo as FigmaLogo } from "./figma/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
@@ -81,6 +82,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.VERKADA]: VerkadaLogo,
   [AppType.ZENDESK]: ZendeskLogo,
   [AppType.HUBSPOT]: HubSpotLogo,
+  [AppType.FIGMA]: FigmaLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

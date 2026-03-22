@@ -17,6 +17,7 @@ import {
   refreshBoxToken,
   refreshConfluenceToken,
   refreshDropboxToken,
+  refreshFigmaToken,
   refreshGitHubToken,
   refreshGmailToken,
   refreshGoogleCalendarToken,
@@ -297,6 +298,20 @@ export async function refreshConnectorToken(
           accessToken: asanaResult.accessToken,
           expiresIn: asanaResult.expiresIn,
           refreshToken: asanaResult.refreshToken,
+        };
+        break;
+      }
+
+      case "FIGMA": {
+        const figmaResult = await refreshFigmaToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: figmaResult.accessToken,
+          expiresIn: figmaResult.expiresIn,
+          refreshToken: figmaResult.refreshToken,
         };
         break;
       }

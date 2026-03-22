@@ -68,6 +68,7 @@ export const AppTypeSchema = z.enum([
   "MITRE_ATTACK",
   "OWASP",
   "MICROSOFT_CALENDAR",
+  "FIGMA",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

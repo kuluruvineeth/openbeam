@@ -1,0 +1,40 @@
+---
+title: Figma
+description: Search design files, components, and comments from Figma with incremental sync via modification timestamps
+---
+
+# Figma
+
+Index design data from Figma including file names, page names, component descriptions, and comments. Supports OAuth 2.0 with incremental sync via file modification timestamps.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Design Files** | File name, page names, component names, thumbnail URL |
+| **Components** | Component name, description, containing frame and page |
+| **Comments** | Comment text, author, resolution status, timestamps |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `file_content:read`, `file_comments:read`
+
+Create an app in the [Figma Developer Settings](https://www.figma.com/developers/apps) and configure the OAuth settings.
+
+## Quick Start
+
+1. Create an app in the Figma Developer Settings
+2. Configure the OAuth redirect URL
+3. Add the Figma connector in OpenBeam with your Client ID and Secret
+4. Provide your Figma Team ID
+5. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/figma/setup" description="App creation and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/figma/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/figma/configuration" description="Team selection, project filtering, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/figma/sync" description="Full sync, incremental sync, and rate limits" />
+  <Card title="Troubleshooting" href="/docs/connectors/figma/troubleshooting" description="Common issues and fixes" />
+</Cards>

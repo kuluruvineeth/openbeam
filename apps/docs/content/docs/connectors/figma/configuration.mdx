@@ -1,0 +1,45 @@
+---
+title: Configuration
+description: Configure the Figma connector settings
+---
+
+# Figma Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **Client ID** | OAuth app Client ID from Figma Developer Settings |
+| **Client Secret** | OAuth app Client Secret |
+| **Team ID** | Figma team ID to sync (from team URL) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Comments** | Enabled | Include file comments in search index |
+| **Sync Components** | Disabled | Index component names and descriptions (increases API usage) |
+| **History (days)** | Unlimited | How far back to sync files by modification date |
+| **Include Projects** | All | Comma-separated project IDs to include |
+| **Exclude Projects** | None | Comma-separated project IDs to exclude |
+
+## Project Filtering
+
+To sync only specific projects, add their IDs to the **Include Projects** field. Project IDs are visible in the Figma URL when you navigate to a project:
+
+```
+https://www.figma.com/files/project/12345678/Project-Name
+                                  ↑ This is the Project ID
+```
+
+To exclude specific projects (e.g., archived or personal), use the **Exclude Projects** field.
+
+## Component Sync
+
+Component sync is disabled by default because it requires fetching the full document tree for each file, which:
+
+- Consumes significantly more API quota
+- Increases sync duration
+- May trigger rate limits on large teams
+
+Enable it only if component discoverability is important for your team.

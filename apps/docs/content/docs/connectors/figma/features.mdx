@@ -1,0 +1,51 @@
+---
+title: Features
+description: What the Figma connector indexes and how it works
+---
+
+# Figma Features
+
+## Indexed Content
+
+### Design Files
+
+Every file in your team's projects is indexed with:
+- File name
+- Page names within the file
+- Component count
+- Thumbnail URL
+- Last modified timestamp
+
+### Components (Optional)
+
+When enabled, component metadata is indexed:
+- Component name
+- Component description
+- Containing frame name
+- Page location
+
+Enabling component sync requires fetching full file data, which consumes more API quota.
+
+### Comments
+
+File comments are indexed with:
+- Comment message text
+- Author handle
+- Resolution status
+- Timestamps
+
+Reply threads are preserved via parent comment references.
+
+## Search Capabilities
+
+- Search by file name, page name, or component name
+- Find comments by text content or author
+- Filter by document type (file, comment, component)
+- Results link directly to the Figma file
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| Add Comment | Post a comment on a Figma file |
+| Reply to Comment | Reply to an existing comment thread |

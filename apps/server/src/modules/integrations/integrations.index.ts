@@ -6,6 +6,7 @@ import azureIot from "./azure-iot/azure-iot.index";
 import box from "./box/box.index";
 import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
+import figma from "./figma/figma.index";
 import github from "./github/github.index";
 import gmail from "./gmail/gmail.index";
 import googleCalendar from "./google-calendar/google-calendar.index";
@@ -53,6 +54,7 @@ integrations.route("/servicenow", servicenow);
 integrations.route("/zendesk", zendesk);
 integrations.route("/asana", asana);
 integrations.route("/hubspot", hubspot);
+integrations.route("/figma", figma);
 
 integrations.get("/health", (c) =>
   c.json({

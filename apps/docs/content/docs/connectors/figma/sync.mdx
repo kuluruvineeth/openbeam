@@ -1,0 +1,43 @@
+---
+title: Sync Behavior
+description: How the Figma connector syncs data
+---
+
+# Figma Sync Behavior
+
+## Full Sync
+
+During a full sync, the connector:
+
+1. Fetches all projects in the configured team
+2. For each project, fetches all files
+3. Optionally fetches file details (pages, components) for each file
+4. Optionally fetches comments for each file
+5. Transforms and indexes all data
+
+## Incremental Sync
+
+Incremental sync compares file `lastModified` timestamps against the previous sync time. Only files modified since the last sync are re-fetched.
+
+For comments, all comments on modified files are re-fetched since the Figma API does not support comment-level change detection.
+
+## Rate Limits
+
+The Figma API has strict rate limits (~30 requests/minute for most plans). The connector:
+
+- Throttles requests to a minimum 2.1-second interval between calls
+- Respects `Retry-After` headers on 429 responses
+- Uses exponential backoff with jitter on retries
+
+For large teams with many files, the initial full sync may take significant time due to rate limiting.
+
+## Sync Interval
+
+| Stream | Default Interval | Mode |
+|--------|-----------------|------|
+| Design Files | 30 minutes | Periodic |
+| Comments | 30 minutes | Periodic |
+
+## Deletion Detection
+
+The Figma API does not provide a deletion endpoint. Files removed from projects will not be automatically removed from the search index. Run a full sync periodically to reconcile.

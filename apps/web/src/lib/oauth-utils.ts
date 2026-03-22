@@ -21,7 +21,8 @@ type IntegrationName =
   | "dropbox"
   | "box"
   | "asana"
-  | "hubspot";
+  | "hubspot"
+  | "figma";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -95,6 +96,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   hubspot: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/hubspot/callback", {
+      code,
+      state,
+    }),
+  figma: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/figma/callback", {
       code,
       state,
     }),

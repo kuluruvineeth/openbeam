@@ -82,6 +82,7 @@ export enum AppType {
   BOX = "BOX",
   ASANA = "ASANA",
   HUBSPOT = "HUBSPOT",
+  FIGMA = "FIGMA",
 }
 
 export enum SyncMode {

@@ -4,6 +4,7 @@ import { awsIotActionsRegistry } from "./aws-iot";
 import { boxActionsRegistry } from "./box";
 import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
+import { figmaActionsRegistry } from "./figma";
 import { githubActionsRegistry } from "./github";
 import { gmailActionsRegistry } from "./gmail";
 import { googleCalendarActionsRegistry } from "./google-calendar";
@@ -49,4 +50,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   boxActionsRegistry,
   asanaActionsRegistry,
   hubspotActionsRegistry,
+  figmaActionsRegistry,
 ];

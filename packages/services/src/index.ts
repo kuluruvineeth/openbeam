@@ -267,6 +267,22 @@ export {
   incrementalSync as fhirIncrementalSync,
 } from "./fhir";
 export type {
+  FigmaClient,
+  FigmaClientConfig,
+  FigmaCommentActionResult,
+} from "./figma";
+export {
+  addFigmaComment,
+  createFigmaClient,
+  FigmaApiError,
+  FigmaAuth,
+  figmaFullSync,
+  figmaIncrementalSync,
+  transformFigmaComment,
+  transformFigmaComponent,
+  transformFigmaFile,
+} from "./figma";
+export type {
   ConnectorFileInfo,
   ConnectorMediaInfo,
   DownloadStrategy,

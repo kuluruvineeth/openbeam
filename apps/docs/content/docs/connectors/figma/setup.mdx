@@ -1,0 +1,42 @@
+---
+title: Setup
+description: How to set up the Figma connector with OAuth 2.0
+---
+
+# Figma Setup
+
+## Prerequisites
+
+- A Figma account with access to the team you want to sync
+- Admin or owner permissions to create Figma apps
+
+## Step 1: Create a Figma App
+
+1. Go to [Figma Developer Settings](https://www.figma.com/developers/apps)
+2. Click **Create a new app**
+3. Enter a name (e.g., "OpenBeam Integration")
+4. Under **OAuth 2.0**, add the redirect URL provided by OpenBeam
+5. Select the required scopes: `file_content:read` and `file_comments:read`
+6. Save the app and note the **Client ID** and **Client Secret**
+
+## Step 2: Find Your Team ID
+
+Your Figma Team ID is in the URL when you visit a team page:
+
+```
+https://www.figma.com/files/team/123456789/Team-Name
+                              ↑ This is your Team ID
+```
+
+## Step 3: Add the Connector
+
+1. In OpenBeam, go to **Connectors** and click **Add Connector**
+2. Select **Figma**
+3. Enter your Client ID, Client Secret, and Team ID
+4. Click **Connect** to start the OAuth flow
+5. Authorize the app in Figma
+6. The initial sync will begin automatically
+
+## Step 4: Verify
+
+After the initial sync completes, search for a known design file name to verify the connector is working.

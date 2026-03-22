@@ -1,0 +1,52 @@
+---
+title: Troubleshooting
+description: Common issues with the Figma connector
+---
+
+# Figma Troubleshooting
+
+## Rate Limit Errors (429)
+
+**Symptom:** Sync fails with rate limit errors.
+
+**Cause:** The Figma API has strict per-minute rate limits that vary by plan.
+
+**Fix:**
+- The connector automatically retries with exponential backoff
+- Disable component sync to reduce API calls
+- Consider syncing fewer projects via the Include/Exclude Projects settings
+- Upgrade your Figma plan for higher rate limits
+
+## OAuth Token Expired
+
+**Symptom:** Sync fails with 401 Unauthorized.
+
+**Fix:**
+- OpenBeam automatically refreshes tokens before expiry
+- If refresh fails 3 times, the connector enters AUTH_EXPIRED status
+- Re-authorize by disconnecting and reconnecting the connector
+
+## Empty Sync Results
+
+**Symptom:** Sync completes but no files appear in search.
+
+**Checks:**
+- Verify the Team ID is correct
+- Ensure the authenticated user has access to the team
+- Check if project filters are excluding all projects
+- Verify the lookback_days setting isn't filtering out all files
+
+## Slow Initial Sync
+
+**Cause:** Large teams with many files, combined with strict rate limits.
+
+**Mitigations:**
+- Disable component sync for the initial import
+- Use project filters to sync high-priority projects first
+- Set a lookback_days limit to skip old files initially
+
+## Missing Components
+
+**Cause:** Component sync is disabled by default.
+
+**Fix:** Enable the **Sync Components** setting in connector configuration. Note this increases API usage significantly.

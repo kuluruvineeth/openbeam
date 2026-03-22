@@ -7,6 +7,7 @@ import { cisaKevApp } from "./cisa-kev/config";
 import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
+import { figmaApp } from "./figma/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleCalendarApp } from "./google-calendar/config";
@@ -47,6 +48,7 @@ export {
   cisaKevApp,
   confluenceApp,
   dropboxApp,
+  figmaApp,
   fhirApp,
   gmailApp,
   githubApp,
@@ -145,6 +147,21 @@ export {
   generateDropboxAuthUrl,
   refreshDropboxToken,
 } from "./dropbox";
+export type {
+  ExchangeFigmaCodeParams,
+  GenerateFigmaAuthUrlParams,
+  RefreshFigmaTokenParams,
+} from "./figma/oauth";
+export {
+  exchangeFigmaCode,
+  generateFigmaAuthUrl,
+  refreshFigmaToken,
+} from "./figma/oauth";
+export type {
+  FigmaAuthResult,
+  FigmaMe,
+  FigmaTokenResponse,
+} from "./figma/types";
 export {
   exchangeGitHubCode,
   generateGitHubAuthUrl,
@@ -384,4 +401,5 @@ export const appStore: UnifiedApp[] = [
   microsoftCalendarApp,
   asanaApp,
   hubspotApp,
+  figmaApp,
 ];

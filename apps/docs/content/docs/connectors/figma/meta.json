@@ -1,0 +1,12 @@
+{
+  "title": "Figma",
+  "icon": "Figma",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}
