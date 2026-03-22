@@ -1,0 +1,45 @@
+---
+title: Sync
+description: How Bitbucket data sync works in OpenBeam.
+---
+
+# Sync
+
+## Full Sync
+
+The initial sync fetches all data from the workspace:
+
+1. Discovers all repositories in the workspace
+2. For each repository, indexes the repo metadata
+3. Fetches all pull requests (with comments)
+4. Fetches all issues (with comments) from repos with issue trackers
+5. Optionally fetches workspace snippets
+
+Full sync runs automatically on first connection. You can trigger a manual full sync from the connector settings.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_on` filter to fetch only changed entities since the last sync. This reduces API calls and sync duration.
+
+The Bitbucket API supports `q=updated_on>"{timestamp}"` on repositories, pull requests, issues, and snippets.
+
+## Sync Schedule
+
+| Stream | Default Interval | Configurable |
+|--------|-----------------|--------------|
+| Repositories | 30 minutes | No |
+| Pull Requests | 15 minutes | No |
+| Issues | 15 minutes | No |
+| Snippets | 60 minutes | No |
+
+## Rate Limits
+
+The Bitbucket Cloud API allows approximately 1,000 requests per hour per consumer key. OpenBeam automatically:
+
+- Tracks request counts per connector
+- Backs off with exponential retry when rate limited
+- Respects `Retry-After` headers from the API
+
+## Batch Processing
+
+Documents are yielded in batches of 50-100 items for efficient indexing. Each batch includes a cursor for crash-resilient resumption.

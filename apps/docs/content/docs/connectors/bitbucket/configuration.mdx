@@ -1,0 +1,37 @@
+---
+title: Configuration
+description: Configure the Bitbucket connector settings.
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| Client ID | text | Yes | -- | OAuth consumer key |
+| Client Secret | password | Yes | -- | OAuth consumer secret |
+| Workspace | text | Yes | -- | Bitbucket workspace slug |
+| Sync Pull Requests | switch | No | On | Index pull requests |
+| Sync Issues | switch | No | On | Index issues (only from repos with issue tracker enabled) |
+| Sync Snippets | switch | No | Off | Index workspace code snippets |
+| Include Repositories | text | No | All | Comma-separated repo slugs to include |
+| Exclude Repositories | text | No | None | Comma-separated repo slugs to exclude |
+| History (days) | text | No | Unlimited | How far back to sync |
+
+## Repository Filtering
+
+Use the **Include Repositories** and **Exclude Repositories** settings to control which repositories are indexed.
+
+- Leave both empty to index all repositories in the workspace
+- Set **Include** to only index specific repos: `frontend, backend, docs`
+- Set **Exclude** to skip specific repos: `archived-repo, test-repo`
+- Include takes precedence -- if set, only listed repos are indexed
+
+## Workspace Slug
+
+The workspace slug is the URL-friendly identifier for your Bitbucket workspace. Find it in your Bitbucket URL:
+
+```
+https://bitbucket.org/{workspace-slug}/
+```

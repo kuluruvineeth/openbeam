@@ -1,0 +1,26 @@
+---
+title: OAuth Scopes
+description: Bitbucket OAuth scopes required by the OpenBeam connector.
+---
+
+# OAuth Scopes
+
+The Bitbucket connector requires the following OAuth scopes. Scopes are configured at the consumer level in Bitbucket -- they cannot be requested per-grant.
+
+| Scope | Access | Purpose |
+|-------|--------|---------|
+| `account` | Read | Fetch authenticated user profile |
+| `repository` | Read | List and read repositories |
+| `pullrequest` | Read | List and read pull requests and comments |
+| `issue` | Read | List and read issues and comments |
+| `snippet` | Read | List and read code snippets |
+
+## Token Lifetime
+
+- **Access tokens** expire after **2 hours**
+- **Refresh tokens** are provided with every grant and used to obtain new access tokens without re-authorization
+- OpenBeam automatically refreshes tokens before expiration
+
+## Token Storage
+
+Access tokens and refresh tokens are encrypted at rest using AES-256. Client secrets are stored with field-level encryption.

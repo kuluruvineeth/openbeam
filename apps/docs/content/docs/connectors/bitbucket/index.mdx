@@ -1,0 +1,36 @@
+---
+title: Bitbucket
+description: Search across repositories, pull requests, issues, and snippets from Bitbucket Cloud
+---
+
+# Bitbucket
+
+Index repositories, pull requests, issues, and code snippets from Bitbucket Cloud workspaces. The connector uses OAuth 2.0 for authentication and supports incremental sync via the `updated_on` filter.
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `repository`, `pullrequest`, `issue`, `snippet`, `account`
+
+Create an OAuth Consumer in your Bitbucket workspace settings and provide the Key and Secret in OpenBeam.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Repositories** | Name, description, language, main branch, visibility | Periodic | 30 min |
+| **Pull Requests** | Title, description, state, source/destination branches, reviewers | Periodic | 15 min |
+| **Issues** | Title, content, state, priority, assignee | Periodic | 15 min |
+| **Snippets** | Title, visibility, owner | Periodic | 60 min |
+
+All streams support full backfill.
+
+## Quick Links
+
+- [Setup Guide](/docs/connectors/bitbucket/setup)
+- [OAuth Scopes](/docs/connectors/bitbucket/oauth-scopes)
+- [Features](/docs/connectors/bitbucket/features)
+- [Configuration](/docs/connectors/bitbucket/configuration)
+- [Sync Details](/docs/connectors/bitbucket/sync)
+- [Troubleshooting](/docs/connectors/bitbucket/troubleshooting)

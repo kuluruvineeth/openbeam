@@ -1,0 +1,13 @@
+{
+  "title": "Bitbucket",
+  "icon": "Bitbucket",
+  "pages": [
+    "index",
+    "setup",
+    "oauth-scopes",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

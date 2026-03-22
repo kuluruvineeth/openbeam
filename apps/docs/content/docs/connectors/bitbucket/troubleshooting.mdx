@@ -1,0 +1,50 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Bitbucket connector.
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+### "Bitbucket OAuth failed: 401"
+
+The client ID or secret is incorrect. Verify:
+- The consumer key and secret match what Bitbucket generated
+- The consumer has not been deleted or regenerated
+
+### "Failed to fetch Bitbucket user"
+
+The access token may be invalid or expired. Try disconnecting and reconnecting the connector.
+
+### Callback URL Mismatch
+
+Bitbucket requires the callback URL in the OAuth request to match or extend the registered callback URL. Ensure your OpenBeam instance URL matches the callback URL configured on the OAuth consumer.
+
+## Sync Issues
+
+### Missing Repositories
+
+- Verify the workspace slug is correct
+- Check that the OAuth consumer has the `repository` scope
+- If using include/exclude filters, verify the repository slugs
+
+### Missing Issues
+
+Issues are only synced from repositories that have the issue tracker enabled. Check your repository settings in Bitbucket.
+
+### Rate Limiting
+
+If sync is slow, the connector may be hitting Bitbucket rate limits (1,000 req/hr). OpenBeam handles this automatically with exponential backoff, but large workspaces may take longer on initial sync.
+
+## Token Expiration
+
+Bitbucket access tokens expire after 2 hours. OpenBeam automatically refreshes tokens before expiration. If you see AUTH_EXPIRED status:
+
+1. Check that the OAuth consumer still exists in Bitbucket
+2. Disconnect and reconnect the connector
+3. Check the connector logs for specific error messages
+
+## Getting Help
+
+If the issue persists, check the connector logs in the OpenBeam admin panel or reach out on our community Discord.

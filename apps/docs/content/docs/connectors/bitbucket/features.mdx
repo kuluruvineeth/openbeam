@@ -1,0 +1,58 @@
+---
+title: Features
+description: What the Bitbucket connector indexes and how it works.
+---
+
+# Features
+
+## Indexed Entities
+
+### Repositories
+- Name, slug, and full name
+- Description and language
+- Main branch and visibility
+- Project association
+- Fork policy and feature flags (issues, wiki)
+- Owner information
+
+### Pull Requests
+- Title and description
+- State (open, merged, declined, superseded)
+- Source and destination branches
+- Author, reviewers, and participants
+- Approval status
+- Comment threads
+- Merge commit hash
+
+### Issues
+- Title and content (raw markdown)
+- State, priority, and kind
+- Component, milestone, and version
+- Reporter and assignee
+- Comment threads
+- Vote count
+
+### Snippets
+- Title and visibility
+- Owner and creator
+- Creation and update timestamps
+
+## Search Capabilities
+
+All indexed entities are searchable via OpenBeam's hybrid search (semantic + keyword). Results include:
+
+- Full-text search across titles, descriptions, and comments
+- Filtering by document type (repository, pull_request, issue, snippet)
+- Filtering by state, priority, and other metadata
+- Access control based on team membership
+
+## Actions
+
+The connector supports write operations for agents and canvas workflows:
+
+| Action | Description |
+|--------|-------------|
+| Create Pull Request | Open a PR between branches |
+| Add PR Comment | Post a comment on a pull request |
+| Create Issue | Create an issue in a repository |
+| Add Issue Comment | Post a comment on an issue |

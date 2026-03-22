@@ -1,0 +1,51 @@
+---
+title: Setup
+description: Connect Bitbucket Cloud to OpenBeam in under 5 minutes.
+---
+
+# Bitbucket Quick Start
+
+## Prerequisites
+
+- Bitbucket Cloud account with access to the target workspace
+- OpenBeam instance running (local or deployed)
+
+## 1. Create a Bitbucket OAuth Consumer
+
+1. Go to your Bitbucket workspace settings
+2. Navigate to **Apps and features** then **OAuth consumers**
+3. Click **Add consumer**
+4. Fill in the form:
+
+| Field | Value |
+|-------|-------|
+| Name | `OpenBeam` |
+| Callback URL | `http://localhost:3001/connectors/setup/bitbucket/oauth/callback` |
+
+5. Select the required permissions (scopes):
+   - **Account:** Read
+   - **Repositories:** Read
+   - **Pull requests:** Read
+   - **Issues:** Read
+   - **Snippets:** Read
+
+6. Click **Save** -- the system generates a **Key** and **Secret**
+
+## 2. Add Connector in OpenBeam
+
+1. Open OpenBeam and go to **Connectors**
+2. Click **Add Connector** and select **Bitbucket**
+3. Enter the **Key** as Client ID and **Secret** as Client Secret
+4. Enter your **Workspace slug** (found in your Bitbucket URL: `bitbucket.org/{workspace}`)
+5. Click **Connect** to start the OAuth flow
+6. Authorize OpenBeam in the Bitbucket consent screen
+
+## 3. Configure Sync
+
+After connecting, configure which data to sync:
+
+- Toggle **Pull Requests**, **Issues**, and **Snippets** on or off
+- Optionally set include/exclude repository filters
+- Set a lookback period if you only need recent data
+
+The first sync begins automatically after configuration.
