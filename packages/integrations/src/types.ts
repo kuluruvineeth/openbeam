@@ -90,6 +90,7 @@ export enum AppType {
   MONDAY = "MONDAY",
   GOOGLE_CHAT = "GOOGLE_CHAT",
   PAGERDUTY = "PAGERDUTY",
+  CLICKUP = "CLICKUP",
 }
 
 export enum SyncMode {

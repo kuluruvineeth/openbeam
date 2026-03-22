@@ -5,6 +5,7 @@ import { bacnetApp } from "./bacnet/config";
 import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
 import { cisaKevApp } from "./cisa-kev/config";
+import { clickUpApp } from "./clickup/config";
 import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
@@ -53,6 +54,7 @@ export {
   azureIotApp,
   bacnetApp,
   boxApp,
+  clickUpApp,
   cisaKevApp,
   confluenceApp,
   dropboxApp,
@@ -149,6 +151,20 @@ export {
   generateBoxAuthUrl,
   refreshBoxToken,
 } from "./box";
+export type {
+  ExchangeClickUpCodeParams,
+  GenerateClickUpAuthUrlParams,
+} from "./clickup/oauth";
+export {
+  exchangeClickUpCode,
+  generateClickUpAuthUrl,
+} from "./clickup/oauth";
+export type {
+  ClickUpAuthResult,
+  ClickUpTokenResponse,
+  ClickUpUser,
+  ClickUpWorkspace,
+} from "./clickup/types";
 export type {
   ConfluenceOAuthResult,
   ExchangeConfluenceCodeParams,
@@ -504,4 +520,5 @@ export const appStore: UnifiedApp[] = [
   bitbucketApp,
   mondayApp,
   pagerdutyApp,
+  clickUpApp,
 ];

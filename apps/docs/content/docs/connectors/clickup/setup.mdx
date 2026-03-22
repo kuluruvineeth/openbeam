@@ -1,0 +1,42 @@
+---
+title: Setup
+description: How to set up the ClickUp connector
+---
+
+# ClickUp Setup
+
+## Prerequisites
+
+- A ClickUp workspace with owner or admin access
+- Access to create OAuth apps in workspace settings
+
+## Step 1: Create OAuth App
+
+1. Go to your ClickUp workspace settings
+2. Navigate to **Integrations** > **ClickUp API**
+3. Click **Create an App**
+4. Enter a name for your app (e.g., "OpenBeam")
+5. Add the redirect URL: `https://your-domain.com/connectors/setup/clickup/oauth/callback`
+6. Save and copy the **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Go to **Settings** > **Connectors**
+2. Click **Add Connector**
+3. Select **ClickUp**
+4. Paste the Client ID and Client Secret
+5. Click **Connect**
+
+## Step 3: Authorize
+
+1. You will be redirected to ClickUp
+2. Select the workspace to connect
+3. Click **Allow**
+4. You will be redirected back to OpenBeam
+
+## Step 4: Configure Sync
+
+1. Choose which spaces to include or exclude
+2. Toggle comment syncing on or off
+3. Set the history lookback period
+4. Save configuration

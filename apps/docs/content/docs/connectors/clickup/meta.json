@@ -1,0 +1,12 @@
+{
+  "title": "ClickUp",
+  "icon": "ClickUp",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

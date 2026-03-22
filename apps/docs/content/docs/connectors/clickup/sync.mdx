@@ -1,0 +1,40 @@
+---
+title: Sync
+description: How ClickUp data synchronization works
+---
+
+# Sync
+
+## Full Sync
+
+The full sync process:
+
+1. Discovers all spaces in the workspace
+2. Filters spaces based on include/exclude settings
+3. For each space, discovers folders and lists
+4. Indexes list metadata
+5. For each list, fetches all tasks (paginated, 100 per page)
+6. Optionally fetches comments for each task
+7. Transforms and indexes all documents
+
+## Incremental Sync
+
+Incremental sync uses ClickUp's `date_updated_gt` parameter to fetch only tasks modified since the last sync. This significantly reduces API calls and processing time.
+
+## Sync Interval
+
+Default sync interval is 15 minutes. This can be adjusted in the sync job settings.
+
+## Hierarchy
+
+```
+Workspace
+  └── Space
+       ├── Folder
+       │    └── List
+       │         └── Task
+       │              └── Comment
+       └── List (folderless)
+            └── Task
+                 └── Comment
+```

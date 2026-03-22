@@ -21,6 +21,7 @@ import {
   BACnetIcon,
   BitbucketIcon,
   BoxIcon,
+  ClickUpIcon,
   ConfluenceIcon,
   DropboxIcon,
   FHIRIcon,
@@ -124,6 +125,7 @@ const customIconMap: Record<
   Zoom: ZoomIcon,
   Monday: MondayIcon,
   PagerDuty: PagerDutyIcon,
+  ClickUp: ClickUpIcon,
 };
 
 export const source = loader({

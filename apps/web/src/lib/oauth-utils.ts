@@ -28,7 +28,8 @@ type IntegrationName =
   | "figma"
   | "intercom"
   | "zoom"
-  | "monday";
+  | "monday"
+  | "clickup";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -140,6 +141,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   monday: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/monday/callback", {
+      code,
+      state,
+    }),
+  clickup: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/clickup/callback", {
       code,
       state,
     }),

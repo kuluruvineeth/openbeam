@@ -200,6 +200,20 @@ export {
   incrementalSync as cisaKevIncrementalSync,
   transformKevVulnerability,
 } from "./cisa-kev";
+export type { ClickUpClient } from "./clickup";
+export {
+  addComment as addClickUpComment,
+  ClickUpApiError,
+  ClickUpAuth,
+  ClickUpErrorCodes,
+  createClickUpClient,
+  createTask as createClickUpTask,
+  fullSync as clickUpFullSync,
+  incrementalSync as clickUpIncrementalSync,
+  transformList as transformClickUpList,
+  transformTask as transformClickUpTask,
+  updateTask as updateClickUpTask,
+} from "./clickup";
 export type {
   ConfluenceBlogpost,
   ConfluencePage,

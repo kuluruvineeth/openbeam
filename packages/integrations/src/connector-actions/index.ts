@@ -3,6 +3,7 @@ import { asanaActionsRegistry } from "./asana";
 import { awsIotActionsRegistry } from "./aws-iot";
 import { bitbucketActionsRegistry } from "./bitbucket";
 import { boxActionsRegistry } from "./box";
+import { clickUpActionsRegistry } from "./clickup";
 import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
 import { figmaActionsRegistry } from "./figma";
@@ -65,4 +66,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   bitbucketActionsRegistry,
   mondayActionsRegistry,
   pagerdutyActionsRegistry,
+  clickUpActionsRegistry,
 ];

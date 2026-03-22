@@ -1,0 +1,39 @@
+---
+title: Configuration
+description: ClickUp connector configuration options
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Client ID** | Text | Required | OAuth application Client ID |
+| **Client Secret** | Password | Required | OAuth application Client Secret |
+| **Workspace ID** | Text | Auto-detected | ClickUp Team/Workspace ID |
+| **Sync Comments** | Switch | On | Include task comments in search |
+| **Include Spaces** | Text | All | Comma-separated space IDs to sync |
+| **Exclude Spaces** | Text | None | Comma-separated space IDs to skip |
+| **History (days)** | Text | Unlimited | How far back to sync |
+
+## Space Filtering
+
+You can control which spaces are synced by providing include or exclude lists:
+
+- **Include Spaces**: Only sync tasks from these specific spaces
+- **Exclude Spaces**: Sync all spaces except these
+
+Space IDs can be found in the ClickUp URL when viewing a space.
+
+## Rate Limits
+
+ClickUp API limits vary by plan:
+
+| Plan | Rate Limit |
+|------|-----------|
+| Free / Business | 100 req/min |
+| Business Plus | 1,000 req/min |
+| Enterprise | 10,000 req/min |
+
+The connector respects these limits automatically with exponential backoff.

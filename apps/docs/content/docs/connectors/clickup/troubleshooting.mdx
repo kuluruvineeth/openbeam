@@ -1,0 +1,41 @@
+---
+title: Troubleshooting
+description: Common issues with the ClickUp connector
+---
+
+# Troubleshooting
+
+## Authentication Issues
+
+### "Unauthorized" errors
+ClickUp access tokens currently do not expire, but if you see 401 errors:
+- Verify the OAuth app has not been deleted in ClickUp settings
+- Re-authorize the connector by disconnecting and reconnecting
+
+### "No workspaces found"
+The ClickUp user must be a member of at least one workspace. Ensure the authorizing user has workspace access.
+
+## Sync Issues
+
+### Missing tasks
+- Check that the task's space is not in the exclude list
+- Archived tasks are skipped by default
+- Verify the lookback days setting is not too restrictive
+
+### Rate limiting
+If sync is slow or produces rate limit errors:
+- Free and Business plans are limited to 100 requests per minute
+- The connector automatically backs off and retries
+- Consider upgrading to Business Plus for higher limits
+
+### Large workspaces
+For workspaces with many tasks:
+- Use space filtering to sync only relevant spaces
+- Set a reasonable lookback period
+- The connector processes tasks in batches of 100
+
+## API Limitations
+
+- ClickUp API v2 paginates tasks at 100 per page
+- Comments must be fetched per-task (no bulk API)
+- No webhook support in this connector version

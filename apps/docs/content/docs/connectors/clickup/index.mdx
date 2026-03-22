@@ -1,0 +1,32 @@
+---
+title: ClickUp
+description: Search tasks, comments, lists, and spaces from ClickUp with incremental sync
+---
+
+# ClickUp
+
+Index project management data from ClickUp including tasks, comments, lists, and spaces. Supports OAuth 2.0 authentication and incremental sync via the `date_updated_gt` filter.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Tasks** | Name, description, status, priority, assignees, tags, custom fields, due date |
+| **Lists** | Name, content, status, task count |
+| **Comments** | Text, author, creation date |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+ClickUp OAuth grants full access to the authorized workspace. No scopes are required.
+
+Create an OAuth app in [ClickUp Settings](https://app.clickup.com) under your workspace's Integrations page.
+
+## Quick Start
+
+1. Create an OAuth app in ClickUp workspace settings
+2. Copy the Client ID and Client Secret
+3. Add a ClickUp connector in OpenBeam
+4. Paste the credentials and connect
+5. Authorize access to your workspace

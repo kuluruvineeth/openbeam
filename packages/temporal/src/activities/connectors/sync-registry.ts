@@ -14,6 +14,8 @@ import {
   boxIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
+  clickUpFullSync,
+  clickUpIncrementalSync,
   confluenceFullSync,
   confluenceIncrementalSync,
   createAsanaClient,
@@ -23,6 +25,7 @@ import {
   createBacnetClient,
   createBitbucketClient,
   createBoxClient,
+  createClickUpClient,
   createDropboxClient,
   createFhirClient,
   createFigmaClient,
@@ -3392,6 +3395,86 @@ export function registerAllSyncFactories(): void {
         : pagerdutyIncrementalSync(client, context, {
             cursor,
             batchSize: 100,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "CLICKUP",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for ClickUp connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const workspaceId =
+        (config?.workspace_id as string) ?? connector.workspaceExternalId;
+
+      if (!workspaceId) {
+        throw ApplicationFailure.nonRetryable(
+          `No workspace ID for ClickUp connector ${connectorId}`,
+          "ConfigurationError"
+        );
+      }
+
+      const syncComments = config?.sync_comments !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+      const includeSpaces = config?.include_spaces
+        ? String(config.include_spaces)
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeSpaces = config?.exclude_spaces
+        ? String(config.exclude_spaces)
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const client = createClickUpClient({
+        connectorId,
+        accessToken,
+        workspaceId,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        workspaceName: (config?.workspaceName as string) ?? undefined,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? clickUpFullSync(client, workspaceId, context, {
+            batchSize: 100,
+            syncComments,
+            lookbackDays,
+            includeSpaces,
+            excludeSpaces,
+          })
+        : clickUpIncrementalSync(client, workspaceId, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            batchSize: 100,
+            syncComments,
+            includeSpaces,
+            excludeSpaces,
           });
 
       for await (const batch of syncGenerator) {

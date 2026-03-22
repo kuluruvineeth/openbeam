@@ -1,0 +1,32 @@
+---
+title: Features
+description: ClickUp connector capabilities
+---
+
+# Features
+
+## Entity Types
+
+### Tasks
+Full-text search across task names, descriptions, and content. Includes metadata for status, priority, assignees, tags, due dates, and custom fields.
+
+### Lists
+Lists are indexed with their names, content descriptions, and task counts.
+
+### Comments
+Task comments are indexed with full text, author information, and timestamps.
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| **Create Task** | Create a new task in a specified list |
+| **Update Task** | Update task name, description, status, priority |
+| **Add Comment** | Add a comment to an existing task |
+
+## Sync Modes
+
+| Mode | Description |
+|------|-------------|
+| **Full Sync** | Fetches all tasks across all spaces and lists |
+| **Incremental Sync** | Uses `date_updated_gt` to fetch only changed tasks |

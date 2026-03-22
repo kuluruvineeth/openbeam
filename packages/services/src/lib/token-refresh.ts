@@ -402,6 +402,9 @@ export async function refreshConnectorToken(
       case "INTERCOM":
         throw new Error("Intercom tokens do not expire");
 
+      case "CLICKUP":
+        throw new Error("ClickUp tokens do not expire");
+
       case "SLACK":
         throw new Error("Slack token refresh not implemented");
 

@@ -5,6 +5,7 @@ import awsIot from "./aws-iot/aws-iot.index";
 import azureIot from "./azure-iot/azure-iot.index";
 import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
+import clickup from "./clickup/clickup.index";
 import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
 import figma from "./figma/figma.index";
@@ -69,6 +70,7 @@ integrations.route("/zoom", zoom);
 integrations.route("/bitbucket", bitbucket);
 integrations.route("/monday", monday);
 integrations.route("/pagerduty", pagerduty);
+integrations.route("/clickup", clickup);
 
 integrations.get("/health", (c) =>
   c.json({

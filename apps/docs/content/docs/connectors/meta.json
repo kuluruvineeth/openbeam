@@ -47,6 +47,7 @@
     "mitre-attack",
     "owasp",
     "zoom",
-    "pagerduty"
+    "pagerduty",
+    "clickup"
   ]
 }
