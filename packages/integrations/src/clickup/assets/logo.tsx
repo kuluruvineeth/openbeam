@@ -2,49 +2,18 @@
 import type { LogoProps } from "../../types";
 
 export const Logo = ({ size = 32, className }: LogoProps) => (
-  // biome-ignore lint/a11y/noSvgWithoutTitle: Logo component
+  // biome-ignore lint/a11y/noSvgWithoutTitle: This is a logo
   <svg
     className={className}
     height={size}
-    viewBox="5.615 2.146 139.771 34.042"
+    viewBox="0 0 1024 1024"
     width={size}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <defs>
-      <linearGradient
-        gradientUnits="userSpaceOnUse"
-        id="clickup-a"
-        x1="5.615"
-        x2="32.789"
-        y1="31.179"
-        y2="31.179"
-      >
-        <stop offset="0" stopColor="#8930fd" />
-        <stop offset="1" stopColor="#49ccf9" />
-      </linearGradient>
-      <linearGradient
-        gradientUnits="userSpaceOnUse"
-        id="clickup-b"
-        x1="5.941"
-        x2="31.978"
-        y1="13.086"
-        y2="13.086"
-      >
-        <stop offset="0" stopColor="#ff02f0" />
-        <stop offset="1" stopColor="#ffc800" />
-      </linearGradient>
-    </defs>
+    <circle cx="512" cy="512" fill="#7b68ee" r="512" />
     <path
-      clipRule="evenodd"
-      d="M5.615 27.26l5.015-3.851c2.664 3.485 5.494 5.092 8.645 5.092 3.134 0 5.884-1.588 8.428-5.046l5.086 3.758c-3.67 4.986-8.232 7.62-13.514 7.62-5.265 0-9.871-2.617-13.66-7.574z"
-      fill="url(#clickup-a)"
-      fillRule="evenodd"
-    />
-    <path
-      clipRule="evenodd"
-      d="M18.992 10.523l-8.925 7.71-4.126-4.797 13.07-11.29 12.967 11.299-4.145 4.78z"
-      fill="url(#clickup-b)"
-      fillRule="evenodd"
+      d="M298.67 649.36 377.42 589c41.82 54.6 86.23 79.76 135.72 79.76 49.21 0 92.41-24.87 132.35-79l79.84 58.88C667.74 726.74 596.08 768 513.14 768c-82.66 0-154.98-41-214.47-118.64zm214.22-262.17L372.72 508 308 432.82 513.17 256l203.61 177-65.08 74.83z"
+      fill="#fff"
     />
   </svg>
 );
