@@ -125,6 +125,7 @@ import {
   zoomIncrementalSync,
 } from "@openbeam/services";
 import { logger } from "@openbeam/services/lib/logger";
+import type { ZoomSyncCursor } from "@openbeam/types/services/connectors/zoom";
 import type { GenericDocument } from "@openbeam/vespa";
 import { ApplicationFailure } from "@temporalio/common";
 import type { SyncCursor } from "../../workflows/types";
@@ -3092,7 +3093,7 @@ export function registerAllSyncFactories(): void {
         ? zoomFullSync(client, context, syncOptions)
         : zoomIncrementalSync(client, context, {
             ...syncOptions,
-            cursor,
+            cursor: cursor as ZoomSyncCursor,
           });
 
       for await (const batch of syncGenerator) {
