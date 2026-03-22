@@ -86,6 +86,7 @@ export enum AppType {
   GITLAB = "GITLAB",
   INTERCOM = "INTERCOM",
   ZOOM = "ZOOM",
+  BITBUCKET = "BITBUCKET",
 }
 
 export enum SyncMode {

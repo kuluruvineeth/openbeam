@@ -3,6 +3,7 @@ import type { AuthEnv } from "@/middleware/auth";
 import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureIot from "./azure-iot/azure-iot.index";
+import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
 import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
@@ -61,6 +62,7 @@ integrations.route("/hubspot", hubspot);
 integrations.route("/intercom", intercom);
 integrations.route("/figma", figma);
 integrations.route("/zoom", zoom);
+integrations.route("/bitbucket", bitbucket);
 
 integrations.get("/health", (c) =>
   c.json({

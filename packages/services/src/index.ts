@@ -158,6 +158,23 @@ export {
   transformDevice as transformBacnetDevice,
   transformObject as transformBacnetObject,
 } from "./bacnet";
+export type { BitbucketClient } from "./bitbucket";
+export {
+  addIssueComment as addBitbucketIssueComment,
+  addPRComment as addBitbucketPRComment,
+  BitbucketApiError,
+  BitbucketAuth,
+  BitbucketErrorCodes,
+  createBitbucketClient,
+  createIssue as createBitbucketIssue,
+  createPullRequest as createBitbucketPullRequest,
+  fullSync as bitbucketFullSync,
+  incrementalSync as bitbucketIncrementalSync,
+  transformIssue as transformBitbucketIssue,
+  transformPullRequest as transformBitbucketPullRequest,
+  transformRepository as transformBitbucketRepository,
+  transformSnippet as transformBitbucketSnippet,
+} from "./bitbucket";
 export type {
   BoxClient,
   BoxClientConfig,

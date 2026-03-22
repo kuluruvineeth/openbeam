@@ -16,6 +16,7 @@ type IntegrationName =
   | "linear"
   | "github"
   | "gitlab"
+  | "bitbucket"
   | "microsoft-calendar"
   | "servicenow"
   | "zendesk"
@@ -119,6 +120,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   zoom: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/zoom/callback", {
+      code,
+      state,
+    }),
+  bitbucket: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/bitbucket/callback", {
       code,
       state,
     }),

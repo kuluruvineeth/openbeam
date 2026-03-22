@@ -14,6 +14,7 @@ import {
   dropboxApp,
   hubspotApp,
   refreshAsanaToken,
+  refreshBitbucketToken,
   refreshBoxToken,
   refreshConfluenceToken,
   refreshDropboxToken,
@@ -354,6 +355,20 @@ export async function refreshConnectorToken(
           accessToken: hsResult.accessToken,
           expiresIn: hsResult.expiresIn,
           refreshToken: hsResult.refreshToken,
+        };
+        break;
+      }
+
+      case "BITBUCKET": {
+        const bitbucketResult = await refreshBitbucketToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: bitbucketResult.accessToken,
+          expiresIn: bitbucketResult.expiresIn,
+          refreshToken: bitbucketResult.refreshToken,
         };
         break;
       }

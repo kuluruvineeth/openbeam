@@ -6,6 +6,7 @@ import { Logo as AsanaLogo } from "./asana/assets/logo";
 import { Logo as AwsIotLogo } from "./aws-iot/assets/logo";
 import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
+import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
@@ -48,6 +49,7 @@ import { Logo as ZoomLogo } from "./zoom/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
   [AppType.ASANA]: AsanaLogo,
+  [AppType.BITBUCKET]: BitbucketLogo,
   [AppType.GMAIL]: GmailLogo,
   [AppType.GITHUB]: GitHubLogo,
   [AppType.GITLAB]: GitLabLogo,

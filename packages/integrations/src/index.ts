@@ -2,6 +2,7 @@ import { asanaApp } from "./asana/config";
 import { awsIotApp } from "./aws-iot/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
+import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { confluenceApp } from "./confluence/config";
@@ -45,6 +46,7 @@ import { zoomApp } from "./zoom/config";
 export {
   asanaApp,
   awsIotApp,
+  bitbucketApp,
   azureIotApp,
   bacnetApp,
   boxApp,
@@ -110,6 +112,21 @@ export {
   generateAtlassianAuthUrl,
   refreshAtlassianToken,
 } from "./atlassian";
+export type {
+  ExchangeBitbucketCodeParams,
+  GenerateBitbucketAuthUrlParams,
+  RefreshBitbucketTokenParams,
+} from "./bitbucket/oauth";
+export {
+  exchangeBitbucketCode,
+  generateBitbucketAuthUrl,
+  refreshBitbucketToken,
+} from "./bitbucket/oauth";
+export type {
+  BitbucketAuthResult,
+  BitbucketTokenResponse,
+  BitbucketUserInfo,
+} from "./bitbucket/types";
 export type {
   BoxOAuthResult,
   BoxTokenResponse,
@@ -453,4 +470,5 @@ export const appStore: UnifiedApp[] = [
   gitlabApp,
   intercomApp,
   zoomApp,
+  bitbucketApp,
 ];

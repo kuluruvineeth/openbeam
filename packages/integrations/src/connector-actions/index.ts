@@ -1,6 +1,7 @@
 import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
 import { asanaActionsRegistry } from "./asana";
 import { awsIotActionsRegistry } from "./aws-iot";
+import { bitbucketActionsRegistry } from "./bitbucket";
 import { boxActionsRegistry } from "./box";
 import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
@@ -57,4 +58,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   gitlabActionsRegistry,
   intercomActionsRegistry,
   zoomActionsRegistry,
+  bitbucketActionsRegistry,
 ];

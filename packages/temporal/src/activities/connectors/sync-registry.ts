@@ -8,6 +8,8 @@ import {
   azureIotIncrementalSync,
   bacnetFullSync,
   bacnetIncrementalSync,
+  bitbucketFullSync,
+  bitbucketIncrementalSync,
   boxFullSync,
   boxIncrementalSync,
   cisaKevFullSync,
@@ -19,6 +21,7 @@ import {
   createAwsIotClient,
   createAzureIotClient,
   createBacnetClient,
+  createBitbucketClient,
   createBoxClient,
   createDropboxClient,
   createFhirClient,
@@ -3084,6 +3087,86 @@ export function registerAllSyncFactories(): void {
         : zoomIncrementalSync(client, context, {
             ...syncOptions,
             cursor,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "BITBUCKET",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for Bitbucket connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const workspace = (config?.workspace as string) ?? "";
+      if (!workspace) {
+        throw ApplicationFailure.nonRetryable(
+          `No workspace configured for Bitbucket connector ${connectorId}`,
+          "ConfigurationError"
+        );
+      }
+
+      const syncPullRequests = config?.sync_pull_requests !== false;
+      const syncIssues = config?.sync_issues !== false;
+      const syncSnippets = config?.sync_snippets === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+
+      logger.info(
+        {
+          connectorId,
+          workspace,
+          syncPullRequests,
+          syncIssues,
+          syncSnippets,
+          lookbackDays,
+          hasExistingCursor: !!cursor?.lastSyncTime,
+        },
+        "Bitbucket sync config loaded"
+      );
+
+      const client = createBitbucketClient({
+        connectorId,
+        accessToken,
+        workspace,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        workspaceSlug: workspace,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? bitbucketFullSync(client, context, {
+            batchSize: 100,
+            syncPullRequests,
+            syncIssues,
+            syncSnippets,
+            lookbackDays,
+          })
+        : bitbucketIncrementalSync(client, context, {
+            lastSyncTime: (cursor?.lastSyncTime as number) ?? Date.now(),
+            batchSize: 100,
+            syncPullRequests,
+            syncIssues,
+            syncSnippets,
           });
 
       for await (const batch of syncGenerator) {
