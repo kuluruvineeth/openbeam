@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import type { LogoProps } from "../../types";
 
 export function Logo({ size = 24 }: LogoProps) {
