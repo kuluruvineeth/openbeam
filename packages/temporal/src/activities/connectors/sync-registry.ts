@@ -113,13 +113,6 @@ import type { SyncCursor } from "../../workflows/types";
 import type { DiscoveredResourceRecord } from "./types";
 import { registerSyncFactory } from "./unified-fetch-batch";
 
-type SyncBatch = {
-  items: GenericDocument[];
-  cursor?: SyncCursor;
-  hasMore?: boolean;
-  discoveredResources?: DiscoveredResourceRecord[];
-};
-
 function parseNumericConfig(
   value: unknown,
   fallback?: number
