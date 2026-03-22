@@ -1,4 +1,5 @@
 import type {
+  FigmaComponent,
   FigmaFileDetail,
   FigmaFileMeta,
   FigmaTransformContext,
