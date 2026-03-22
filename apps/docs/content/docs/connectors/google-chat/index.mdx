@@ -1,0 +1,43 @@
+---
+title: Google Chat
+description: Search across Google Chat spaces, messages, and threads via the Google Chat API
+---
+
+# Google Chat
+
+Index messages, threads, and spaces from Google Chat. Supports OAuth 2.0 via Google Cloud with full and incremental sync using the Chat API createTime filter.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Spaces** | Name, type (Room/DM/Space), description, member count |
+| **Messages** | Text, sender, timestamp, thread context, attachments |
+| **Threads** | Thread-aware grouping with parent message linking |
+| **Deleted Messages** | Detected and removed from index during incremental sync |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Google Cloud
+
+**Scopes:**
+- `chat.spaces.readonly`
+- `chat.messages.readonly`
+- `chat.memberships.readonly`
+
+Create an OAuth 2.0 client in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) with the Google Chat API enabled.
+
+## Quick Start
+
+1. Create a project in Google Cloud Console and enable the Google Chat API
+2. Create OAuth 2.0 credentials and configure the redirect URI
+3. Add the Google Chat connector in OpenBeam with your credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/google-chat/setup" description="Google Cloud project and OAuth configuration" />
+  <Card title="Features" href="/docs/connectors/google-chat/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/google-chat/configuration" description="Space filters, DM toggle, and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/google-chat/sync" description="Full sync, incremental sync via createTime, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/google-chat/troubleshooting" description="Common issues and fixes" />
+</Cards>

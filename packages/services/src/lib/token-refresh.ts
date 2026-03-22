@@ -23,6 +23,7 @@ import {
   refreshGitLabToken,
   refreshGmailToken,
   refreshGoogleCalendarToken,
+  refreshGoogleChatToken,
   refreshGoogleDriveToken,
   refreshHubSpotToken,
   refreshJiraToken,
@@ -108,6 +109,14 @@ export async function refreshConnectorToken(
 
       case "GOOGLE_CALENDAR":
         newToken = await refreshGoogleCalendarToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "GOOGLE_CHAT":
+        newToken = await refreshGoogleChatToken({
           clientId,
           clientSecret,
           refreshToken,

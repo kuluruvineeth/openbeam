@@ -1,0 +1,42 @@
+---
+title: Features
+description: Google Chat connector features and indexed content types
+---
+
+# Features
+
+## Indexed Content
+
+### Spaces
+- Space name, type, and description
+- Room, DM, and group conversation types
+- Member count and threading state
+- External user access settings
+
+### Messages
+- Full message text and formatted text
+- Sender information (name, type)
+- Thread grouping with parent message linking
+- Attachment metadata (file names, types)
+- Emoji reaction summaries
+- Creation and last update timestamps
+
+## Search Capabilities
+
+- **Semantic search** across all chat messages and threads
+- **Space discovery** — find relevant rooms and channels
+- **Thread context** — messages linked to their conversation thread
+- **Sender filtering** — filter results by message author
+- **Time-based filtering** — search within date ranges
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| **Send Message** | Send a text message to any accessible Google Chat space |
+
+## Privacy
+
+- Direct messages are **not synced by default** — enable via the `sync_direct_messages` setting
+- All message content is marked as PII (`isPii: true`)
+- Access control respects Google Workspace permissions

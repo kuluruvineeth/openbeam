@@ -13,6 +13,7 @@ import { githubApp } from "./github/config";
 import { gitlabApp } from "./gitlab/config";
 import { gmailApp } from "./gmail/config";
 import { googleCalendarApp } from "./google-calendar/config";
+import { googleChatApp } from "./google-chat/config";
 import { googleDriveApp } from "./google-drive/config";
 import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
@@ -60,6 +61,7 @@ export {
   githubApp,
   gitlabApp,
   googleCalendarApp,
+  googleChatApp,
   googleDriveApp,
   hubspotApp,
   intercomApp,
@@ -253,6 +255,17 @@ export {
   generateGoogleCalendarAuthUrl,
   refreshGoogleCalendarToken,
 } from "./google-calendar/oauth";
+export type {
+  ExchangeGoogleChatCodeParams,
+  GenerateGoogleChatAuthUrlParams,
+  GoogleChatOAuthResult,
+  RefreshGoogleChatTokenParams,
+} from "./google-chat/oauth";
+export {
+  exchangeGoogleChatCode,
+  generateGoogleChatAuthUrl,
+  refreshGoogleChatToken,
+} from "./google-chat/oauth";
 export {
   exchangeGoogleDriveCode,
   generateGoogleDriveAuthUrl,
@@ -478,6 +491,7 @@ export const appStore: UnifiedApp[] = [
   servicenowApp,
   zendeskApp,
   googleCalendarApp,
+  googleChatApp,
   microsoftCalendarApp,
   asanaApp,
   hubspotApp,

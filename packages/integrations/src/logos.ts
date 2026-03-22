@@ -17,6 +17,7 @@ import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GitLabLogo } from "./gitlab/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
+import { Logo as GoogleChatLogo } from "./google-chat/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
@@ -82,6 +83,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.SALESFORCE]: SalesforceLogo,
   [AppType.SERVICENOW]: ServiceNowLogo,
   [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
+  [AppType.GOOGLE_CHAT]: GoogleChatLogo,
   [AppType.MICROSOFT_CALENDAR]: MicrosoftCalendarLogo,
   [AppType.AWS_IOT]: AwsIotLogo,
   [AppType.AZURE_IOT]: AzureIotLogo,

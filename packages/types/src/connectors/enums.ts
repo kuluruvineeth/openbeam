@@ -70,6 +70,7 @@ export const AppTypeSchema = z.enum([
   "MICROSOFT_CALENDAR",
   "FIGMA",
   "ZOOM",
+  "GOOGLE_CHAT",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

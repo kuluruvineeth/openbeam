@@ -388,6 +388,24 @@ export {
   transformCalendarEvent,
 } from "./google-calendar";
 export type {
+  ChatMember,
+  ChatMessage,
+  ChatSpace,
+  GoogleChatClient,
+  GoogleChatClientConfig,
+  SendMessageResult,
+} from "./google-chat";
+export {
+  createGoogleChatClient,
+  GoogleChatApiError,
+  GoogleChatAuth,
+  googleChatFullSync,
+  googleChatIncrementalSync,
+  sendChatMessage,
+  transformChatMessage,
+  transformChatSpace,
+} from "./google-chat";
+export type {
   DriveNotification,
   DriveWatchState,
   GoogleDriveClient,

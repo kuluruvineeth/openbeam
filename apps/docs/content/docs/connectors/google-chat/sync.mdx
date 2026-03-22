@@ -1,0 +1,42 @@
+---
+title: Sync Behavior
+description: Google Chat sync modes and scheduling
+---
+
+# Sync Behavior
+
+## Full Sync
+
+During a full sync, the connector:
+
+1. Fetches all accessible spaces (rooms, group conversations, optionally DMs)
+2. For each space, fetches all messages within the configured lookback period
+3. Transforms spaces and messages into searchable documents
+4. Yields batches of documents for indexing
+
+Messages are fetched in `createTime ASC` order with pagination via `pageToken`.
+
+## Incremental Sync
+
+Incremental sync uses the `createTime` filter to fetch only messages created since the last sync:
+
+```
+filter: createTime > "2026-03-22T00:00:00Z"
+```
+
+If no previous sync cursor exists, the connector falls back to a full sync automatically.
+
+### Deletion Detection
+
+Deleted messages are detected via the `deletionMetadata` field on the message resource. When a deleted message is encountered during incremental sync, a deletion marker is emitted to remove it from the search index.
+
+## Sync Schedule
+
+| Stream | Default Interval | Mode |
+|--------|-----------------|------|
+| Spaces | 60 minutes | Periodic |
+| Messages | 15 minutes | Periodic |
+
+## Rate Limits
+
+The Google Chat API uses standard Google API quotas. The connector handles rate limiting (HTTP 429) with automatic retry and exponential backoff.

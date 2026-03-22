@@ -88,6 +88,7 @@ export enum AppType {
   ZOOM = "ZOOM",
   BITBUCKET = "BITBUCKET",
   MONDAY = "MONDAY",
+  GOOGLE_CHAT = "GOOGLE_CHAT",
 }
 
 export enum SyncMode {

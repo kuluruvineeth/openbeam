@@ -1,0 +1,49 @@
+---
+title: Troubleshooting
+description: Common Google Chat connector issues and solutions
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Google Chat OAuth credentials not configured"
+
+The connector does not have a Client ID and Client Secret set. Upload the OAuth credentials JSON file or enter them manually in the connector settings.
+
+### "Authentication failed" (401/403)
+
+- Verify the Google Chat API is enabled in your Google Cloud project
+- Check that the OAuth consent screen includes the required scopes
+- Re-authorize the connector to get a fresh access token
+
+### Token refresh failures
+
+Google OAuth tokens expire after 1 hour. The connector refreshes tokens automatically. If refresh fails 3 times, the connector status changes to `AUTH_EXPIRED`. Re-authorize to fix.
+
+## Sync Issues
+
+### No spaces found
+
+- Ensure the authenticating user has access to Google Chat spaces
+- Google Chat is a Google Workspace product — personal Gmail accounts may not have access
+- Check that the Chat API is enabled in the Google Cloud project
+
+### Messages not appearing
+
+- Verify the **lookback_days** setting covers the desired time range
+- Check if spaces are excluded via the **Exclude Spaces** setting
+- DMs are excluded by default — enable **Sync Direct Messages** if needed
+
+### Rate limiting
+
+The connector automatically retries on HTTP 429 responses with the `Retry-After` header. If sync is consistently slow, reduce the sync frequency or contact Google to increase API quotas.
+
+## API Quotas
+
+| Resource | Default Limit |
+|----------|--------------|
+| Read requests | 900 per minute |
+| Write requests | 60 per minute |
+
+Monitor usage in the [Google Cloud Console API Dashboard](https://console.cloud.google.com/apis/dashboard).

@@ -30,6 +30,7 @@ import {
   createGitLabClient,
   createGmailClient,
   createGoogleCalendarClient,
+  createGoogleChatClient,
   createGoogleDriveClient,
   createHubSpotClient,
   createIntercomClient,
@@ -68,6 +69,8 @@ import {
   gmailIncrementalSync,
   googleCalendarFullSync,
   googleCalendarIncrementalSync,
+  googleChatFullSync,
+  googleChatIncrementalSync,
   googleDriveIncrementalSync,
   hubspotFullSync,
   hubspotIncrementalSync,
@@ -3247,6 +3250,75 @@ export function registerAllSyncFactories(): void {
             boardKindsFilter,
             includeBoardIds,
             excludeBoardIds,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GOOGLE_CHAT",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : 90;
+      const syncDirectMessages =
+        parseBooleanConfig(config?.sync_direct_messages) === true;
+      const includeSpaces = config?.include_spaces
+        ? String(config.include_spaces)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeSpaces = config?.exclude_spaces
+        ? String(config.exclude_spaces)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info({ connectorId, userEmail }, "Google Chat sync config loaded");
+
+      const client = createGoogleChatClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? googleChatFullSync(client, context, {
+            batchSize: 100,
+            syncDirectMessages,
+            includeSpaces,
+            excludeSpaces,
+            lookbackDays,
+          })
+        : googleChatIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            syncDirectMessages,
+            includeSpaces,
+            excludeSpaces,
+            lookbackDays,
           });
 
       for await (const batch of syncGenerator) {

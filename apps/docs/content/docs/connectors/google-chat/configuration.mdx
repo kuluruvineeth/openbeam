@@ -1,0 +1,30 @@
+---
+title: Configuration
+description: Google Chat connector configuration options
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Sync Direct Messages** | Switch | Off | Include DMs in sync. Disabled by default for privacy. |
+| **Include Spaces** | Text | (all) | Comma-separated space names to include. Leave empty for all. |
+| **Exclude Spaces** | Text | (none) | Comma-separated space names to exclude. |
+| **History (days)** | Number | 90 | How far back to sync messages. |
+
+## Space Filtering
+
+Use **Include Spaces** and **Exclude Spaces** to control which spaces are synced. Space names are matched case-insensitively.
+
+```
+Include: engineering, product, design
+Exclude: random, off-topic
+```
+
+## Direct Messages
+
+Direct messages contain private conversations between individuals. They are excluded from sync by default. Enable the **Sync Direct Messages** toggle to include them.
+
+When DMs are synced, they are treated as private documents accessible only to the conversation participants.

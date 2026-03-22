@@ -10,6 +10,7 @@ import { githubActionsRegistry } from "./github";
 import { gitlabActionsRegistry } from "./gitlab";
 import { gmailActionsRegistry } from "./gmail";
 import { googleCalendarActionsRegistry } from "./google-calendar";
+import { googleChatActionsRegistry } from "./google-chat";
 import { googleDriveActionsRegistry } from "./google-drive";
 import { hubspotActionsRegistry } from "./hubspot";
 import { intercomActionsRegistry } from "./intercom";
@@ -41,6 +42,7 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   confluenceActionsRegistry,
   salesforceActionsRegistry,
   googleCalendarActionsRegistry,
+  googleChatActionsRegistry,
   outlookActionsRegistry,
   sharePointActionsRegistry,
   teamsActionsRegistry,

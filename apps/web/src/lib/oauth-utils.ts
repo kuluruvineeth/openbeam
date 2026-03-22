@@ -12,6 +12,7 @@ type IntegrationName =
   | "slack"
   | "gmail"
   | "google-drive"
+  | "google-chat"
   | "notion"
   | "linear"
   | "github"
@@ -46,6 +47,14 @@ const INTEGRATION_HANDLERS: Record<
   "google-drive": async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>(
       "/integrations/google-drive/callback",
+      {
+        code,
+        state,
+      }
+    ),
+  "google-chat": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/google-chat/callback",
       {
         code,
         state,

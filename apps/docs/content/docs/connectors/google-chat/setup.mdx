@@ -1,0 +1,46 @@
+---
+title: Setup
+description: Configure Google Chat connector with OAuth 2.0 credentials
+---
+
+# Google Chat Setup
+
+## Prerequisites
+
+- A Google Workspace account (Google Chat is a Workspace product)
+- Access to [Google Cloud Console](https://console.cloud.google.com)
+- Admin access to enable the Chat API
+
+## Step 1: Create a Google Cloud Project
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select an existing one
+3. Navigate to **APIs & Services > Library**
+4. Search for "Google Chat API" and enable it
+
+## Step 2: Configure OAuth Consent Screen
+
+1. Go to **APIs & Services > OAuth consent screen**
+2. Select **Internal** (for Workspace) or **External**
+3. Add the required scopes:
+   - `https://www.googleapis.com/auth/chat.spaces.readonly`
+   - `https://www.googleapis.com/auth/chat.messages.readonly`
+   - `https://www.googleapis.com/auth/chat.memberships.readonly`
+   - `https://www.googleapis.com/auth/userinfo.email`
+   - `https://www.googleapis.com/auth/userinfo.profile`
+
+## Step 3: Create OAuth 2.0 Credentials
+
+1. Go to **APIs & Services > Credentials**
+2. Click **Create Credentials > OAuth 2.0 Client ID**
+3. Select **Web application**
+4. Add the authorized redirect URI: `https://your-domain.com/connectors/setup/google-chat/oauth/callback`
+5. Download the JSON credentials file
+
+## Step 4: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors** in OpenBeam
+2. Click **Add Connector** and select **Google Chat**
+3. Upload the OAuth credentials JSON file or enter Client ID and Client Secret manually
+4. Click **Connect** to start the OAuth flow
+5. Authorize the requested permissions in the Google consent screen
