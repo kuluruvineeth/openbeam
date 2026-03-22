@@ -1,0 +1,41 @@
+---
+title: GitLab
+description: Search across projects, issues, and merge requests from GitLab
+---
+
+# GitLab
+
+Index projects, issues, and merge requests from GitLab groups and personal accounts. The connector uses OAuth 2.0 for authentication and supports both gitlab.com and self-hosted instances.
+
+GitLab is essential for engineering teams that host code and manage work items on GitLab, making project context searchable alongside other connected tools.
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `read_api`, `read_user`
+
+Create an OAuth Application at [gitlab.com/-/user_settings/applications](https://gitlab.com/-/user_settings/applications) (or your self-hosted instance) and provide the Application ID and Secret in OpenBeam.
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Projects** | Name, description, default branch, topics, visibility | Periodic | 30 min |
+| **Issues** | Title, description, state, labels, assignees, notes | Periodic | 15 min |
+| **Merge Requests** | Title, description, state, source/target branch, notes | Periodic | 15 min |
+
+All streams support full backfill.
+
+## Self-Hosted Support
+
+Set the **Instance URL** setting to your GitLab instance (e.g., `https://gitlab.example.com`). Leave empty for gitlab.com. The connector dynamically builds OAuth and API URLs from the instance URL.
+
+## Quick Start
+
+1. Go to **Connectors > Add Connector > GitLab**
+2. Enter your OAuth Application ID and Secret
+3. (Optional) Set Instance URL for self-hosted
+4. Click **Connect** to authorize
+5. Configure group filters and sync options
+6. Start syncing

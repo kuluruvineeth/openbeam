@@ -19,6 +19,7 @@ import {
   refreshDropboxToken,
   refreshFigmaToken,
   refreshGitHubToken,
+  refreshGitLabToken,
   refreshGmailToken,
   refreshGoogleCalendarToken,
   refreshGoogleDriveToken,
@@ -140,6 +141,24 @@ export async function refreshConnectorToken(
           accessToken: githubResult.accessToken,
           expiresIn: githubResult.expiresIn,
           refreshToken: githubResult.refreshToken,
+        };
+        break;
+      }
+
+      case "GITLAB": {
+        const gitlabConfig = connector.config as Record<string, unknown> | null;
+        const gitlabInstanceUrl =
+          (gitlabConfig?.instance_url as string) || undefined;
+        const gitlabResult = await refreshGitLabToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+          instanceUrl: gitlabInstanceUrl,
+        });
+        newToken = {
+          accessToken: gitlabResult.accessToken,
+          expiresIn: gitlabResult.expiresIn,
+          refreshToken: gitlabResult.refreshToken,
         };
         break;
       }

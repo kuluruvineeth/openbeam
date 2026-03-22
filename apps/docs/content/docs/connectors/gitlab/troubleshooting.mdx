@@ -1,0 +1,69 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the GitLab connector
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "GitLab OAuth client_id not configured"
+
+The connector was created without setting the Client ID. Go to connector settings and enter the Application ID from your GitLab OAuth application.
+
+### "Token refresh failed" / AUTH_EXPIRED
+
+The refresh token has expired or been revoked. Common causes:
+
+- The OAuth application was deleted or regenerated
+- The user revoked access in GitLab settings
+- Too many consecutive refresh failures (3+)
+
+**Fix:** Re-authorize the connector from the settings page.
+
+### 403 Forbidden on API calls
+
+The authenticated user lacks permission to access the requested resource. Verify:
+
+- The OAuth application has `read_api` and `read_user` scopes
+- The user has at least Reporter access to the target projects
+
+## Sync Issues
+
+### Missing projects
+
+Projects may be filtered out by:
+
+- **Visibility Filter** — Check if the filter matches the project's visibility
+- **Group Filters** — Verify include/exclude group paths match the project's namespace
+- **Archived projects** — Archived projects are skipped by default
+
+### Slow initial sync
+
+Large organizations with thousands of projects and issues may take longer. To speed up:
+
+- Set **Include Groups** to limit scope to relevant groups
+- Set **History (days)** to limit how far back issues and merge requests are synced
+- Disable **Sync Comments** if notes are not needed for search
+
+### Rate limit errors
+
+If you see frequent rate limit errors:
+
+- The connector defaults to 120 req/min, well within GitLab's 2,000 req/min limit
+- Self-hosted instances may have lower limits — check your instance configuration
+- Multiple connectors for the same instance share the rate limit
+
+## Self-Hosted Issues
+
+### Connection refused
+
+Verify the Instance URL is reachable from the OpenBeam server. Common causes:
+
+- Firewall blocking outbound connections
+- Instance URL includes a typo or wrong port
+- SSL certificate issues (the connector requires HTTPS)
+
+### OAuth redirect mismatch
+
+The redirect URI in your GitLab OAuth application must exactly match the URL shown in the OpenBeam connector setup page. Check for trailing slashes and protocol mismatches.

@@ -13,6 +13,7 @@ import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as FigmaLogo } from "./figma/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
+import { Logo as GitLabLogo } from "./gitlab/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
@@ -47,6 +48,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.ASANA]: AsanaLogo,
   [AppType.GMAIL]: GmailLogo,
   [AppType.GITHUB]: GitHubLogo,
+  [AppType.GITLAB]: GitLabLogo,
   [AppType.GOOGLE_DRIVE]: GoogleDriveLogo,
   [AppType.LINEAR]: LinearLogo,
   [AppType.NOTION]: NotionLogo,

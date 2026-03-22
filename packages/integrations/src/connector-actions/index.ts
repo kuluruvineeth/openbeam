@@ -6,6 +6,7 @@ import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
 import { figmaActionsRegistry } from "./figma";
 import { githubActionsRegistry } from "./github";
+import { gitlabActionsRegistry } from "./gitlab";
 import { gmailActionsRegistry } from "./gmail";
 import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleDriveActionsRegistry } from "./google-drive";
@@ -51,4 +52,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   asanaActionsRegistry,
   hubspotActionsRegistry,
   figmaActionsRegistry,
+  gitlabActionsRegistry,
 ];

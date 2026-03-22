@@ -310,6 +310,23 @@ export {
   transformRepository as transformGitHubRepository,
   verifyGitHubWebhookSignature,
 } from "./github";
+export type { GitLabClient } from "./gitlab";
+export {
+  addIssueNote as addGitLabIssueNote,
+  addMergeRequestNote as addGitLabMergeRequestNote,
+  createGitLabClient,
+  createIssue as createGitLabIssue,
+  createMergeRequest as createGitLabMergeRequest,
+  fullSync as gitlabFullSync,
+  GitLabApiError,
+  GitLabAuth,
+  GitLabErrorCodes,
+  incrementalSync as gitlabIncrementalSync,
+  transformIssue as transformGitLabIssue,
+  transformMergeRequest as transformGitLabMergeRequest,
+  transformProject as transformGitLabProject,
+  updateIssue as updateGitLabIssue,
+} from "./gitlab";
 export type {
   DomainSyncCursor,
   GmailClient,

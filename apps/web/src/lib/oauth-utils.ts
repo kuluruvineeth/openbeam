@@ -15,6 +15,7 @@ type IntegrationName =
   | "notion"
   | "linear"
   | "github"
+  | "gitlab"
   | "microsoft-calendar"
   | "servicenow"
   | "zendesk"
@@ -58,6 +59,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   github: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/github/callback", {
+      code,
+      state,
+    }),
+  gitlab: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/gitlab/callback", {
       code,
       state,
     }),

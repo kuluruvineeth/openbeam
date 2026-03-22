@@ -1,0 +1,63 @@
+---
+title: Features
+description: What the GitLab connector indexes and supports
+---
+
+# Features
+
+## Indexed Entities
+
+### Projects
+
+- Project name, path, and namespace
+- Description and topics
+- Default branch and visibility
+- Star and fork counts
+- Archive status
+
+### Issues
+
+- Title and description (markdown)
+- State (opened, closed)
+- Labels and milestone
+- Assignees and author
+- Weight (if set)
+- Notes (comments) from team members
+
+### Merge Requests
+
+- Title and description (markdown)
+- State (opened, closed, merged, locked)
+- Source and target branches
+- Labels and milestone
+- Assignees, reviewers, and author
+- Draft status
+- Notes (comments) from team members
+
+## Self-Hosted Support
+
+The connector supports both gitlab.com and self-hosted GitLab instances. Set the **Instance URL** to your GitLab domain and the connector dynamically routes all API calls and OAuth flows through that instance.
+
+## Group Filtering
+
+Control which projects are indexed:
+
+- **Include Groups:** Only sync projects from these groups (comma-separated paths)
+- **Exclude Groups:** Skip projects from these groups
+- **Visibility Filter:** Only sync projects with a specific visibility level (public, internal, private)
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the `updated_after` parameter to fetch only issues and merge requests modified since the last sync. This reduces API usage and sync time significantly.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| Create Issue | Create a new issue in a project |
+| Update Issue | Modify issue title, description, or state |
+| Add Issue Note | Post a comment on an issue |
+| Create Merge Request | Open a merge request between branches |
+| Add MR Note | Post a comment on a merge request |

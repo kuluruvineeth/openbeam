@@ -8,6 +8,7 @@ import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
 import figma from "./figma/figma.index";
 import github from "./github/github.index";
+import gitlab from "./gitlab/gitlab.index";
 import gmail from "./gmail/gmail.index";
 import googleCalendar from "./google-calendar/google-calendar.index";
 import googleDrive from "./google-drive/google-drive.index";
@@ -31,6 +32,7 @@ const integrations = new OpenAPIHono<AuthEnv>();
 
 integrations.route("/gmail", gmail);
 integrations.route("/github", github);
+integrations.route("/gitlab", gitlab);
 integrations.route("/google-drive", googleDrive);
 integrations.route("/linear", linear);
 integrations.route("/notion", notion);

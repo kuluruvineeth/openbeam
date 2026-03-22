@@ -9,6 +9,7 @@ import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
 import { figmaApp } from "./figma/config";
 import { githubApp } from "./github/config";
+import { gitlabApp } from "./gitlab/config";
 import { gmailApp } from "./gmail/config";
 import { googleCalendarApp } from "./google-calendar/config";
 import { googleDriveApp } from "./google-drive/config";
@@ -52,6 +53,7 @@ export {
   fhirApp,
   gmailApp,
   githubApp,
+  gitlabApp,
   googleCalendarApp,
   googleDriveApp,
   hubspotApp,
@@ -173,6 +175,21 @@ export type {
   GitHubTokenResponse,
   GitHubUser,
 } from "./github/types";
+export type {
+  ExchangeGitLabCodeParams,
+  GenerateGitLabAuthUrlParams,
+  RefreshGitLabTokenParams,
+} from "./gitlab/oauth";
+export {
+  exchangeGitLabCode,
+  generateGitLabAuthUrl,
+  refreshGitLabToken,
+} from "./gitlab/oauth";
+export type {
+  GitLabAuthResult,
+  GitLabTokenResponse,
+  GitLabUserInfo,
+} from "./gitlab/types";
 export {
   exchangeGmailCode,
   generateGmailAuthUrl,
@@ -402,4 +419,5 @@ export const appStore: UnifiedApp[] = [
   asanaApp,
   hubspotApp,
   figmaApp,
+  gitlabApp,
 ];

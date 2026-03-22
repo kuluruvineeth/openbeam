@@ -1,0 +1,48 @@
+---
+title: Configuration
+description: Configure the GitLab connector settings
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| Client ID | Text | Yes | — | GitLab OAuth Application ID |
+| Client Secret | Password | Yes | — | GitLab OAuth Application Secret |
+| Instance URL | Text | No | `https://gitlab.com` | Self-hosted GitLab instance URL |
+| Include Groups | Text | No | All | Comma-separated group paths to include |
+| Exclude Groups | Text | No | None | Comma-separated group paths to exclude |
+| Sync Merge Requests | Switch | No | On | Index merge requests from synced projects |
+| Sync Comments | Switch | No | On | Index issue and merge request notes |
+| Visibility Filter | Text | No | All | Only sync projects with this visibility (public, internal, private) |
+| History (days) | Text | No | Unlimited | How far back to sync issues and merge requests |
+
+## Group Filtering
+
+Use group paths as they appear in GitLab URLs:
+
+```
+Include: my-org, my-org/frontend
+Exclude: my-org/archived, my-org/sandbox
+```
+
+When **Include Groups** is set, only projects under those groups (and their subgroups) are synced. When **Exclude Groups** is set, matching projects are skipped regardless of include rules.
+
+## Visibility Filter
+
+Set to one of:
+
+- `public` — Only public projects
+- `internal` — Only internal projects (self-hosted)
+- `private` — Only private projects
+- Empty — All projects accessible to the authenticated user
+
+## Self-Hosted Configuration
+
+For self-hosted GitLab instances:
+
+1. Set **Instance URL** to your GitLab domain (e.g., `https://gitlab.example.com`)
+2. Create the OAuth Application on your instance
+3. The connector builds all API and OAuth URLs from the Instance URL

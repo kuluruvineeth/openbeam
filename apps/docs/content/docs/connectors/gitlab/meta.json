@@ -1,0 +1,13 @@
+{
+  "title": "GitLab",
+  "icon": "GitLab",
+  "pages": [
+    "index",
+    "setup",
+    "oauth-scopes",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

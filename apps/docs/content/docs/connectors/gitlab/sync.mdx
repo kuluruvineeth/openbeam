@@ -1,0 +1,52 @@
+---
+title: Sync
+description: How the GitLab connector syncs data
+---
+
+# Sync
+
+## Full Sync
+
+The initial sync discovers all accessible projects and indexes:
+
+1. **Projects** — Fetches all non-archived projects matching group and visibility filters
+2. **Issues** — Iterates each project's issues with optional notes
+3. **Merge Requests** — Iterates each project's merge requests with optional notes
+
+Documents are yielded in batches of 50 (configurable) for efficient indexing.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_after` parameter on the GitLab API to fetch only entities modified since the last sync. This approach:
+
+- Reduces API calls significantly
+- Detects updated issues, merge requests, and new notes
+- Maintains a cursor with `lastSyncTime` for crash recovery
+
+## Rate Limits
+
+GitLab allows 2,000 requests per minute for authenticated users. The connector:
+
+- Tracks rate limits via Redis
+- Respects `Retry-After` headers on 429 responses
+- Uses exponential backoff with jitter for retries
+- Defaults to 120 requests/minute to stay well within limits
+
+## Sync Intervals
+
+| Stream | Default Interval |
+|--------|-----------------|
+| Projects | 30 minutes |
+| Issues | 15 minutes |
+| Merge Requests | 15 minutes |
+
+## Data Volume Estimates
+
+| Entity | Typical Volume | API Calls |
+|--------|---------------|-----------|
+| Projects | 10-500 | 1-5 pages |
+| Issues per project | 10-1,000 | 1-10 pages |
+| Merge Requests per project | 10-500 | 1-5 pages |
+| Notes per entity | 0-50 | 0-1 pages |
+
+A workspace with 100 projects, 5,000 issues, and 2,000 merge requests typically completes initial sync in under 30 minutes.

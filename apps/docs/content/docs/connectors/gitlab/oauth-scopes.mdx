@@ -1,0 +1,38 @@
+---
+title: OAuth Scopes
+description: GitLab OAuth scopes required by the OpenBeam connector
+---
+
+# OAuth Scopes
+
+The GitLab connector requests minimal scopes following the principle of least privilege.
+
+## Required Scopes
+
+| Scope | Purpose |
+|-------|---------|
+| `read_api` | Read access to the API, including projects, issues, and merge requests |
+| `read_user` | Read access to the authenticated user's profile |
+
+## Scope Details
+
+### `read_api`
+
+Grants read-only access to all API endpoints. This scope provides access to:
+
+- List and read projects the user has access to
+- List and read issues across projects
+- List and read merge requests across projects
+- Read issue and merge request notes (comments)
+- Read project metadata (topics, visibility, branches)
+
+### `read_user`
+
+Grants read access to the authenticated user's profile information, used to identify the connected account.
+
+## Token Lifecycle
+
+- Access tokens expire after **2 hours**
+- OpenBeam automatically refreshes tokens using the refresh token
+- If refresh fails 3 times, the connector status changes to `AUTH_EXPIRED`
+- Re-authorize from the connector settings to restore access

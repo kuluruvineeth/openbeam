@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Configure your GitLab OAuth application and connect to OpenBeam
+---
+
+# Setup
+
+## Prerequisites
+
+- A GitLab account with access to the projects you want to index
+- Permission to create OAuth Applications (admin or personal)
+
+## Create an OAuth Application
+
+1. Navigate to your GitLab user settings: **Preferences > Applications**
+   - For gitlab.com: [gitlab.com/-/user_settings/applications](https://gitlab.com/-/user_settings/applications)
+   - For self-hosted: `https://your-instance/-/user_settings/applications`
+2. Click **Add new application**
+3. Fill in the details:
+   - **Name:** `OpenBeam`
+   - **Redirect URI:** The callback URL shown in OpenBeam's connector setup page
+   - **Confidential:** Yes
+   - **Scopes:** Select `read_api` and `read_user`
+4. Click **Save application**
+5. Copy the **Application ID** and **Secret**
+
+## Connect in OpenBeam
+
+1. Go to **Connectors > Add Connector > GitLab**
+2. Paste the Application ID into **Client ID**
+3. Paste the Secret into **Client Secret**
+4. (Self-hosted) Enter your **Instance URL** (e.g., `https://gitlab.example.com`)
+5. Click **Connect**
+6. Authorize the application in GitLab
+7. Configure sync options and start syncing
+
+## Group-Level Applications
+
+For organization-wide access, create the application at the group level:
+
+1. Navigate to your group's **Settings > Applications**
+2. Follow the same steps as above
+3. The application will have access to all projects within the group

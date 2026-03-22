@@ -24,6 +24,7 @@ import {
   createFhirClient,
   createFigmaClient,
   createGitHubClient,
+  createGitLabClient,
   createGmailClient,
   createGoogleCalendarClient,
   createGoogleDriveClient,
@@ -56,6 +57,8 @@ import {
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
+  gitlabFullSync,
+  gitlabIncrementalSync,
   gmailIncrementalSync,
   googleCalendarFullSync,
   googleCalendarIncrementalSync,
@@ -1243,6 +1246,118 @@ export function registerAllSyncFactories(): void {
             syncDiscussions,
             syncCommits,
             syncComments,
+          });
+
+      for await (const batch of syncGenerator) {
+        const resourcesToYield =
+          pendingResources.length > 0 ? [...pendingResources] : undefined;
+        if (resourcesToYield) {
+          pendingResources.length = 0;
+        }
+
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+          discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GITLAB",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for GitLab connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const instanceUrl = (config?.instance_url as string) || undefined;
+      const syncMergeRequests = config?.sync_merge_requests !== false;
+      const syncComments = config?.sync_comments !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+      const visibilityFilter =
+        (config?.visibility_filter as string) || undefined;
+
+      const includeGroupsRaw = (config?.include_groups as string) || "";
+      const excludeGroupsRaw = (config?.exclude_groups as string) || "";
+      const includeGroups = includeGroupsRaw
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean);
+      const excludeGroups = excludeGroupsRaw
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean);
+
+      logger.info(
+        {
+          connectorId,
+          instanceUrl,
+          syncMergeRequests,
+          syncComments,
+          lookbackDays,
+          hasExistingCursor: !!cursor?.lastSyncTime,
+        },
+        "GitLab sync config loaded"
+      );
+
+      const client = createGitLabClient({
+        connectorId,
+        accessToken,
+        instanceUrl,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        instanceUrl: instanceUrl ?? "https://gitlab.com",
+      };
+
+      const pendingResources: DiscoveredResourceRecord[] = [];
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? gitlabFullSync(client, context, {
+            batchSize: 100,
+            syncMergeRequests,
+            syncComments,
+            lookbackDays,
+            includeGroups,
+            excludeGroups,
+            visibilityFilter,
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onProjectsDiscovered: async (projects) => {
+              for (const project of projects) {
+                pendingResources.push({
+                  externalId: String(project.id),
+                  resourceType: "project",
+                  name: project.path_with_namespace,
+                  isPublic: project.visibility === "public",
+                  metadata: {
+                    description: project.description,
+                    visibility: project.visibility,
+                    starCount: project.star_count,
+                  },
+                });
+              }
+            },
+          })
+        : gitlabIncrementalSync(client, context, {
+            lastSyncTime: (cursor?.lastSyncTime as number) ?? Date.now(),
+            batchSize: 100,
+            syncMergeRequests,
+            syncComments,
+            includeGroups,
+            excludeGroups,
+            visibilityFilter,
           });
 
       for await (const batch of syncGenerator) {
