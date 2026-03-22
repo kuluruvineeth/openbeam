@@ -1,0 +1,35 @@
+---
+title: Configuration
+description: Monday.com connector settings
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `client_id` | text | required | OAuth Client ID from Monday.com app |
+| `client_secret` | password | required | OAuth Client Secret |
+| `sync_updates` | switch | `true` | Include item updates/comments in search |
+| `sync_subitems` | switch | `false` | Include subitems in search |
+| `board_kinds_filter` | text | all | Comma-separated board kinds: `main`, `shareable`, `private` |
+| `include_boards` | text | all | Comma-separated board IDs to include |
+| `exclude_boards` | text | none | Comma-separated board IDs to exclude |
+| `lookback_days` | text | unlimited | How far back to sync history |
+
+## Board Filtering
+
+You can control which boards are synced using three mechanisms:
+
+1. **Board kind filter** - Only sync boards of specific kinds (main, shareable, private)
+2. **Include list** - Only sync specific board IDs
+3. **Exclude list** - Skip specific board IDs
+
+Filters are applied in order: kind filter first, then include/exclude.
+
+## Performance Considerations
+
+- Enabling `sync_updates` increases API calls per item
+- Large boards (10,000+ items) may take longer on initial sync
+- Use `lookback_days` to limit initial sync scope

@@ -1,0 +1,180 @@
+import {
+  AppType,
+  AuthType,
+  ConnectorType,
+  SyncMode,
+  type UnifiedApp,
+} from "../types";
+
+export const mondayApp: UnifiedApp = {
+  id: AppType.MONDAY,
+  name: "Monday.com",
+  category: "Project Management",
+  active: true,
+  logo: AppType.MONDAY,
+  short_description: "Search across boards, items, and updates.",
+  description:
+    "Connect Monday.com to search across boards, items, updates, and workspaces. Supports cursor-based pagination and incremental sync.",
+  images: [],
+  installed: false,
+  type: "official",
+  connectorType: ConnectorType.SOURCE,
+  developerName: "monday.com",
+  website: "https://monday.com",
+
+  searchDisplay: {
+    defaultIconKey: "LayoutGridIcon",
+    documentTypes: {
+      board: { label: "board", iconKey: "LayoutGridIcon", category: "task" },
+      item: { label: "item", iconKey: "CheckSquareIcon", category: "task" },
+      update: {
+        label: "update",
+        iconKey: "MessageSquareIcon",
+        category: "comment",
+      },
+    },
+  },
+
+  features: [
+    "Semantic search across boards and items",
+    "Update/comment indexing",
+    "Workspace filtering",
+    "Board kind filtering",
+    "OAuth 2.0 with non-expiring tokens",
+  ],
+
+  auth: {
+    type: AuthType.OAUTH2,
+    config: {
+      authUrl: "https://auth.monday.com/oauth2/authorize",
+      tokenUrl: "https://auth.monday.com/oauth2/token",
+      redirectPath: "/connectors/setup/monday/oauth/callback",
+      scopes: [
+        "boards:read",
+        "workspaces:read",
+        "users:read",
+        "updates:read",
+        "account:read",
+        "me:read",
+      ],
+    },
+  },
+
+  streams: [
+    {
+      name: "boards",
+      label: "Boards",
+      description: "Monday.com boards with columns and groups",
+      entityType: "resource",
+      dataPoints: ["Name", "Description", "State", "Kind", "Columns", "Groups"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+    {
+      name: "items",
+      label: "Items",
+      description: "Board items with column values and updates",
+      entityType: "resource",
+      dataPoints: [
+        "Name",
+        "Group",
+        "Column Values",
+        "Creator",
+        "Updates",
+        "Status",
+      ],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    {
+      name: "updates",
+      label: "Updates",
+      description: "Item updates and comments",
+      entityType: "resource",
+      dataPoints: ["Body", "Creator", "Created At"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+  ],
+
+  settings: [
+    {
+      id: "client_id",
+      label: "Client ID",
+      description: "From Monday.com app developer settings",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "your-monday-client-id",
+    },
+    {
+      id: "client_secret",
+      label: "Client Secret",
+      description: "From Monday.com app developer settings",
+      type: "password",
+      required: true,
+      value: "",
+    },
+    {
+      id: "sync_updates",
+      label: "Sync Updates",
+      description: "Include item updates/comments in search",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_subitems",
+      label: "Sync Subitems",
+      description: "Include subitems in search",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
+      id: "board_kinds_filter",
+      label: "Board Kinds",
+      description:
+        "Comma-separated board kinds to sync (main, shareable, private). Leave empty for all.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "main,shareable",
+    },
+    {
+      id: "include_boards",
+      label: "Include Boards",
+      description: "Comma-separated board IDs to include. Leave empty for all.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "12345,67890",
+    },
+    {
+      id: "exclude_boards",
+      label: "Exclude Boards",
+      description: "Comma-separated board IDs to exclude.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "12345,67890",
+    },
+    {
+      id: "lookback_days",
+      label: "History (days)",
+      description: "How far back to sync. Leave empty for unlimited.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Unlimited",
+    },
+  ],
+};
+
+export default mondayApp;

@@ -36,6 +36,7 @@ import {
   createLinearClient,
   createMatterportClient,
   createMicrosoftGraphClient,
+  createMondayClient,
   createMqttConnectorClient,
   createNodeRedClient,
   createNotionClient,
@@ -81,6 +82,8 @@ import {
   microsoftCalendarFullSync,
   microsoftCalendarIncrementalSync,
   mitreAttackFullSync,
+  mondayFullSync,
+  mondayIncrementalSync,
   mqttFullSync,
   mqttIncrementalSync,
   nodeRedFullSync,
@@ -3167,6 +3170,83 @@ export function registerAllSyncFactories(): void {
             syncPullRequests,
             syncIssues,
             syncSnippets,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MONDAY",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for Monday connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const client = createMondayClient({ connectorId, accessToken });
+      const config = connector.config as Record<string, unknown> | null;
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        accountSlug: (config?.accountSlug as string) ?? undefined,
+      };
+
+      const syncUpdates = parseBooleanConfig(config?.sync_updates) !== false;
+      const syncSubitems = parseBooleanConfig(config?.sync_subitems) === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+      const boardKindsFilter = config?.board_kinds_filter
+        ? String(config.board_kinds_filter)
+            .split(",")
+            .map((k) => k.trim())
+            .filter(Boolean)
+        : undefined;
+      const includeBoardIds = config?.include_boards
+        ? String(config.include_boards)
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeBoardIds = config?.exclude_boards
+        ? String(config.exclude_boards)
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? mondayFullSync(client, context, {
+            batchSize: 100,
+            syncUpdates,
+            syncSubitems,
+            lookbackDays,
+            boardKindsFilter,
+            includeBoardIds,
+            excludeBoardIds,
+          })
+        : mondayIncrementalSync(client, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            batchSize: 100,
+            syncUpdates,
+            syncSubitems,
+            boardKindsFilter,
+            includeBoardIds,
+            excludeBoardIds,
           });
 
       for await (const batch of syncGenerator) {

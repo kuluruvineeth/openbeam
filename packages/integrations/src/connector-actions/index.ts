@@ -16,6 +16,7 @@ import { intercomActionsRegistry } from "./intercom";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
+import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
 import { outlookActionsRegistry } from "./outlook";
 import { salesforceActionsRegistry } from "./salesforce";
@@ -59,4 +60,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   intercomActionsRegistry,
   zoomActionsRegistry,
   bitbucketActionsRegistry,
+  mondayActionsRegistry,
 ];

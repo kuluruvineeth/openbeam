@@ -18,6 +18,7 @@ import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
+import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
 import salesforce from "./salesforce/salesforce.index";
@@ -63,6 +64,7 @@ integrations.route("/intercom", intercom);
 integrations.route("/figma", figma);
 integrations.route("/zoom", zoom);
 integrations.route("/bitbucket", bitbucket);
+integrations.route("/monday", monday);
 
 integrations.get("/health", (c) =>
   c.json({

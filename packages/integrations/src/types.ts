@@ -87,6 +87,7 @@ export enum AppType {
   INTERCOM = "INTERCOM",
   ZOOM = "ZOOM",
   BITBUCKET = "BITBUCKET",
+  MONDAY = "MONDAY",
 }
 
 export enum SyncMode {

@@ -21,6 +21,7 @@ import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
 import { mitreAttackApp } from "./mitre-attack/config";
+import { mondayApp } from "./monday/config";
 import { mqttApp } from "./mqtt/config";
 import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
@@ -65,6 +66,7 @@ export {
   jiraApp,
   linearApp,
   microsoftCalendarApp,
+  mondayApp,
   matterportApp,
   mitreAttackApp,
   mqttApp,
@@ -332,6 +334,19 @@ export {
   generateMicrosoftCalendarAuthUrl,
   refreshMicrosoftCalendarToken,
 } from "./microsoft-calendar/oauth";
+export type {
+  ExchangeMondayCodeParams,
+  GenerateMondayAuthUrlParams,
+} from "./monday/oauth";
+export {
+  exchangeMondayCode,
+  generateMondayAuthUrl,
+} from "./monday/oauth";
+export type {
+  MondayAuthResult,
+  MondayMe,
+  MondayTokenResponse,
+} from "./monday/types";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
 export type {
@@ -471,4 +486,5 @@ export const appStore: UnifiedApp[] = [
   intercomApp,
   zoomApp,
   bitbucketApp,
+  mondayApp,
 ];

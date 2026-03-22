@@ -1,0 +1,46 @@
+---
+title: Troubleshooting
+description: Common issues with the Monday.com connector
+---
+
+# Troubleshooting
+
+## Authentication Issues
+
+### "Invalid scope param" error
+
+Ensure your Monday.com app has the required scopes configured in the Developer Center OAuth tab. The scopes must be set before the OAuth flow is initiated.
+
+### Token appears invalid
+
+Monday.com access tokens do not expire. If authentication fails, the user may have uninstalled the app from their Monday.com account. Re-authorize by running the OAuth flow again.
+
+## Sync Issues
+
+### Missing boards
+
+Check the following:
+- Board kind filter matches the boards you expect (main, shareable, private)
+- Include/exclude board ID lists are correct
+- The authenticated user has access to the boards
+
+### Rate limiting
+
+Monday.com enforces complexity-based rate limits. If sync is slow:
+- Reduce the number of boards being synced
+- Disable `sync_updates` to reduce API calls
+- The connector automatically retries with exponential backoff
+
+### Items not appearing in search
+
+- Verify the board containing the items is not excluded
+- Check that `lookback_days` is not filtering out older items
+- Items in archived boards are skipped during sync
+
+## API Errors
+
+| Error | Cause | Resolution |
+|-------|-------|------------|
+| `RATE_LIMITED` | Too many API requests | Automatic retry with backoff |
+| `COMPLEXITY_BUDGET_EXHAUSTED` | Query too complex | Automatic retry after cooldown |
+| `UNAUTHORIZED` | Invalid or revoked token | Re-authorize the connector |

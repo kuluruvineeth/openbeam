@@ -1,0 +1,47 @@
+---
+title: Monday.com
+description: Search across boards, items, and updates from Monday.com with GraphQL-based sync
+---
+
+# Monday.com
+
+Index project management data from Monday.com including boards, items, column values, and updates. Uses the Monday.com GraphQL API v2 with OAuth 2.0 authentication and cursor-based pagination.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Boards** | Name, description, state, kind, columns, groups, owners |
+| **Items** | Name, column values, group, creator, status |
+| **Updates** | Body text, creator, timestamps |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `boards:read`, `workspaces:read`, `users:read`, `updates:read`, `account:read`, `me:read`
+
+Monday.com access tokens do not expire. No refresh token flow is needed.
+
+## Quick Start
+
+1. Create a Monday.com app in the [Developer Center](https://monday.com/apps/manage)
+2. Configure OAuth settings with your redirect URI
+3. Copy the Client ID and Client Secret
+4. Add the Monday.com connector in OpenBeam settings
+5. Complete the OAuth flow
+
+## Sync Strategy
+
+| Type | Method |
+|------|--------|
+| **Full sync** | Paginate all boards and items via GraphQL |
+| **Incremental** | Filter by `updated_at` timestamp since last sync |
+| **Deletion** | Re-sync detects removed items |
+
+## Rate Limits
+
+Monday.com enforces complexity-based rate limits:
+- **1,000-5,000 queries/minute** (varies by plan tier)
+- Complexity points per query
+- Automatic retry with exponential backoff on 429 responses

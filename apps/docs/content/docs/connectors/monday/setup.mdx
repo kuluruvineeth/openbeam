@@ -1,0 +1,54 @@
+---
+title: Quick Start
+description: Connect Monday.com to OpenBeam
+---
+
+# Monday.com Quick Start
+
+## Prerequisites
+
+- Monday.com account with admin access
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create a Monday.com App
+
+1. Go to the [Monday.com Developer Center](https://monday.com/apps/manage)
+2. Click **Create App**
+3. Give your app a name (e.g., "OpenBeam")
+
+## 2. Configure OAuth
+
+1. In your app settings, go to the **OAuth** tab
+2. Add the **Redirect URL**:
+   ```text
+   https://your-domain.com/connectors/setup/monday/oauth/callback
+   ```
+3. Under **Scopes**, select:
+   - `boards:read`
+   - `workspaces:read`
+   - `users:read`
+   - `updates:read`
+   - `account:read`
+   - `me:read`
+
+## 3. Get Credentials
+
+1. In the **Basic Information** tab, copy:
+   - **Client ID**
+   - **Client Secret**
+
+## 4. Connect in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Monday.com**
+3. Paste the Client ID and Client Secret
+4. Click **Connect** to start the OAuth flow
+5. Authorize OpenBeam in the Monday.com consent screen
+
+## 5. Configure Sync
+
+After connecting, configure:
+- Which board kinds to sync (main, shareable, private)
+- Whether to include updates/comments
+- Board include/exclude filters
+- History lookback period

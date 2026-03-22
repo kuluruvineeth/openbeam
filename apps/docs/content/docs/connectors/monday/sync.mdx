@@ -1,0 +1,48 @@
+---
+title: Sync
+description: Monday.com sync behavior and strategies
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The full sync process:
+
+1. Discover all boards (filtered by kind, include/exclude lists)
+2. For each board, transform board metadata into a document
+3. Paginate through all items using cursor-based pagination (100 items/page)
+4. For each item, fetch updates if `sync_updates` is enabled
+5. Transform items and updates into searchable documents
+
+## Incremental Sync
+
+Incremental sync uses the `updated_at` timestamp:
+
+1. Fetch all boards and check `updated_at` against last sync time
+2. For boards updated since last sync, re-fetch their items
+3. Filter items by `updated_at` to only process changed items
+4. Re-fetch updates for changed items
+
+## Cursor Management
+
+| Field | Description |
+|-------|-------------|
+| `lastSyncTime` | Unix timestamp of last successful sync |
+| `syncedBoardIds` | Board IDs processed in current sync |
+
+## Pagination
+
+Monday.com uses cursor-based pagination for items:
+- First page: `items_page(limit: 100)` returns a cursor
+- Subsequent pages: `next_items_page(cursor: ..., limit: 100)`
+- Cursors are valid for 60 minutes
+
+Board listing uses page-based pagination (25 boards per page).
+
+## Document Types
+
+| Type | ID Pattern | Content |
+|------|------------|---------|
+| Board | `{connectorId}_board_{boardId}` | Description, columns, groups, owners |
+| Item | `{connectorId}_item_{itemId}` | Column values, group, updates |

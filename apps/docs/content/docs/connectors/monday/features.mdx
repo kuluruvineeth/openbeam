@@ -1,0 +1,41 @@
+---
+title: Features
+description: Monday.com connector capabilities
+---
+
+# Features
+
+## Entity Coverage
+
+| Entity | Full Sync | Incremental | Search |
+|--------|-----------|-------------|--------|
+| Boards | Yes | Yes | Yes |
+| Items | Yes | Yes | Yes |
+| Updates | Yes | Yes | Yes |
+
+## Search Capabilities
+
+- Full-text search across board names, item names, column values, and update text
+- Filter by board, group, or item state
+- Author attribution for items and updates
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| Create Item | Create a new item on a board |
+| Add Update | Add an update (comment) to an item |
+| Move Item | Move an item to a different group |
+
+## Column Value Indexing
+
+All column values with text content are indexed, including:
+- Status columns
+- Text columns
+- People columns
+- Date columns
+- Number columns
+
+## Workspace Awareness
+
+The connector respects Monday.com workspace boundaries. You can filter sync by workspace or board kind to control what gets indexed.

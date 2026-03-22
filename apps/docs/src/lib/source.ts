@@ -36,6 +36,7 @@ import {
   LinearIcon,
   MatterportIcon,
   MicrosoftCalendarIcon,
+  MondayIcon,
   MQTTIcon,
   NodeREDIcon,
   NotionIcon,
@@ -118,6 +119,7 @@ const customIconMap: Record<
   Zendesk: ZendeskIcon,
   Intercom: IntercomIcon,
   Zoom: ZoomIcon,
+  Monday: MondayIcon,
 };
 
 export const source = loader({

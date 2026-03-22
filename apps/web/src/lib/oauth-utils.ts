@@ -26,7 +26,8 @@ type IntegrationName =
   | "hubspot"
   | "figma"
   | "intercom"
-  | "zoom";
+  | "zoom"
+  | "monday";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -125,6 +126,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   bitbucket: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/bitbucket/callback", {
+      code,
+      state,
+    }),
+  monday: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/monday/callback", {
       code,
       state,
     }),

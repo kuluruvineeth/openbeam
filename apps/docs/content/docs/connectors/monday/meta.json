@@ -1,0 +1,12 @@
+{
+  "title": "Monday.com",
+  "icon": "Monday",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

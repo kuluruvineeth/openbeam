@@ -604,6 +604,22 @@ export {
   getDomainUrl,
   MitreAttackApiError,
 } from "./mitre-attack";
+export type {
+  ItemActionResult as MondayItemActionResult,
+  MondayClient,
+} from "./monday";
+export {
+  addUpdate as addMondayUpdate,
+  createItem as createMondayItem,
+  createMondayClient,
+  fullSync as mondayFullSync,
+  incrementalSync as mondayIncrementalSync,
+  MondayApiError,
+  MondayAuth,
+  moveItemToGroup as moveMondayItemToGroup,
+  transformBoard as transformMondayBoard,
+  transformItem as transformMondayItem,
+} from "./monday";
 export type { MqttConnectorClient } from "./mqtt";
 export {
   createMqttConnectorClient,

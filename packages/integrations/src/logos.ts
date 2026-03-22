@@ -25,6 +25,7 @@ import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
+import { Logo as MondayLogo } from "./monday/assets/logo";
 import { Logo as MQTTLogo } from "./mqtt/assets/logo";
 import { Logo as NodeREDLogo } from "./nodered/assets/logo";
 import { Logo as NotionLogo } from "./notion/assets/logo";
@@ -91,6 +92,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.FIGMA]: FigmaLogo,
   [AppType.INTERCOM]: IntercomLogo,
   [AppType.ZOOM]: ZoomLogo,
+  [AppType.MONDAY]: MondayLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
