@@ -12,6 +12,7 @@ import prisma, {
 import {
   boxApp,
   dropboxApp,
+  refreshAsanaToken,
   refreshBoxToken,
   refreshConfluenceToken,
   refreshDropboxToken,
@@ -280,6 +281,20 @@ export async function refreshConnectorToken(
           accessToken: snResult.accessToken,
           expiresIn: snResult.expiresIn,
           refreshToken: snResult.refreshToken,
+        };
+        break;
+      }
+
+      case "ASANA": {
+        const asanaResult = await refreshAsanaToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: asanaResult.accessToken,
+          expiresIn: asanaResult.expiresIn,
+          refreshToken: asanaResult.refreshToken,
         };
         break;
       }

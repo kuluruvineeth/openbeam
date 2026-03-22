@@ -80,6 +80,7 @@ export enum AppType {
   MICROSOFT_CALENDAR = "MICROSOFT_CALENDAR",
   DROPBOX = "DROPBOX",
   BOX = "BOX",
+  ASANA = "ASANA",
 }
 
 export enum SyncMode {

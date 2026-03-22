@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Asana connector configuration options
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Description |
+|---------|-------------|
+| **Client ID** | OAuth Client ID from Asana Developer Console |
+| **Client Secret** | OAuth Client Secret from Asana Developer Console |
+
+## Workspace
+
+| Setting | Description |
+|---------|-------------|
+| **Workspace GID** | The Asana workspace GID to sync. Auto-detected from OAuth if left empty. |
+
+## Filtering
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Include Projects** | Empty (all) | Comma-separated project GIDs. Only sync tasks from these projects. |
+| **Exclude Projects** | Empty (none) | Comma-separated project GIDs to skip. |
+
+## Sync Options
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Comments** | Enabled | Index task comments as separate searchable documents. |
+| **Sync Completed Tasks** | Disabled | Include completed tasks in the sync. |
+| **History (days)** | Unlimited | How far back to sync tasks. |
+
+## Rate Limits
+
+Asana enforces per-token rate limits. The connector automatically handles 429 responses by respecting the `Retry-After` header and applying exponential backoff with jitter.

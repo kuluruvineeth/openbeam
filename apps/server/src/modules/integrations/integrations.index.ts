@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
+import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureIot from "./azure-iot/azure-iot.index";
 import box from "./box/box.index";
@@ -49,6 +50,7 @@ integrations.route("/google-calendar", googleCalendar);
 integrations.route("/microsoft-calendar", microsoftCalendar);
 integrations.route("/servicenow", servicenow);
 integrations.route("/zendesk", zendesk);
+integrations.route("/asana", asana);
 
 integrations.get("/health", (c) =>
   c.json({

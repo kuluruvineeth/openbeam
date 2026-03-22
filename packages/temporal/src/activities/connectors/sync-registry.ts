@@ -1,5 +1,7 @@
 import type { SharePointFileInfo } from "@openbeam/services";
 import {
+  asanaFullSync,
+  asanaIncrementalSync,
   awsIotFullSync,
   awsIotIncrementalSync,
   azureIotFullSync,
@@ -12,6 +14,7 @@ import {
   cisaKevIncrementalSync,
   confluenceFullSync,
   confluenceIncrementalSync,
+  createAsanaClient,
   createAtlassianClient,
   createAwsIotClient,
   createAzureIotClient,
@@ -2590,6 +2593,81 @@ export function registerAllSyncFactories(): void {
         : servicenowIncrementalSync(client, context, {
             ...syncOptions,
             cursor,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "ASANA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const workspaceGid = (config?.workspace_gid as string) ?? "";
+      const syncComments = config?.sync_comments !== false;
+      const syncCompletedTasks = config?.sync_completed_tasks === true;
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : undefined;
+      const includeProjects = config?.include_projects
+        ? String(config.include_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeProjects = config?.exclude_projects
+        ? String(config.exclude_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
+
+      if (!workspaceGid) {
+        throw ApplicationFailure.nonRetryable(
+          "Asana workspace_gid not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, workspaceGid }, "Asana sync config loaded");
+
+      const client = createAsanaClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        workspaceGid,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? asanaFullSync(client, context, {
+            batchSize: 50,
+            includeProjects,
+            excludeProjects,
+            syncComments,
+            syncCompletedTasks,
+            lookbackDays,
+          })
+        : asanaIncrementalSync(client, context, {
+            cursor,
+            batchSize: 50,
+            includeProjects,
+            excludeProjects,
+            syncComments,
+            syncCompletedTasks,
+            lookbackDays,
           });
 
       for await (const batch of syncGenerator) {

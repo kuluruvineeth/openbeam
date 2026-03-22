@@ -1,0 +1,39 @@
+---
+title: Asana
+description: Search tasks, projects, and comments from Asana with incremental sync via modified_at filtering
+---
+
+# Asana
+
+Index project management data from Asana including tasks, projects, and comments. Supports OAuth 2.0 with incremental sync via the Search API's modified_at filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Tasks** | Name, notes, assignee, due date, tags, custom fields, section |
+| **Projects** | Name, notes, owner, status, team, color |
+| **Comments** | Comment text, author, timestamp, parent task |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `default` (read access to all resources)
+
+Create an app in the [Asana Developer Console](https://app.asana.com/0/developer-console) and configure the OAuth settings.
+
+## Quick Start
+
+1. Create an app in the Asana Developer Console
+2. Configure the OAuth redirect URL
+3. Add the Asana connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/asana/setup" description="App creation and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/asana/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/asana/configuration" description="Workspace selection, project filtering, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/asana/sync" description="Full sync, incremental sync, and pagination" />
+  <Card title="Troubleshooting" href="/docs/connectors/asana/troubleshooting" description="Common issues and fixes" />
+</Cards>

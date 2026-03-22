@@ -15,6 +15,7 @@ import { type InferPageType, loader } from "fumadocs-core/source";
 import { createElement, type ReactElement } from "react";
 import { docs } from "@/.source";
 import {
+  AsanaIcon,
   AwsIotIcon,
   AzureIotIcon,
   BACnetIcon,
@@ -71,6 +72,7 @@ const customIconMap: Record<
   string,
   (props: { size?: number }) => ReactElement
 > = {
+  Asana: AsanaIcon,
   Slack: SlackIcon,
   Gmail: GmailIcon,
   GoogleDrive: GoogleDriveIcon,

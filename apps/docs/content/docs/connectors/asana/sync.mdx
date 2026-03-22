@@ -1,0 +1,42 @@
+---
+title: Sync Behavior
+description: How Asana data is synced to OpenBeam
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data from your Asana workspace:
+
+1. **Projects**: All non-archived projects in the workspace
+2. **Tasks**: All tasks from each project (filtered by settings)
+3. **Comments**: All comments on each task (if enabled)
+
+Tasks are fetched per-project using the `/projects/{gid}/tasks` endpoint with pagination (limit 100).
+
+## Incremental Sync
+
+After the initial full sync, incremental sync uses the Asana Search API:
+
+- `GET /workspaces/{gid}/tasks/search?modified_at.after={lastSyncTime}`
+- Only fetches tasks modified since the last sync
+- New comments on modified tasks are also fetched
+- Falls back to full sync if incremental fails
+
+## Sync Frequency
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Tasks | 15 minutes |
+| Projects | 60 minutes |
+
+## Pagination
+
+Asana uses offset-based pagination with a maximum page size of 100. The connector handles pagination automatically, following `next_page.offset` tokens until all data is fetched.
+
+## Limitations
+
+- The Search API requires a premium Asana plan for full functionality
+- Search index updates can take 10-60 seconds after changes in Asana
+- Tasks not associated with any project are not synced (consistent with other enterprise search tools)

@@ -1,0 +1,44 @@
+---
+title: Features
+description: What Asana content is indexed and searchable in OpenBeam
+---
+
+# Features
+
+## Indexed Content
+
+### Tasks
+
+Every task is indexed with:
+- Task name and description (notes)
+- Assignee
+- Due date
+- Completion status
+- Tags and custom fields
+- Section and project membership
+- Parent task reference
+
+### Projects
+
+Every project is indexed with:
+- Project name and description
+- Owner
+- Team
+- Status update
+- Archive status
+- Visibility (public/private)
+
+### Comments
+
+Task comments (stories of type "comment_added") are indexed as separate documents with:
+- Comment text
+- Author
+- Timestamp
+- Parent task reference
+
+## Search Capabilities
+
+- Full-text search across task names, descriptions, and comments
+- Filter by document type (task, project, comment)
+- Filter by assignee, project, status, and tags via metadata
+- Direct links back to Asana for each result

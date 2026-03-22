@@ -111,6 +111,25 @@ export {
   warmKVCache,
   warmOverviewCache,
 } from "./ai/overview";
+export type {
+  AsanaClient,
+  AsanaClientConfig,
+  TaskActionResult as AsanaTaskActionResult,
+} from "./asana";
+export {
+  AsanaApiError,
+  AsanaAuth,
+  addComment as addAsanaComment,
+  asanaFullSync,
+  asanaIncrementalSync,
+  completeTask as completeAsanaTask,
+  createAsanaClient,
+  createTask as createAsanaTask,
+  transformAsanaComment,
+  transformAsanaProject,
+  transformAsanaTask,
+  updateTask as updateAsanaTask,
+} from "./asana";
 export type { AtlassianClient, AtlassianClientConfig } from "./atlassian";
 export { AtlassianApiError, createAtlassianClient } from "./atlassian";
 export type { AwsIotClient } from "./aws-iot";

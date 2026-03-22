@@ -1,0 +1,40 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Asana connector
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Asana OAuth credentials not configured"
+
+The Client ID or Client Secret is missing from the connector configuration. Re-enter your credentials in the connector settings.
+
+### "Token refresh failed"
+
+The refresh token may have been revoked. Re-authorize the connector through the OAuth flow.
+
+## Sync Issues
+
+### "Asana workspace_gid not found"
+
+The workspace GID was not set during OAuth or configuration. Edit the connector settings and provide the workspace GID manually.
+
+### Tasks not appearing in search
+
+- Verify the tasks belong to a project (unassigned tasks without project membership are not synced)
+- Check if the project is included in the sync filter
+- If "Sync Completed Tasks" is disabled, completed tasks will not be indexed
+- Allow a few minutes for the sync to complete and documents to be indexed
+
+### Rate limiting (429 errors)
+
+The connector automatically handles rate limits with exponential backoff. If you see persistent rate limiting:
+- Reduce the sync frequency
+- Limit the number of projects being synced
+- Check if other integrations are consuming your Asana API quota
+
+## Data Freshness
+
+Asana's search index can take 10-60 seconds to reflect changes. Incremental sync relies on the `modified_at` field, so recently modified tasks may not appear until the next sync cycle.

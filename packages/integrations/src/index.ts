@@ -1,3 +1,4 @@
+import { asanaApp } from "./asana/config";
 import { awsIotApp } from "./aws-iot/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
@@ -37,6 +38,7 @@ import { viamApp } from "./viam/config";
 import { zendeskApp } from "./zendesk/config";
 
 export {
+  asanaApp,
   awsIotApp,
   azureIotApp,
   bacnetApp,
@@ -75,6 +77,17 @@ export {
   zendeskApp,
 };
 
+export type {
+  ExchangeAsanaCodeParams,
+  GenerateAsanaAuthUrlParams,
+  RefreshAsanaTokenParams,
+} from "./asana/oauth";
+export {
+  exchangeAsanaCode,
+  generateAsanaAuthUrl,
+  refreshAsanaToken,
+} from "./asana/oauth";
+export type { AsanaOAuthResult, AsanaWorkspace } from "./asana/types";
 export type {
   AtlassianOAuthResult,
   AtlassianSite,
@@ -351,4 +364,5 @@ export const appStore: UnifiedApp[] = [
   zendeskApp,
   googleCalendarApp,
   microsoftCalendarApp,
+  asanaApp,
 ];

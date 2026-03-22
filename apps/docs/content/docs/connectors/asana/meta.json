@@ -1,0 +1,12 @@
+{
+  "title": "Asana",
+  "icon": "Asana",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

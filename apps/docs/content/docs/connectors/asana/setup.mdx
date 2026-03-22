@@ -1,0 +1,44 @@
+---
+title: Setup
+description: How to create an Asana app and connect it to OpenBeam
+---
+
+# Asana Setup
+
+## Prerequisites
+
+- An Asana account with access to the workspace you want to index
+- Admin access to create apps in the Asana Developer Console
+
+## Step 1: Create an Asana App
+
+1. Go to the [Asana Developer Console](https://app.asana.com/0/developer-console)
+2. Click **Create new app**
+3. Enter a name (e.g., "OpenBeam Search")
+4. Select your workspace
+
+## Step 2: Configure OAuth
+
+1. In your app settings, navigate to **OAuth**
+2. Add a redirect URL: `https://your-openbeam-instance.com/connectors/setup/asana/oauth/callback`
+3. Copy the **Client ID** and **Client Secret**
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors** in OpenBeam
+2. Click **Add Connector** and select **Asana**
+3. Enter the Client ID and Client Secret
+4. Optionally specify a Workspace GID (auto-detected if left empty)
+5. Click **Connect** to start the OAuth flow
+6. Authorize OpenBeam in the Asana consent screen
+
+## Step 4: Configure Sync
+
+After authorization, configure sync settings:
+
+- **Include/Exclude Projects**: Filter which projects to sync
+- **Sync Comments**: Toggle comment indexing
+- **Sync Completed Tasks**: Include or exclude completed tasks
+- **History (days)**: How far back to sync
+
+The initial full sync will begin automatically.
