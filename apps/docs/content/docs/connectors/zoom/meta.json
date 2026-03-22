@@ -1,0 +1,12 @@
+{
+  "title": "Zoom",
+  "icon": "Zoom",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

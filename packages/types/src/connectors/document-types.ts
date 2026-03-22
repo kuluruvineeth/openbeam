@@ -83,6 +83,9 @@ export const DocumentTypeCategorySchema = z.enum([
   "repository",
   "wiki",
   "design",
+  "meeting",
+  "recording",
+  "transcript",
   "unknown",
 ]);
 

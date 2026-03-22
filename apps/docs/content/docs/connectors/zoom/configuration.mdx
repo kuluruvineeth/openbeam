@@ -1,0 +1,43 @@
+---
+title: Configuration
+description: Configure what Zoom data to sync and how to filter it
+---
+
+# Zoom Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Client ID** | Text | Required | Your Zoom OAuth App Client ID |
+| **Client Secret** | Text | Required | Your Zoom OAuth App Client Secret |
+| **Sync Cloud Recordings** | Switch | On | Index cloud recording metadata and playback URLs |
+| **Sync Transcripts** | Switch | On | Download and index VTT transcript text |
+| **Sync Past Meetings** | Switch | On | Index past meeting metadata |
+| **Lookback Days** | Text | 90 | How far back to sync meetings and recordings |
+| **Include Users** | Text | All | Comma-separated emails to sync (leave empty for all) |
+| **Exclude Users** | Text | None | Comma-separated emails to exclude |
+| **Recording Types Filter** | Text | All | Comma-separated recording types to include |
+
+## User Filtering
+
+By default, all active users in your Zoom account are synced. To limit which users' meetings are indexed:
+
+- **Include Users**: Specify a comma-separated list of email addresses. Only meetings hosted by these users will be synced.
+- **Exclude Users**: Specify emails to skip. Useful for service accounts or external users.
+
+## Recording Types
+
+Available recording types to filter on:
+- `shared_screen_with_speaker_view`
+- `shared_screen_with_gallery_view`
+- `active_speaker`
+- `gallery_view`
+- `shared_screen`
+- `audio_only`
+
+Leave the filter empty to index all recording types.
+
+## Lookback Window
+
+The lookback window determines how far back the initial full sync reaches. The Zoom recordings API enforces a maximum 30-day window per request, so longer lookback periods are automatically split into multiple date ranges.

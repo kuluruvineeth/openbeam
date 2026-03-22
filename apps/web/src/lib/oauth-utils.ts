@@ -24,7 +24,8 @@ type IntegrationName =
   | "asana"
   | "hubspot"
   | "figma"
-  | "intercom";
+  | "intercom"
+  | "zoom";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -113,6 +114,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   intercom: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/intercom/callback", {
+      code,
+      state,
+    }),
+  zoom: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/zoom/callback", {
       code,
       state,
     }),

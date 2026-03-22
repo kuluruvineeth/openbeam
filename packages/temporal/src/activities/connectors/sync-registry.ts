@@ -49,6 +49,7 @@ import {
   createVerkadaClient,
   createViamClient,
   createZendeskClient,
+  createZoomClient,
   dropboxFullSync,
   dropboxIncrementalSync,
   fhirFullSync,
@@ -111,6 +112,8 @@ import {
   viamIncrementalSync,
   zendeskFullSync,
   zendeskIncrementalSync,
+  zoomFullSync,
+  zoomIncrementalSync,
 } from "@openbeam/services";
 import { logger } from "@openbeam/services/lib/logger";
 import type { GenericDocument } from "@openbeam/vespa";
@@ -3001,6 +3004,86 @@ export function registerAllSyncFactories(): void {
             syncComponents,
             includeProjects,
             excludeProjects,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "ZOOM",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const syncRecordings = config?.sync_recordings !== false;
+      const syncTranscripts = config?.sync_transcripts !== false;
+      const syncPastMeetings = config?.sync_past_meetings !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days) ?? 90;
+      const includeUsers = config?.include_users
+        ? String(config.include_users)
+            .split(",")
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeUsers = config?.exclude_users
+        ? String(config.exclude_users)
+            .split(",")
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : undefined;
+      const recordingTypesFilter = config?.recording_types_filter
+        ? String(config.recording_types_filter)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info(
+        {
+          connectorId,
+          syncRecordings,
+          syncTranscripts,
+          syncPastMeetings,
+          lookbackDays,
+        },
+        "Zoom sync config loaded"
+      );
+
+      const client = createZoomClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        accountId: (config?.accountId as string) ?? undefined,
+      };
+
+      const syncOptions = {
+        batchSize: 50,
+        syncRecordings,
+        syncTranscripts,
+        syncPastMeetings,
+        lookbackDays,
+        includeUsers,
+        excludeUsers,
+        recordingTypesFilter,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? zoomFullSync(client, context, syncOptions)
+        : zoomIncrementalSync(client, context, {
+            ...syncOptions,
+            cursor,
           });
 
       for await (const batch of syncGenerator) {

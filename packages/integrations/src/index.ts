@@ -40,6 +40,7 @@ import type { UnifiedApp } from "./types";
 import { verkadaApp } from "./verkada/config";
 import { viamApp } from "./viam/config";
 import { zendeskApp } from "./zendesk/config";
+import { zoomApp } from "./zoom/config";
 
 export {
   asanaApp,
@@ -83,6 +84,7 @@ export {
   verkadaApp,
   viamApp,
   zendeskApp,
+  zoomApp,
 };
 
 export type {
@@ -394,6 +396,19 @@ export {
   generateZendeskAuthUrl,
   ZendeskOAuthError,
 } from "./zendesk";
+export type {
+  ExchangeZoomCodeParams,
+  GenerateZoomAuthUrlParams,
+  RefreshZoomTokenParams,
+  RefreshZoomTokenResult,
+  ZoomOAuthResult,
+} from "./zoom";
+export {
+  exchangeZoomCode,
+  generateZoomAuthUrl,
+  refreshZoomToken,
+  ZoomOAuthError,
+} from "./zoom";
 
 export const appStore: UnifiedApp[] = [
   gmailApp,
@@ -437,4 +452,5 @@ export const appStore: UnifiedApp[] = [
   figmaApp,
   gitlabApp,
   intercomApp,
+  zoomApp,
 ];

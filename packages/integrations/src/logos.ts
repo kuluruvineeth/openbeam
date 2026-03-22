@@ -44,6 +44,7 @@ import { AppType, type LogoComponent } from "./types";
 import { Logo as VerkadaLogo } from "./verkada/assets/logo";
 import { Logo as ViamLogo } from "./viam/assets/logo";
 import { Logo as ZendeskLogo } from "./zendesk/assets/logo";
+import { Logo as ZoomLogo } from "./zoom/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
   [AppType.ASANA]: AsanaLogo,
@@ -87,6 +88,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.HUBSPOT]: HubSpotLogo,
   [AppType.FIGMA]: FigmaLogo,
   [AppType.INTERCOM]: IntercomLogo,
+  [AppType.ZOOM]: ZoomLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

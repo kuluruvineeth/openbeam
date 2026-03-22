@@ -1226,3 +1226,21 @@ export {
   zendeskFullSync,
   zendeskIncrementalSync,
 } from "./zendesk";
+export type {
+  MeetingActionResult as ZoomMeetingActionResult,
+  ZoomClient,
+  ZoomClientConfig,
+} from "./zoom";
+export {
+  createZoomClient,
+  createZoomMeeting,
+  deleteZoomMeeting,
+  transformZoomMeeting,
+  transformZoomRecording,
+  transformZoomTranscript,
+  updateZoomMeeting,
+  ZoomApiError,
+  ZoomAuth,
+  zoomFullSync,
+  zoomIncrementalSync,
+} from "./zoom";

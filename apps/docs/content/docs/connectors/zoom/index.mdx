@@ -1,0 +1,37 @@
+---
+title: Zoom
+description: Search across meeting recordings, transcripts, and past meetings from Zoom
+---
+
+# Zoom
+
+Index cloud recordings, VTT transcripts, and past meeting metadata from Zoom. Search through meeting content to find decisions, action items, and discussions without watching full recordings.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Past Meetings** | Topic, duration, host, participants count, agenda |
+| **Cloud Recordings** | Recording files, play URLs, share URLs, file types |
+| **Transcripts** | Full VTT transcript text for searchable meeting content |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+Zoom OAuth tokens expire after 1 hour and are automatically refreshed. Token exchange uses HTTP Basic auth with base64-encoded client credentials.
+
+## Quick Start
+
+1. Create an OAuth app in the Zoom App Marketplace
+2. Add the required scopes and set the redirect URL
+3. Add the Zoom connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/zoom/setup" description="OAuth app creation and authorization" />
+  <Card title="Features" href="/docs/connectors/zoom/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/zoom/configuration" description="Recording filters, user selection, and lookback window" />
+  <Card title="Sync Behavior" href="/docs/connectors/zoom/sync" description="Full sync and date-range incremental sync" />
+  <Card title="Troubleshooting" href="/docs/connectors/zoom/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -28,6 +28,7 @@ import smartthings from "./smartthings/smartthings.index";
 import teams from "./teams/teams.index";
 import verkada from "./verkada/verkada.index";
 import zendesk from "./zendesk/zendesk.index";
+import zoom from "./zoom/zoom.index";
 
 const integrations = new OpenAPIHono<AuthEnv>();
 
@@ -59,6 +60,7 @@ integrations.route("/asana", asana);
 integrations.route("/hubspot", hubspot);
 integrations.route("/intercom", intercom);
 integrations.route("/figma", figma);
+integrations.route("/zoom", zoom);
 
 integrations.get("/health", (c) =>
   c.json({

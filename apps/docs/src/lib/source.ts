@@ -53,6 +53,7 @@ import {
   VerkadaIcon,
   ViamIcon,
   ZendeskIcon,
+  ZoomIcon,
 } from "@/components/connector-icons";
 
 type IconType = HugeiconsIconProps["icon"];
@@ -114,6 +115,7 @@ const customIconMap: Record<
   ServiceNow: ServiceNowIcon,
   Zendesk: ZendeskIcon,
   Intercom: IntercomIcon,
+  Zoom: ZoomIcon,
 };
 
 export const source = loader({

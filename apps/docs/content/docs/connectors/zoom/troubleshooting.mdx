@@ -1,0 +1,44 @@
+---
+title: Troubleshooting
+description: Common issues and fixes for the Zoom connector
+---
+
+# Zoom Troubleshooting
+
+## Common Issues
+
+### No recordings found
+
+- Verify cloud recording is enabled in your Zoom account settings
+- Check that the lookback window covers the desired time period
+- Ensure the user filter does not exclude the meeting hosts
+
+### Transcripts not appearing
+
+- Audio transcription must be enabled in Zoom settings before the meeting
+- Transcripts are only generated for cloud recordings, not local recordings
+- The transcript may take time to be available after a recording completes
+
+### OAuth authentication fails
+
+- Verify the Client ID and Client Secret are correct
+- Check that the redirect URL in your Zoom OAuth app matches exactly
+- Ensure the required scopes are added to your OAuth app
+
+### Token refresh errors
+
+- Zoom access tokens expire after 1 hour and are automatically refreshed
+- If refresh fails, re-authenticate the connector through the OAuth flow
+- Check that the Zoom OAuth app is still active in the Marketplace
+
+### Rate limiting
+
+- The connector automatically retries with backoff on 429 responses
+- If persistent, reduce the number of users being synced
+- Consider increasing the sync interval for large accounts
+
+### Missing meeting metadata
+
+- The Zoom past meetings API may not return meetings older than 30 days for some account types
+- Webinar meetings require separate webinar scopes not included by default
+- Personal meeting rooms may not appear in the past meetings list

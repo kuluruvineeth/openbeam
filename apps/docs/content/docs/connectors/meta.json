@@ -42,6 +42,7 @@
     "nvd",
     "cisa-kev",
     "mitre-attack",
-    "owasp"
+    "owasp",
+    "zoom"
   ]
 }

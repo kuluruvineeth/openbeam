@@ -32,6 +32,7 @@ import {
   refreshServiceNowToken,
   refreshSharePointToken,
   refreshTeamsToken,
+  refreshZoomToken,
   salesforceApp,
 } from "@openbeam/integrations";
 
@@ -359,6 +360,20 @@ export async function refreshConnectorToken(
 
       case "ZENDESK":
         throw new Error("Zendesk tokens do not expire");
+
+      case "ZOOM": {
+        const zoomResult = await refreshZoomToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: zoomResult.accessToken,
+          expiresIn: zoomResult.expiresIn,
+          refreshToken: zoomResult.refreshToken,
+        };
+        break;
+      }
 
       case "INTERCOM":
         throw new Error("Intercom tokens do not expire");

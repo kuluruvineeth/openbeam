@@ -1,0 +1,48 @@
+---
+title: Sync Behavior
+description: How Zoom data is synced including full and incremental modes
+---
+
+# Zoom Sync Behavior
+
+## Full Sync
+
+The initial full sync fetches all meetings and recordings within the configured lookback window:
+
+1. Fetches all active users (filtered by include/exclude lists)
+2. For each user, fetches past meetings since the lookback date
+3. For each user, fetches cloud recordings in 30-day windows
+4. Downloads VTT transcripts for recordings that have them
+5. Transforms and indexes all documents
+
+## Incremental Sync
+
+Subsequent syncs only fetch new content since the last sync:
+
+- Uses the `lastSyncTime` cursor to filter meetings and recordings
+- Only processes meetings and recordings created after the cursor timestamp
+- Automatically downloads new transcripts for new recordings
+
+## Date Range Handling
+
+The Zoom recordings API limits date range queries to 30 days. The connector automatically splits larger ranges into 30-day windows. For example, a 90-day lookback creates three sequential API calls.
+
+## Rate Limits
+
+Zoom API rate limits by endpoint category:
+
+| Category | Limit |
+|----------|-------|
+| Light | 80 requests/second |
+| Medium | 60 requests/second |
+| Heavy | 40 requests/second |
+| Resource Intensive | 20 requests/second |
+
+The connector handles rate limiting automatically with exponential backoff when `429` responses are received.
+
+## Sync Schedule
+
+| Sync Type | Default Interval |
+|-----------|-----------------|
+| Full Sync | On initial connect or manual trigger |
+| Incremental | Every 60 minutes |

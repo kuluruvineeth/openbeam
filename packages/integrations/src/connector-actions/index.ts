@@ -26,6 +26,7 @@ import { smartThingsActionsRegistry } from "./smartthings";
 import { teamsActionsRegistry } from "./teams";
 import { verkadaActionsRegistry } from "./verkada";
 import { zendeskActionsRegistry } from "./zendesk";
+import { zoomActionsRegistry } from "./zoom";
 
 export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   slackActionsRegistry,
@@ -55,4 +56,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   figmaActionsRegistry,
   gitlabActionsRegistry,
   intercomActionsRegistry,
+  zoomActionsRegistry,
 ];

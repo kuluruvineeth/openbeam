@@ -1,0 +1,52 @@
+---
+title: Setup
+description: Configure Zoom OAuth and connect to OpenBeam
+---
+
+# Zoom Setup
+
+## Prerequisites
+
+- A Zoom account (Pro, Business, or Enterprise)
+- Cloud recording enabled in your Zoom account settings
+- Admin access to create OAuth apps in the Zoom App Marketplace
+
+## Step 1: Create a Zoom OAuth App
+
+1. Go to the [Zoom App Marketplace](https://marketplace.zoom.us/) and sign in
+2. Click **Develop** > **Build App**
+3. Select **OAuth** as the app type
+4. Fill in the app name (e.g., "OpenBeam Integration")
+
+## Step 2: Configure OAuth Settings
+
+1. Set the **Redirect URL** to your OpenBeam callback URL:
+   ```
+   https://your-domain.com/connectors/setup/zoom/oauth/callback
+   ```
+2. Add the required scopes:
+   - `user:read:list_users:admin`
+   - `user:read:user:admin`
+   - `meeting:read:list_past_meetings:admin`
+   - `meeting:read:meeting:admin`
+   - `cloud_recording:read:list_recording_files:admin`
+   - `cloud_recording:read:list_user_recordings:admin`
+
+3. Note your **Client ID** and **Client Secret**
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings** > **Connectors** > **Add Connector**
+2. Select **Zoom**
+3. Enter your Client ID and Client Secret
+4. Click **Connect** to start the OAuth flow
+5. Authorize the app in Zoom
+6. The initial sync will begin automatically
+
+## Step 4: Enable Cloud Recording
+
+For transcript indexing, ensure cloud recording and audio transcription are enabled:
+
+1. In Zoom, go to **Settings** > **Recording**
+2. Enable **Cloud recording**
+3. Enable **Audio transcript** under cloud recording settings
