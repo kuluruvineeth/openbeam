@@ -22,6 +22,7 @@ import {
   createBoxClient,
   createDropboxClient,
   createFhirClient,
+  createFigmaClient,
   createGitHubClient,
   createGmailClient,
   createGoogleCalendarClient,
@@ -50,6 +51,8 @@ import {
   dropboxIncrementalSync,
   fhirFullSync,
   fhirIncrementalSync,
+  figmaFullSync,
+  figmaIncrementalSync,
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
@@ -166,11 +169,6 @@ function createDeleteMarker(params: {
       deletedAt: Date.now(),
     },
   };
-}
-
-// biome-ignore lint/suspicious/useAwait: async required for AsyncGenerator type compatibility
-async function* _createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
-  yield { items: [], hasMore: false };
 }
 
 function shouldRunFullSync(
@@ -2742,6 +2740,83 @@ export function registerAllSyncFactories(): void {
             syncComments,
             syncCompletedTasks,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "FIGMA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const figmaTeamId = (config?.team_id as string) ?? "";
+      const syncComments = config?.sync_comments !== false;
+      const syncComponents = config?.sync_components === true;
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : undefined;
+      const includeProjects = config?.include_projects
+        ? String(config.include_projects)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeProjects = config?.exclude_projects
+        ? String(config.exclude_projects)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      if (!figmaTeamId) {
+        throw ApplicationFailure.nonRetryable(
+          "Figma team_id not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, figmaTeamId }, "Figma sync config loaded");
+
+      const client = createFigmaClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        figmaTeamId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? figmaFullSync(client, context, {
+            batchSize: 50,
+            syncComments,
+            syncComponents,
+            lookbackDays,
+            includeProjects,
+            excludeProjects,
+          })
+        : figmaIncrementalSync(client, context, {
+            cursor,
+            batchSize: 50,
+            syncComments,
+            syncComponents,
+            includeProjects,
+            excludeProjects,
           });
 
       for await (const batch of syncGenerator) {

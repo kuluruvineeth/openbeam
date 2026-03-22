@@ -134,7 +134,7 @@ export function transformBoxItem(
     created_at: createdAt,
     updated_at: updatedAt,
     url: buildUrl(item),
-    author: item.owned_by?.name,
+    author_name: item.owned_by?.name,
     is_public: hasSharedLink,
     access_control: [],
     metadata: {
