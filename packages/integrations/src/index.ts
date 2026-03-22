@@ -11,6 +11,7 @@ import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleCalendarApp } from "./google-calendar/config";
 import { googleDriveApp } from "./google-drive/config";
+import { hubspotApp } from "./hubspot/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
@@ -51,6 +52,7 @@ export {
   githubApp,
   googleCalendarApp,
   googleDriveApp,
+  hubspotApp,
   jiraApp,
   linearApp,
   microsoftCalendarApp,
@@ -154,7 +156,6 @@ export type {
   GitHubTokenResponse,
   GitHubUser,
 } from "./github/types";
-
 export {
   exchangeGmailCode,
   generateGmailAuthUrl,
@@ -177,7 +178,6 @@ export type {
   RefreshGoogleTokenParams,
   RefreshGoogleTokenResult,
 } from "./google";
-
 export {
   exchangeGoogleCode,
   fetchGoogleUserInfo,
@@ -211,6 +211,24 @@ export type {
   GoogleDriveFile,
   GoogleDriveFolder,
 } from "./google-drive/types";
+export type {
+  ExchangeHubSpotCodeParams,
+  GenerateHubSpotAuthUrlParams,
+  RefreshHubSpotTokenParams,
+  RefreshHubSpotTokenResult,
+} from "./hubspot/oauth";
+export {
+  exchangeHubSpotCode,
+  generateHubSpotAuthUrl,
+  HUBSPOT_TOKEN_LIFETIME_SECONDS,
+  HubSpotOAuthError,
+  refreshHubSpotToken,
+} from "./hubspot/oauth";
+export type {
+  HubSpotOAuthResult,
+  HubSpotTokenInfo,
+  HubSpotTokenResponse,
+} from "./hubspot/types";
 export type {
   ExchangeJiraCodeParams,
   GenerateJiraAuthUrlParams,
@@ -365,4 +383,5 @@ export const appStore: UnifiedApp[] = [
   googleCalendarApp,
   microsoftCalendarApp,
   asanaApp,
+  hubspotApp,
 ];

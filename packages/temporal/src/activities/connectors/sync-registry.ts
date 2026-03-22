@@ -26,6 +26,7 @@ import {
   createGmailClient,
   createGoogleCalendarClient,
   createGoogleDriveClient,
+  createHubSpotClient,
   createLinearClient,
   createMatterportClient,
   createMicrosoftGraphClient,
@@ -56,6 +57,8 @@ import {
   googleCalendarFullSync,
   googleCalendarIncrementalSync,
   googleDriveIncrementalSync,
+  hubspotFullSync,
+  hubspotIncrementalSync,
   jiraFullSync,
   jiraIncrementalSync,
   linearFullSync,
@@ -1691,6 +1694,77 @@ export function registerAllSyncFactories(): void {
             syncLeads,
             syncCampaigns,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "HUBSPOT",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const portalId = (config?.portalId as string) ?? "";
+      const syncContacts = config?.sync_contacts !== false;
+      const syncCompanies = config?.sync_companies !== false;
+      const syncDeals = config?.sync_deals !== false;
+      const syncTickets = config?.sync_tickets !== false;
+      const extraProperties =
+        (config?.custom_properties as string)
+          ?.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean) ?? [];
+
+      if (!portalId) {
+        throw ApplicationFailure.nonRetryable(
+          "HubSpot portalId not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, portalId }, "HubSpot sync config loaded");
+
+      const client = createHubSpotClient({
+        connectorId,
+        accessToken,
+        portalId,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        portalId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? hubspotFullSync(client, context, {
+            batchSize: 100,
+            syncContacts,
+            syncCompanies,
+            syncDeals,
+            syncTickets,
+            extraProperties,
+          })
+        : hubspotIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            syncContacts,
+            syncCompanies,
+            syncDeals,
+            syncTickets,
+            extraProperties,
           });
 
       for await (const batch of syncGenerator) {

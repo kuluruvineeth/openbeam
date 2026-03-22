@@ -378,6 +378,25 @@ export {
   needsAttention,
 } from "./health";
 export type {
+  HubSpotClient,
+  HubSpotClientConfig,
+  HubSpotCompany,
+  HubSpotContact,
+  HubSpotDeal,
+  HubSpotTicket,
+} from "./hubspot";
+export {
+  createHubSpotClient,
+  HubSpotApiError,
+  HubSpotAuth,
+  hubspotFullSync,
+  hubspotIncrementalSync,
+  transformHubSpotCompany,
+  transformHubSpotContact,
+  transformHubSpotDeal,
+  transformHubSpotTicket,
+} from "./hubspot";
+export type {
   JiraComment,
   JiraDocumentChange,
   JiraIssue,

@@ -8,6 +8,7 @@ import { githubActionsRegistry } from "./github";
 import { gmailActionsRegistry } from "./gmail";
 import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleDriveActionsRegistry } from "./google-drive";
+import { hubspotActionsRegistry } from "./hubspot";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
@@ -47,4 +48,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   dropboxActionsRegistry,
   boxActionsRegistry,
   asanaActionsRegistry,
+  hubspotActionsRegistry,
 ];

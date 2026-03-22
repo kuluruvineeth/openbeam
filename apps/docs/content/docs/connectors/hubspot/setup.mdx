@@ -1,0 +1,49 @@
+---
+title: Quick Start
+description: Connect HubSpot to OpenBeam
+---
+
+# HubSpot Quick Start
+
+## Prerequisites
+
+- HubSpot account with admin access (or permission to install apps)
+- HubSpot Developer account for creating apps
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create a Developer App
+
+1. Go to [HubSpot Developer Portal](https://developers.hubspot.com)
+2. Navigate to **Apps** and click **Create app**
+3. Fill in your app details (name, description, logo)
+
+## 2. Configure OAuth Settings
+
+1. Go to the **Auth** tab of your app
+2. Copy the **Client ID** and **Client Secret**
+3. Set **Redirect URL**:
+   ```text
+   https://your-domain.com/connectors/setup/hubspot/oauth/callback
+   ```
+4. Under **Scopes**, add:
+   - `crm.objects.contacts.read`
+   - `crm.objects.companies.read`
+   - `crm.objects.deals.read`
+   - `tickets`
+
+## 3. Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **HubSpot**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+5. Authorize the app in HubSpot
+6. The connector will activate and begin syncing
+
+## 4. Verify Connection
+
+After authorization, check the connector status page. The initial sync will begin indexing your CRM data. Depending on the number of records, this may take a few minutes.
+
+<Callout type="info">
+HubSpot OAuth tokens expire every 30 minutes. OpenBeam automatically refreshes tokens using the refresh token, so no manual intervention is needed.
+</Callout>

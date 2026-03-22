@@ -10,6 +10,7 @@ import github from "./github/github.index";
 import gmail from "./gmail/gmail.index";
 import googleCalendar from "./google-calendar/google-calendar.index";
 import googleDrive from "./google-drive/google-drive.index";
+import hubspot from "./hubspot/hubspot.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
@@ -51,6 +52,7 @@ integrations.route("/microsoft-calendar", microsoftCalendar);
 integrations.route("/servicenow", servicenow);
 integrations.route("/zendesk", zendesk);
 integrations.route("/asana", asana);
+integrations.route("/hubspot", hubspot);
 
 integrations.get("/health", (c) =>
   c.json({

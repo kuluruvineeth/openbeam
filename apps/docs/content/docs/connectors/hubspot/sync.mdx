@@ -1,0 +1,45 @@
+---
+title: Sync Behavior
+description: How HubSpot data is synced
+---
+
+# HubSpot Sync Behavior
+
+## Full Sync
+
+Lists all objects using the CRM v3 list endpoints with cursor-based pagination (`after` parameter). Each object type is fetched sequentially: contacts, companies, deals, then tickets.
+
+## Incremental Sync
+
+Uses the CRM v3 Search API with `lastmodifieddate` filtering to fetch only records modified since the last sync. Falls back to full sync if the cursor is missing or the incremental sync fails.
+
+```
+filterGroups: [{
+  filters: [{
+    propertyName: "lastmodifieddate",
+    operator: "GTE",
+    value: "<timestamp>"
+  }]
+}]
+sorts: [{ propertyName: "lastmodifieddate", direction: "ASCENDING" }]
+```
+
+## Rate Limits
+
+HubSpot enforces the following rate limits:
+
+| Limit | Value |
+|-------|-------|
+| **Per 10 seconds** | 100 requests (OAuth apps) |
+| **Daily** | 500,000 requests |
+
+The connector automatically retries on 429 responses using the `Retry-After` header.
+
+## Sync Intervals
+
+| Object | Default Interval |
+|--------|-----------------|
+| Contacts | 30 minutes |
+| Companies | 30 minutes |
+| Deals | 15 minutes |
+| Tickets | 15 minutes |

@@ -1,0 +1,41 @@
+---
+title: Troubleshooting
+description: Common HubSpot connector issues
+---
+
+# HubSpot Troubleshooting
+
+## Authentication Errors
+
+### "Token exchange failed"
+- Verify your Client ID and Client Secret are correct
+- Ensure the redirect URL matches exactly (including trailing slashes)
+- Check that all required scopes are enabled on your app
+
+### "Authentication failed" (401)
+- Token may have expired; OpenBeam will auto-refresh
+- If persistent, disconnect and re-authorize the connector
+
+## Sync Issues
+
+### Missing records
+- Check that the relevant object type sync is enabled in settings
+- Verify the authenticated user has read access to the objects
+- If using pipeline filter, ensure the pipeline IDs are correct
+
+### Rate limit errors
+- The connector auto-retries with backoff on 429 responses
+- For large portals, initial full sync may take longer due to rate limits
+- Consider syncing during off-peak hours for very large datasets
+
+### Incremental sync falling back to full
+- This happens when the sync cursor is invalid or expired
+- After a full sync completes, subsequent syncs will be incremental
+- Check logs for specific error messages
+
+## Scope Issues
+
+### "Insufficient scopes"
+- Ensure your app has all required scopes enabled
+- Users must re-authorize after adding new scopes to your app
+- Required: `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `tickets`

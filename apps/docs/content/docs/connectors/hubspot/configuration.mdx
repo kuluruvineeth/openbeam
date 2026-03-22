@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: HubSpot connector settings
+---
+
+# HubSpot Configuration
+
+## Authentication
+
+| Setting | Description |
+|---------|-------------|
+| **Client ID** | From your HubSpot developer app Auth tab |
+| **Client Secret** | From your HubSpot developer app Auth tab |
+
+## Sync Options
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Contacts** | Enabled | Index contact records |
+| **Sync Companies** | Enabled | Index company records |
+| **Sync Deals** | Enabled | Index deal records |
+| **Sync Tickets** | Enabled | Index ticket records |
+
+## Filtering
+
+| Setting | Description |
+|---------|-------------|
+| **Pipeline Filter** | Comma-separated pipeline IDs to restrict deal sync |
+| **History (days)** | How far back to sync; empty for unlimited |
+| **Custom Properties** | Additional HubSpot properties to index (comma-separated) |
+
+## Custom Properties
+
+HubSpot supports custom properties on all object types. To include them in the search index, add their internal names (not labels) to the **Custom Properties** field, separated by commas.
+
+Example: `hs_lead_status, industry, custom_field_1`

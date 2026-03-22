@@ -12,6 +12,7 @@ import prisma, {
 import {
   boxApp,
   dropboxApp,
+  hubspotApp,
   refreshAsanaToken,
   refreshBoxToken,
   refreshConfluenceToken,
@@ -20,6 +21,7 @@ import {
   refreshGmailToken,
   refreshGoogleCalendarToken,
   refreshGoogleDriveToken,
+  refreshHubSpotToken,
   refreshJiraToken,
   refreshLinearToken,
   refreshMicrosoftCalendarToken,
@@ -295,6 +297,28 @@ export async function refreshConnectorToken(
           accessToken: asanaResult.accessToken,
           expiresIn: asanaResult.expiresIn,
           refreshToken: asanaResult.refreshToken,
+        };
+        break;
+      }
+
+      case "HUBSPOT": {
+        const hsConfig =
+          hubspotApp.auth.type === "OAUTH2"
+            ? hubspotApp.auth.config
+            : undefined;
+        if (!hsConfig) {
+          throw new Error("HubSpot OAuth config not found");
+        }
+        const hsResult = await refreshHubSpotToken({
+          config: hsConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: hsResult.accessToken,
+          expiresIn: hsResult.expiresIn,
+          refreshToken: hsResult.refreshToken,
         };
         break;
       }

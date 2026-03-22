@@ -81,6 +81,7 @@ export enum AppType {
   DROPBOX = "DROPBOX",
   BOX = "BOX",
   ASANA = "ASANA",
+  HUBSPOT = "HUBSPOT",
 }
 
 export enum SyncMode {

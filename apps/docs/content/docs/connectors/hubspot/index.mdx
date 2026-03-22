@@ -1,0 +1,40 @@
+---
+title: HubSpot
+description: Search contacts, companies, deals, and tickets from HubSpot CRM with incremental sync
+---
+
+# HubSpot
+
+Index CRM data from HubSpot including contacts, companies, deals, and tickets. Supports OAuth 2.0, incremental sync via the Search API with lastmodifieddate filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Contacts** | Name, email, phone, job title, company, lifecycle stage |
+| **Companies** | Name, domain, industry, description, employee count |
+| **Deals** | Name, amount, stage, pipeline, close date |
+| **Tickets** | Subject, content, pipeline stage, priority |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `tickets`
+
+Create a developer app at [HubSpot Developer Portal](https://developers.hubspot.com) and configure OAuth settings.
+
+## Quick Start
+
+1. Create a developer app in the HubSpot Developer Portal
+2. Configure OAuth redirect URL and required scopes
+3. Add the HubSpot connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/hubspot/setup" description="Developer app creation and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/hubspot/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/hubspot/configuration" description="Object selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/hubspot/sync" description="Full sync, incremental sync, and rate limits" />
+  <Card title="Troubleshooting" href="/docs/connectors/hubspot/troubleshooting" description="Common issues and fixes" />
+</Cards>

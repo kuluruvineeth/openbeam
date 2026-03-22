@@ -15,6 +15,7 @@ import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
+import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
@@ -79,6 +80,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.SMARTTHINGS]: SmartThingsLogo,
   [AppType.VERKADA]: VerkadaLogo,
   [AppType.ZENDESK]: ZendeskLogo,
+  [AppType.HUBSPOT]: HubSpotLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

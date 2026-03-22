@@ -20,7 +20,8 @@ type IntegrationName =
   | "zendesk"
   | "dropbox"
   | "box"
-  | "asana";
+  | "asana"
+  | "hubspot";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -89,6 +90,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   asana: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/asana/callback", {
+      code,
+      state,
+    }),
+  hubspot: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/hubspot/callback", {
       code,
       state,
     }),
