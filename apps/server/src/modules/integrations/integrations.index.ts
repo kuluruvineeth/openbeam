@@ -13,6 +13,7 @@ import gmail from "./gmail/gmail.index";
 import googleCalendar from "./google-calendar/google-calendar.index";
 import googleDrive from "./google-drive/google-drive.index";
 import hubspot from "./hubspot/hubspot.index";
+import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
@@ -56,6 +57,7 @@ integrations.route("/servicenow", servicenow);
 integrations.route("/zendesk", zendesk);
 integrations.route("/asana", asana);
 integrations.route("/hubspot", hubspot);
+integrations.route("/intercom", intercom);
 integrations.route("/figma", figma);
 
 integrations.get("/health", (c) =>

@@ -1,0 +1,12 @@
+{
+  "title": "Intercom",
+  "icon": "Intercom",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

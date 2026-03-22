@@ -1,0 +1,42 @@
+---
+title: Setup
+description: Create an Intercom OAuth app and connect it to OpenBeam
+---
+
+# Setup
+
+## Prerequisites
+
+- An Intercom workspace with admin access
+- Access to the Intercom Developer Hub
+
+## Step 1: Create an Intercom App
+
+1. Go to the [Intercom Developer Hub](https://developers.intercom.com/)
+2. Click **New app** and give it a name (e.g., "OpenBeam Search")
+3. Select your workspace
+
+## Step 2: Configure OAuth
+
+1. In your app settings, go to **Authentication**
+2. Enable **Use OAuth**
+3. Add the redirect URL: `https://your-openbeam-domain.com/connectors/setup/intercom/oauth/callback`
+4. Note your **Client ID** and **Client Secret**
+
+## Step 3: Connect in OpenBeam
+
+1. Go to **Settings > Connectors** in OpenBeam
+2. Click **Add Connector** and select Intercom
+3. Enter your Client ID and Client Secret
+4. Click **Connect** to start the OAuth flow
+5. Authorize the app in Intercom
+6. The connector will activate and begin syncing
+
+## Permissions
+
+Intercom OAuth scopes are implied by the OAuth flow. The app will have access to:
+
+- Read conversations
+- Read articles and collections
+- Read contacts
+- Read admins and teams

@@ -11,6 +11,7 @@ import { gmailActionsRegistry } from "./gmail";
 import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleDriveActionsRegistry } from "./google-drive";
 import { hubspotActionsRegistry } from "./hubspot";
+import { intercomActionsRegistry } from "./intercom";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
@@ -53,4 +54,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   hubspotActionsRegistry,
   figmaActionsRegistry,
   gitlabActionsRegistry,
+  intercomActionsRegistry,
 ];

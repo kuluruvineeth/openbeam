@@ -430,6 +430,30 @@ export {
   transformHubSpotTicket,
 } from "./hubspot";
 export type {
+  IntercomArticle,
+  IntercomArticleActionResult,
+  IntercomClient,
+  IntercomClientConfig,
+  IntercomCollection,
+  IntercomContact,
+  IntercomConversation,
+  IntercomConversationActionResult,
+} from "./intercom";
+export {
+  createIntercomArticle,
+  createIntercomClient,
+  IntercomApiError,
+  IntercomAuth,
+  intercomFullSync,
+  intercomIncrementalSync,
+  replyToIntercomConversation,
+  tagIntercomConversation,
+  transformIntercomArticle,
+  transformIntercomCollection,
+  transformIntercomContact,
+  transformIntercomConversation,
+} from "./intercom";
+export type {
   JiraComment,
   JiraDocumentChange,
   JiraIssue,

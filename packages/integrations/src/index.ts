@@ -14,6 +14,7 @@ import { gmailApp } from "./gmail/config";
 import { googleCalendarApp } from "./google-calendar/config";
 import { googleDriveApp } from "./google-drive/config";
 import { hubspotApp } from "./hubspot/config";
+import { intercomApp } from "./intercom/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
@@ -57,6 +58,7 @@ export {
   googleCalendarApp,
   googleDriveApp,
   hubspotApp,
+  intercomApp,
   jiraApp,
   linearApp,
   microsoftCalendarApp,
@@ -264,6 +266,20 @@ export type {
   HubSpotTokenResponse,
 } from "./hubspot/types";
 export type {
+  ExchangeIntercomCodeParams,
+  GenerateIntercomAuthUrlParams,
+} from "./intercom/oauth";
+export {
+  exchangeIntercomCode,
+  generateIntercomAuthUrl,
+  IntercomOAuthError,
+} from "./intercom/oauth";
+export type {
+  IntercomMe,
+  IntercomOAuthResult,
+  IntercomTokenResponse,
+} from "./intercom/types";
+export type {
   ExchangeJiraCodeParams,
   GenerateJiraAuthUrlParams,
   JiraOAuthResult,
@@ -420,4 +436,5 @@ export const appStore: UnifiedApp[] = [
   hubspotApp,
   figmaApp,
   gitlabApp,
+  intercomApp,
 ];

@@ -1,0 +1,48 @@
+---
+title: Troubleshooting
+description: Common issues with the Intercom connector and how to resolve them
+---
+
+# Troubleshooting
+
+## Authentication Issues
+
+### "Authentication failed" during OAuth
+
+- Verify your Client ID and Client Secret are correct
+- Ensure the redirect URL in your Intercom app matches exactly
+- Check that your Intercom app has OAuth enabled
+
+### Token becomes invalid
+
+Intercom tokens are valid until manually revoked. If the token stops working:
+
+1. Check if the app was deauthorized in Intercom settings
+2. Disconnect and reconnect the connector to re-authorize
+
+## Sync Issues
+
+### Articles not syncing
+
+Help Center may not be enabled for your Intercom workspace. Articles require the Articles product to be active.
+
+### Missing conversation content
+
+Each conversation requires an individual API call to fetch full message parts. If rate limits are hit during sync, some conversations may be skipped and will be picked up in the next sync cycle.
+
+### Rate limit errors
+
+The connector automatically retries on rate limit responses. If you see persistent rate limiting:
+
+- Reduce the sync frequency in connector settings
+- Check if other integrations are consuming your API quota
+
+## Data Issues
+
+### Contacts not appearing
+
+Contact sync is disabled by default. Enable it in connector settings if needed.
+
+### Stale data after deleting conversations
+
+The incremental sync searches for updated conversations but does not detect deletions. Run a full sync to clean up deleted records.

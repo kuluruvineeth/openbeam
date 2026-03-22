@@ -84,6 +84,7 @@ export enum AppType {
   HUBSPOT = "HUBSPOT",
   FIGMA = "FIGMA",
   GITLAB = "GITLAB",
+  INTERCOM = "INTERCOM",
 }
 
 export enum SyncMode {

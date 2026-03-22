@@ -1,0 +1,42 @@
+---
+title: Sync Behavior
+description: How Intercom data is synced with full and incremental modes
+---
+
+# Sync Behavior
+
+## Full Sync
+
+On the initial sync or when forced, OpenBeam fetches all data:
+
+1. **Conversations** are listed via the conversations API, then each is fetched individually with full message parts
+2. **Articles** are listed via the articles API
+3. **Collections** are listed via the help center collections API
+4. **Contacts** (if enabled) are listed via the contacts API
+
+## Incremental Sync
+
+After the initial full sync, incremental syncs fetch only changes:
+
+- **Conversations** use the `POST /conversations/search` endpoint with `updated_at > lastSyncTime` to find modified conversations
+- **Articles** are re-listed and filtered client-side by `updated_at` timestamp
+- Collections and contacts are re-synced during full syncs only
+
+## Sync Schedule
+
+| Content | Default Interval |
+|---------|-----------------|
+| Conversations | 15 minutes |
+| Articles | 60 minutes |
+| Collections | 120 minutes |
+| Contacts | 60 minutes |
+
+## Rate Limits
+
+Intercom enforces 1,000 requests per minute per app, distributed into 10-second windows (~166 requests per window). The connector handles `429` responses with automatic retry using `Retry-After` headers.
+
+## Limitations
+
+- Intercom does not provide a delta/changelog API for articles, so incremental article sync requires listing all articles and filtering by timestamp
+- Conversation detail requires an individual API call per conversation, which may be slow for very large inboxes
+- Intercom OAuth tokens do not expire and cannot be refreshed (no refresh token)

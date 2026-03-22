@@ -360,6 +360,9 @@ export async function refreshConnectorToken(
       case "ZENDESK":
         throw new Error("Zendesk tokens do not expire");
 
+      case "INTERCOM":
+        throw new Error("Intercom tokens do not expire");
+
       case "SLACK":
         throw new Error("Slack token refresh not implemented");
 

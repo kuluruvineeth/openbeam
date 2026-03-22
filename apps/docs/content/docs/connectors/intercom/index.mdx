@@ -1,0 +1,38 @@
+---
+title: Intercom
+description: Search conversations, help center articles, collections, and contacts from Intercom
+---
+
+# Intercom
+
+Index customer support data from Intercom including conversations, help center articles, collections, and contacts. Supports OAuth 2.0 with search-based incremental sync for conversations.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Conversations** | Messages, state, assignee, tags, priority |
+| **Help Center Articles** | Title, body, description, state, author |
+| **Collections** | Article categories with name and description |
+| **Contacts** | Name, email, role, company (opt-in) |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+Intercom OAuth tokens do not expire. Create an OAuth app in the Intercom Developer Hub and configure the callback URL.
+
+## Quick Start
+
+1. Create an app in the Intercom Developer Hub
+2. Enable OAuth and note your Client ID and Secret
+3. Add the Intercom connector in OpenBeam with your credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/intercom/setup" description="OAuth app creation and authorization" />
+  <Card title="Features" href="/docs/connectors/intercom/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/intercom/configuration" description="Content selection and filtering options" />
+  <Card title="Sync Behavior" href="/docs/connectors/intercom/sync" description="Full sync and incremental sync via search API" />
+  <Card title="Troubleshooting" href="/docs/connectors/intercom/troubleshooting" description="Common issues and fixes" />
+</Cards>

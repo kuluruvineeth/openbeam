@@ -1,0 +1,126 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const intercomActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "intercom",
+  connectorName: "Intercom",
+  connectorIcon: "intercom",
+  actions: [
+    {
+      id: "conversation_reply",
+      name: "Reply to Conversation",
+      description: "Send a reply to an Intercom conversation",
+      connectorType: "intercom",
+      resource: "conversation",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "conversation_id",
+          name: "Conversation ID",
+          type: "string",
+          required: true,
+          description: "Intercom conversation ID",
+        },
+        {
+          id: "body",
+          name: "Reply Body",
+          type: "string",
+          required: true,
+          description: "Reply message text",
+        },
+        {
+          id: "admin_id",
+          name: "Admin ID",
+          type: "string",
+          required: true,
+          description: "Intercom admin ID sending the reply",
+        },
+      ],
+      outputs: [
+        { id: "conversationId", name: "Conversation ID", type: "string" },
+      ],
+    },
+    {
+      id: "conversation_tag",
+      name: "Tag Conversation",
+      description: "Add a tag to an Intercom conversation",
+      connectorType: "intercom",
+      resource: "conversation",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "conversation_id",
+          name: "Conversation ID",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "tag_id",
+          name: "Tag ID",
+          type: "string",
+          required: true,
+          description: "Intercom tag ID to apply",
+        },
+        {
+          id: "admin_id",
+          name: "Admin ID",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [
+        { id: "conversationId", name: "Conversation ID", type: "string" },
+      ],
+    },
+    {
+      id: "article_create",
+      name: "Create Article",
+      description: "Create a new Help Center article",
+      connectorType: "intercom",
+      resource: "article",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "title",
+          name: "Title",
+          type: "string",
+          required: true,
+          description: "Article title",
+        },
+        {
+          id: "body",
+          name: "Body",
+          type: "string",
+          required: false,
+          description: "Article HTML body",
+        },
+        {
+          id: "description",
+          name: "Description",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "state",
+          name: "State",
+          type: "string",
+          required: false,
+          description: "draft or published",
+          default: "draft",
+        },
+      ],
+      outputs: [
+        { id: "articleId", name: "Article ID", type: "string" },
+        { id: "url", name: "Article URL", type: "string" },
+      ],
+    },
+  ],
+};

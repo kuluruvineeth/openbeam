@@ -29,6 +29,7 @@ import {
   createGoogleCalendarClient,
   createGoogleDriveClient,
   createHubSpotClient,
+  createIntercomClient,
   createLinearClient,
   createMatterportClient,
   createMicrosoftGraphClient,
@@ -65,6 +66,8 @@ import {
   googleDriveIncrementalSync,
   hubspotFullSync,
   hubspotIncrementalSync,
+  intercomFullSync,
+  intercomIncrementalSync,
   jiraFullSync,
   jiraIncrementalSync,
   linearFullSync,
@@ -2690,6 +2693,79 @@ export function registerAllSyncFactories(): void {
       const syncGenerator = runFull
         ? zendeskFullSync(client, context, syncOptions)
         : zendeskIncrementalSync(client, context, {
+            ...syncOptions,
+            cursor,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "INTERCOM",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const syncConversations = config?.sync_conversations !== false;
+      const syncArticles = config?.sync_articles !== false;
+      const syncCollections = config?.sync_collections !== false;
+      const syncContacts = config?.sync_contacts === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+      const stateFilter = (config?.state_filter as string) || undefined;
+      const tagsFilter = config?.tags_filter
+        ? String(config.tags_filter)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info(
+        {
+          connectorId,
+          syncConversations,
+          syncArticles,
+          syncCollections,
+          syncContacts,
+          lookbackDays,
+          stateFilter,
+          tagsFilter,
+        },
+        "Intercom sync config loaded"
+      );
+
+      const client = createIntercomClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        appId: (config?.appId as string) ?? undefined,
+      };
+
+      const syncOptions = {
+        batchSize: 50,
+        syncConversations,
+        syncArticles,
+        syncCollections,
+        syncContacts,
+        lookbackDays,
+        stateFilter,
+        tagsFilter,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? intercomFullSync(client, context, syncOptions)
+        : intercomIncrementalSync(client, context, {
             ...syncOptions,
             cursor,
           });

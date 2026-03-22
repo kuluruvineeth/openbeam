@@ -1,0 +1,29 @@
+---
+title: Configuration
+description: Configure which Intercom content to sync and filtering options
+---
+
+# Configuration
+
+## Content Selection
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Conversations | On | Index conversations as searchable documents |
+| Sync Articles | On | Index Help Center articles |
+| Sync Collections | On | Index article collections (categories) |
+| Sync Contacts | Off | Index contacts (users and leads) |
+
+## Filtering
+
+| Setting | Description |
+|---------|-------------|
+| Lookback Days | Only sync conversations created within N days |
+| State Filter | Only sync conversations in a specific state (open, closed, snoozed) |
+| Tags Filter | Comma-separated list of tags; only conversations with matching tags are synced |
+
+## Notes
+
+- **Contact sync** is disabled by default because workspaces with many contacts can have large datasets. Enable only if you need contact search.
+- **Lookback days** only affects conversations. Articles and collections are always fully synced.
+- **State filter** is applied during both full and incremental sync.

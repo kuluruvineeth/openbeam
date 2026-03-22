@@ -30,6 +30,7 @@ import {
   GoogleCalendarIcon,
   GoogleDriveIcon,
   HubSpotIcon,
+  IntercomIcon,
   JiraIcon,
   LinearIcon,
   MatterportIcon,
@@ -112,6 +113,7 @@ const customIconMap: Record<
   SecurityShield: SecurityShieldIcon,
   ServiceNow: ServiceNowIcon,
   Zendesk: ZendeskIcon,
+  Intercom: IntercomIcon,
 };
 
 export const source = loader({
