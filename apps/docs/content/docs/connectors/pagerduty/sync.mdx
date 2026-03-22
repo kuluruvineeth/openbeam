@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How PagerDuty data is synced to OpenBeam
+---
+
+# PagerDuty Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data within the lookback window:
+
+1. **Incidents** — Paginated via offset-based pagination (`limit=100`), sorted by `updated_at` descending. Respects urgency, status, and service ID filters.
+2. **Services** — All services with integrations included.
+3. **Schedules** — All on-call schedules with layers and user details.
+
+PagerDuty's API limits offset+limit to 10,000 records per query. For accounts with more than 10,000 incidents, reduce the lookback window.
+
+## Incremental Sync
+
+After the initial full sync, incremental syncs fetch only incidents updated since the last sync:
+
+- Uses the `since` parameter with the latest `updated_at` timestamp from the previous sync
+- Sorts by `updated_at` ascending to capture all changes
+- Services and schedules are only synced during full sync (they change infrequently)
+
+## Sync Schedule
+
+| Entity | Default Interval | Mode |
+|--------|-----------------|------|
+| Incidents | 15 minutes | Periodic |
+| Services | 60 minutes | Full sync only |
+| Schedules | 60 minutes | Full sync only |
+
+## Pagination
+
+PagerDuty uses offset-based pagination:
+- `offset`: starting index
+- `limit`: page size (max 100)
+- `more`: boolean indicating additional pages
+- Maximum `offset + limit` is 10,000

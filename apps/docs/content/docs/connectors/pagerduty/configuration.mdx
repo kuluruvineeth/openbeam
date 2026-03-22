@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: Configure PagerDuty connector settings
+---
+
+# PagerDuty Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **API Key** | Password | Required | PagerDuty REST API key |
+| **Sync Services** | Switch | On | Include service catalog in sync |
+| **Sync Schedules** | Switch | On | Include on-call schedules in sync |
+| **Lookback Days** | Number | 90 | How many days of incidents to sync |
+| **Urgency Filter** | Text | All | Comma-separated: `high`, `low` |
+| **Status Filter** | Text | All | Comma-separated: `triggered`, `acknowledged`, `resolved` |
+| **Service IDs Filter** | Text | All | Comma-separated PagerDuty service IDs |
+
+## Filtering Examples
+
+### Sync only high-urgency incidents
+
+Set **Urgency Filter** to `high`.
+
+### Sync only unresolved incidents
+
+Set **Status Filter** to `triggered,acknowledged`.
+
+### Scope to specific services
+
+Set **Service IDs Filter** to `PXXXXXX,PYYYYYY` (comma-separated PagerDuty service IDs found in the service URL).
+
+## Rate Limits
+
+PagerDuty allows 960 API requests per minute per API key. OpenBeam respects this limit with built-in rate limiting and exponential backoff on 429 responses.

@@ -31,6 +31,7 @@ import { omniverseApp } from "./omniverse/config";
 import { opcuaApp } from "./opcua/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
+import { pagerdutyApp } from "./pagerduty/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
 import { servicenowApp } from "./servicenow/config";
@@ -79,6 +80,7 @@ export {
   opcuaApp,
   outlookApp,
   owaspApp,
+  pagerdutyApp,
   salesforceApp,
   samsaraApp,
   servicenowApp,
@@ -501,4 +503,5 @@ export const appStore: UnifiedApp[] = [
   zoomApp,
   bitbucketApp,
   mondayApp,
+  pagerdutyApp,
 ];

@@ -1,0 +1,59 @@
+---
+title: Features
+description: PagerDuty content types indexed by OpenBeam
+---
+
+# PagerDuty Features
+
+## Incidents
+
+Search across all PagerDuty incidents with full-text search on titles, descriptions, and metadata.
+
+| Field | Indexed |
+|-------|---------|
+| Title | Yes |
+| Description | Yes |
+| Status | Yes (metadata filter) |
+| Urgency | Yes (metadata filter) |
+| Priority | Yes (metadata filter) |
+| Service | Yes |
+| Assignees | Yes |
+| Escalation Policy | Yes |
+| Teams | Yes |
+| Created/Resolved timestamps | Yes |
+
+## Services
+
+Browse and search the service catalog with escalation policy and team associations.
+
+| Field | Indexed |
+|-------|---------|
+| Name | Yes |
+| Description | Yes |
+| Status | Yes (metadata filter) |
+| Escalation Policy | Yes |
+| Teams | Yes |
+| Integrations | Yes |
+| Alert Creation Mode | Yes |
+
+## On-Call Schedules
+
+Find who is on call with schedule details, layers, and rotation information.
+
+| Field | Indexed |
+|-------|---------|
+| Name | Yes |
+| Time Zone | Yes |
+| Users | Yes |
+| Schedule Layers | Yes |
+| Rotation Length | Yes |
+| Escalation Policies | Yes |
+
+## Actions
+
+| Action | Description |
+|--------|-------------|
+| Create Incident | Create a new incident on a service |
+| Acknowledge Incident | Acknowledge a triggered incident |
+| Resolve Incident | Resolve an active incident |
+| Add Note | Add a note to an existing incident |

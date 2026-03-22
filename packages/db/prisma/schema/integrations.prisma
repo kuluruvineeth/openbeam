@@ -134,6 +134,8 @@ enum AppType {
   CISA_KEV
   MITRE_ATTACK
   OWASP
+
+  PAGERDUTY
 }
 
 enum ConnectorStatus {

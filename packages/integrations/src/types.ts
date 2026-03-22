@@ -89,6 +89,7 @@ export enum AppType {
   BITBUCKET = "BITBUCKET",
   MONDAY = "MONDAY",
   GOOGLE_CHAT = "GOOGLE_CHAT",
+  PAGERDUTY = "PAGERDUTY",
 }
 
 export enum SyncMode {

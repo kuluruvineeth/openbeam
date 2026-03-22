@@ -22,6 +22,7 @@ import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
 import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
+import pagerduty from "./pagerduty/pagerduty.index";
 import salesforce from "./salesforce/salesforce.index";
 import samsara from "./samsara/samsara.index";
 import servicenow from "./servicenow/servicenow.index";
@@ -67,6 +68,7 @@ integrations.route("/figma", figma);
 integrations.route("/zoom", zoom);
 integrations.route("/bitbucket", bitbucket);
 integrations.route("/monday", monday);
+integrations.route("/pagerduty", pagerduty);
 
 integrations.get("/health", (c) =>
   c.json({

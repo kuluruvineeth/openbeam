@@ -44,6 +44,7 @@ import {
   OmniverseIcon,
   OPCUAIcon,
   OutlookIcon,
+  PagerDutyIcon,
   SalesforceIcon,
   SamsaraIcon,
   SecurityShieldIcon,
@@ -122,6 +123,7 @@ const customIconMap: Record<
   Intercom: IntercomIcon,
   Zoom: ZoomIcon,
   Monday: MondayIcon,
+  PagerDuty: PagerDutyIcon,
 };
 
 export const source = loader({

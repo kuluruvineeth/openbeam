@@ -1,0 +1,53 @@
+---
+title: Troubleshooting
+description: Common PagerDuty connector issues and solutions
+---
+
+# PagerDuty Troubleshooting
+
+## Authentication Errors
+
+### 401 Unauthorized
+
+- Verify the API key is correct and has not been revoked
+- Check that the key has sufficient permissions (General Access recommended)
+- Regenerate the key from PagerDuty > Integrations > API Access Keys
+
+### 403 Forbidden
+
+- The API key may lack permissions for certain endpoints
+- User Token keys are scoped to the generating user's role
+- Use a General Access key for full read access
+
+## Rate Limiting
+
+### 429 Too Many Requests
+
+PagerDuty allows 960 requests per minute. OpenBeam handles this automatically with:
+- Built-in rate limiting below the API threshold
+- Exponential backoff with jitter on 429 responses
+- Retry-After header respect
+
+If you consistently hit rate limits, consider:
+- Reducing sync frequency
+- Narrowing service ID filters
+- Increasing lookback days to reduce full sync frequency
+
+## Sync Issues
+
+### Missing Incidents
+
+- Check the **Lookback Days** setting (default 90 days)
+- Verify urgency and status filters are not excluding expected incidents
+- PagerDuty caps pagination at offset+limit=10,000; reduce lookback for large accounts
+
+### Stale Data
+
+- Incremental sync only fetches incidents; services and schedules require a full sync
+- Force a full sync from the connector settings to refresh all data
+
+## Connection Health
+
+OpenBeam validates the connection by calling PagerDuty's `/abilities` endpoint. If the health check fails:
+- Verify network connectivity to `api.pagerduty.com`
+- Check that PagerDuty's API is not experiencing an outage at [status.pagerduty.com](https://status.pagerduty.com)

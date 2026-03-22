@@ -1,0 +1,39 @@
+---
+title: PagerDuty
+description: Search incidents, services, and on-call schedules from PagerDuty with incremental sync
+---
+
+# PagerDuty
+
+Index incident management data from PagerDuty including incidents, services, and on-call schedules. Supports API key authentication, offset-based pagination, and incremental sync via updated_at timestamps.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Incidents** | Title, description, status, urgency, priority, service, assignees |
+| **Services** | Name, description, status, escalation policy, teams, integrations |
+| **On-Call Schedules** | Name, time zone, users, schedule layers, rotation details |
+
+## Authentication
+
+**Method:** API Key (REST API v2)
+
+**Header:** `Authorization: Token token={api_key}`
+
+Generate an API key from [PagerDuty > Integrations > API Access Keys](https://support.pagerduty.com/main/docs/api-access-keys).
+
+## Quick Start
+
+1. Generate a REST API key in PagerDuty (General Access or User Token)
+2. Add the PagerDuty connector in OpenBeam
+3. Enter your API key and configure sync settings
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/pagerduty/setup" description="API key generation and connector activation" />
+  <Card title="Features" href="/docs/connectors/pagerduty/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/pagerduty/configuration" description="Filters, lookback period, and entity selection" />
+  <Card title="Sync Behavior" href="/docs/connectors/pagerduty/sync" description="Full sync, incremental sync, and pagination" />
+  <Card title="Troubleshooting" href="/docs/connectors/pagerduty/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -45,6 +45,7 @@ import {
   createOmniverseClient,
   createOpcUaClient,
   createOwaspClient,
+  createPagerDutyClient,
   createSalesforceClient,
   createSamsaraClient,
   createServiceNowClient,
@@ -101,6 +102,8 @@ import {
   opcUaIncrementalSync,
   outlookIncrementalSync,
   owaspFullSync,
+  pagerdutyFullSync,
+  pagerdutyIncrementalSync,
   salesforceFullSync,
   salesforceIncrementalSync,
   samsaraFullSync,
@@ -3326,6 +3329,75 @@ export function registerAllSyncFactories(): void {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "PAGERDUTY",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      if (!apiKey) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key for PagerDuty connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncServices = config?.sync_services !== false;
+      const syncSchedules = config?.sync_schedules !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+      const urgencyFilter = (config?.urgency_filter as string) ?? undefined;
+      const statusFilter = (config?.status_filter as string) ?? undefined;
+      const serviceIdsRaw = (config?.service_ids_filter as string) ?? "";
+      const serviceIdsFilter = serviceIdsRaw
+        ? serviceIdsRaw
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info(
+        { connectorId, syncServices, syncSchedules, lookbackDays },
+        "PagerDuty sync config loaded"
+      );
+
+      const client = createPagerDutyClient({
+        connectorId,
+        apiKey,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? pagerdutyFullSync(client, context, {
+            batchSize: 100,
+            syncServices,
+            syncSchedules,
+            lookbackDays,
+            urgencyFilter,
+            statusFilter,
+            serviceIdsFilter,
+          })
+        : pagerdutyIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
           hasMore: batch.hasMore,
         };
       }

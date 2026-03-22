@@ -20,6 +20,7 @@ import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
 import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
 import { outlookActionsRegistry } from "./outlook";
+import { pagerdutyActionsRegistry } from "./pagerduty";
 import { salesforceActionsRegistry } from "./salesforce";
 import { samsaraActionsRegistry } from "./samsara";
 import { servicenowActionsRegistry } from "./servicenow";
@@ -63,4 +64,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   zoomActionsRegistry,
   bitbucketActionsRegistry,
   mondayActionsRegistry,
+  pagerdutyActionsRegistry,
 ];

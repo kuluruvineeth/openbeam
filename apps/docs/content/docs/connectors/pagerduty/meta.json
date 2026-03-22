@@ -1,0 +1,12 @@
+{
+  "title": "PagerDuty",
+  "icon": "PagerDuty",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

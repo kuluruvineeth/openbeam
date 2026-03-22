@@ -716,6 +716,19 @@ export {
   fullSync as owaspFullSync,
   OwaspApiError,
 } from "./owasp";
+export type { PagerDutyClient } from "./pagerduty";
+export {
+  addIncidentNote as pagerdutyAddIncidentNote,
+  createIncident as pagerdutyCreateIncident,
+  createPagerDutyClient,
+  fullSync as pagerdutyFullSync,
+  incrementalSync as pagerdutyIncrementalSync,
+  PagerDutyApiError,
+  transformIncident as transformPagerDutyIncident,
+  transformSchedule as transformPagerDutySchedule,
+  transformService as transformPagerDutyService,
+  updateIncidentStatus as pagerdutyUpdateIncidentStatus,
+} from "./pagerduty";
 export {
   activateWallet,
   failPayment,

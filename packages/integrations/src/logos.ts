@@ -35,6 +35,7 @@ import { Logo as OmniverseLogo } from "./omniverse/assets/logo";
 import { Logo as OPCUALogo } from "./opcua/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
+import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
 import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
@@ -95,6 +96,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.INTERCOM]: IntercomLogo,
   [AppType.ZOOM]: ZoomLogo,
   [AppType.MONDAY]: MondayLogo,
+  [AppType.PAGERDUTY]: PagerDutyLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

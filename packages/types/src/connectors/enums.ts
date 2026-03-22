@@ -71,6 +71,7 @@ export const AppTypeSchema = z.enum([
   "FIGMA",
   "ZOOM",
   "GOOGLE_CHAT",
+  "PAGERDUTY",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

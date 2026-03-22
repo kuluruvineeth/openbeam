@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Generate a PagerDuty API key and connect to OpenBeam
+---
+
+# PagerDuty Setup
+
+## Prerequisites
+
+- PagerDuty account with admin or owner role
+- REST API access enabled on your account
+
+## Step 1: Generate an API Key
+
+1. Log in to PagerDuty
+2. Navigate to **Integrations > API Access Keys**
+3. Click **Create New API Key**
+4. Enter a description (e.g., "OpenBeam Integration")
+5. Choose key type:
+   - **General Access** — full read access to all account data
+   - **User Token** — scoped to the generating user's permissions
+6. Copy the generated key (it will not be shown again)
+
+## Step 2: Add Connector in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector**
+2. Select **PagerDuty**
+3. Enter your API key
+4. Configure optional settings (service filter, lookback days)
+5. Click **Connect**
+
+## Step 3: Verify Connection
+
+OpenBeam validates the API key by calling the `/abilities` endpoint. If validation succeeds, the connector status changes to **Active** and the initial sync begins.
+
+## Security Notes
+
+- Store API keys securely; they grant read access to your PagerDuty account
+- Use a dedicated service account for production deployments
+- Rotate keys periodically via PagerDuty's API Access Keys page

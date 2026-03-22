@@ -46,6 +46,7 @@
     "cisa-kev",
     "mitre-attack",
     "owasp",
-    "zoom"
+    "zoom",
+    "pagerduty"
   ]
 }
