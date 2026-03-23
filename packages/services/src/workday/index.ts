@@ -1,3 +1,5 @@
+export type { WorkerActionResult } from "./actions";
+export { updateWorker } from "./actions";
 export { WorkdayAuth } from "./auth";
 export type { WorkdayClient } from "./client";
 export { createWorkdayClient } from "./client";
