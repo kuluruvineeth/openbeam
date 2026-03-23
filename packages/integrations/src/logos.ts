@@ -4,6 +4,7 @@ import {
 } from "@openbeam/types/services/connectors/events";
 import { Logo as AsanaLogo } from "./asana/assets/logo";
 import { Logo as AwsIotLogo } from "./aws-iot/assets/logo";
+import { Logo as AzureDevOpsLogo } from "./azure-devops/assets/logo";
 import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
@@ -99,6 +100,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MONDAY]: MondayLogo,
   [AppType.PAGERDUTY]: PagerDutyLogo,
   [AppType.CLICKUP]: ClickUpLogo,
+  [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

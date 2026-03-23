@@ -1,0 +1,48 @@
+---
+title: Sync Behavior
+description: How Azure DevOps data is synced to OpenBeam
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data across configured projects:
+1. Lists all projects (filtered by include/exclude settings)
+2. For each project, queries work items using WIQL
+3. Fetches repositories, pull requests, and wiki pages if enabled
+4. Transforms and indexes documents in batches
+
+## Incremental Sync
+
+After the initial full sync, incremental syncs use WIQL timestamp filtering:
+
+```sql
+SELECT [System.Id] FROM WorkItems
+WHERE [System.ChangedDate] > "{lastSyncTime}"
+ORDER BY [System.ChangedDate] DESC
+```
+
+Only work items modified since the last sync are fetched and re-indexed.
+
+## Sync Intervals
+
+| Entity | Default Interval | Notes |
+|--------|-----------------|-------|
+| Work Items | 15 minutes | WIQL-based incremental |
+| Repositories | 60 minutes | Full re-fetch per project |
+| Pull Requests | 15 minutes | Paginated with $skip/$top |
+| Wiki Pages | 60 minutes | Full re-fetch of page trees |
+
+## Rate Limits
+
+Azure DevOps uses throughput units (TSTUs) with a limit of 200 per 5-minute window. The connector automatically:
+- Respects `Retry-After` headers on 429 responses
+- Uses exponential backoff with jitter for retries
+- Batches work item fetches in groups of 200 IDs
+
+## Pagination
+
+- Work items: WIQL returns IDs, then batch-fetched in groups of 200
+- Pull requests: `$skip/$top` pagination
+- Wiki pages: Recursive page tree traversal

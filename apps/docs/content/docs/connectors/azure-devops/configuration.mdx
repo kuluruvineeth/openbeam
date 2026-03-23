@@ -1,0 +1,26 @@
+---
+title: Configuration
+description: Configure Azure DevOps connector settings
+---
+
+# Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **App ID** | OAuth application ID from Azure DevOps registration |
+| **Client Secret** | OAuth client secret |
+| **Organization** | Azure DevOps organization name (from `dev.azure.com/{org}`) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Include Projects** | All | Comma-separated project names to sync |
+| **Exclude Projects** | None | Comma-separated project names to skip |
+| **Sync Repositories** | Enabled | Index Git repositories |
+| **Sync Pull Requests** | Enabled | Index pull requests |
+| **Sync Wiki Pages** | Disabled | Index project wiki content |
+| **Work Item Types** | All | Filter by type (Bug, Task, User Story, Feature, Epic) |
+| **History (days)** | Unlimited | How far back to sync work items |

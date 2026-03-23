@@ -29,7 +29,8 @@ type IntegrationName =
   | "intercom"
   | "zoom"
   | "monday"
-  | "clickup";
+  | "clickup"
+  | "azure-devops";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -149,6 +150,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  "azure-devops": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/azure-devops/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

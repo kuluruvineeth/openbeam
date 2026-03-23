@@ -1,5 +1,6 @@
 import { asanaApp } from "./asana/config";
 import { awsIotApp } from "./aws-iot/config";
+import { azureDevOpsApp } from "./azure-devops/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
 import { bitbucketApp } from "./bitbucket/config";
@@ -50,6 +51,7 @@ import { zoomApp } from "./zoom/config";
 export {
   asanaApp,
   awsIotApp,
+  azureDevOpsApp,
   bitbucketApp,
   azureIotApp,
   bacnetApp,
@@ -120,6 +122,20 @@ export {
   generateAtlassianAuthUrl,
   refreshAtlassianToken,
 } from "./atlassian";
+export type {
+  ExchangeAzureDevOpsCodeParams,
+  GenerateAzureDevOpsAuthUrlParams,
+  RefreshAzureDevOpsTokenParams,
+} from "./azure-devops/oauth";
+export {
+  exchangeAzureDevOpsCode,
+  generateAzureDevOpsAuthUrl,
+  refreshAzureDevOpsToken,
+} from "./azure-devops/oauth";
+export type {
+  AzureDevOpsOAuthResult,
+  AzureDevOpsProfile,
+} from "./azure-devops/types";
 export type {
   ExchangeBitbucketCodeParams,
   GenerateBitbucketAuthUrlParams,
@@ -521,4 +537,5 @@ export const appStore: UnifiedApp[] = [
   mondayApp,
   pagerdutyApp,
   clickUpApp,
+  azureDevOpsApp,
 ];

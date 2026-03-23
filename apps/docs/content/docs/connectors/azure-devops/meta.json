@@ -1,0 +1,12 @@
+{
+  "title": "Azure DevOps",
+  "icon": "AzureDevOps",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

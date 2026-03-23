@@ -17,6 +17,7 @@ import { docs } from "@/.source";
 import {
   AsanaIcon,
   AwsIotIcon,
+  AzureDevOpsIcon,
   AzureIotIcon,
   BACnetIcon,
   BitbucketIcon,
@@ -126,6 +127,7 @@ const customIconMap: Record<
   Monday: MondayIcon,
   PagerDuty: PagerDutyIcon,
   ClickUp: ClickUpIcon,
+  AzureDevOps: AzureDevOpsIcon,
 };
 
 export const source = loader({

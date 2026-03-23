@@ -2,6 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
+import azureDevOps from "./azure-devops/azure-devops.index";
 import azureIot from "./azure-iot/azure-iot.index";
 import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
@@ -71,6 +72,7 @@ integrations.route("/bitbucket", bitbucket);
 integrations.route("/monday", monday);
 integrations.route("/pagerduty", pagerduty);
 integrations.route("/clickup", clickup);
+integrations.route("/azure-devops", azureDevOps);
 
 integrations.get("/health", (c) =>
   c.json({

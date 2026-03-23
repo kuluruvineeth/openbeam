@@ -1,0 +1,39 @@
+---
+title: Troubleshooting
+description: Common Azure DevOps connector issues and solutions
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Unauthorized" during sync
+- The OAuth token may have expired. Reconnect the connector to refresh credentials.
+- Verify the OAuth app scopes include `vso.work`, `vso.code`, and `vso.wiki`.
+
+### "Organization not found"
+- Double-check the organization name matches `dev.azure.com/{organization}`.
+- Ensure the authenticated user has access to the organization.
+
+## Sync Issues
+
+### Missing work items
+- Check the **Work Item Types** filter. If set, only those types are synced.
+- Check the **Include/Exclude Projects** settings.
+- Verify the user has read permissions on the affected projects.
+
+### Rate limiting (429 errors)
+- The connector respects Azure DevOps rate limits automatically.
+- If rate limiting is frequent, consider reducing the sync frequency or narrowing project scope.
+
+### Wiki pages not syncing
+- Wiki sync is disabled by default. Enable **Sync Wiki Pages** in settings.
+- Only project wikis are supported (not code wikis).
+
+## Token Refresh
+
+Azure DevOps OAuth tokens expire periodically. The connector automatically refreshes tokens using the stored refresh token. If refresh fails:
+
+1. Check that the OAuth app is still registered and active
+2. Note that Azure DevOps OAuth apps have secrets that expire every 60 days
+3. Reconnect the connector if the refresh token is invalid

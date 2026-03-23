@@ -411,6 +411,28 @@ export async function refreshConnectorToken(
       case "NOTION":
         throw new Error("Notion tokens do not expire");
 
+      case "AZURE_DEVOPS": {
+        const { refreshAzureDevOpsToken, azureDevOpsApp } = await import(
+          "@openbeam/integrations"
+        );
+        const adoRedirectUri =
+          azureDevOpsApp.auth.type === "OAUTH2"
+            ? `${process.env.WEB_URL || "http://localhost:3001"}${azureDevOpsApp.auth.config.redirectPath}`
+            : "";
+        const adoResult = await refreshAzureDevOpsToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+          redirectUri: adoRedirectUri,
+        });
+        newToken = {
+          accessToken: adoResult.accessToken,
+          expiresIn: adoResult.expiresIn,
+          refreshToken: adoResult.refreshToken,
+        };
+        break;
+      }
+
       default:
         throw new Error(`Token refresh not implemented for app: ${oauth.app}`);
     }

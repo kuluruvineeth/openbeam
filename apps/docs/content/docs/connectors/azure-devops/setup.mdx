@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Register an Azure DevOps OAuth application and connect to OpenBeam
+---
+
+# Setup
+
+## Prerequisites
+
+- An Azure DevOps organization with admin or project-level access
+- Permission to register OAuth applications
+
+## Step 1: Register an OAuth Application
+
+1. Go to [https://app.vsaex.visualstudio.com/app/register](https://app.vsaex.visualstudio.com/app/register)
+2. Fill in the application details:
+   - **Company name:** Your company name
+   - **Application name:** OpenBeam
+   - **Application website:** Your OpenBeam instance URL
+   - **Authorization callback URL:** `https://your-instance.com/connectors/setup/azure-devops/oauth/callback`
+3. Select the required scopes:
+   - **Work items (read)** — `vso.work`
+   - **Code (read)** — `vso.code`
+   - **Wiki (read)** — `vso.wiki`
+4. Click **Create Application**
+5. Copy the **App ID** and **Client Secret**
+
+## Step 2: Configure in OpenBeam
+
+1. Navigate to **Settings > Connectors > Add Connector**
+2. Select **Azure DevOps**
+3. Enter the **App ID** and **Client Secret** from Step 1
+4. Enter your **Organization** name (the part after `dev.azure.com/`)
+5. Click **Connect** to start the OAuth flow
+6. Authorize access in the Azure DevOps consent screen
+
+## Step 3: Configure Sync Settings
+
+After authorization:
+- Choose which projects to include or exclude
+- Enable or disable repository, PR, and wiki sync
+- Set work item type filters if needed
+- Configure the lookback period for historical data

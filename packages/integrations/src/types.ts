@@ -91,6 +91,7 @@ export enum AppType {
   GOOGLE_CHAT = "GOOGLE_CHAT",
   PAGERDUTY = "PAGERDUTY",
   CLICKUP = "CLICKUP",
+  AZURE_DEVOPS = "AZURE_DEVOPS",
 }
 
 export enum SyncMode {

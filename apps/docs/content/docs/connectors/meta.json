@@ -48,6 +48,7 @@
     "owasp",
     "zoom",
     "pagerduty",
-    "clickup"
+    "clickup",
+    "azure-devops"
   ]
 }

@@ -141,6 +141,36 @@ export {
   transformThing as transformAwsIotThing,
   transformThingGroup as transformAwsIotThingGroup,
 } from "./aws-iot";
+export type {
+  AzureDevOpsClient,
+  AzureDevOpsProject,
+  AzureDevOpsPullRequest,
+  AzureDevOpsRepository,
+  AzureDevOpsWiki,
+  AzureDevOpsWikiPage,
+  AzureDevOpsWorkItem,
+} from "./azure-devops";
+export {
+  AzureDevOpsAuth,
+  addWorkItemComment,
+  azureDevOpsFullSync,
+  azureDevOpsIncrementalSync,
+  createAzureDevOpsClient,
+  createWorkItem,
+  flattenWikiPages,
+  getWikiPageContent,
+  getWikiPageTree,
+  listProjects as listAzureDevOpsProjects,
+  listPullRequests as listAzureDevOpsPullRequests,
+  listRepositories as listAzureDevOpsRepositories,
+  listWikis as listAzureDevOpsWikis,
+  queryWorkItems,
+  transformAzureDevOpsPullRequest,
+  transformAzureDevOpsRepository,
+  transformAzureDevOpsWikiPage,
+  transformAzureDevOpsWorkItem,
+  updateWorkItem,
+} from "./azure-devops";
 export type { AzureIotClient } from "./azure-iot";
 export {
   AzureIotApiError,

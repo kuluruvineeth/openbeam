@@ -1,0 +1,40 @@
+---
+title: Azure DevOps
+description: Search work items, repositories, pull requests, and wiki pages from Azure DevOps with WIQL incremental sync
+---
+
+# Azure DevOps
+
+Index project management and development data from Azure DevOps including work items, Git repositories, pull requests, and wiki pages. Supports OAuth 2.0, WIQL-based incremental sync, and organization-scoped access.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Work Items** | Title, description, state, assignee, priority, tags, type |
+| **Repositories** | Name, default branch, size, project |
+| **Pull Requests** | Title, description, status, branches, reviewers, labels |
+| **Wiki Pages** | Title, content, path, project |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Azure DevOps VSSPS)
+
+**Scopes:** `vso.work` (work items), `vso.code` (repos/PRs), `vso.wiki` (wiki pages)
+
+Register an application at [Azure DevOps app registration](https://app.vsaex.visualstudio.com/app/register) and configure the OAuth settings.
+
+## Quick Start
+
+1. Register an Azure DevOps OAuth application
+2. Configure the authorization callback URL
+3. Add the Azure DevOps connector in OpenBeam with your App ID and Client Secret
+4. Enter your organization name and authorize
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/azure-devops/setup" description="App registration and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/azure-devops/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/azure-devops/configuration" description="Project filtering, entity selection, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/azure-devops/sync" description="Full sync, WIQL incremental sync, and pagination" />
+  <Card title="Troubleshooting" href="/docs/connectors/azure-devops/troubleshooting" description="Common issues and fixes" />
+</Cards>

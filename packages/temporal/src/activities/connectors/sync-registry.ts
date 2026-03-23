@@ -4,6 +4,8 @@ import {
   asanaIncrementalSync,
   awsIotFullSync,
   awsIotIncrementalSync,
+  azureDevOpsFullSync,
+  azureDevOpsIncrementalSync,
   azureIotFullSync,
   azureIotIncrementalSync,
   bacnetFullSync,
@@ -21,6 +23,7 @@ import {
   createAsanaClient,
   createAtlassianClient,
   createAwsIotClient,
+  createAzureDevOpsClient,
   createAzureIotClient,
   createBacnetClient,
   createBitbucketClient,
@@ -3475,6 +3478,101 @@ export function registerAllSyncFactories(): void {
             syncComments,
             includeSpaces,
             excludeSpaces,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "AZURE_DEVOPS",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for Azure DevOps connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const organization = config?.organization as string;
+      if (!organization) {
+        throw ApplicationFailure.nonRetryable(
+          "Azure DevOps organization not configured",
+          "ConfigurationError"
+        );
+      }
+
+      const client = createAzureDevOpsClient({
+        connectorId,
+        accessToken,
+        organization,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        organization,
+        baseUrl: `https://dev.azure.com/${organization}`,
+      };
+
+      const includeProjects = config?.include_projects
+        ? String(config.include_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeProjects = config?.exclude_projects
+        ? String(config.exclude_projects)
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : undefined;
+      const workItemTypes = config?.work_item_types
+        ? String(config.work_item_types)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const syncRepos = parseBooleanConfig(config?.sync_repos) ?? true;
+      const syncPullRequests =
+        parseBooleanConfig(config?.sync_pull_requests) ?? true;
+      const syncWiki = parseBooleanConfig(config?.sync_wiki) ?? false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? azureDevOpsFullSync(client, context, {
+            batchSize: 100,
+            includeProjects,
+            excludeProjects,
+            syncRepos,
+            syncPullRequests,
+            syncWiki,
+            workItemTypes,
+            lookbackDays,
+          })
+        : azureDevOpsIncrementalSync(client, context, {
+            cursor: cursor as Record<string, unknown> | undefined,
+            batchSize: 100,
+            includeProjects,
+            excludeProjects,
+            syncRepos,
+            syncPullRequests,
+            syncWiki,
+            workItemTypes,
+            lookbackDays,
           });
 
       for await (const batch of syncGenerator) {
