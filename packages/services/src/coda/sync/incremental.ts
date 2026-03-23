@@ -5,7 +5,7 @@ import type {
 } from "@openbeam/types/services/connectors/coda";
 import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
-import { listAllDocs } from "../api/docs";
+import { listDocsUpdatedSince } from "../api/docs";
 import { getPageContent, listAllPages } from "../api/pages";
 import { listAllRows } from "../api/rows";
 import { listAllTables, listColumns } from "../api/tables";
@@ -47,12 +47,12 @@ export async function* codaIncrementalSync(
   let latestModified = sinceTime;
 
   try {
-    for await (const docs of listAllDocs(client)) {
+    for await (const docs of listDocsUpdatedSince(
+      client,
+      new Date(sinceTime).toISOString()
+    )) {
       for (const doc of docs) {
         const docUpdatedAt = new Date(doc.updatedAt).getTime();
-        if (docUpdatedAt < sinceTime) {
-          continue;
-        }
 
         try {
           documents.push(transformCodaDoc(doc, context));

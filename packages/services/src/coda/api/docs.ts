@@ -31,19 +31,13 @@ export function getDoc(client: CodaClient, docId: string): Promise<CodaDoc> {
   return client.get<CodaDoc>(`/docs/${docId}`);
 }
 
-export async function listDocsUpdatedSince(
+export function listDocsUpdatedSince(
   client: CodaClient,
   sinceDate: string
-): Promise<CodaDoc[]> {
-  const allDocs: CodaDoc[] = [];
-  for await (const batch of client.listAll<CodaDoc>("/docs")) {
-    for (const doc of batch) {
-      if (new Date(doc.updatedAt).getTime() >= new Date(sinceDate).getTime()) {
-        allDocs.push(doc);
-      }
-    }
-  }
-  return allDocs;
+): AsyncGenerator<CodaDoc[], void, undefined> {
+  return client.listAll<CodaDoc>("/docs", {
+    updatedSince: new Date(sinceDate).toISOString(),
+  });
 }
 
 export type CodaWhoAmI = {
