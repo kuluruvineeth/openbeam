@@ -110,6 +110,7 @@ export interface BambooHRClient {
     start: string;
     end: string;
   }): Promise<BambooHRTimeOffRequest[]>;
+  put<T>(path: string, body: unknown): Promise<T>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -267,6 +268,33 @@ export function createBambooHRClient(
     }
   }
 
+  async function put<T>(path: string, body: unknown): Promise<T> {
+    await checkRateLimit();
+    const url = `${baseUrl}${path}`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Basic ${authHeader}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeout),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new BambooHRApiError({
+        message: `BambooHR API PUT ${response.status}: ${text}`,
+        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
+        retryable: response.status >= 500,
+      });
+    }
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    return response.json() as Promise<T>;
+  }
+
   return {
     connectorId,
     subdomain,
@@ -274,6 +302,7 @@ export function createBambooHRClient(
     getEmployee,
     getChangedEmployees,
     getTimeOffRequests,
+    put,
     healthCheck,
   };
 }

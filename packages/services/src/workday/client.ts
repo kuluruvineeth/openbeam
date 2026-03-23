@@ -59,6 +59,7 @@ export interface WorkdayClient {
     offset?: number;
     limit?: number;
   }): Promise<WorkdayPagedResponse<WorkdayOrganization>>;
+  put(path: string, body: unknown): Promise<void>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -243,6 +244,27 @@ export function createWorkdayClient(
     }
   }
 
+  async function putApi(path: string, body: unknown): Promise<void> {
+    const url = `${baseUrl}${path}`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new WorkdayApiError({
+        message: `Workday PUT ${response.status}: ${text}`,
+        code: "API_ERROR",
+        retryable: response.status >= 500,
+      });
+    }
+  }
+
   return {
     connectorId,
     tenant,
@@ -250,6 +272,7 @@ export function createWorkdayClient(
     getWorkers,
     getWorker,
     getOrganizations,
+    put: putApi,
     healthCheck,
   };
 }

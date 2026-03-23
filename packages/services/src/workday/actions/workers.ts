@@ -6,14 +6,18 @@ export interface WorkerActionResult {
   error?: string;
 }
 
-export function updateWorker(
-  _client: WorkdayClient,
-  _workerId: string,
-  _fields: Record<string, unknown>
+export async function updateWorker(
+  client: WorkdayClient,
+  workerId: string,
+  fields: Record<string, unknown>
 ): Promise<WorkerActionResult> {
-  return Promise.resolve({
-    success: false,
-    error:
-      "Workday worker updates require tenant-specific SOAP/HCM endpoints — contact your Workday admin",
-  });
+  try {
+    await client.put(`/workers/${encodeURIComponent(workerId)}`, fields);
+    return { success: true, workerId };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update worker",
+    };
+  }
 }
