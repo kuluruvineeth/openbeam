@@ -28,6 +28,7 @@ import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
 import { outlookActionsRegistry } from "./outlook";
 import { pagerdutyActionsRegistry } from "./pagerduty";
+import { pipedriveActionsRegistry } from "./pipedrive";
 import { s3ActionsRegistry } from "./s3";
 import { salesforceActionsRegistry } from "./salesforce";
 import { samsaraActionsRegistry } from "./samsara";
@@ -74,6 +75,7 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   bitbucketActionsRegistry,
   mondayActionsRegistry,
   pagerdutyActionsRegistry,
+  pipedriveActionsRegistry,
   clickUpActionsRegistry,
   azureDevOpsActionsRegistry,
   s3ActionsRegistry,
