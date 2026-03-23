@@ -22,7 +22,6 @@ export const freshserviceApp: UnifiedApp = {
   connectorType: ConnectorType.SOURCE,
   developerName: "Freshworks",
   website: "https://www.freshservice.com",
-  isPii: true,
   searchDisplay: {
     defaultIconKey: "TicketIcon",
     documentTypes: {
@@ -39,12 +38,12 @@ export const freshserviceApp: UnifiedApp = {
       change: {
         label: "change",
         iconKey: "GitBranchIcon",
-        category: "change",
+        category: "task",
       },
       problem: {
         label: "problem",
         iconKey: "AlertCircleIcon",
-        category: "problem",
+        category: "incident",
       },
     },
   },
@@ -96,7 +95,7 @@ export const freshserviceApp: UnifiedApp = {
       label: "Knowledge Articles",
       description:
         "Solution articles with title, body, folder, status, and tags",
-      entityType: "document",
+      entityType: "resource",
       dataPoints: [
         "Title",
         "Description",
