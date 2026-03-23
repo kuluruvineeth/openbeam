@@ -1,0 +1,45 @@
+---
+title: Features
+description: What Datadog data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Monitors
+Full-text search across monitor names, queries, messages, and tags. Metadata includes type (metric alert, service check, etc.), status (OK, Alert, Warn), priority (P1-P5), creator, and threshold configurations.
+
+### Dashboards
+Search across dashboard titles, descriptions, and widget titles. Each dashboard is fetched with full widget detail to extract all searchable text. Metadata includes layout type, author, and widget count.
+
+### Incidents
+Search across incident titles, severity levels, and custom fields. Includes commander assignment, customer impact tracking, detection method, and resolution status.
+
+### Service Catalog
+Service catalog entries with names, descriptions, team ownership, application grouping, tier classification, lifecycle stage, contacts, and links. Useful for understanding service dependencies and ownership.
+
+### Notebooks
+Notebook content including markdown cells, query definitions, and author information. Enables search across investigative notebooks used during incidents and analysis.
+
+### SLOs
+Service Level Objective definitions with names, descriptions, target thresholds, query definitions, and overall status. Search across SLO configurations to understand reliability targets.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Monitor** | Create a new monitor with name, type, query, and tags |
+| **Update Monitor** | Modify an existing monitor's configuration |
+| **Mute Monitor** | Temporarily suppress monitor notifications |
+| **Unmute Monitor** | Resume notifications for a muted monitor |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Creator attribution** from monitors, dashboards, and SLOs
+- **Team ownership** from service catalog entries
+- **Commander assignment** from incidents
+- **Service relationships** from SLO monitor associations

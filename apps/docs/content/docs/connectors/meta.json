@@ -63,6 +63,7 @@
     "coda",
     "onenote",
     "airtable",
-    "opsgenie"
+    "opsgenie",
+    "datadog"
   ]
 }

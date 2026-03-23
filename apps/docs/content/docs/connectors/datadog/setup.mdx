@@ -1,0 +1,56 @@
+---
+title: Setup
+description: Connect Datadog to OpenBeam via API key and Application key
+---
+
+# Datadog Setup
+
+## Prerequisites
+
+- A Datadog account with admin or standard access
+- Access to Organization Settings for key generation
+
+## Step 1: Generate an API Key
+
+1. Log into [Datadog](https://app.datadoghq.com)
+2. Go to **Organization Settings > API Keys**
+3. Click **New Key**
+4. Name it "OpenBeam Integration"
+5. Copy the generated API key
+
+## Step 2: Generate an Application Key
+
+1. In Datadog, go to **Organization Settings > Application Keys**
+2. Click **New Key**
+3. Name it "OpenBeam Integration"
+4. Copy the generated Application key
+
+Both keys are required for authentication. The API key identifies your organization, and the Application key authenticates the specific integration.
+
+## Step 3: Determine Your Site
+
+Datadog operates across multiple regional sites:
+
+| Site | Domain | API Base URL |
+|------|--------|-------------|
+| US1 (default) | `app.datadoghq.com` | `api.datadoghq.com` |
+| US3 | `us3.datadoghq.com` | `api.us3.datadoghq.com` |
+| US5 | `us5.datadoghq.com` | `api.us5.datadoghq.com` |
+| EU | `app.datadoghq.eu` | `api.datadoghq.eu` |
+| AP1 | `ap1.datadoghq.com` | `api.ap1.datadoghq.com` |
+| GOV | `app.ddog-gov.com` | `api.ddog-gov.com` |
+
+Check your Datadog URL to determine which site you are on.
+
+## Step 4: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Datadog**
+3. Enter your **API Key**
+4. Enter your **Application Key**
+5. Select your **Site** (defaults to US1)
+6. Click **Connect** to validate and activate
+
+## Step 5: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Datadog data. The first sync fetches all monitors, dashboards (with widget details), incidents, service catalog entries, notebooks, and SLOs.

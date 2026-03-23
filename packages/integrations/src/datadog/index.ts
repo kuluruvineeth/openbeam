@@ -1,0 +1,1 @@
+export { datadogApp } from "./config";

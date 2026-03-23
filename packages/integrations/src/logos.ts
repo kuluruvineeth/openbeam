@@ -15,6 +15,7 @@ import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ClickUpLogo } from "./clickup/assets/logo";
 import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
+import { Logo as DatadogLogo } from "./datadog/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as Dynamics365Logo } from "./dynamics365/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
@@ -129,6 +130,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MIRO]: MiroLogo,
   [AppType.DYNAMICS_365]: Dynamics365Logo,
   [AppType.OPSGENIE]: OpsGenieLogo,
+  [AppType.DATADOG]: DatadogLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

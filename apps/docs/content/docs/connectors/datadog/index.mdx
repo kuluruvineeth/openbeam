@@ -1,0 +1,40 @@
+---
+title: Datadog
+description: Search monitors, dashboards, incidents, services, notebooks, and SLOs from Datadog
+---
+
+# Datadog
+
+Index monitoring and observability data from Datadog including monitors, dashboards, incidents, service catalog entries, notebooks, and SLOs. Supports dual API key authentication (API Key + Application Key) with multi-site support across US1, US3, US5, EU, AP1, and GOV regions.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Monitors** | Name, query, status, type, priority, tags, creator, thresholds |
+| **Dashboards** | Title, description, layout type, widget titles, author |
+| **Incidents** | Title, severity, state, commander, customer impact, detection method |
+| **Service Catalog** | Service name, description, team ownership, tier, lifecycle, contacts, links |
+| **Notebooks** | Name, markdown cells, author, status |
+| **SLOs** | Name, description, type, target thresholds, tags, overall status |
+
+## Authentication
+
+**Method:** Dual API Key (API Key + Application Key)
+
+Both keys are required. Generate them from **Organization Settings** in Datadog.
+
+## Quick Start
+
+1. Generate an API Key and Application Key in Datadog
+2. Add the Datadog connector in OpenBeam
+3. Enter both keys and select your site region
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/datadog/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/datadog/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/datadog/configuration" description="Entity selection, site settings, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/datadog/sync" description="Full sync, incremental sync via modified timestamps" />
+  <Card title="Troubleshooting" href="/docs/connectors/datadog/troubleshooting" description="Common issues and fixes" />
+</Cards>

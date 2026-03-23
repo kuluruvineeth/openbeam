@@ -106,6 +106,7 @@ export enum AppType {
   MIRO = "MIRO",
   DYNAMICS_365 = "DYNAMICS_365",
   OPSGENIE = "OPSGENIE",
+  DATADOG = "DATADOG",
 }
 
 export enum SyncMode {

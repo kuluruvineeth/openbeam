@@ -1,0 +1,12 @@
+{
+  "title": "Datadog",
+  "icon": "Datadog",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -310,6 +310,23 @@ export {
   transformConfluencePage,
 } from "./confluence";
 export * from "./control";
+export type { DatadogClient } from "./datadog";
+export {
+  createDatadogClient,
+  createMonitor as datadogCreateMonitor,
+  DatadogApiError,
+  datadogFullSync,
+  datadogIncrementalSync,
+  muteMonitor as datadogMuteMonitor,
+  transformDashboard as transformDatadogDashboard,
+  transformIncident as transformDatadogIncident,
+  transformMonitor as transformDatadogMonitor,
+  transformNotebook as transformDatadogNotebook,
+  transformService as transformDatadogService,
+  transformSlo as transformDatadogSlo,
+  unmuteMonitor as datadogUnmuteMonitor,
+  updateMonitor as datadogUpdateMonitor,
+} from "./datadog";
 export type {
   DropboxClient,
   DropboxClientConfig,

@@ -38,6 +38,7 @@ import {
   createBoxClient,
   createClickUpClient,
   createCodaClient,
+  createDatadogClient,
   createDropboxClient,
   createDynamics365Client,
   createFhirClient,
@@ -81,6 +82,8 @@ import {
   createWorkdayClient,
   createZendeskClient,
   createZoomClient,
+  datadogFullSync,
+  datadogIncrementalSync,
   dropboxFullSync,
   dropboxIncrementalSync,
   dynamics365FullSync,
@@ -4472,6 +4475,83 @@ export function registerAllSyncFactories(): void {
             syncLeads,
             syncCases,
             syncActivities,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "DATADOG",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      const appKey = config?.app_key as string | undefined;
+      if (!(apiKey && appKey)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing API key or Application key for Datadog connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const siteRaw = (config?.site as string) ?? "us1";
+      const validSites = ["us1", "us3", "us5", "eu", "ap1", "gov"] as const;
+      const site = validSites.includes(siteRaw as (typeof validSites)[number])
+        ? (siteRaw as (typeof validSites)[number])
+        : ("us1" as const);
+      const syncDashboards =
+        parseBooleanConfig(config?.sync_dashboards) !== false;
+      const syncIncidents =
+        parseBooleanConfig(config?.sync_incidents) !== false;
+      const syncServices = parseBooleanConfig(config?.sync_services) !== false;
+      const syncNotebooks =
+        parseBooleanConfig(config?.sync_notebooks) !== false;
+      const syncSlos = parseBooleanConfig(config?.sync_slos) !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+
+      const client = createDatadogClient({
+        connectorId,
+        apiKey,
+        appKey,
+        site,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        site,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? datadogFullSync(client, context, {
+            syncDashboards,
+            syncIncidents,
+            syncServices,
+            syncNotebooks,
+            syncSlos,
+            lookbackDays,
+          })
+        : datadogIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastMonitorModified?: number;
+              lastDashboardModified?: number;
+            },
+            syncDashboards,
+            syncIncidents,
+            syncServices,
+            syncNotebooks,
+            syncSlos,
           });
 
       for await (const batch of syncGenerator) {

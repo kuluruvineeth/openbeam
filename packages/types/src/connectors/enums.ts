@@ -85,6 +85,7 @@ export const AppTypeSchema = z.enum([
   "MIRO",
   "DYNAMICS_365",
   "OPSGENIE",
+  "DATADOG",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

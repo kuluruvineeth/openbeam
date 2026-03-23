@@ -1,0 +1,55 @@
+---
+title: Sync Behavior
+description: How Datadog data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Datadog:
+
+1. **Monitors** with pagination (100 per page)
+2. **Dashboards** (if enabled) with individual widget detail fetch per dashboard
+3. **Incidents** (if enabled) via v2 API with user resolution
+4. **Service Catalog** (if enabled) from the v2 service definitions endpoint
+5. **Notebooks** (if enabled) with cell content extraction
+6. **SLOs** (if enabled) with threshold and status details
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs filter entities by their `modified` timestamp, comparing against the last sync time. Only monitors and dashboards modified since the last sync are fetched and re-indexed.
+
+Incidents are filtered client-side by comparing their `modified` attribute against the cursor timestamp.
+
+Services, notebooks, and SLOs are fully re-synced during incremental runs since they lack reliable modification filtering.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Monitors | Every 15 minutes |
+| Dashboards | Every 30 minutes |
+| Incidents | Every 15 minutes |
+| Service Catalog | Every 60 minutes |
+| Notebooks | Every 30 minutes |
+| SLOs | Every 60 minutes |
+
+## Rate Limits
+
+Datadog enforces rate limits of approximately 300 requests per minute for most API endpoints. The connector handles rate limiting with exponential backoff and respects the `X-RateLimit-Reset` header.
+
+## API Versions
+
+| Entity | API Version | Endpoint |
+|--------|------------|----------|
+| Monitors | v1 | `/api/v1/monitor` |
+| Dashboards | v1 | `/api/v1/dashboard` |
+| Incidents | v2 | `/api/v2/incidents` |
+| Services | v2 | `/api/v2/services/definitions` |
+| Notebooks | v1 | `/api/v1/notebooks` |
+| SLOs | v1 | `/api/v1/slo` |

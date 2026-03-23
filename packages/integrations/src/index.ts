@@ -11,6 +11,7 @@ import { cisaKevApp } from "./cisa-kev/config";
 import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
+import { datadogApp } from "./datadog/config";
 import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
 import { fhirApp } from "./fhir/config";
@@ -65,6 +66,7 @@ import { zoomApp } from "./zoom/config";
 export {
   airtableApp,
   codaApp,
+  datadogApp,
   dynamics365App,
   miroApp,
   onenoteApp,
@@ -666,4 +668,5 @@ export const appStore: UnifiedApp[] = [
   miroApp,
   dynamics365App,
   opsgenieApp,
+  datadogApp,
 ];

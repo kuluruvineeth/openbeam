@@ -146,6 +146,7 @@ enum AppType {
   ONENOTE
   DYNAMICS_365
   OPSGENIE
+  DATADOG
 }
 
 enum ConnectorStatus {
