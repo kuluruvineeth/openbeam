@@ -1,0 +1,28 @@
+---
+title: Troubleshooting
+description: Common Coda connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API token:** Coda API tokens do not expire, but they can be revoked. If you see authentication errors, verify the token is still active in your [Coda account settings](https://coda.io/account). If it was revoked, generate a new token and update the connector.
+
+**Missing documents:** The API token inherits the permissions of the user who generated it. If certain documents are not appearing, confirm that the token owner has access to those documents in Coda.
+
+## Rate Limiting
+
+**429 Too Many Requests:** Coda allows 100 requests per 6 seconds. The connector automatically backs off when rate limited. If syncs are consistently slow due to rate limiting, consider disabling row syncing for large workspaces to reduce API calls.
+
+## Missing Data
+
+**Tables or rows not appearing:** Check if the **Sync Tables** and **Sync Rows** toggles are enabled in the connector settings.
+
+**Page content empty:** Some pages may fail to return content via the Coda API (e.g., pages with only embedded objects). The connector logs a warning and indexes the page with its title and hierarchy metadata only.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the incremental sync encounters an API error. The connector automatically recovers by running a full sync. Check the sync logs for the specific error.
+
+**Large workspace timeouts:** Workspaces with thousands of documents and tables may take significant time for the initial full sync. The sync processes documents sequentially, fetching pages, tables, and rows for each. Consider setting **Lookback Days** to limit the scope of the initial sync.

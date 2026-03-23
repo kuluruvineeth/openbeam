@@ -1,0 +1,45 @@
+---
+title: Sync Behavior
+description: How Miro data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all boards and their items from Miro:
+
+1. **Boards** — Fetched via paginated API calls, filtered by include/exclude lists
+2. **Items** — For each board, all items (sticky notes, shapes, text, cards, frames, images, connectors) are fetched
+
+Results are streamed in batches of 100 documents to minimize memory usage. Each board and its items are processed together before moving to the next board.
+
+## Incremental Sync
+
+Subsequent syncs use the board `modifiedAt` timestamp to fetch only boards that have changed since the last sync:
+
+1. Boards are listed sorted by `last_modified`
+2. Boards with `modifiedAt` earlier than the last sync cursor are skipped
+3. For each modified board, all items are re-fetched and re-indexed
+
+If the incremental sync fails for any reason, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Boards | Every 15 minutes |
+| Items | Every 15 minutes |
+
+Both streams sync together since items are fetched per-board during the board sync pass.
+
+## Rate Limits
+
+Miro uses a credit-based rate limiting system that varies by plan:
+
+| Plan | Rate Limit |
+|------|-----------|
+| Free / Starter | Lower credit allocation |
+| Business / Enterprise | Higher credit allocation |
+
+The connector automatically handles rate limiting with exponential backoff. Each API call consumes credits based on the endpoint. Board listing and item listing are the primary credit consumers during sync.

@@ -1,0 +1,39 @@
+---
+title: OneNote
+description: Search across notebooks, sections, and pages in Microsoft OneNote
+---
+
+# OneNote
+
+Index knowledge base content from Microsoft OneNote including notebooks, sections, and pages with full HTML content extraction. Uses the Microsoft Graph API with OAuth 2.0 and supports timestamp-based incremental sync via `lastModifiedDateTime` filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Notebooks** | Name, owner, creation date, last modified |
+| **Sections** | Name, parent notebook, creation date, last modified |
+| **Pages** | Title, full text content (HTML stripped), author, parent section and notebook |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Azure AD / Microsoft Identity Platform)
+
+**Scopes:** `Notes.Read`, `Notes.Read.All`, `User.Read`, `offline_access`
+
+Register an application in [Azure AD](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) and configure the OAuth settings.
+
+## Quick Start
+
+1. Register an app in Azure AD
+2. Configure the OAuth redirect URL
+3. Add the OneNote connector in OpenBeam with your Application ID and Client Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/onenote/setup" description="Azure AD app registration and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/onenote/features" description="Indexed content types, actions, and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/onenote/configuration" description="Notebook filtering, content sync, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/onenote/sync" description="Full sync, incremental sync via lastModifiedDateTime" />
+  <Card title="Troubleshooting" href="/docs/connectors/onenote/troubleshooting" description="Common issues and fixes" />
+</Cards>

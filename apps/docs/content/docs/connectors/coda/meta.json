@@ -1,0 +1,12 @@
+{
+  "title": "Coda",
+  "icon": "Coda",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,56 @@
+---
+title: Sync Behavior
+description: How Dynamics 365 data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Dynamics 365 using paginated Dataverse Web API calls at `{orgUrl}/api/data/v9.2/`:
+
+1. **Accounts** (always)
+2. **Contacts** (always)
+3. **Leads** (if enabled)
+4. **Opportunities** (always)
+5. **Cases** (if enabled)
+6. **Activities** (if enabled)
+
+Results are streamed in batches of 100 to minimize memory usage. Each entity type is fetched sequentially with OData pagination.
+
+## Incremental Sync
+
+Subsequent syncs use the OData `$filter` parameter to fetch only records modified since the last sync:
+
+```
+$filter=modifiedon ge 2026-03-20T14:30:00.000Z
+```
+
+The connector tracks the latest `modifiedon` timestamp across all synced entities and uses it as the cursor for the next incremental run.
+
+If the incremental sync fails for any reason (e.g., API errors or environment issues), OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Accounts | Every 30 minutes |
+| Contacts | Every 30 minutes |
+| Leads | Every 30 minutes |
+| Opportunities | Every 30 minutes |
+| Cases | Every 30 minutes |
+| Activities | Every 60 minutes |
+
+## Rate Limits
+
+Dynamics 365 enforces a rate limit of 6,000 API requests per 5-minute sliding window per organization. The connector handles `429 Too Many Requests` responses with automatic exponential backoff. If your environment has a large number of records, initial full syncs may take longer due to rate limit pacing.
+
+## API Endpoint
+
+All data is fetched from the Dataverse Web API:
+
+```
+{orgUrl}/api/data/v9.2/{entitySetName}
+```
+
+This is the Dataverse Web API, not the Microsoft Graph API. The connector communicates directly with your Dynamics 365 environment using the OAuth token obtained with `user_impersonation` scope.

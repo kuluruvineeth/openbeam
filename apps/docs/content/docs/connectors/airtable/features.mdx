@@ -1,0 +1,27 @@
+---
+title: Features
+description: What Airtable data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Records
+
+Full-text search across all field values in every record. Metadata includes the parent table name, base name, created time, and last modified time. Fields of all types (text, number, date, attachments, linked records) are serialized for indexing.
+
+### Tables
+
+Table schemas with field definitions, view configurations, and parent base associations. Useful for understanding data structure across your Airtable workspace.
+
+### Comments
+
+Record-level comments with author attribution and timestamps. HTML content is stripped for clean indexing. Comments are linked to their parent record and table for full context.
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Author attribution** from comment authors and record creators
+- **Base-table-record hierarchy** preserving the structural relationships
+- **Cross-table references** via linked record fields

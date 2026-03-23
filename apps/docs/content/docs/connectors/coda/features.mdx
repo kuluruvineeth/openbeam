@@ -1,0 +1,42 @@
+---
+title: Features
+description: What Coda data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Documents
+
+Full-text search across document titles with metadata including owner, folder location, and timestamps. Documents serve as the top-level container for all other Coda entities.
+
+### Pages
+
+Pages (sections within documents) are indexed with their full markdown content. The page hierarchy is preserved, including parent page relationships and the owning document for navigation context.
+
+### Tables
+
+Table metadata is indexed including name, column schemas (column names and types), row count, and parent document. This allows searching for specific data structures across your Coda workspace.
+
+### Rows
+
+Individual table rows are indexed at the cell level, making every record searchable. Each row captures all column values, timestamps, and references back to its parent table and document.
+
+## Actions
+
+The Coda connector supports write operations through agents and canvas workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Doc** | Create a new Coda document with a title and optional folder |
+| **Create Row** | Insert a new row into a specified table with cell values |
+| **Update Row** | Modify cell values on an existing row |
+| **Delete Row** | Remove a row from a table |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Owner attribution** from document creators
+- **Document hierarchy** linking pages to their parent documents
+- **Table relationships** connecting rows to tables and tables to documents

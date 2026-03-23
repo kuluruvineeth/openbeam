@@ -1,0 +1,54 @@
+---
+title: Setup
+description: Connect Microsoft Dynamics 365 to OpenBeam via OAuth 2.0
+---
+
+# Dynamics 365 Setup
+
+## Prerequisites
+
+- A Microsoft Dynamics 365 environment with admin or customizer access
+- Access to the [Azure Portal](https://portal.azure.com) for app registration
+- Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`)
+
+## Step 1: Register an Azure AD Application
+
+1. Go to [Azure Portal > App registrations](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+2. Click **New registration**
+3. Enter a name (e.g., "OpenBeam Dynamics 365")
+4. Under **Supported account types**, select **Accounts in any organizational directory** (multi-tenant) or your specific tenant
+5. Under **Redirect URI**, add:
+   ```
+   https://your-openbeam-domain.com/connectors/setup/dynamics365/oauth/callback
+   ```
+6. Click **Register**
+
+## Step 2: Configure API Permissions
+
+1. In your registered app, go to **API permissions**
+2. Click **Add a permission** > **Dynamics CRM**
+3. Select **Delegated permissions** and add **user_impersonation**
+4. Click **Add a permission** > **Microsoft Graph** > **Delegated permissions** and add **User.Read**
+5. Click **Grant admin consent** for your organization
+
+## Step 3: Create a Client Secret
+
+1. Go to **Certificates & secrets** > **New client secret**
+2. Add a description and choose an expiration period
+3. Copy the secret **Value** immediately (it will not be shown again)
+4. Note your **Application (client) ID** from the Overview page
+5. Note your **Directory (tenant) ID** if you want single-tenant auth
+
+## Step 4: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Dynamics 365**
+3. Enter your **Application (client) ID** and **Client Secret**
+4. Enter your **Dynamics 365 Organization URL** (e.g., `https://yourorg.crm.dynamics.com`)
+5. Optionally set the **Tenant ID** (defaults to `common` for multi-tenant)
+6. Click **Connect** to start the OAuth flow
+7. Authorize access in the Microsoft login prompt
+
+## Step 5: Initial Sync
+
+After authorization, OpenBeam will automatically run a full sync of your Dynamics 365 CRM data. The first sync fetches accounts, contacts, opportunities, and optionally leads, cases, and activities. Duration depends on the volume of records in your environment.

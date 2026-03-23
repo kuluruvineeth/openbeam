@@ -1,0 +1,39 @@
+---
+title: Airtable
+description: Search across bases, tables, records, and comments from Airtable
+---
+
+# Airtable
+
+Index structured data from Airtable including records across all tables, table schemas, and record comments. Supports OAuth 2.0 with PKCE and incremental sync via `LAST_MODIFIED_TIME()` formula filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Records** | All field values, table name, base name, created time, modified time |
+| **Tables** | Table name, field definitions, views, parent base |
+| **Comments** | Comment text, author, associated record and table |
+
+## Authentication
+
+**Method:** OAuth 2.0 with PKCE
+
+**Scopes:** `data.records:read`, `data.recordComments:read`, `schema.bases:read`
+
+Create an OAuth integration in the [Airtable Developer Hub](https://airtable.com/create/oauth) and configure the redirect URL.
+
+## Quick Start
+
+1. Create an OAuth integration in the Airtable Developer Hub
+2. Configure the OAuth redirect URL
+3. Add the Airtable connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/airtable/setup" description="OAuth integration creation and PKCE authorization" />
+  <Card title="Features" href="/docs/connectors/airtable/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/airtable/configuration" description="Base filtering, comment sync, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/airtable/sync" description="Full sync, incremental sync via LAST_MODIFIED_TIME" />
+  <Card title="Troubleshooting" href="/docs/connectors/airtable/troubleshooting" description="Common issues and fixes" />
+</Cards>

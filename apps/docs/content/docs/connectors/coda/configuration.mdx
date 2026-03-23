@@ -1,0 +1,25 @@
+---
+title: Configuration
+description: Configure which Coda data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Token** | Bearer token generated from coda.io/account | Required |
+| **Sync Tables** | Include table metadata in search results | Enabled |
+| **Sync Rows** | Include individual table rows in search results | Enabled |
+| **Lookback Days** | Number of days of history to sync on first run (0 = all) | 0 (all) |
+
+## Entity Toggles
+
+Documents and pages are always synced. Tables and rows can be individually disabled via the **Sync Tables** and **Sync Rows** toggles.
+
+Disabling **Sync Tables** also disables row syncing, since rows belong to tables. If you only want table schemas without row-level data, enable **Sync Tables** but disable **Sync Rows**.
+
+## Lookback Days
+
+Set a value greater than 0 to limit the initial full sync to documents updated within that many days. This is useful for large Coda workspaces where older documents are no longer relevant. Set to 0 to sync all history.

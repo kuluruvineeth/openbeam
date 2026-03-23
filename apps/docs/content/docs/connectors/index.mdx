@@ -1,6 +1,6 @@
 ---
 title: Connectors
-description: 40 connectors for SaaS, enterprise productivity, CRM, support, incident management, IoT, industrial protocols, physical AI platforms, and security datasets
+description: 44 connectors for SaaS, enterprise productivity, CRM, support, incident management, IoT, industrial protocols, physical AI platforms, and security datasets
 ---
 
 # Connectors
@@ -25,7 +25,10 @@ Production-ready connectors for workplace SaaS tools.
   <Card title="Monday.com" href="/docs/connectors/monday" description="Boards, items, updates, column values" />
   <Card title="Slack" href="/docs/connectors/slack" description="Messages, channels, files, threads" />
   <Card title="Asana" href="/docs/connectors/asana" description="Tasks, projects, comments, custom fields" />
+  <Card title="Coda" href="/docs/connectors/coda" description="Docs, pages, tables, rows with markdown content" />
+  <Card title="Miro" href="/docs/connectors/miro" description="Boards, sticky notes, shapes, text, cards, frames" />
   <Card title="Zoom" href="/docs/connectors/zoom" description="Meetings, cloud recordings, transcripts" />
+  <Card title="Airtable" href="/docs/connectors/airtable" description="Bases, tables, records, comments" />
 </Cards>
 
 ## Microsoft 365
@@ -37,6 +40,7 @@ Enterprise productivity connectors using Microsoft Graph API with shared Azure A
   <Card title="Microsoft Calendar" href="/docs/connectors/microsoft-calendar" description="Events, meetings, attendees, schedules via delta sync" />
   <Card title="Microsoft SharePoint" href="/docs/connectors/sharepoint" description="Documents, files, sites, drives" />
   <Card title="Microsoft Teams" href="/docs/connectors/teams" description="Channel messages, replies, team conversations" />
+  <Card title="Microsoft OneNote" href="/docs/connectors/onenote" description="Notebooks, sections, pages with content extraction" />
 </Cards>
 
 ## Atlassian Suite
@@ -56,6 +60,7 @@ Customer relationship management and support platform connectors.
 <Cards>
   <Card title="HubSpot" href="/docs/connectors/hubspot" description="Contacts, companies, deals, tickets" />
   <Card title="Pipedrive" href="/docs/connectors/pipedrive" description="Deals, persons, organizations, activities, notes" />
+  <Card title="Dynamics 365" href="/docs/connectors/dynamics365" description="Accounts, contacts, leads, opportunities, cases, activities" />
   <Card title="Salesforce" href="/docs/connectors/salesforce" description="Accounts, contacts, opportunities, cases, knowledge" />
   <Card title="Zendesk" href="/docs/connectors/zendesk" description="Tickets, help center articles, comments" />
   <Card title="Intercom" href="/docs/connectors/intercom" description="Conversations, articles, collections, contacts" />
@@ -134,10 +139,12 @@ Public vulnerability and threat intelligence databases. No authentication requir
 | [Microsoft Outlook](/docs/connectors/outlook) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Delta Sync | Active |
 | [Microsoft SharePoint](/docs/connectors/sharepoint) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Delta Sync | Active |
 | [Microsoft Teams](/docs/connectors/teams) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Incremental | Active |
+| [Microsoft OneNote](/docs/connectors/onenote) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, lastModifiedDateTime Incremental | Active |
 | [Confluence](/docs/connectors/confluence) | Atlassian | OAuth 2.0 (3LO) | Full, CQL Incremental | Active |
 | [Jira](/docs/connectors/jira) | Atlassian | OAuth 2.0 (3LO) | Full, JQL Incremental, Webhooks | Active |
 | [HubSpot](/docs/connectors/hubspot) | CRM | OAuth 2.0 | Full, Search API Incremental | Active |
 | [Pipedrive](/docs/connectors/pipedrive) | CRM | OAuth 2.0 | Full, Recents API Incremental | Active |
+| [Dynamics 365](/docs/connectors/dynamics365) | CRM | OAuth 2.0 (Azure AD) | Full, OData Incremental | Active |
 | [Salesforce](/docs/connectors/salesforce) | CRM | OAuth 2.0 | Full, SOQL Incremental | Active |
 | [Zendesk](/docs/connectors/zendesk) | Support | OAuth 2.0 | Full, Cursor Incremental | Active |
 | [Intercom](/docs/connectors/intercom) | Support | OAuth 2.0 | Full, Search Incremental | Active |
@@ -160,6 +167,7 @@ Public vulnerability and threat intelligence databases. No authentication requir
 | [CISA KEV](/docs/connectors/cisa-kev) | Security | None | Full, Incremental | Active |
 | [MITRE ATT&CK](/docs/connectors/mitre-attack) | Security | None | Full, Incremental | Active |
 | [OWASP](/docs/connectors/owasp) | Security | None | Full, Incremental | Active |
+| [Miro](/docs/connectors/miro) | Design & Collaboration | OAuth 2.0 | Full, modifiedAt Incremental | Active |
 | [Zoom](/docs/connectors/zoom) | SaaS | OAuth 2.0 | Full, Date-Range Incremental | Active |
 | [PagerDuty](/docs/connectors/pagerduty) | Incident Management | API Key | Full, Incremental | Active |
 | [Freshservice](/docs/connectors/freshservice) | IT Service Management | API Key | Full, Incremental | Active |
@@ -168,6 +176,8 @@ Public vulnerability and threat intelligence databases. No authentication requir
 | [Workday](/docs/connectors/workday) | Human Resources | OAuth 2.0 | Full, Incremental | Active |
 | [Greenhouse](/docs/connectors/greenhouse) | Recruiting | API Key | Full, Incremental | Active |
 | [Guru](/docs/connectors/guru) | Knowledge Management | API Key | Full, Incremental | Active |
+| [Coda](/docs/connectors/coda) | Productivity | API Key | Full, updatedSince Incremental | Active |
+| [Airtable](/docs/connectors/airtable) | Productivity | OAuth 2.0 (PKCE) | Full, LAST_MODIFIED_TIME Incremental | Active |
 
 ## How Connectors Work
 

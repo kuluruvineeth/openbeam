@@ -1,0 +1,58 @@
+---
+title: Sync Behavior
+description: How OneNote data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync traverses the entire OneNote hierarchy via the Microsoft Graph API:
+
+1. **Notebooks** — Fetch all notebooks for the authenticated user
+2. **Sections** — For each notebook, fetch all sections
+3. **Pages** — For each section, fetch all pages
+4. **Page Content** — For each page, fetch the HTML body (if content sync is enabled)
+
+Notebook and section filtering is applied during traversal. Results are streamed in batches (default 50 documents per batch) to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the Microsoft Graph `$filter` parameter to fetch only pages modified since the last sync:
+
+```
+/me/onenote/pages?$filter=lastModifiedDateTime ge {timestamp}
+```
+
+Only pages are fetched during incremental sync since page modifications are the most common change. Notebook and section filtering is still applied to the results.
+
+If the incremental sync fails (e.g., the filter timestamp is too old or the API returns an error), OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Pages | Every 15 minutes |
+| Notebooks | Every 60 minutes |
+| Sections | Every 60 minutes |
+
+## Rate Limits
+
+Microsoft Graph enforces per-app and per-user throttling limits. The OneNote API has specific limits:
+
+| Limit | Threshold |
+|-------|-----------|
+| Requests per app per second | 20 |
+| Requests per user per minute | 100 |
+
+The connector handles `429 Too Many Requests` responses with automatic backoff based on the `Retry-After` header. Content-heavy syncs (many pages with full HTML fetch) are more likely to encounter throttling due to the additional API call per page.
+
+## Cursor
+
+The sync cursor stores:
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Timestamp of the most recently modified document seen, used as the `$filter` boundary for incremental sync |
+| `lastFullSync` | Timestamp of the last completed full sync |
+| `forceFullSync` | When set, the next sync will ignore the cursor and run a full sync |

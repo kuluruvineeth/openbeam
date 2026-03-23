@@ -1,0 +1,12 @@
+{
+  "title": "Airtable",
+  "icon": "Airtable",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

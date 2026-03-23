@@ -1,0 +1,35 @@
+---
+title: Setup
+description: Connect Miro to OpenBeam via OAuth 2.0
+---
+
+# Miro Setup
+
+## Prerequisites
+
+- A Miro account with admin access to the team
+- Access to the Miro Developer Portal
+
+## Step 1: Create a Miro App
+
+1. Go to the [Miro Developer Portal](https://developers.miro.com/page/app-settings)
+2. Click **Create new app**
+3. Enter a name (e.g., "OpenBeam Integration") and select your team
+4. Under **Redirect URI for OAuth2.0**, add the callback URL:
+   ```
+   https://your-openbeam-domain.com/connectors/setup/miro/oauth/callback
+   ```
+5. Under **Permissions**, enable `boards:read` and `boards:write`
+6. Note your **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Miro**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+5. Authorize access in Miro
+
+## Step 3: Initial Sync
+
+After authorization, OpenBeam will automatically run a full sync of your Miro data. The first sync fetches all boards and their items (sticky notes, shapes, text, cards, frames). Duration depends on the number of boards and items in your team.

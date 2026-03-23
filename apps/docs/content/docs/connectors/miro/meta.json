@@ -1,0 +1,12 @@
+{
+  "title": "Miro",
+  "icon": "Miro",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "title": "OneNote",
+  "icon": "OneNote",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

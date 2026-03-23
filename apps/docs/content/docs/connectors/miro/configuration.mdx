@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: Configure which Miro data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Include Boards** | Comma-separated board IDs to sync. Leave empty for all boards. | All boards |
+| **Exclude Boards** | Comma-separated board IDs to exclude from sync. | None |
+| **History (days)** | How far back to sync. Leave empty for unlimited. | Unlimited |
+
+## Board Filtering
+
+### Include List
+
+To sync only specific boards, enter a comma-separated list of board IDs in the **Include Boards** field. When set, only these boards and their items are indexed. Board IDs can be found in the Miro URL when viewing a board (e.g., `https://miro.com/app/board/{board_id}/`).
+
+### Exclude List
+
+To skip specific boards, enter their IDs in the **Exclude Boards** field. This is useful for excluding template boards, archived boards, or boards with sensitive content. The exclude list takes precedence if a board ID appears in both include and exclude lists.
+
+## Streams
+
+| Stream | Description | Default Interval |
+|--------|-------------|-----------------|
+| **Boards** | Collaborative whiteboards with name, description, owner | Every 15 minutes |
+| **Items** | Board items including sticky notes, shapes, text, cards, and frames | Every 15 minutes |

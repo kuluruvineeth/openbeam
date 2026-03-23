@@ -1,0 +1,40 @@
+---
+title: Troubleshooting
+description: Common Dynamics 365 connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Token expired:** Microsoft access tokens expire after approximately 1 hour. OpenBeam automatically refreshes tokens using the refresh token. If you see persistent auth errors, try disconnecting and reconnecting the connector.
+
+**Invalid credentials:** Verify your Application (client) ID and Client Secret match the values in your Azure AD app registration. Ensure the client secret has not expired.
+
+**Admin consent required:** If you see a "need admin approval" error during OAuth, an Azure AD administrator must grant consent for the `user_impersonation` permission on the Dynamics CRM API. Go to Azure Portal > App registrations > your app > API permissions > Grant admin consent.
+
+**Wrong tenant:** If authentication fails with a tenant error, verify the Tenant ID setting. Use `common` for multi-tenant or your specific Directory (tenant) ID for single-tenant apps.
+
+## Organization URL Issues
+
+**Invalid org URL:** The organization URL must be the base URL of your Dynamics 365 environment (e.g., `https://yourorg.crm.dynamics.com`). Do not include trailing slashes or API paths. Check the regional variant matches your environment (`.crm.dynamics.com` for North America, `.crm4.dynamics.com` for EMEA, etc.).
+
+**403 Forbidden on API calls:** The authenticated user must have sufficient security roles in Dynamics 365 to read the entity types being synced. Assign at least the "Sales Team Member" or "Customer Service Representative" role to the user.
+
+## Rate Limiting
+
+**429 Too Many Requests:** Dynamics 365 allows 6,000 requests per 5-minute window per organization. The connector automatically backs off when rate limited. If syncs are consistently slow, consider disabling entity types you do not need (leads, cases, or activities).
+
+## Missing Data
+
+**Leads/Cases/Activities not appearing:** Check that the corresponding toggle is enabled in the connector settings. These entity types are optional and can be individually disabled.
+
+**Records missing after sync:** The connector only indexes records the authenticated user has read access to. Verify the user has appropriate security roles in Dynamics 365 to access the missing records.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the Dataverse API returns an error for the OData filter query. The connector automatically recovers by running a full sync. Check the sync logs for the specific error.
+
+**Connection timeout:** The Dynamics 365 API may be temporarily unavailable. The connector retries automatically with exponential backoff. If timeouts persist, verify your organization URL is correct and the environment is online.
+
+**Large environment sync is slow:** Environments with hundreds of thousands of records will take longer for the initial full sync due to the 6,000 requests per 5-minute rate limit. Subsequent incremental syncs will be fast since they only fetch modified records.

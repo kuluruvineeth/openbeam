@@ -1,0 +1,25 @@
+---
+title: Configuration
+description: Configure which Airtable data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Include Bases** | Comma-separated base IDs to sync (e.g., `appXXXXX, appYYYYY`) | All authorized bases |
+| **Exclude Bases** | Comma-separated base IDs to exclude from sync | None |
+| **Sync Comments** | Index record comments as searchable documents | Enabled |
+| **History (days)** | How far back to sync records | Unlimited |
+
+## Base Filtering
+
+To sync specific bases only, enter a comma-separated list of base IDs in the **Include Bases** field. Base IDs start with `app` and can be found in the Airtable URL when viewing a base (e.g., `https://airtable.com/appXXXXXXXXXX`).
+
+Alternatively, use **Exclude Bases** to sync all authorized bases except specific ones. If both include and exclude are set, include takes precedence.
+
+## Comment Sync
+
+When enabled, the connector fetches comments on every record during sync. This provides searchable discussion threads but increases sync time proportionally to the number of commented records. Disable this if you only need record data.

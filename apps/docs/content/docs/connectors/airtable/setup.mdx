@@ -1,0 +1,39 @@
+---
+title: Setup
+description: Connect Airtable to OpenBeam via OAuth 2.0 with PKCE
+---
+
+# Airtable Setup
+
+## Prerequisites
+
+- An Airtable account with access to the bases you want to index
+- Access to the [Airtable Developer Hub](https://airtable.com/create/oauth)
+
+## Step 1: Create an OAuth Integration
+
+1. Go to the [Airtable Developer Hub](https://airtable.com/create/oauth)
+2. Click **Register a new OAuth integration**
+3. Enter a name (e.g., "OpenBeam") and an optional description
+4. Under **OAuth redirect URL**, add:
+   ```
+   https://your-openbeam-domain.com/connectors/setup/airtable/oauth/callback
+   ```
+5. Under **Scopes**, enable the following:
+   - `data.records:read` — Read records across all bases
+   - `data.recordComments:read` — Read comments on records
+   - `schema.bases:read` — Read base and table schemas
+6. Note your **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Airtable**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+5. Select which bases to grant access to in the Airtable consent screen
+6. Authorize access
+
+## Step 3: Initial Sync
+
+After authorization, OpenBeam will automatically run a full sync of your Airtable data. The connector iterates through each authorized base, fetches all table schemas and records, and optionally syncs record comments. The first sync may take several minutes depending on the number of bases, tables, and records.

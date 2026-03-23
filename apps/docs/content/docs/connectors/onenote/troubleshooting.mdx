@@ -1,0 +1,36 @@
+---
+title: Troubleshooting
+description: Common OneNote connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Token expired:** Microsoft access tokens expire after approximately 1 hour. OpenBeam automatically refreshes tokens using the `offline_access` scope. If you see persistent auth errors, try disconnecting and reconnecting the connector.
+
+**Insufficient permissions:** Verify the Azure AD app registration has `Notes.Read`, `Notes.Read.All`, `User.Read`, and `offline_access` delegated permissions. If your organization requires admin consent, ensure it has been granted.
+
+**Invalid client secret:** Client secrets have an expiration date set during creation. If the secret has expired, generate a new one in **Azure AD > App registrations > Certificates & secrets** and update it in OpenBeam.
+
+**Tenant mismatch:** If the connector is configured with a specific tenant ID, only users from that tenant can authenticate. Set the tenant to `common` for multi-tenant access, or verify the tenant ID matches your organization.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when throttled by Microsoft Graph. If syncs are consistently slow, consider disabling **Sync Page Content** to reduce the number of API calls per sync cycle.
+
+## Missing Data
+
+**Notebooks not appearing:** Check the **Include Notebooks** and **Exclude Notebooks** settings. If include is set, only the listed notebooks are synced. Notebook names are case-sensitive and must match the display name exactly.
+
+**Pages without content:** If pages appear in search results but have no body text, verify that **Sync Page Content** is enabled in the connector settings. Pages in locked or password-protected sections may also fail content fetch silently.
+
+**Personal vs. shared notebooks:** The connector accesses notebooks via `/me/onenote/`, which returns the authenticated user's notebooks. Shared notebooks that the user has not opened in OneNote may not appear. Ask the user to open the shared notebook in OneNote first.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This occurs when the `lastModifiedDateTime` filter timestamp is too old or the API rejects the request. The connector automatically recovers by running a full sync.
+
+**Content fetch failures:** Individual page content fetch failures are logged as warnings but do not halt the sync. The page is indexed with metadata only. Check the connector logs for `Failed to fetch page content` warnings.
+
+**Connection timeout:** Microsoft Graph may be temporarily unavailable. The connector will retry automatically with exponential backoff managed by Temporal workflows.

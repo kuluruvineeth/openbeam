@@ -1,0 +1,37 @@
+---
+title: Coda
+description: Search across Coda docs, pages, tables, and rows
+---
+
+# Coda
+
+Index productivity data from Coda including documents, pages with markdown content, tables with column schemas, and individual rows. Supports API key authentication with timestamp-based incremental sync via the `updatedSince` filter on the docs endpoint.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Documents** | Title, owner, folder, created and updated timestamps |
+| **Pages** | Title, markdown content, parent page hierarchy, parent document |
+| **Tables** | Name, column schemas, row count, parent document |
+| **Rows** | Cell values across all columns, created and updated timestamps, parent table and document |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate a token from your [Coda account settings](https://coda.io/account) under the API section. The token inherits the permissions of the generating user.
+
+## Quick Start
+
+1. Generate an API token from your Coda account settings
+2. Add the Coda connector in OpenBeam
+3. Paste your API token and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/coda/setup" description="API token generation and connector activation" />
+  <Card title="Features" href="/docs/connectors/coda/features" description="Indexed content types, actions, and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/coda/configuration" description="Entity toggles, lookback days, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/coda/sync" description="Full sync, incremental sync via updatedSince" />
+  <Card title="Troubleshooting" href="/docs/connectors/coda/troubleshooting" description="Common issues and fixes" />
+</Cards>

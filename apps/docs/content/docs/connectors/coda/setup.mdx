@@ -1,0 +1,32 @@
+---
+title: Setup
+description: Connect Coda to OpenBeam via API key
+---
+
+# Coda Setup
+
+## Prerequisites
+
+- A Coda account with access to the docs you want to index
+- Permission to generate API tokens (available on all Coda plans)
+
+## Step 1: Generate an API Token
+
+1. Go to [Coda Account Settings](https://coda.io/account)
+2. Scroll to the **API settings** section
+3. Click **Generate API token**
+4. Give it a descriptive name (e.g., "OpenBeam Integration")
+5. Copy the token immediately — it will not be shown again
+
+The token inherits the permissions of your Coda account. Only documents you have access to will be indexed.
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Coda**
+3. Paste your **API Token** into the token field
+4. Click **Connect** to validate the token and activate the connector
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam automatically runs a full sync of your Coda workspace. The connector traverses all accessible documents, fetching pages, tables, and rows for each. The first sync may take several minutes depending on the number of documents and tables.

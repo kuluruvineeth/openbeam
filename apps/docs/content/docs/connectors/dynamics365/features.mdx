@@ -1,0 +1,42 @@
+---
+title: Features
+description: What Dynamics 365 data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Accounts
+Full-text search across company names, industries, revenue figures, and address details. Metadata includes annual revenue, employee count, phone numbers, and ownership information.
+
+### Contacts
+Search across contact names, email addresses, phone numbers, and job titles. Account associations are preserved so you can find contacts by their parent company.
+
+### Leads
+Prospective customer records with name, email, company name, topic of interest, and lead rating. Useful for searching across the top of your sales funnel.
+
+### Opportunities
+Sales opportunity records with deal name, estimated value, sales stage, expected close date, and win probability. Enables searching across your active pipeline.
+
+### Cases (Incidents)
+Customer service cases with title, priority, status, and description. Linked to customer accounts and contacts for full context during support searches.
+
+### Activities
+Tasks, appointments, emails, and phone calls with subject lines, activity type, status, due dates, and descriptions. Covers all tracked interactions in your CRM.
+
+## Actions
+
+The connector supports write operations through the Dataverse Web API:
+
+- **Create and update accounts** — programmatically manage company records
+- **Create and update contacts** — add or modify people in your CRM
+- **Create and update opportunities** — manage deals from agents or canvas workflows
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Owner attribution** from record owners and created-by users
+- **Account relationships** between contacts, leads, and their parent accounts
+- **Opportunity associations** linking deals to accounts and contacts
+- **Case associations** connecting service incidents to customers

@@ -4,6 +4,34 @@ type IconProps = {
   size?: number;
 };
 
+export const AirtableIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 200 170"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M90.04 2.87L10.58 34.57a4.49 4.49 0 00-.02 8.39l80.15 30.85a19.6 19.6 0 0014.06 0l80.15-30.85a4.49 4.49 0 00-.02-8.39L105.43 2.87a19.6 19.6 0 00-15.39 0z"
+      fill="#FCB400"
+    />
+    <path
+      d="M104.25 88.45V163a4.49 4.49 0 006.2 4.15l83.83-34.77a4.49 4.49 0 002.78-4.15V53.68a4.49 4.49 0 00-6.2-4.15l-83.83 34.77a4.49 4.49 0 00-2.78 4.15z"
+      fill="#18BFFF"
+    />
+    <path
+      d="M91.2 90.56L55.68 73.18l-47.3 22.61A4.49 4.49 0 002 99.95v68.26a4.49 4.49 0 006.41 4.07l79.98-37.72a.9.9 0 00.17-1.55L91.2 90.56z"
+      fill="#F82B60"
+    />
+    <path
+      d="M91.2 90.56L55.68 73.18 8.87 95.57a4.49 4.49 0 00-2.03 1.49L91.37 91a.9.9 0 00-.17-.44z"
+      fill="#BA1E45"
+      fillOpacity="0.25"
+    />
+  </svg>
+);
+
 export const AzureDevOpsIcon = ({ size = 16 }: IconProps): ReactElement => (
   // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
   <svg

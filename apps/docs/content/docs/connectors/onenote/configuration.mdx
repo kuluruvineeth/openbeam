@@ -1,0 +1,43 @@
+---
+title: Configuration
+description: Configure which OneNote data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Application (client) ID** | Azure AD app registration client ID | Required |
+| **Client Secret** | Azure AD app registration secret | Required |
+| **Tenant ID** | Azure AD tenant ID for single-tenant apps | `common` (multi-tenant) |
+| **Include Notebooks** | Comma-separated notebook names to sync | All notebooks |
+| **Exclude Notebooks** | Comma-separated notebook names to skip | None |
+| **Sync Page Content** | Fetch and index full HTML content of pages | Enabled |
+| **History (days)** | How far back to sync | Unlimited |
+
+## Notebook Filtering
+
+To sync only specific notebooks, enter a comma-separated list of notebook display names in the **Include Notebooks** field. For example:
+
+```
+Work Notes, Project Docs, Meeting Notes
+```
+
+To exclude notebooks from syncing, use the **Exclude Notebooks** field. Exclude takes precedence when a notebook appears in both lists.
+
+## Content Sync
+
+When **Sync Page Content** is enabled (the default), the connector makes an additional API call per page to fetch the full HTML body from Microsoft Graph. The HTML is stripped to plain text for indexing.
+
+Disabling this setting indexes only page metadata (title, author, dates) without body content. This reduces API calls and sync time but limits search to titles only.
+
+## Tenant Configuration
+
+| Value | Behavior |
+|-------|----------|
+| `common` | Users from any Azure AD tenant or personal Microsoft accounts can authenticate |
+| A specific tenant ID | Only users from that Azure AD tenant can authenticate |
+
+For enterprise deployments restricted to a single organization, set the tenant ID to your organization's Azure AD tenant ID. Find it in the Azure Portal under **Azure Active Directory > Overview > Tenant ID**.

@@ -1,0 +1,55 @@
+---
+title: Setup
+description: Connect Microsoft OneNote to OpenBeam via OAuth 2.0
+---
+
+# OneNote Setup
+
+## Prerequisites
+
+- A Microsoft 365 account with OneNote notebooks
+- Access to the [Azure Portal](https://portal.azure.com) to register an application
+
+## Step 1: Register an Azure AD Application
+
+1. Go to the [Azure Portal — App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+2. Click **New registration**
+3. Enter a name (e.g., "OpenBeam OneNote Connector")
+4. Under **Supported account types**, select **Accounts in any organizational directory and personal Microsoft accounts** (for multi-tenant) or restrict to your organization
+5. Under **Redirect URI**, select **Web** and enter:
+   ```
+   https://your-openbeam-domain.com/connectors/setup/onenote/oauth/callback
+   ```
+6. Click **Register**
+
+## Step 2: Configure API Permissions
+
+1. In your app registration, go to **API permissions**
+2. Click **Add a permission** and select **Microsoft Graph**
+3. Select **Delegated permissions** and add:
+   - `Notes.Read`
+   - `Notes.Read.All`
+   - `User.Read`
+   - `offline_access`
+4. Click **Grant admin consent** if required by your organization
+
+## Step 3: Create a Client Secret
+
+1. Go to **Certificates & secrets**
+2. Click **New client secret**
+3. Set a description and expiration period
+4. Copy the **Value** immediately (it will not be shown again)
+
+## Step 4: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **OneNote**
+3. Enter your **Application (client) ID** from the app registration overview
+4. Enter your **Client Secret** from Step 3
+5. Optionally set the **Tenant ID** (leave as `common` for multi-tenant)
+6. Click **Connect** to start the OAuth flow
+7. Sign in with your Microsoft account and authorize access
+
+## Step 5: Initial Sync
+
+After authorization, OpenBeam will automatically run a full sync of your OneNote data. The connector traverses all notebooks, sections, and pages, fetching full HTML content for each page. The first sync may take several minutes depending on how many notebooks and pages you have.

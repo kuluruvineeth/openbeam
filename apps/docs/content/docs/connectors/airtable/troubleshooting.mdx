@@ -1,0 +1,34 @@
+---
+title: Troubleshooting
+description: Common Airtable connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Token expired:** Airtable access tokens expire after 1 hour. OpenBeam automatically refreshes tokens using the refresh token. If you see persistent auth errors, try disconnecting and reconnecting the connector.
+
+**Invalid credentials:** Verify your Client ID and Client Secret match the values in the Airtable Developer Hub. Ensure the redirect URL matches exactly.
+
+**PKCE errors:** The connector uses PKCE (Proof Key for Code Exchange) for the OAuth flow. If authorization fails, ensure your Airtable OAuth integration has PKCE enabled (this is the default for new integrations).
+
+## Rate Limiting
+
+**429 Too Many Requests:** Airtable limits requests to 5 per second per base. The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of bases or disabling comment sync.
+
+## Missing Data
+
+**Records not appearing:** Check if base filtering is configured. Only records in the included bases (or not in excluded bases) will be indexed. Also verify that the OAuth consent granted access to the relevant bases.
+
+**Comments missing:** Verify that **Sync Comments** is enabled in the connector settings. Also confirm the `data.recordComments:read` scope was granted during authorization.
+
+**Tables missing:** If a base was added after the initial OAuth authorization, you may need to re-authorize the connector to grant access to the new base.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the `LAST_MODIFIED_TIME()` filter encounters an error or the cursor is invalid. The connector automatically recovers by running a full sync.
+
+**Base access denied:** If a base was unshared or the OAuth token's base access was revoked, the connector will log an error and skip that base. Re-authorize to restore access.
+
+**Connection timeout:** The Airtable API may be temporarily unavailable. The connector will retry automatically with exponential backoff.

@@ -1,0 +1,47 @@
+---
+title: Features
+description: What OneNote data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Notebooks
+
+Top-level containers indexed with name, owner, creation date, and last modified timestamp. Notebooks serve as the root of the OneNote hierarchy and provide organizational context for sections and pages.
+
+### Sections
+
+Sections within notebooks are indexed with their name and parent notebook reference. Section metadata helps establish the hierarchy when searching across pages.
+
+### Pages
+
+Full-text search across page titles and content. HTML content is fetched from the Microsoft Graph API and stripped to plain text for clean indexing. Metadata includes the author, parent section, parent notebook, creation date, and last modified timestamp.
+
+## Actions
+
+The connector supports write operations through the Microsoft Graph API:
+
+| Action | Description |
+|--------|-------------|
+| **Create Page** | Create a new page in a specified section with a title and HTML content |
+| **Update Page Content** | Append to or replace content on an existing page using the PATCH API |
+
+Actions are available to agents and canvas workflows for automating note-taking and knowledge capture.
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Author attribution** from page creators and last-modified-by users
+- **Notebook hierarchy** linking pages to sections and sections to notebooks
+- **Content relationships** between pages that reference similar topics
+
+## Search Capabilities
+
+| Capability | Details |
+|------------|---------|
+| Full-text search | Page titles, content, notebook names, section names |
+| Filter by type | Filter results to notebooks, sections, or pages |
+| Author filter | Filter by page author or notebook owner |
+| Hierarchy navigation | Navigate from notebook to section to page |

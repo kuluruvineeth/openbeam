@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Coda data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync traverses all accessible Coda documents and fetches their nested content:
+
+1. **Documents** — all docs the token owner can access
+2. **Pages** — all pages within each document, with markdown content fetched individually
+3. **Tables** — all tables within each document, with column schemas (if enabled)
+4. **Rows** — all rows within each table (if enabled)
+
+Results are streamed in batches of 50 to minimize memory usage. The sync tracks the latest `updatedAt` timestamp across all documents to establish the cursor for incremental sync.
+
+## Incremental Sync
+
+Subsequent syncs use the Coda docs API with the `updatedSince` query parameter, which filters to documents modified after the last sync timestamp. For each modified document, all pages, tables, and rows are re-fetched to capture any nested changes.
+
+If the incremental sync fails for any reason, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Documents | Every 15 minutes |
+| Pages | Every 30 minutes |
+| Tables | Every 60 minutes |
+| Rows | Every 15 minutes |
+
+## Rate Limits
+
+Coda enforces a rate limit of 100 requests per 6 seconds. The connector automatically handles rate limiting with exponential backoff and respects `Retry-After` headers.

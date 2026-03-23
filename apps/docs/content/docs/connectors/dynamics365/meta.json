@@ -1,0 +1,12 @@
+{
+  "title": "Dynamics 365",
+  "icon": "Dynamics365",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

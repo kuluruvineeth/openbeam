@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: Configure which Dynamics 365 data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Application (client) ID** | Azure AD app registration client ID | Required |
+| **Client Secret** | Azure AD app registration secret | Required |
+| **Organization URL** | Dynamics 365 environment URL (e.g., `https://yourorg.crm.dynamics.com`) | Required |
+| **Tenant ID** | Azure AD tenant ID. Use `common` for multi-tenant apps. | `common` |
+| **Sync Leads** | Include leads in sync | Enabled |
+| **Sync Cases** | Include customer service cases in sync | Enabled |
+| **Sync Activities** | Include activities (tasks, appointments, emails, phone calls) in sync | Enabled |
+| **History (days)** | How far back to sync records | Unlimited |
+
+## Organization URL
+
+The organization URL is the base URL for your Dynamics 365 environment. You can find it by logging into Dynamics 365 and checking the browser address bar. It follows the pattern `https://{orgname}.crm.dynamics.com`. Regional variants like `.crm2.dynamics.com` (South America), `.crm4.dynamics.com` (EMEA), and `.crm5.dynamics.com` (APAC) are also supported.
+
+## Tenant Configuration
+
+By default, the connector uses `common` as the tenant, which allows users from any Azure AD tenant to authenticate. If you want to restrict access to a specific organization, enter your Azure AD **Directory (tenant) ID** in the Tenant ID field.
+
+## Entity Toggles
+
+Accounts, contacts, and opportunities are always synced. Use the toggle settings to control whether leads, cases, and activities are included. Disabling unused entity types reduces sync duration and API usage.

@@ -24,6 +24,7 @@
     "jira",
     "monday",
     "figma",
+    "miro",
     "hubspot",
     "pipedrive",
     "salesforce",
@@ -52,11 +53,15 @@
     "pagerduty",
     "clickup",
     "azure-devops",
+    "dynamics365",
     "freshservice",
     "gong",
     "bamboohr",
     "workday",
     "greenhouse",
-    "guru"
+    "guru",
+    "coda",
+    "onenote",
+    "airtable"
   ]
 }

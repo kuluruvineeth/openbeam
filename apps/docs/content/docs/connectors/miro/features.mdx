@@ -1,0 +1,50 @@
+---
+title: Features
+description: What Miro data gets indexed, searchable, and actionable
+---
+
+# Features
+
+## Indexed Entities
+
+### Boards
+
+Full-text search across board names and descriptions. Metadata includes owner, creation date, modification date, and direct link to the board in Miro.
+
+### Sticky Notes
+
+Search across sticky note text content. Each note is associated with its parent board for context.
+
+### Shapes
+
+Shape content indexed for search. Includes the shape type and parent board association.
+
+### Text
+
+Free-text elements on boards indexed with their board context.
+
+### Cards
+
+Card titles and descriptions indexed for search. Cards link back to their parent board.
+
+### Frames
+
+Frame titles indexed with their parent board association. Frames act as grouping containers for other board items.
+
+## Actions
+
+The Miro connector supports write operations for agents and canvas workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Board** | Create a new Miro board with a name and description |
+| **Create Sticky Note** | Add a sticky note to a board with text content |
+| **Update Sticky Note** | Modify the text content of an existing sticky note |
+| **Delete Item** | Remove any item from a board |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Author attribution** from board owners and item creators
+- **Board relationships** linking items to their parent boards
+- **Item type classification** distinguishing sticky notes, shapes, text, cards, and frames

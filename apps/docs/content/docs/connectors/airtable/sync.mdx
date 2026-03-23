@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How Airtable data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync iterates through all authorized bases and fetches data in this order:
+
+1. **Bases** — List all bases via the Airtable metadata API
+2. **Tables** — Fetch table schemas (fields, views) for each base
+3. **Records** — Paginate through all records in each table
+4. **Comments** — Fetch comments for each record (if enabled)
+
+Results are streamed in batches to minimize memory usage. Base filtering (include/exclude) is applied before fetching tables.
+
+## Incremental Sync
+
+Subsequent syncs use the Airtable `filterByFormula` parameter with a `LAST_MODIFIED_TIME()` filter to fetch only records modified since the last sync:
+
+```
+IS_AFTER(LAST_MODIFIED_TIME(), '2026-03-24T00:00:00.000Z')
+```
+
+Table schemas are always re-fetched during incremental sync to capture field and view changes. If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Records | Every 15 minutes |
+| Tables | Every 60 minutes |
+
+## Rate Limits
+
+Airtable enforces a rate limit of 5 requests per second per base. The connector automatically handles rate limiting with exponential backoff. Large bases with many tables may take longer to sync due to this per-base limit.

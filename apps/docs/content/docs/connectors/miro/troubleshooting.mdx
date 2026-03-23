@@ -1,0 +1,38 @@
+---
+title: Troubleshooting
+description: Common Miro connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Token expired:** Miro access tokens expire after 1 hour. OpenBeam automatically refreshes tokens using the stored refresh token. If you see persistent auth errors, try disconnecting and reconnecting the connector.
+
+**Invalid credentials:** Verify your Client ID and Client Secret match the values in the Miro Developer Portal app settings.
+
+**Missing scopes:** The connector requires `boards:read` and `boards:write` scopes. If actions fail, verify both scopes are enabled in your Miro app configuration.
+
+## Rate Limiting
+
+**Credit exhaustion:** Miro uses credit-based rate limits. If syncs are consistently slow or returning errors, the connector is likely consuming credits faster than they replenish. Consider increasing the sync interval or reducing the number of boards being synced.
+
+**Large boards:** Boards with thousands of items consume more credits during sync. Use the board include/exclude filters to limit which boards are synced.
+
+## Missing Data
+
+**Boards not appearing:** Check if an include list is configured. Only boards in the include list will be indexed. Also verify the exclude list does not contain the missing board IDs.
+
+**Items missing from a board:** The connector fetches all item types (sticky notes, shapes, text, cards, frames, images, connectors). If items are missing, the board may not have been modified since the last sync. Trigger a manual full sync to re-index all content.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the incremental sync encounters an unexpected error. The connector automatically recovers by running a full sync. Check the sync logs for the root cause.
+
+**Connection timeout:** The Miro API may be temporarily unavailable. The connector will retry automatically with exponential backoff.
+
+## Actions
+
+**Create/update failures:** Verify the `boards:write` scope is enabled in your Miro app. Write operations require this scope in addition to `boards:read`.
+
+**Delete item errors:** The item may have already been deleted or moved to a different board. The connector handles these cases gracefully and logs the error.

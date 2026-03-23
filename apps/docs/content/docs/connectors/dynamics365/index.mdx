@@ -1,0 +1,42 @@
+---
+title: Dynamics 365
+description: Search across accounts, contacts, leads, opportunities, cases, and activities from Microsoft Dynamics 365
+---
+
+# Dynamics 365
+
+Index CRM data from Microsoft Dynamics 365 including accounts, contacts, leads, opportunities, cases (incidents), and activities. Connects via the Dataverse Web API with OAuth 2.0 authentication through Azure AD and OData-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Accounts** | Name, industry, revenue, address, phone |
+| **Contacts** | Name, email, phone, job title, company |
+| **Leads** | Name, email, company, topic, rating |
+| **Opportunities** | Name, value, stage, close date, probability |
+| **Cases** | Title, priority, status, description, customer |
+| **Activities** | Subject, type, status, due date, description |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Azure AD)
+
+**Scopes:** `{orgUrl}/user_impersonation`, `User.Read`, `offline_access`
+
+Register an app in [Azure AD](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) and provide your Dynamics 365 organization URL.
+
+## Quick Start
+
+1. Register an application in Azure AD
+2. Configure the OAuth redirect URL
+3. Add the Dynamics 365 connector in OpenBeam with your Client ID, Client Secret, and Organization URL
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/dynamics365/setup" description="Azure AD app registration and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/dynamics365/features" description="Indexed CRM entities and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/dynamics365/configuration" description="Entity selection, tenant settings, and history limits" />
+  <Card title="Sync Behavior" href="/docs/connectors/dynamics365/sync" description="Full sync, OData incremental sync via modifiedon filter" />
+  <Card title="Troubleshooting" href="/docs/connectors/dynamics365/troubleshooting" description="Common issues and fixes" />
+</Cards>
