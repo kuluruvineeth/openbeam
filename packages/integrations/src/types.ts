@@ -100,6 +100,7 @@ export enum AppType {
   GREENHOUSE = "GREENHOUSE",
   GURU = "GURU",
   PIPEDRIVE = "PIPEDRIVE",
+  AIRTABLE = "AIRTABLE",
 }
 
 export enum SyncMode {

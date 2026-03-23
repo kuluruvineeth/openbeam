@@ -112,6 +112,34 @@ export {
   warmOverviewCache,
 } from "./ai/overview";
 export type {
+  AirtableBase,
+  AirtableClient,
+  AirtableComment,
+  AirtableCommentAuthor,
+  AirtableField,
+  AirtableRecord,
+  AirtableRecordActionResult,
+  AirtableTable,
+  AirtableView,
+} from "./airtable";
+export {
+  AirtableApiError,
+  AirtableAuth,
+  airtableFullSync,
+  airtableIncrementalSync,
+  createAirtableClient,
+  createAirtableRecord,
+  deleteAirtableRecord,
+  listAllBases,
+  listAllRecords as listAllAirtableRecords,
+  listRecordComments,
+  listTables as listAirtableTables,
+  transformAirtableComment,
+  transformAirtableRecord,
+  transformAirtableTable,
+  updateAirtableRecord,
+} from "./airtable";
+export type {
   AsanaClient,
   AsanaClientConfig,
   TaskActionResult as AsanaTaskActionResult,

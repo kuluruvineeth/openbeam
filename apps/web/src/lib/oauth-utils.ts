@@ -32,7 +32,8 @@ type IntegrationName =
   | "clickup"
   | "azure-devops"
   | "workday"
-  | "pipedrive";
+  | "pipedrive"
+  | "airtable";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -167,6 +168,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   pipedrive: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/pipedrive/callback", {
+      code,
+      state,
+    }),
+  airtable: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/airtable/callback", {
       code,
       state,
     }),

@@ -1,5 +1,7 @@
 import type { SharePointFileInfo } from "@openbeam/services";
 import {
+  airtableFullSync,
+  airtableIncrementalSync,
   asanaFullSync,
   asanaIncrementalSync,
   awsIotFullSync,
@@ -22,6 +24,7 @@ import {
   clickUpIncrementalSync,
   confluenceFullSync,
   confluenceIncrementalSync,
+  createAirtableClient,
   createAsanaClient,
   createAtlassianClient,
   createAwsIotClient,
@@ -4096,6 +4099,67 @@ export function registerAllSyncFactories(): void {
                 | undefined,
             },
             verifiedOnly,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "AIRTABLE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const includeBasesStr = (config?.include_bases as string) ?? "";
+      const excludeBasesStr = (config?.exclude_bases as string) ?? "";
+      const syncComments = config?.sync_comments !== false;
+
+      const includeBases = includeBasesStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const excludeBases = excludeBasesStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const client = createAirtableClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? airtableFullSync(client, context, {
+            batchSize: 100,
+            includeBases,
+            excludeBases,
+            syncComments,
+          })
+        : airtableIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            includeBases,
+            excludeBases,
+            syncComments,
           });
 
       for await (const batch of syncGenerator) {

@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
+import airtable from "./airtable/airtable.index";
 import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureDevOps from "./azure-devops/azure-devops.index";
@@ -89,6 +90,7 @@ integrations.route("/bamboohr", bamboohr);
 integrations.route("/workday", workday);
 integrations.route("/greenhouse", greenhouse);
 integrations.route("/guru", guru);
+integrations.route("/airtable", airtable);
 
 integrations.get("/health", (c) =>
   c.json({

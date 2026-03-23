@@ -10,10 +10,12 @@ import prisma, {
   updateOAuthTokens,
 } from "@openbeam/db";
 import {
+  airtableApp,
   boxApp,
   dropboxApp,
   hubspotApp,
   pipedriveApp,
+  refreshAirtableToken,
   refreshAsanaToken,
   refreshBitbucketToken,
   refreshBoxToken,
@@ -459,6 +461,28 @@ export async function refreshConnectorToken(
           accessToken: pdResult.accessToken,
           expiresIn: pdResult.expiresIn,
           refreshToken: pdResult.refreshToken,
+        };
+        break;
+      }
+
+      case "AIRTABLE": {
+        const atConfig =
+          airtableApp.auth.type === "OAUTH2"
+            ? airtableApp.auth.config
+            : undefined;
+        if (!atConfig) {
+          throw new Error("Airtable OAuth config not found");
+        }
+        const atResult = await refreshAirtableToken({
+          config: atConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: atResult.accessToken,
+          expiresIn: atResult.expiresIn,
+          refreshToken: atResult.refreshToken,
         };
         break;
       }

@@ -1,4 +1,5 @@
 import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import { airtableActionsRegistry } from "./airtable";
 import { asanaActionsRegistry } from "./asana";
 import { awsIotActionsRegistry } from "./aws-iot";
 import { azureDevOpsActionsRegistry } from "./azure-devops";
@@ -85,4 +86,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   workdayActionsRegistry,
   greenhouseActionsRegistry,
   guruActionsRegistry,
+  airtableActionsRegistry,
 ];

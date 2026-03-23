@@ -1,3 +1,4 @@
+import { airtableApp } from "./airtable/config";
 import { asanaApp } from "./asana/config";
 import { awsIotApp } from "./aws-iot/config";
 import { azureDevOpsApp } from "./azure-devops/config";
@@ -57,6 +58,7 @@ import { zendeskApp } from "./zendesk/config";
 import { zoomApp } from "./zoom/config";
 
 export {
+  airtableApp,
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
@@ -115,6 +117,22 @@ export {
   zoomApp,
 };
 
+export type {
+  AirtableOAuthResult,
+  AirtableTokenResponse,
+  AirtableUserInfo,
+  ExchangeAirtableCodeParams,
+  GenerateAirtableAuthUrlParams,
+  RefreshAirtableTokenParams,
+  RefreshAirtableTokenResult,
+} from "./airtable";
+export {
+  AIRTABLE_TOKEN_LIFETIME_SECONDS,
+  AirtableOAuthError,
+  exchangeAirtableCode,
+  generateAirtableAuthUrl,
+  refreshAirtableToken,
+} from "./airtable";
 export type {
   ExchangeAsanaCodeParams,
   GenerateAsanaAuthUrlParams,
@@ -592,4 +610,5 @@ export const appStore: UnifiedApp[] = [
   workdayApp,
   greenhouseApp,
   guruApp,
+  airtableApp,
 ];
