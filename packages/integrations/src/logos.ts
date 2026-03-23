@@ -15,6 +15,7 @@ import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as FigmaLogo } from "./figma/assets/logo";
+import { Logo as FreshserviceLogo } from "./freshservice/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GitLabLogo } from "./gitlab/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
@@ -103,6 +104,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.CLICKUP]: ClickUpLogo,
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
   [AppType.S3]: S3Logo,
+  [AppType.FRESHSERVICE]: FreshserviceLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

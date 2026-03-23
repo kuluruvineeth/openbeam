@@ -1,0 +1,12 @@
+{
+  "title": "Freshservice",
+  "icon": "Freshservice",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

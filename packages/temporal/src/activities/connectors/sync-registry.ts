@@ -32,6 +32,7 @@ import {
   createDropboxClient,
   createFhirClient,
   createFigmaClient,
+  createFreshserviceClient,
   createGitHubClient,
   createGitLabClient,
   createGmailClient,
@@ -69,6 +70,8 @@ import {
   fhirIncrementalSync,
   figmaFullSync,
   figmaIncrementalSync,
+  freshserviceFullSync,
+  freshserviceIncrementalSync,
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
@@ -3674,6 +3677,68 @@ export function registerAllSyncFactories(): void {
             excludePrefixes,
             fileTypesFilter,
             maxFileSizeMb,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "FRESHSERVICE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      const domain = config?.domain as string | undefined;
+      if (!(apiKey && domain)) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key or domain for Freshservice connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncArticles = config?.sync_articles !== false;
+      const syncChanges = config?.sync_changes === true;
+      const syncProblems = config?.sync_problems === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+
+      logger.info(
+        { connectorId, syncArticles, syncChanges, syncProblems, lookbackDays },
+        "Freshservice sync config loaded"
+      );
+
+      const client = createFreshserviceClient({
+        connectorId,
+        apiKey,
+        domain,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        domain,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? freshserviceFullSync(client, context, {
+            batchSize: 100,
+            syncArticles,
+            syncChanges,
+            syncProblems,
+            lookbackDays,
+          })
+        : freshserviceIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
           });
 
       for await (const batch of syncGenerator) {

@@ -1,0 +1,122 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const freshserviceActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "freshservice",
+  connectorName: "Freshservice",
+  connectorIcon: "freshservice",
+  actions: [
+    {
+      id: "ticket_create",
+      name: "Create Ticket",
+      description: "Create a new Freshservice ticket",
+      connectorType: "freshservice",
+      resource: "ticket",
+      category: "create",
+      stakes: "medium",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "email",
+          name: "Requester Email",
+          type: "string",
+          required: true,
+        },
+        { id: "subject", name: "Subject", type: "string", required: true },
+        {
+          id: "description",
+          name: "Description",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "priority",
+          name: "Priority (1=Low, 2=Medium, 3=High, 4=Urgent)",
+          type: "string",
+          required: false,
+        },
+      ],
+      outputs: [
+        { id: "ticketId", name: "Ticket ID", type: "string" },
+        { id: "url", name: "Ticket URL", type: "string" },
+      ],
+    },
+    {
+      id: "ticket_update",
+      name: "Update Ticket",
+      description: "Update a Freshservice ticket status or priority",
+      connectorType: "freshservice",
+      resource: "ticket",
+      category: "update",
+      stakes: "medium",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "ticket_id",
+          name: "Ticket ID",
+          type: "string",
+          required: true,
+        },
+        {
+          id: "status",
+          name: "Status (2=Open, 3=Pending, 4=Resolved, 5=Closed)",
+          type: "string",
+          required: false,
+        },
+        {
+          id: "priority",
+          name: "Priority (1=Low, 2=Medium, 3=High, 4=Urgent)",
+          type: "string",
+          required: false,
+        },
+      ],
+      outputs: [
+        { id: "ticketId", name: "Ticket ID", type: "string" },
+        { id: "url", name: "Ticket URL", type: "string" },
+      ],
+    },
+    {
+      id: "ticket_add_note",
+      name: "Add Note to Ticket",
+      description: "Add a private note to an existing Freshservice ticket",
+      connectorType: "freshservice",
+      resource: "ticket",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "ticket_id",
+          name: "Ticket ID",
+          type: "string",
+          required: true,
+        },
+        { id: "body", name: "Note Body", type: "string", required: true },
+      ],
+      outputs: [{ id: "noteId", name: "Note ID", type: "string" }],
+    },
+    {
+      id: "ticket_reply",
+      name: "Reply to Ticket",
+      description: "Send a reply on a Freshservice ticket",
+      connectorType: "freshservice",
+      resource: "ticket",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "ticket_id",
+          name: "Ticket ID",
+          type: "string",
+          required: true,
+        },
+        { id: "body", name: "Reply Body", type: "string", required: true },
+      ],
+      outputs: [{ id: "replyId", name: "Reply ID", type: "string" }],
+    },
+  ],
+};

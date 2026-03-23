@@ -1,0 +1,42 @@
+---
+title: Setup
+description: How to generate your Freshservice API key and connect to OpenBeam
+---
+
+# Freshservice Setup
+
+## Prerequisites
+
+- A Freshservice account with API access enabled
+- Admin or Agent role (API key is per-user)
+
+## Step 1: Generate Your API Key
+
+1. Log in to your Freshservice account
+2. Click your profile icon in the top-right corner
+3. Select **Profile Settings**
+4. Your API key is displayed on the right side of the profile page
+5. Copy the API key
+
+## Step 2: Note Your Domain
+
+Your Freshservice domain is the subdomain in your URL. For example, if you access Freshservice at `https://acme.freshservice.com`, your domain is `acme`.
+
+## Step 3: Add the Connector
+
+1. In OpenBeam, go to **Settings > Connectors**
+2. Find **Freshservice** and click **Add**
+3. Enter your **API Key** and **Domain**
+4. Configure optional sync settings (knowledge articles, changes, problems)
+5. Click **Connect**
+
+## Step 4: Verify Connection
+
+OpenBeam will validate your API key by making a test request to the Freshservice API. If the connection is successful, the connector status will show as **Active**.
+
+## Security Notes
+
+- API keys have the same permissions as the user who generated them
+- Use a dedicated service account for production deployments
+- API keys authenticate via HTTP Basic auth with the key as username
+- All API requests use HTTPS

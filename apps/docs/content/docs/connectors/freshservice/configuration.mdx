@@ -1,0 +1,45 @@
+---
+title: Configuration
+description: Configure Freshservice connector settings for optimal sync
+---
+
+# Freshservice Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **API Key** | Your Freshservice API key from profile settings |
+| **Domain** | Your subdomain (e.g., `acme` for `acme.freshservice.com`) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Knowledge Articles** | Enabled | Include solution articles in search |
+| **Sync Changes** | Disabled | Include change requests in search |
+| **Sync Problems** | Disabled | Include problem records in search |
+| **Lookback Days** | 90 | How many days of ticket history to sync |
+| **Status Filter** | All | Comma-separated: open, pending, resolved, closed |
+| **Priority Filter** | All | Comma-separated: low, medium, high, urgent |
+
+## Rate Limits
+
+Freshservice API rate limits vary by plan:
+
+| Plan | Requests/Minute |
+|------|----------------|
+| Starter | 100 |
+| Growth | 200 |
+| Pro | 400 |
+| Enterprise | 500 |
+
+OpenBeam automatically handles rate limiting with exponential backoff.
+
+## Recommended Configuration
+
+For most organizations:
+- Enable **Sync Knowledge Articles** (valuable for search)
+- Enable **Sync Changes** only if your team actively uses change management
+- Set **Lookback Days** to 90-180 depending on ticket volume
+- Leave status and priority filters empty to sync everything

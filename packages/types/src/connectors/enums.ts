@@ -74,6 +74,7 @@ export const AppTypeSchema = z.enum([
   "PAGERDUTY",
   "AZURE_DEVOPS",
   "S3",
+  "FRESHSERVICE",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

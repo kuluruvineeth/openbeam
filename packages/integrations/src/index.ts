@@ -11,6 +11,7 @@ import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
 import { figmaApp } from "./figma/config";
+import { freshserviceApp } from "./freshservice/config";
 import { githubApp } from "./github/config";
 import { gitlabApp } from "./gitlab/config";
 import { gmailApp } from "./gmail/config";
@@ -64,6 +65,7 @@ export {
   dropboxApp,
   figmaApp,
   fhirApp,
+  freshserviceApp,
   gmailApp,
   githubApp,
   gitlabApp,
@@ -541,4 +543,5 @@ export const appStore: UnifiedApp[] = [
   clickUpApp,
   azureDevOpsApp,
   s3App,
+  freshserviceApp,
 ];

@@ -1,0 +1,61 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Freshservice connector
+---
+
+# Freshservice Troubleshooting
+
+## Authentication Failures
+
+**Symptom:** Connector shows "Invalid API key or unreachable API"
+
+**Solutions:**
+1. Verify your API key is correct (copy from Freshservice profile settings)
+2. Confirm the domain is just the subdomain (e.g., `acme`, not `acme.freshservice.com`)
+3. Check that your Freshservice account has API access enabled
+4. Ensure the API key belongs to an active agent account
+
+## Rate Limit Errors
+
+**Symptom:** Sync slows down or shows rate limit warnings
+
+**Solutions:**
+1. Check your Freshservice plan's API rate limit (Starter: 100/min, Growth: 200/min)
+2. Reduce sync frequency if hitting limits consistently
+3. OpenBeam automatically backs off on 429 responses
+
+## Missing Tickets
+
+**Symptom:** Some tickets are not appearing in search
+
+**Solutions:**
+1. Check the **Lookback Days** setting — tickets older than this are not synced
+2. Verify **Status Filter** and **Priority Filter** are not excluding tickets
+3. Wait for the next incremental sync to pick up recently created tickets
+
+## Knowledge Articles Not Syncing
+
+**Symptom:** Articles don't appear in search results
+
+**Solutions:**
+1. Ensure **Sync Knowledge Articles** is enabled in connector settings
+2. Verify your API key has access to the Solutions module
+3. Only published articles (status = 2) may be visible depending on permissions
+
+## Connection Timeout
+
+**Symptom:** Sync fails with timeout errors
+
+**Solutions:**
+1. Verify your Freshservice instance is accessible (try `https://{domain}.freshservice.com`)
+2. Check for any firewall rules blocking outbound HTTPS to freshservice.com
+3. Large instances may need longer timeout — contact support if persistent
+
+## Sync Taking Too Long
+
+**Symptom:** Initial sync runs for a very long time
+
+**Solutions:**
+1. Reduce **Lookback Days** for the initial sync (e.g., 30 instead of 90)
+2. Disable optional entity types (changes, problems) if not needed
+3. After initial sync, incremental syncs will be much faster

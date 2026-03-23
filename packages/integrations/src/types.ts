@@ -93,6 +93,7 @@ export enum AppType {
   CLICKUP = "CLICKUP",
   AZURE_DEVOPS = "AZURE_DEVOPS",
   S3 = "S3",
+  FRESHSERVICE = "FRESHSERVICE",
 }
 
 export enum SyncMode {

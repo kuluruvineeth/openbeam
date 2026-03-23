@@ -50,6 +50,7 @@
     "zoom",
     "pagerduty",
     "clickup",
-    "azure-devops"
+    "azure-devops",
+    "freshservice"
   ]
 }

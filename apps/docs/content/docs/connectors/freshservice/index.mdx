@@ -1,0 +1,41 @@
+---
+title: Freshservice
+description: Search tickets, knowledge articles, changes, and problems from Freshservice with incremental sync
+---
+
+# Freshservice
+
+Index IT service management data from Freshservice including tickets, knowledge base articles, change requests, and problem records. Supports API key authentication with Basic auth encoding, page-based pagination, and incremental sync via updated_since timestamps.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Tickets** | Subject, description, status, priority, type, requester, agent, tags |
+| **Knowledge Articles** | Title, body, folder, category, status, tags |
+| **Changes** | Subject, description, status, priority, change type, planned dates |
+| **Problems** | Subject, description, status, priority, impact, known error flag |
+
+## Authentication
+
+**Method:** API Key (REST API v2 with Basic auth)
+
+**Header:** `Authorization: Basic {base64(api_key:X)}`
+
+Generate an API key from your Freshservice profile settings page.
+
+## Quick Start
+
+1. Get your API key from Freshservice profile settings
+2. Note your subdomain (e.g., `acme` from `acme.freshservice.com`)
+3. Add the Freshservice connector in OpenBeam
+4. Enter your API key and domain, then configure sync settings
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/freshservice/setup" description="API key generation and connector activation" />
+  <Card title="Features" href="/docs/connectors/freshservice/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/freshservice/configuration" description="Filters, lookback period, and entity selection" />
+  <Card title="Sync Behavior" href="/docs/connectors/freshservice/sync" description="Full sync, incremental sync, and pagination" />
+  <Card title="Troubleshooting" href="/docs/connectors/freshservice/troubleshooting" description="Common issues and fixes" />
+</Cards>

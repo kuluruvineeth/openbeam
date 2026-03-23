@@ -1,0 +1,52 @@
+---
+title: Sync Behavior
+description: How Freshservice data syncs with OpenBeam
+---
+
+# Freshservice Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data within the lookback period:
+
+1. **Tickets** — All tickets updated within the lookback window, ordered by `updated_at`
+2. **Knowledge Articles** — All solution articles (if enabled)
+3. **Changes** — All change requests (if enabled)
+4. **Problems** — All problem records (if enabled)
+
+Pagination uses `page` and `per_page` parameters with a maximum page size of 100 records.
+
+## Incremental Sync
+
+After the initial sync, incremental syncs fetch only updated data:
+
+- Uses the `updated_since` parameter on the tickets endpoint
+- Tracks the latest `updated_at` timestamp as a sync cursor
+- Only fetches tickets modified since the last sync
+
+Default interval: **15 minutes** for tickets, **60 minutes** for articles, changes, and problems.
+
+## Sync Cursor
+
+The sync cursor tracks:
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Timestamp of the last sync run |
+| `lastTicketUpdatedAt` | Most recent ticket `updated_at` value |
+
+## Data Volume Considerations
+
+| Entity | Typical Volume | Sync Impact |
+|--------|---------------|-------------|
+| Tickets | 100-10,000+ | Primary sync target, uses most API calls |
+| Articles | 50-500 | Low volume, synced in full each time |
+| Changes | 10-100 | Low volume, optional |
+| Problems | 5-50 | Very low volume, optional |
+
+## Error Handling
+
+- **401 Unauthorized** — API key is invalid or expired, sync stops
+- **429 Rate Limited** — Automatic retry with exponential backoff
+- **5xx Server Error** — Automatic retry up to 3 attempts
+- Individual item failures are logged and skipped without stopping the sync

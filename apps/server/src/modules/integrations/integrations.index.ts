@@ -10,6 +10,7 @@ import clickup from "./clickup/clickup.index";
 import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
 import figma from "./figma/figma.index";
+import freshservice from "./freshservice/freshservice.index";
 import github from "./github/github.index";
 import gitlab from "./gitlab/gitlab.index";
 import gmail from "./gmail/gmail.index";
@@ -75,6 +76,7 @@ integrations.route("/pagerduty", pagerduty);
 integrations.route("/clickup", clickup);
 integrations.route("/azure-devops", azureDevOps);
 integrations.route("/s3", s3);
+integrations.route("/freshservice", freshservice);
 
 integrations.get("/health", (c) =>
   c.json({

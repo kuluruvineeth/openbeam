@@ -348,6 +348,21 @@ export type {
   ConnectorMediaInfo,
   DownloadStrategy,
 } from "./files";
+export type { FreshserviceClient } from "./freshservice";
+export {
+  addTicketNote as freshserviceAddTicketNote,
+  createFreshserviceClient,
+  createTicket as freshserviceCreateTicket,
+  FreshserviceApiError,
+  fullSync as freshserviceFullSync,
+  incrementalSync as freshserviceIncrementalSync,
+  replyToTicket as freshserviceReplyToTicket,
+  transformArticle as transformFreshserviceArticle,
+  transformChange as transformFreshserviceChange,
+  transformProblem as transformFreshserviceProblem,
+  transformTicket as transformFreshserviceTicket,
+  updateTicket as freshserviceUpdateTicket,
+} from "./freshservice";
 export type {
   GitHubClient,
   GitHubDocumentChange,

@@ -8,6 +8,7 @@ import { clickUpActionsRegistry } from "./clickup";
 import { confluenceActionsRegistry } from "./confluence";
 import { dropboxActionsRegistry } from "./dropbox";
 import { figmaActionsRegistry } from "./figma";
+import { freshserviceActionsRegistry } from "./freshservice";
 import { githubActionsRegistry } from "./github";
 import { gitlabActionsRegistry } from "./gitlab";
 import { gmailActionsRegistry } from "./gmail";
@@ -71,4 +72,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   clickUpActionsRegistry,
   azureDevOpsActionsRegistry,
   s3ActionsRegistry,
+  freshserviceActionsRegistry,
 ];

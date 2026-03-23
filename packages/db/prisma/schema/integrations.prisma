@@ -137,6 +137,7 @@ enum AppType {
 
   PAGERDUTY
   AZURE_DEVOPS
+  FRESHSERVICE
 }
 
 enum ConnectorStatus {
