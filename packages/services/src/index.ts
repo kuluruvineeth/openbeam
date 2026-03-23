@@ -842,6 +842,33 @@ export {
   incrementalSync as omniverseIncrementalSync,
   OmniverseApiError,
 } from "./omniverse";
+export type {
+  OneNoteNotebook,
+  OneNotePage,
+  OneNotePageActionResult,
+  OneNoteSection,
+  OneNoteSectionGroup,
+} from "./onenote";
+export {
+  createOneNotePage,
+  getNotebook,
+  getPageContent,
+  listAllPages,
+  listAllSections,
+  listNotebooks,
+  listPagesInSection,
+  listPagesModifiedSince,
+  listSectionGroups,
+  listSectionsInNotebook,
+  OneNoteApiError,
+  OneNoteAuth,
+  onenoteFullSync,
+  onenoteIncrementalSync,
+  transformOneNoteNotebook,
+  transformOneNotePage,
+  transformOneNoteSection,
+  updateOneNotePageContent,
+} from "./onenote";
 export type { OpcUaClient } from "./opcua";
 export {
   createOpcUaClient,

@@ -32,6 +32,7 @@ import {
   refreshJiraToken,
   refreshLinearToken,
   refreshMicrosoftCalendarToken,
+  refreshOneNoteToken,
   refreshOutlookToken,
   refreshPipedriveToken,
   refreshSalesforceToken,
@@ -180,6 +181,14 @@ export async function refreshConnectorToken(
 
       case "MICROSOFT_CALENDAR":
         newToken = await refreshMicrosoftCalendarToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "ONENOTE":
+        newToken = await refreshOneNoteToken({
           clientId,
           clientSecret,
           refreshToken,

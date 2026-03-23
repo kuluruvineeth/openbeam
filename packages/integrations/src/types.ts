@@ -102,6 +102,7 @@ export enum AppType {
   PIPEDRIVE = "PIPEDRIVE",
   AIRTABLE = "AIRTABLE",
   CODA = "CODA",
+  ONENOTE = "ONENOTE",
 }
 
 export enum SyncMode {

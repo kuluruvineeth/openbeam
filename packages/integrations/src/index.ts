@@ -37,6 +37,7 @@ import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
 import { nvdApp } from "./nvd/config";
 import { omniverseApp } from "./omniverse/config";
+import { onenoteApp } from "./onenote/config";
 import { opcuaApp } from "./opcua/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
@@ -61,6 +62,7 @@ import { zoomApp } from "./zoom/config";
 export {
   airtableApp,
   codaApp,
+  onenoteApp,
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
@@ -433,6 +435,18 @@ export type {
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
 export type {
+  ExchangeOneNoteCodeParams,
+  GenerateOneNoteAuthUrlParams,
+  OneNoteOAuthResult,
+  RefreshOneNoteTokenParams,
+} from "./onenote/oauth";
+export {
+  exchangeOneNoteCode,
+  generateOneNoteAuthUrl,
+  refreshOneNoteToken,
+} from "./onenote/oauth";
+export type { OneNoteConfig } from "./onenote/types";
+export type {
   ExchangeOutlookCodeParams,
   GenerateOutlookAuthUrlParams,
   OutlookOAuthResult,
@@ -614,4 +628,5 @@ export const appStore: UnifiedApp[] = [
   guruApp,
   airtableApp,
   codaApp,
+  onenoteApp,
 ];

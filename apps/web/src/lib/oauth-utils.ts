@@ -33,7 +33,8 @@ type IntegrationName =
   | "azure-devops"
   | "workday"
   | "pipedrive"
-  | "airtable";
+  | "airtable"
+  | "onenote";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -173,6 +174,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   airtable: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/airtable/callback", {
+      code,
+      state,
+    }),
+  onenote: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/onenote/callback", {
       code,
       state,
     }),

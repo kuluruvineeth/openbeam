@@ -28,6 +28,7 @@ import { linearActionsRegistry } from "./linear";
 import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
 import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
+import { onenoteActionsRegistry } from "./onenote";
 import { outlookActionsRegistry } from "./outlook";
 import { pagerdutyActionsRegistry } from "./pagerduty";
 import { pipedriveActionsRegistry } from "./pipedrive";
@@ -56,6 +57,7 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   salesforceActionsRegistry,
   googleCalendarActionsRegistry,
   googleChatActionsRegistry,
+  onenoteActionsRegistry,
   outlookActionsRegistry,
   sharePointActionsRegistry,
   teamsActionsRegistry,

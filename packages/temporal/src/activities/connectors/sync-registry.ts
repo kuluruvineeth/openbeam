@@ -128,6 +128,7 @@ import {
   nvdIncrementalSync,
   omniverseFullSync,
   omniverseIncrementalSync,
+  onenoteIncrementalSync,
   opcUaFullSync,
   opcUaIncrementalSync,
   outlookIncrementalSync,
@@ -1551,6 +1552,61 @@ export function registerAllSyncFactories(): void {
       });
 
       for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "ONENOTE",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+      const syncPageContent =
+        parseBooleanConfig(config?.sync_page_content) ?? true;
+      const includeNotebooksRaw = (config?.include_notebooks as string) ?? "";
+      const excludeNotebooksRaw = (config?.exclude_notebooks as string) ?? "";
+      const includeNotebooks = includeNotebooksRaw
+        ? includeNotebooksRaw
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : [];
+      const excludeNotebooks = excludeNotebooksRaw
+        ? excludeNotebooksRaw
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : [];
+
+      logger.info({ connectorId, userEmail }, "OneNote sync config loaded");
+
+      const client = createMicrosoftGraphClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      for await (const batch of onenoteIncrementalSync(client, context, {
+        cursor,
+        batchSize: 50,
+        syncPageContent,
+        includeNotebooks,
+        excludeNotebooks,
+      })) {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor as SyncCursor,

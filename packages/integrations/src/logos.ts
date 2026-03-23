@@ -41,6 +41,7 @@ import { Logo as NodeREDLogo } from "./nodered/assets/logo";
 import { Logo as NotionLogo } from "./notion/assets/logo";
 import { Logo as NvdLogo } from "./nvd/assets/logo";
 import { Logo as OmniverseLogo } from "./omniverse/assets/logo";
+import { Logo as OneNoteLogo } from "./onenote/assets/logo";
 import { Logo as OPCUALogo } from "./opcua/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
@@ -121,6 +122,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.WORKDAY]: WorkdayLogo,
   [AppType.GREENHOUSE]: GreenhouseLogo,
   [AppType.GURU]: GuruLogo,
+  [AppType.ONENOTE]: OneNoteLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
