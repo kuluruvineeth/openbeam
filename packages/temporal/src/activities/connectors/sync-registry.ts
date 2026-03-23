@@ -274,7 +274,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -392,7 +392,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -523,7 +523,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: [...(batch.items as GenericDocument[]), ...deletedItems],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -647,7 +647,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -800,7 +800,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -863,7 +863,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -922,7 +922,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -1291,7 +1291,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -1403,7 +1403,7 @@ export function registerAllSyncFactories(): void {
 
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
         };
@@ -1436,7 +1436,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -1462,7 +1462,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -1496,7 +1496,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -1532,7 +1532,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3412,7 +3412,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3492,7 +3492,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3587,7 +3587,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3685,7 +3685,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3747,7 +3747,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }
@@ -3807,7 +3807,7 @@ export function registerAllSyncFactories(): void {
       for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
-          cursor: batch.cursor,
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }

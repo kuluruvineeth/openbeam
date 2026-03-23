@@ -12,7 +12,10 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { AgentStatusDot } from "@/components/agent-status-dot";
 import { Shortcut } from "@/components/ui/shortcut";
 import type { AggregatedAgent } from "@/hooks/use-aggregated-agents";
-import { useCommandCenter } from "@/hooks/use-command-center";
+import {
+  type CommandCenterActionItem,
+  useCommandCenter,
+} from "@/hooks/use-command-center";
 import { shortenPath } from "@/utils/shorten-path";
 import { formatTimeAgo } from "@/utils/time";
 
@@ -106,7 +109,12 @@ export function CommandCenter() {
                     </Text>
                     {actionItems.map((item, index) => {
                       const active = index === activeIndex;
-                      const action = item.action;
+                      const action = (
+                        item as {
+                          kind: "action";
+                          action: CommandCenterActionItem;
+                        }
+                      ).action;
                       const actionIcon =
                         action.icon === "plus" ? (
                           <Plus
@@ -186,7 +194,9 @@ export function CommandCenter() {
                     {agentItems.map((item, index) => {
                       const rowIndex = actionItems.length + index;
                       const active = rowIndex === activeIndex;
-                      const agent = item.agent;
+                      const agent = (
+                        item as { kind: "agent"; agent: AggregatedAgent }
+                      ).agent;
                       return (
                         <Pressable
                           key={agentKey(agent)}

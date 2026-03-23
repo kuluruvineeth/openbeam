@@ -8,4 +8,5 @@ paths = [
   '''apps/engine/tests/''',
   '''monitoring/''',
   '''packages/temporal/src/__tests__/''',
+  '''packages/integrations/src/connector-actions/''',
 ]
