@@ -31,7 +31,7 @@ const FEATURES = [
   {
     title: "Self-Hosted",
     description: "Your servers. Your data. MIT licensed.",
-    href: "https://docs.openbeam.work/self-hosting",
+    href: "https://docs.openbeam.work/docs/self-hosting",
     external: true,
   },
   {
@@ -47,7 +47,7 @@ const NAV_ITEMS = [
   { label: "Changelog", href: "/changelog/" },
   { label: "Pitch", href: "/pitch/" },
   { label: "Memo", href: "/memo/" },
-  { label: "Docs", href: "https://docs.openbeam.work", external: true },
+  { label: "Docs", href: "https://docs.openbeam.work/docs", external: true },
   {
     label: "GitHub",
     href: "https://github.com/kuluruvineeth/openbeam",
@@ -267,7 +267,7 @@ export function Header() {
             <div className="hidden items-center xl:flex">
               <Link
                 className="bg-primary px-4 py-2 text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-                href="https://docs.openbeam.work/quickstart"
+                href="https://docs.openbeam.work/docs/getting-started"
               >
                 Get Started
               </Link>
@@ -422,7 +422,7 @@ export function Header() {
               <div className="mt-8 border-border border-t pt-8">
                 <Link
                   className="flex h-11 w-full items-center justify-center bg-primary px-5 text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-                  href="https://docs.openbeam.work/quickstart"
+                  href="https://docs.openbeam.work/docs/getting-started"
                   onClick={() => setIsOpen(false)}
                 >
                   Get Started

@@ -17,7 +17,7 @@ const PLANS = [
       "MIT License",
     ],
     cta: "Deploy Now",
-    ctaHref: "https://docs.openbeam.work/quickstart",
+    ctaHref: "https://docs.openbeam.work/docs/getting-started",
     highlighted: false,
   },
   {

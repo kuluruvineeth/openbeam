@@ -165,7 +165,7 @@ export function ConnectorDetailPage({ connector }: Props) {
                 </p>
                 <a
                   className="flex w-full items-center justify-center bg-primary px-6 py-3 font-sans text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-                  href="https://docs.openbeam.work/quickstart"
+                  href="https://docs.openbeam.work/docs/getting-started"
                   onClick={() =>
                     analytics.selfHostDocsClicked(`connector-${connector.name}`)
                   }
@@ -344,7 +344,7 @@ function SetupTab({ connector }: { connector: WebsiteConnector }) {
 
       <a
         className="flex w-full items-center justify-center bg-foreground px-6 py-3 font-sans text-background text-sm transition-opacity hover:opacity-90"
-        href="https://docs.openbeam.work/quickstart"
+        href="https://docs.openbeam.work/docs/getting-started"
         onClick={() =>
           analytics.selfHostDocsClicked(`connector-${connector.name}-setup`)
         }

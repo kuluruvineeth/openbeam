@@ -22,7 +22,7 @@ const FOOTER_COLUMNS = [
   {
     heading: "Developers",
     links: [
-      { label: "Documentation", href: "https://docs.openbeam.work" },
+      { label: "Documentation", href: "https://docs.openbeam.work/docs" },
       { label: "API Reference", href: "https://docs.openbeam.work/docs/api" },
       {
         label: "GitHub",

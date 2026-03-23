@@ -84,7 +84,7 @@ export function CTASection() {
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <a
             className="flex h-11 items-center justify-center bg-primary px-8 font-sans text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-            href="https://docs.openbeam.work/quickstart"
+            href="https://docs.openbeam.work/docs/getting-started"
           >
             Start searching
           </a>

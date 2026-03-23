@@ -108,7 +108,7 @@ export function HeroSection() {
               <div className="flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
                 <a
                   className="flex h-12 items-center justify-center bg-primary px-8 font-sans text-primary-foreground text-sm transition-colors hover:bg-primary/90"
-                  href="https://docs.openbeam.work/quickstart"
+                  href="https://docs.openbeam.work/docs/getting-started"
                   onClick={() => analytics.ctaClicked("get_started", "hero")}
                 >
                   Get started — free
