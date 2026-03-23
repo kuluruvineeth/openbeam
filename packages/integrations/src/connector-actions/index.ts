@@ -17,6 +17,7 @@ import { gongActionsRegistry } from "./gong";
 import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleChatActionsRegistry } from "./google-chat";
 import { googleDriveActionsRegistry } from "./google-drive";
+import { greenhouseActionsRegistry } from "./greenhouse";
 import { hubspotActionsRegistry } from "./hubspot";
 import { intercomActionsRegistry } from "./intercom";
 import { jiraActionsRegistry } from "./jira";
@@ -79,4 +80,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   gongActionsRegistry,
   bamboohrActionsRegistry,
   workdayActionsRegistry,
+  greenhouseActionsRegistry,
 ];

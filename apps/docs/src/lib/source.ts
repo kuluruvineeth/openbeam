@@ -36,6 +36,7 @@ import {
   GoogleCalendarIcon,
   GoogleChatIcon,
   GoogleDriveIcon,
+  GreenhouseIcon,
   HubSpotIcon,
   IntercomIcon,
   JiraIcon,
@@ -138,6 +139,7 @@ const customIconMap: Record<
   Gong: GongIcon,
   BambooHR: BambooHRIcon,
   Workday: WorkdayIcon,
+  Greenhouse: GreenhouseIcon,
 };
 
 export const source = loader({

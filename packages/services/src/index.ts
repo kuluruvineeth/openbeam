@@ -508,6 +508,18 @@ export {
   syncDomainDrives,
   validateNotificationSignature as validateDriveNotificationSignature,
 } from "./google-drive";
+export type { GreenhouseClient } from "./greenhouse";
+export {
+  addCandidateNote as addGreenhouseCandidateNote,
+  createGreenhouseClient,
+  fullSync as greenhouseFullSync,
+  GreenhouseApiError,
+  incrementalSync as greenhouseIncrementalSync,
+  transformApplication as transformGreenhouseApplication,
+  transformCandidate as transformGreenhouseCandidate,
+  transformJob as transformGreenhouseJob,
+  transformOffer as transformGreenhouseOffer,
+} from "./greenhouse";
 export type {
   BatchHealthCheckResult,
   CheckStatus,

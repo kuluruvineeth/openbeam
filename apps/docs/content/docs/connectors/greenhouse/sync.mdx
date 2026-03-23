@@ -1,0 +1,39 @@
+---
+title: Sync Behavior
+description: How Greenhouse data is synced to OpenBeam
+---
+
+# Greenhouse Sync Behavior
+
+## Full Sync
+
+On initial connection or when forced, OpenBeam performs a full sync:
+
+1. Fetches all jobs (filtered by status/department if configured)
+2. Fetches all candidates (if enabled)
+3. Fetches all applications (if enabled)
+4. Fetches all offers (if enabled)
+
+Each entity type is paginated using Greenhouse's Link header pagination with up to 100 items per page.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the `updated_after` parameter:
+
+- Only entities modified since the last sync time are fetched
+- Reduces API calls and sync duration
+- Runs on a 30-minute interval by default (60 minutes for offers)
+
+## Rate Limits
+
+Greenhouse applies rate limits per API key on a 30-second fixed window. OpenBeam monitors the `X-RateLimit-Remaining` header and respects the `Retry-After` header on 429 responses.
+
+## Sync Stages
+
+| Stage | Description |
+|-------|-------------|
+| `jobs` | Syncing job postings |
+| `candidates` | Syncing candidate profiles |
+| `applications` | Syncing job applications |
+| `offers` | Syncing offers |
+| `complete` | Sync finished |

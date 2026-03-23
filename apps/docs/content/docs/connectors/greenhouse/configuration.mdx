@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: Configure Greenhouse connector settings in OpenBeam
+---
+
+# Greenhouse Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **API Key** | Password | Required | Greenhouse Harvest API key |
+| **Sync Candidates** | Toggle | On | Include candidate profiles |
+| **Sync Applications** | Toggle | On | Include job applications |
+| **Sync Offers** | Toggle | Off | Include offers |
+| **Lookback Days** | Number | 0 | Only sync items modified within N days (0 = all) |
+| **Job Status Filter** | Text | Empty | Filter jobs by status: open, closed, draft |
+| **Department Filter** | Text | Empty | Only sync jobs from a specific department |
+
+## Entity Selection
+
+By default, Jobs are always synced. Candidates and Applications are synced by default and can be disabled. Offers must be explicitly enabled.
+
+## Filtering
+
+### Job Status Filter
+
+Set to `open` to only sync active job postings, `closed` for filled positions, or leave empty for all statuses.
+
+### Department Filter
+
+Enter a department name to limit job syncing to that department. The name must match exactly (case-insensitive). Leave empty to sync all departments.
+
+### Lookback Days
+
+Set to a positive number to only sync items modified within that many days. Useful for large Greenhouse instances where you only need recent data. Set to 0 (default) to sync all historical data.

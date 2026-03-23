@@ -43,6 +43,7 @@ import {
   createGoogleCalendarClient,
   createGoogleChatClient,
   createGoogleDriveClient,
+  createGreenhouseClient,
   createHubSpotClient,
   createIntercomClient,
   createLinearClient,
@@ -90,6 +91,8 @@ import {
   googleChatFullSync,
   googleChatIncrementalSync,
   googleDriveIncrementalSync,
+  greenhouseFullSync,
+  greenhouseIncrementalSync,
   hubspotFullSync,
   hubspotIncrementalSync,
   intercomFullSync,
@@ -3932,6 +3935,77 @@ export function registerAllSyncFactories(): void {
               parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
             syncTerminated,
             syncOrganizations,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GREENHOUSE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      if (!apiKey) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key for Greenhouse connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncCandidates =
+        parseBooleanConfig(config?.sync_candidates) !== false;
+      const syncApplications =
+        parseBooleanConfig(config?.sync_applications) !== false;
+      const syncOffers = parseBooleanConfig(config?.sync_offers) === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 0);
+      const statusFilter = (config?.status_filter as string) ?? "";
+      const departmentFilter = (config?.department_filter as string) ?? "";
+
+      const client = createGreenhouseClient({ connectorId, apiKey });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      let departmentId: number | undefined;
+      if (departmentFilter) {
+        const departments = await client.getDepartments();
+        const match = departments.find(
+          (d) => d.name.toLowerCase() === departmentFilter.toLowerCase()
+        );
+        departmentId = match?.id;
+      }
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? greenhouseFullSync(client, context, {
+            syncCandidates,
+            syncApplications,
+            syncOffers,
+            lookbackDays,
+            statusFilter,
+            departmentId,
+          })
+        : greenhouseIncrementalSync(client, context, {
+            cursor: {
+              lastSyncTime: parseNumericConfig(cursor?.lastSyncTime),
+            },
+            syncCandidates,
+            syncApplications,
+            syncOffers,
+            statusFilter,
+            departmentId,
           });
 
       for await (const batch of syncGenerator) {

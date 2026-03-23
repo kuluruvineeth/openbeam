@@ -1,0 +1,40 @@
+---
+title: Greenhouse
+description: Search jobs, candidates, applications, and offers from Greenhouse with incremental sync
+---
+
+# Greenhouse
+
+Index recruiting data from Greenhouse including jobs, candidates, applications, and offers. Supports API key authentication via the Harvest API and incremental sync via `updated_after` timestamps.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Jobs** | Title, status, departments, offices, hiring team |
+| **Candidates** | Name, emails, phone numbers, company, tags |
+| **Applications** | Status, current stage, source, rejection reason |
+| **Offers** | Status, start date, sent/resolved dates |
+
+## Authentication
+
+**Method:** API Key (Harvest API)
+
+**Header:** `Authorization: Basic {base64(api_key:)}`
+
+Create a Harvest API key in the [Greenhouse Dev Center](https://app.greenhouse.io/configure/dev_center/credentials) with read access to the required endpoints.
+
+## Quick Start
+
+1. Create a Harvest API key in Greenhouse Dev Center
+2. Grant read permissions for Jobs, Candidates, Applications, and Offers endpoints
+3. Add the Greenhouse connector in OpenBeam with your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/greenhouse/setup" description="API key creation and permissions" />
+  <Card title="Features" href="/docs/connectors/greenhouse/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/greenhouse/configuration" description="Entity selection, filtering, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/greenhouse/sync" description="Full sync, incremental sync via updated_after" />
+  <Card title="Troubleshooting" href="/docs/connectors/greenhouse/troubleshooting" description="Common issues and fixes" />
+</Cards>

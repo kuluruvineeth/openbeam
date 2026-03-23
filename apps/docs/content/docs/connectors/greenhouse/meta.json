@@ -1,0 +1,12 @@
+{
+  "title": "Greenhouse",
+  "icon": "Greenhouse",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

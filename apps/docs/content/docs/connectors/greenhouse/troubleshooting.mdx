@@ -1,0 +1,44 @@
+---
+title: Troubleshooting
+description: Common Greenhouse connector issues and solutions
+---
+
+# Greenhouse Troubleshooting
+
+## Authentication Failures
+
+### 401 Unauthorized
+
+- Verify your Harvest API key is correct
+- Check that the API key has not been revoked in Greenhouse Dev Center
+- Ensure the API key has read permissions for the required endpoints
+
+### 403 Forbidden
+
+- The API key may lack permissions for specific endpoints
+- Go to Greenhouse Dev Center and verify endpoint access for your API key
+
+## Sync Issues
+
+### Missing Candidates or Applications
+
+- Check that "Sync Candidates" and "Sync Applications" are enabled in connector settings
+- Verify the API key has read permissions for the Candidates and Applications endpoints
+
+### Only Partial Data Synced
+
+- If using Lookback Days, older items will not be synced
+- If using Job Status Filter, only jobs with that status will be synced
+- If using Department Filter, only jobs from that department will be synced
+
+### Rate Limiting (429 Errors)
+
+- Greenhouse limits API requests per 30-second window
+- OpenBeam automatically respects the Retry-After header
+- If persistent, reduce the sync frequency or contact Greenhouse support for higher limits
+
+## Data Freshness
+
+- Default sync interval is 30 minutes for jobs, candidates, and applications
+- Default sync interval is 60 minutes for offers
+- Force a full sync from the connector settings if data appears stale

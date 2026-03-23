@@ -141,6 +141,7 @@ enum AppType {
   GONG
   BAMBOOHR
   WORKDAY
+  GREENHOUSE
 }
 
 enum ConnectorStatus {

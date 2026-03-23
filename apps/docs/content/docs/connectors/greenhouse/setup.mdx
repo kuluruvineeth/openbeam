@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Create a Greenhouse Harvest API key and connect to OpenBeam
+---
+
+# Greenhouse Setup
+
+## Prerequisites
+
+- Greenhouse admin access with "Can manage ALL organization's API Credentials" permission
+- OpenBeam workspace with connector management access
+
+## Step 1: Create a Harvest API Key
+
+1. Log into Greenhouse as an admin
+2. Navigate to **Configure** > **Dev Center** > **API Credential Management**
+3. Click **Create New API Key**
+4. Select **Harvest** as the API type
+5. Name the credential (e.g., "OpenBeam Integration")
+
+## Step 2: Configure Endpoint Permissions
+
+Grant read access to the following endpoints:
+
+| Endpoint | Required |
+|----------|----------|
+| **Jobs** | Yes |
+| **Candidates** | Yes (if syncing candidates) |
+| **Applications** | Yes (if syncing applications) |
+| **Offers** | Optional |
+| **Departments** | Yes (for department filtering) |
+
+## Step 3: Connect in OpenBeam
+
+1. In OpenBeam, go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Greenhouse**
+3. Paste your Harvest API key
+4. Configure which entities to sync
+5. Click **Connect**
+
+## Step 4: Verify Connection
+
+After connecting, OpenBeam will validate your API key by making a test request to the Greenhouse Harvest API. If successful, the initial sync will begin automatically.
