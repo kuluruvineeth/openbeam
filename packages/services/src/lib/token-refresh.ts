@@ -411,6 +411,34 @@ export async function refreshConnectorToken(
       case "NOTION":
         throw new Error("Notion tokens do not expire");
 
+      case "WORKDAY": {
+        const workdayConfig = connector.config as Record<
+          string,
+          unknown
+        > | null;
+        const wdTenant = (workdayConfig?.tenant as string) ?? "";
+        const wdHost = (workdayConfig?.host as string) ?? "";
+        if (!(wdTenant && wdHost)) {
+          throw new Error(
+            "Workday tenant and host not found in connector config"
+          );
+        }
+        const { refreshWorkdayToken } = await import("@openbeam/integrations");
+        const wdResult = await refreshWorkdayToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+          tenant: wdTenant,
+          host: wdHost,
+        });
+        newToken = {
+          accessToken: wdResult.accessToken,
+          expiresIn: wdResult.expiresIn,
+          refreshToken: wdResult.refreshToken,
+        };
+        break;
+      }
+
       case "AZURE_DEVOPS": {
         const { refreshAzureDevOpsToken, azureDevOpsApp } = await import(
           "@openbeam/integrations"

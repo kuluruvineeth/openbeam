@@ -37,6 +37,7 @@ import slack from "./slack/slack.index";
 import smartthings from "./smartthings/smartthings.index";
 import teams from "./teams/teams.index";
 import verkada from "./verkada/verkada.index";
+import workday from "./workday/workday.index";
 import zendesk from "./zendesk/zendesk.index";
 import zoom from "./zoom/zoom.index";
 
@@ -81,6 +82,7 @@ integrations.route("/s3", s3);
 integrations.route("/freshservice", freshservice);
 integrations.route("/gong", gong);
 integrations.route("/bamboohr", bamboohr);
+integrations.route("/workday", workday);
 
 integrations.get("/health", (c) =>
   c.json({

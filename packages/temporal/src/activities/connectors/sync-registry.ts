@@ -66,6 +66,7 @@ import {
   createThingsboardClient,
   createVerkadaClient,
   createViamClient,
+  createWorkdayClient,
   createZendeskClient,
   createZoomClient,
   dropboxFullSync,
@@ -140,6 +141,8 @@ import {
   verkadaIncrementalSync,
   viamFullSync,
   viamIncrementalSync,
+  workdayFullSync,
+  workdayIncrementalSync,
   zendeskFullSync,
   zendeskIncrementalSync,
   zoomFullSync,
@@ -3863,6 +3866,72 @@ export function registerAllSyncFactories(): void {
             syncTerminated,
             syncTimeOff,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "WORKDAY",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for Workday connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const tenant = config?.tenant as string | undefined;
+      const host = config?.host as string | undefined;
+      if (!(tenant && host)) {
+        throw ApplicationFailure.nonRetryable(
+          `No tenant or host for Workday connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncOrganizations =
+        parseBooleanConfig(config?.sync_organizations) !== false;
+      const syncTerminated =
+        parseBooleanConfig(config?.sync_terminated) === true;
+
+      const client = createWorkdayClient({
+        connectorId,
+        accessToken,
+        tenant,
+        host,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        tenant,
+        host,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? workdayFullSync(client, context, {
+            syncTerminated,
+            syncOrganizations,
+          })
+        : workdayIncrementalSync(client, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            syncTerminated,
+            syncOrganizations,
           });
 
       for await (const batch of syncGenerator) {

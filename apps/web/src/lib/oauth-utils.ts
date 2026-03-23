@@ -30,7 +30,8 @@ type IntegrationName =
   | "zoom"
   | "monday"
   | "clickup"
-  | "azure-devops";
+  | "azure-devops"
+  | "workday";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -158,6 +159,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  workday: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/workday/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(

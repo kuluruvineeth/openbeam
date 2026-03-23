@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Configure the Workday connector settings
+---
+
+# Workday Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **Tenant** | Your Workday tenant name from the URL path |
+| **Host** | Workday datacenter host (e.g., `wd5-services1.myworkday.com`) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Organizations** | Enabled | Include organizational units in search |
+| **Include Terminated Workers** | Disabled | Sync workers with inactive/terminated status |
+| **Lookback Days** | 90 | Days of historical data on first sync (0 = all) |
+
+## OAuth Scopes
+
+The connector requires these Workday API scopes:
+
+- `r:workers` - Read access to worker data
+- `r:organizations` - Read access to organizational data
+
+## Finding Your Tenant and Host
+
+1. In Workday, search for **View API Clients**
+2. Find your API client
+3. The **Token Endpoint** URL contains both values:
+   - Host: `https://{host}/ccx/oauth2/{tenant}/token`
+   - Example: `https://wd5-services1.myworkday.com/ccx/oauth2/acme_prod/token`
+     - Host = `wd5-services1.myworkday.com`
+     - Tenant = `acme_prod`

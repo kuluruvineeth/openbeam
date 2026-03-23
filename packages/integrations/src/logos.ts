@@ -53,6 +53,7 @@ import { Logo as ThingsBoardLogo } from "./thingsboard/assets/logo";
 import { AppType, type LogoComponent } from "./types";
 import { Logo as VerkadaLogo } from "./verkada/assets/logo";
 import { Logo as ViamLogo } from "./viam/assets/logo";
+import { Logo as WorkdayLogo } from "./workday/assets/logo";
 import { Logo as ZendeskLogo } from "./zendesk/assets/logo";
 import { Logo as ZoomLogo } from "./zoom/assets/logo";
 
@@ -109,6 +110,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.FRESHSERVICE]: FreshserviceLogo,
   [AppType.GONG]: GongLogo,
   [AppType.BAMBOOHR]: BambooHRLogo,
+  [AppType.WORKDAY]: WorkdayLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

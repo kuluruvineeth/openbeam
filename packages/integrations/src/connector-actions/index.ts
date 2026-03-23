@@ -35,6 +35,7 @@ import { slackActionsRegistry } from "./slack";
 import { smartThingsActionsRegistry } from "./smartthings";
 import { teamsActionsRegistry } from "./teams";
 import { verkadaActionsRegistry } from "./verkada";
+import { workdayActionsRegistry } from "./workday";
 import { zendeskActionsRegistry } from "./zendesk";
 import { zoomActionsRegistry } from "./zoom";
 
@@ -77,4 +78,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   freshserviceActionsRegistry,
   gongActionsRegistry,
   bamboohrActionsRegistry,
+  workdayActionsRegistry,
 ];

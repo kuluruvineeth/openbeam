@@ -1,0 +1,33 @@
+---
+title: Sync
+description: How the Workday connector syncs data
+---
+
+# Workday Sync
+
+## Full Sync
+
+On first run, the connector fetches all workers and organizations using paginated REST API calls. Pages default to 100 records each.
+
+Workers are filtered by active status unless "Include Terminated Workers" is enabled.
+
+## Incremental Sync
+
+Subsequent syncs re-fetch all data using the same pagination pattern. The Workday REST API does not provide a native delta/changelog endpoint, so incremental sync re-processes all records with checksum-based deduplication to detect changes.
+
+## Sync Intervals
+
+| Stream | Default Interval | Minimum |
+|--------|-----------------|---------|
+| Workers | 60 minutes | 15 minutes |
+| Organizations | 120 minutes | 30 minutes |
+
+## Rate Limits
+
+The connector respects Workday's rate limits with exponential backoff. Default configuration:
+
+- 50 requests per minute
+- 2000 requests per hour
+- Burst limit of 8 concurrent requests
+
+When rate limited (HTTP 429), the connector waits for the `Retry-After` period before retrying.

@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Set up the Workday connector with OAuth 2.0 authentication
+---
+
+# Workday Setup
+
+## Prerequisites
+
+- Workday tenant with REST API access enabled
+- Integration System User (ISU) or API client credentials
+- Staffing and Organization API scopes
+
+## Step 1: Register an API Client
+
+1. In Workday, search for **Register API Client for Integrations**
+2. Fill in the client name (e.g., "OpenBeam Integration")
+3. Select the required scopes: **Staffing**, **Organizations**
+4. Set the redirect URI to your OpenBeam callback URL
+5. Save and copy the **Client ID** and **Client Secret**
+
+## Step 2: Note Your Tenant Details
+
+- **Tenant name**: Found in your Workday URL (e.g., `acme_prod` from the URL path)
+- **Host**: Your Workday datacenter host (e.g., `wd5-services1.myworkday.com`)
+
+You can find these by navigating to **View API Clients** in Workday and checking the Token Endpoint URL.
+
+## Step 3: Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector**
+2. Select **Workday**
+3. Enter the **Client ID**, **Client Secret**, **Tenant**, and **Host**
+4. Click **Connect** to start the OAuth flow
+5. Authorize access in Workday
+
+## Step 4: Configure Sync Options
+
+After connecting, configure which data to sync:
+
+- **Sync Organizations**: Include organizational units (default: enabled)
+- **Include Terminated Workers**: Sync inactive workers (default: disabled)
+- **Lookback Days**: How far back to sync on first run (default: 90 days)

@@ -62,6 +62,7 @@ import {
   ThingsBoardIcon,
   VerkadaIcon,
   ViamIcon,
+  WorkdayIcon,
   ZendeskIcon,
   ZoomIcon,
 } from "@/components/connector-icons";
@@ -136,6 +137,7 @@ const customIconMap: Record<
   S3: S3Icon,
   Gong: GongIcon,
   BambooHR: BambooHRIcon,
+  Workday: WorkdayIcon,
 };
 
 export const source = loader({

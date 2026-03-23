@@ -49,6 +49,7 @@ import { thingsboardApp } from "./thingsboard/config";
 import type { UnifiedApp } from "./types";
 import { verkadaApp } from "./verkada/config";
 import { viamApp } from "./viam/config";
+import { workdayApp } from "./workday/config";
 import { zendeskApp } from "./zendesk/config";
 import { zoomApp } from "./zoom/config";
 
@@ -103,6 +104,7 @@ export {
   thingsboardApp,
   verkadaApp,
   viamApp,
+  workdayApp,
   zendeskApp,
   zoomApp,
 };
@@ -474,6 +476,20 @@ export {
 } from "./teams/oauth";
 export * from "./types";
 export type {
+  ExchangeWorkdayCodeParams,
+  GenerateWorkdayAuthUrlParams,
+  RefreshWorkdayTokenParams,
+  WorkdayOAuthResult,
+  WorkdayTokenResponse,
+  WorkdayUserInfo,
+} from "./workday";
+export {
+  exchangeWorkdayCode,
+  generateWorkdayAuthUrl,
+  refreshWorkdayToken,
+  WorkdayOAuthError,
+} from "./workday";
+export type {
   ExchangeZendeskCodeParams,
   GenerateZendeskAuthUrlParams,
   ZendeskOAuthResult,
@@ -550,4 +566,5 @@ export const appStore: UnifiedApp[] = [
   freshserviceApp,
   gongApp,
   bamboohrApp,
+  workdayApp,
 ];

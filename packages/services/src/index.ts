@@ -1301,6 +1301,18 @@ export {
   startSession,
   updateSettings,
 } from "./voice";
+export type { WorkdayClient } from "./workday";
+export {
+  createWorkdayClient,
+  transformWorkdayOrganization,
+  transformWorkdayOrganizations,
+  transformWorkdayWorker,
+  transformWorkdayWorkers,
+  WorkdayApiError,
+  WorkdayAuth,
+  workdayFullSync,
+  workdayIncrementalSync,
+} from "./workday";
 export type {
   ExportResult,
   WorkspaceDuckDB,

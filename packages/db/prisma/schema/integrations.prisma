@@ -140,6 +140,7 @@ enum AppType {
   FRESHSERVICE
   GONG
   BAMBOOHR
+  WORKDAY
 }
 
 enum ConnectorStatus {

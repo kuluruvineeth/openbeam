@@ -96,6 +96,7 @@ export enum AppType {
   FRESHSERVICE = "FRESHSERVICE",
   GONG = "GONG",
   BAMBOOHR = "BAMBOOHR",
+  WORKDAY = "WORKDAY",
 }
 
 export enum SyncMode {

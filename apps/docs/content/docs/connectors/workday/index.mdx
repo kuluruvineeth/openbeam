@@ -1,0 +1,32 @@
+---
+title: Workday
+description: Search across your worker directory, organizations, and HR data from Workday
+---
+
+# Workday
+
+Index and search your Workday worker directory, organizational hierarchy, and HR data. The connector uses OAuth 2.0 for secure tenant-scoped access with incremental sync support.
+
+Workday gives you searchable access to worker profiles including names, job titles, departments, locations, reporting structure, and organizational units.
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code)
+
+Register an API client in Workday for integrations, then configure the client ID, client secret, tenant name, and datacenter host. Workday issues access tokens scoped to specific REST API resources.
+
+[Workday REST API docs](https://community.workday.com/sites/default/files/file-hosting/restapi/index.html)
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Workers** | Name, email, title, department, location, manager, hire date, status | Periodic | 60 min |
+| **Organizations** | Name, type, parent organization, manager, member count | Periodic | 120 min |
+
+## Quick Start
+
+1. Register an API client in Workday (Search for "Register API Client for Integrations")
+2. Note your tenant name and datacenter host
+3. Configure OAuth scopes for Staffing and Organizations
+4. Add the connector in OpenBeam and complete the OAuth flow

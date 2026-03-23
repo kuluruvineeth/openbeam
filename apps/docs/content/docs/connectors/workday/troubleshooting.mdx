@@ -1,0 +1,48 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Workday connector
+---
+
+# Workday Troubleshooting
+
+## Authentication Errors
+
+**401 Unauthorized**
+- Verify your API client credentials (Client ID and Client Secret)
+- Check that the API client is not expired or disabled
+- Ensure the Integration System User has the required security groups
+
+**403 Forbidden**
+- The API client may lack required scopes (Staffing, Organizations)
+- Check that the ISU has domain security permissions for REST API access
+
+## Connection Issues
+
+**Cannot reach Workday API**
+- Verify the host value matches your datacenter (e.g., `wd5-services1.myworkday.com`)
+- Check that the tenant name is correct
+- Ensure your network allows outbound HTTPS to Workday
+
+**Token refresh failures**
+- Workday access tokens expire hourly
+- If refresh fails repeatedly, re-authorize the connector through the OAuth flow
+- Check if the refresh token has been revoked in Workday
+
+## Sync Issues
+
+**Empty worker results**
+- Verify the ISU has access to worker data in Workday security configuration
+- Check if "Include Terminated Workers" needs to be enabled
+- Ensure the Staffing scope is granted to the API client
+
+**Missing organizations**
+- Verify "Sync Organizations" is enabled in connector settings
+- Check that the Organizations scope is granted
+- Ensure the ISU has access to organizational data
+
+## Rate Limiting
+
+If you see frequent rate limit errors:
+- The connector automatically handles 429 responses with backoff
+- Consider increasing the sync interval to reduce API pressure
+- Check with your Workday admin for tenant-specific rate limits

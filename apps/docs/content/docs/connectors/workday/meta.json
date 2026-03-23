@@ -1,0 +1,12 @@
+{
+  "title": "Workday",
+  "icon": "Workday",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}
