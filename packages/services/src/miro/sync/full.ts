@@ -26,16 +26,18 @@ export async function* miroFullSync(
 
   let documents: GenericDocument[] = [];
   let processed = 0;
-  const skipped = 0;
+  let skipped = 0;
   let errors = 0;
   let latestModified = 0;
 
   for await (const boards of listBoardsPaginated(client)) {
     for (const board of boards) {
       if (includeBoards.length > 0 && !includeBoards.includes(board.id)) {
+        skipped += 1;
         continue;
       }
       if (excludeBoards.length > 0 && excludeBoards.includes(board.id)) {
+        skipped += 1;
         continue;
       }
 
