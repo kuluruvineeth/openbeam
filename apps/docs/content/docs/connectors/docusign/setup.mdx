@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Connect DocuSign to OpenBeam via OAuth 2.0
+---
+
+# DocuSign Setup
+
+## Prerequisites
+
+- A DocuSign account (demo or production)
+- Admin access to create apps in DocuSign Settings
+
+## Step 1: Create a DocuSign App
+
+1. Log into [DocuSign](https://account.docusign.com)
+2. Go to **Settings > Apps and Keys**
+3. Click **Add App and Integration Key**
+4. Name it something like "OpenBeam Integration"
+5. Copy the **Integration Key** (this is your Client ID)
+
+## Step 2: Configure the App
+
+1. Under **Authentication**, add a **Secret Key** and copy it
+2. Under **Additional Settings > Redirect URIs**, add your OpenBeam callback URL:
+   - Production: `https://your-domain.com/connectors/setup/docusign/oauth/callback`
+   - Development: `http://localhost:3001/connectors/setup/docusign/oauth/callback`
+3. Save the app configuration
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **DocuSign**
+3. Enter your **Integration Key** (Client ID)
+4. Enter your **Secret Key** (Client Secret)
+5. Select your **Environment**:
+   - **Production** for live DocuSign accounts
+   - **Demo** for sandbox/testing accounts
+6. Click **Connect** to start the OAuth flow
+7. Authorize OpenBeam in the DocuSign consent screen
+
+## Step 4: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your DocuSign data. The first sync fetches envelopes from the configured lookback period (default: 365 days), plus all templates and folders.

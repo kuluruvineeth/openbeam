@@ -107,6 +107,7 @@ export enum AppType {
   DYNAMICS_365 = "DYNAMICS_365",
   OPSGENIE = "OPSGENIE",
   DATADOG = "DATADOG",
+  DOCUSIGN = "DOCUSIGN",
 }
 
 export enum SyncMode {

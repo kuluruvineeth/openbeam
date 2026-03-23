@@ -10,6 +10,7 @@ import { clickUpActionsRegistry } from "./clickup";
 import { codaActionsRegistry } from "./coda";
 import { confluenceActionsRegistry } from "./confluence";
 import { datadogActionsRegistry } from "./datadog";
+import { docuSignActionsRegistry } from "./docusign";
 import { dropboxActionsRegistry } from "./dropbox";
 import { figmaActionsRegistry } from "./figma";
 import { freshserviceActionsRegistry } from "./freshservice";
@@ -97,4 +98,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   miroActionsRegistry,
   opsgenieActionsRegistry,
   datadogActionsRegistry,
+  docuSignActionsRegistry,
 ];

@@ -1,0 +1,34 @@
+---
+title: Features
+description: What DocuSign data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Envelopes
+Full-text search across envelope subjects, email messages, recipient names, and signing statuses. Metadata includes envelope status (sent, delivered, completed, voided), sender information, recipient count, and completion dates.
+
+### Templates
+Search across template names, descriptions, email subjects, and folder locations. Includes ownership, sharing status, and page count metadata.
+
+### Folders
+Folder structure with names, types, item counts, and subfolder relationships. Enables navigation of envelope organization.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Envelope** | Create a new envelope with subject, message, and optional template |
+| **Void Envelope** | Void an active envelope with a reason |
+| **Resend Envelope** | Resend notification emails to recipients |
+
+## Search Examples
+
+- "contract signed by John" -- finds completed envelopes with John as signer
+- "NDA template" -- finds NDA-related templates
+- "voided envelopes" -- finds voided envelopes with reasons
+- "pending signature" -- finds envelopes awaiting signatures

@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How DocuSign data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from DocuSign:
+
+1. **Envelopes** filtered by lookback period and optional status filter, paginated via `start_position`
+2. **Templates** (if enabled) from the account template library
+3. **Folders** (if enabled) from the account folder structure
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use DocuSign's `from_date` parameter to fetch only envelopes modified since the last sync. Templates and folders are not re-synced during incremental runs since they change infrequently and are included in the next full sync.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Envelopes | Every 15 minutes |
+| Templates | Every 60 minutes |
+| Folders | Every 60 minutes |
+
+## Rate Limits
+
+DocuSign enforces rate limits of approximately 1,000 API calls per hour per account (varies by plan). The connector handles rate limiting with exponential backoff and respects the `Retry-After` header on 429 responses.
+
+## Pagination
+
+The connector uses DocuSign's offset-based pagination with `start_position` and `count` parameters. Default page size is 100 items per request.

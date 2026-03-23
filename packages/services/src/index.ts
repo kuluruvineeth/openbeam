@@ -328,6 +328,28 @@ export {
   updateMonitor as datadogUpdateMonitor,
 } from "./datadog";
 export type {
+  DocuSignClient,
+  DocuSignClientConfig,
+  DocuSignEnvelope,
+  DocuSignEnvelopeActionResult,
+  DocuSignFolder,
+  DocuSignRecipient,
+  DocuSignTemplate,
+} from "./docusign";
+export {
+  createDocuSignClient,
+  createDocuSignEnvelope,
+  DocuSignApiError,
+  DocuSignAuth,
+  docuSignFullSync,
+  docuSignIncrementalSync,
+  resendDocuSignEnvelope,
+  transformDocuSignEnvelope,
+  transformDocuSignFolder,
+  transformDocuSignTemplate,
+  voidDocuSignEnvelope,
+} from "./docusign";
+export type {
   DropboxClient,
   DropboxClientConfig,
   DropboxEntry,

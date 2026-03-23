@@ -1,0 +1,104 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const docuSignActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "docusign",
+  connectorName: "DocuSign",
+  connectorIcon: "docusign",
+  actions: [
+    {
+      id: "envelope_create",
+      name: "Create Envelope",
+      description: "Create a new envelope (document for signature) in DocuSign",
+      connectorType: "docusign",
+      resource: "envelope",
+      category: "create",
+      stakes: "high",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "email_subject",
+          name: "Email Subject",
+          type: "string",
+          required: true,
+          description: "Subject line for the envelope email",
+        },
+        {
+          id: "email_blurb",
+          name: "Email Message",
+          type: "string",
+          required: false,
+          description: "Email body message to recipients",
+        },
+        {
+          id: "status",
+          name: "Status",
+          type: "string",
+          required: false,
+          description:
+            "Set to 'sent' to send immediately or 'created' for draft (default: created)",
+        },
+        {
+          id: "template_id",
+          name: "Template ID",
+          type: "string",
+          required: false,
+          description: "Template ID to base the envelope on",
+        },
+      ],
+      outputs: [
+        { id: "envelopeId", name: "Envelope ID", type: "string" },
+        { id: "url", name: "Envelope URL", type: "string" },
+      ],
+    },
+    {
+      id: "envelope_void",
+      name: "Void Envelope",
+      description: "Void an active envelope in DocuSign",
+      connectorType: "docusign",
+      resource: "envelope",
+      category: "update",
+      stakes: "high",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "envelope_id",
+          name: "Envelope ID",
+          type: "string",
+          required: true,
+          description: "ID of the envelope to void",
+        },
+        {
+          id: "voided_reason",
+          name: "Void Reason",
+          type: "string",
+          required: true,
+          description: "Reason for voiding the envelope",
+        },
+      ],
+      outputs: [{ id: "envelopeId", name: "Envelope ID", type: "string" }],
+    },
+    {
+      id: "envelope_resend",
+      name: "Resend Envelope",
+      description: "Resend notification emails for an envelope",
+      connectorType: "docusign",
+      resource: "envelope",
+      category: "update",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "envelope_id",
+          name: "Envelope ID",
+          type: "string",
+          required: true,
+          description: "ID of the envelope to resend",
+        },
+      ],
+      outputs: [{ id: "envelopeId", name: "Envelope ID", type: "string" }],
+    },
+  ],
+};

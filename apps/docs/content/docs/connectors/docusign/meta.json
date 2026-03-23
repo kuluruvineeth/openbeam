@@ -1,0 +1,12 @@
+{
+  "title": "DocuSign",
+  "icon": "DocuSign",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

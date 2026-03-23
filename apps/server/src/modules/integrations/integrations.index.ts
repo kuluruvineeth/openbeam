@@ -12,6 +12,7 @@ import clickup from "./clickup/clickup.index";
 import coda from "./coda/coda.index";
 import confluence from "./confluence/confluence.index";
 import datadog from "./datadog/datadog.index";
+import docusign from "./docusign/docusign.index";
 import dropbox from "./dropbox/dropbox.index";
 import dynamics365 from "./dynamics365/dynamics365.index";
 import figma from "./figma/figma.index";
@@ -103,6 +104,7 @@ integrations.route("/miro", miro);
 integrations.route("/dynamics365", dynamics365);
 integrations.route("/opsgenie", opsgenie);
 integrations.route("/datadog", datadog);
+integrations.route("/docusign", docusign);
 
 integrations.get("/health", (c) =>
   c.json({

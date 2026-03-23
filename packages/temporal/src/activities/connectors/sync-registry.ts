@@ -39,6 +39,7 @@ import {
   createClickUpClient,
   createCodaClient,
   createDatadogClient,
+  createDocuSignClient,
   createDropboxClient,
   createDynamics365Client,
   createFhirClient,
@@ -84,6 +85,8 @@ import {
   createZoomClient,
   datadogFullSync,
   datadogIncrementalSync,
+  docuSignFullSync,
+  docuSignIncrementalSync,
   dropboxFullSync,
   dropboxIncrementalSync,
   dynamics365FullSync,
@@ -4609,6 +4612,82 @@ export function registerAllSyncFactories(): void {
             },
             syncServices,
             syncSchedules,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "DOCUSIGN",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const accountId = (config?.accountId as string) ?? "";
+      const baseUri = (config?.baseUri as string) ?? "";
+      const syncTemplates =
+        parseBooleanConfig(config?.sync_templates) !== false;
+      const syncFolders = parseBooleanConfig(config?.sync_folders) !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 365);
+      const envelopeStatusFilterStr =
+        (config?.envelope_status_filter as string) ?? "";
+      const envelopeStatusFilter = envelopeStatusFilterStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      if (!(accountId && baseUri)) {
+        throw ApplicationFailure.nonRetryable(
+          "DocuSign accountId or baseUri not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, accountId }, "DocuSign sync config loaded");
+
+      const client = createDocuSignClient({
+        connectorId,
+        accessToken,
+        accountId,
+        baseUri,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        accountBaseUri: baseUri,
+        accountId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? docuSignFullSync(client, context, {
+            batchSize: 100,
+            syncTemplates,
+            syncFolders,
+            envelopeStatusFilter,
+            lookbackDays,
+          })
+        : docuSignIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncTemplates,
+            syncFolders,
+            envelopeStatusFilter,
+            lookbackDays,
           });
 
       for await (const batch of syncGenerator) {

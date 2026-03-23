@@ -1,0 +1,48 @@
+---
+title: Configuration
+description: Configure which DocuSign data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Integration Key** | DocuSign app Client ID | Required |
+| **Secret Key** | DocuSign app Client Secret | Required |
+| **Environment** | Demo (sandbox) or Production | Production |
+| **Sync Templates** | Index document templates | Enabled |
+| **Sync Folders** | Index folder structure | Enabled |
+| **Envelope Status Filter** | Comma-separated statuses to sync | All statuses |
+| **Lookback Days** | How far back to sync envelopes | 365 days |
+
+## Environment Selection
+
+DocuSign has two environments with separate OAuth and API endpoints:
+
+| Environment | Auth URL | Use Case |
+|-------------|----------|----------|
+| Production | `account.docusign.com` | Live accounts |
+| Demo | `account-d.docusign.com` | Sandbox/testing |
+
+Select the environment that matches your DocuSign account. The connector adjusts all API URLs automatically.
+
+## Envelope Status Filter
+
+Control which envelope statuses are indexed. Common statuses:
+
+| Status | Description |
+|--------|-------------|
+| `created` | Draft envelopes |
+| `sent` | Sent to recipients, awaiting action |
+| `delivered` | Viewed by at least one recipient |
+| `completed` | All recipients have signed |
+| `declined` | A recipient declined to sign |
+| `voided` | Sender voided the envelope |
+
+Leave empty to sync all statuses.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches envelopes. The DocuSign API requires a `from_date` parameter, so unlimited lookback is not available. Default is 365 days.

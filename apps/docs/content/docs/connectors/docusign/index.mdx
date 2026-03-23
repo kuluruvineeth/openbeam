@@ -1,0 +1,39 @@
+---
+title: DocuSign
+description: Search envelopes, templates, and folders from DocuSign
+---
+
+# DocuSign
+
+Index electronic signature data from DocuSign including envelopes (documents sent for signing), reusable templates, and folder structures. Supports OAuth 2.0 authentication with date-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Envelopes** | Subject, status, sender, recipients, signing progress, completion dates |
+| **Templates** | Name, description, owner, sharing status, folder location |
+| **Folders** | Name, type, item count, subfolder structure |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+DocuSign uses OAuth 2.0 with environment-aware URLs. After authorization, the connector retrieves your account ID and base URI from the DocuSign userinfo endpoint for API access.
+
+## Quick Start
+
+1. Create a DocuSign app in **Settings > Apps and Keys**
+2. Add the DocuSign connector in OpenBeam
+3. Enter your Integration Key (client ID) and Secret Key
+4. Select your environment (demo or production)
+5. Complete the OAuth flow
+6. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/docusign/setup" description="OAuth app creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/docusign/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/docusign/configuration" description="Environment, entity toggles, and status filters" />
+  <Card title="Sync Behavior" href="/docs/connectors/docusign/sync" description="Full sync, incremental sync via from_date queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/docusign/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -1,0 +1,36 @@
+---
+title: Troubleshooting
+description: Common DocuSign connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid Integration Key:** Verify your Integration Key (Client ID) is correct and the app is active in DocuSign Settings > Apps and Keys.
+
+**401 Unauthorized:** The access token has expired. The connector automatically refreshes tokens, but if refresh fails three times, the connector status changes to AUTH_EXPIRED. Re-authorize by reconnecting the OAuth flow.
+
+**Redirect URI mismatch:** Ensure the redirect URI configured in your DocuSign app exactly matches the OpenBeam callback URL.
+
+**Wrong environment:** If using a demo/sandbox account, make sure the environment setting is set to "Demo". Production credentials do not work against demo endpoints and vice versa.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider narrowing the envelope status filter or increasing the sync interval.
+
+## Missing Data
+
+**Old envelopes not appearing:** Check the lookback days setting. Only envelopes within the lookback period are synced on the initial run. Increase the value and trigger a full re-sync.
+
+**Templates/Folders missing:** Verify these entity types are enabled in the connector settings.
+
+**Only seeing some statuses:** Check the envelope status filter. If specific statuses are listed, only matching envelopes are synced.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**"accountId or baseUri not found":** The OAuth flow did not complete properly. Disconnect and reconnect the connector to re-authorize.
+
+**Connection timeout:** DocuSign API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.

@@ -12,6 +12,7 @@ import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
 import { datadogApp } from "./datadog/config";
+import { docuSignApp } from "./docusign/config";
 import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
 import { fhirApp } from "./fhir/config";
@@ -67,6 +68,7 @@ export {
   airtableApp,
   codaApp,
   datadogApp,
+  docuSignApp,
   dynamics365App,
   miroApp,
   onenoteApp,
@@ -238,6 +240,22 @@ export {
   generateConfluenceAuthUrl,
   refreshConfluenceToken,
 } from "./confluence/oauth";
+export type {
+  DocuSignOAuthResult,
+  DocuSignTokenResponse,
+  DocuSignUserInfo,
+  ExchangeDocuSignCodeParams,
+  GenerateDocuSignAuthUrlParams,
+  RefreshDocuSignTokenParams,
+  RefreshDocuSignTokenResult,
+} from "./docusign";
+export {
+  DOCUSIGN_TOKEN_LIFETIME_SECONDS,
+  DocuSignOAuthError,
+  exchangeDocuSignCode,
+  generateDocuSignAuthUrl,
+  refreshDocuSignToken,
+} from "./docusign";
 export type {
   DropboxAccountInfo,
   DropboxOAuthResult,
@@ -416,7 +434,6 @@ export {
   generateJiraAuthUrl,
   refreshJiraToken,
 } from "./jira/oauth";
-
 export {
   exchangeLinearCode,
   generateLinearAuthUrl,
@@ -669,4 +686,5 @@ export const appStore: UnifiedApp[] = [
   dynamics365App,
   opsgenieApp,
   datadogApp,
+  docuSignApp,
 ];

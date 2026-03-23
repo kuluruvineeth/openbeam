@@ -147,6 +147,7 @@ enum AppType {
   DYNAMICS_365
   OPSGENIE
   DATADOG
+  DOCUSIGN
 }
 
 enum ConnectorStatus {

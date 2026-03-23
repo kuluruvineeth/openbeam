@@ -12,6 +12,7 @@ import prisma, {
 import {
   airtableApp,
   boxApp,
+  docuSignApp,
   dropboxApp,
   hubspotApp,
   miroApp,
@@ -21,6 +22,7 @@ import {
   refreshBitbucketToken,
   refreshBoxToken,
   refreshConfluenceToken,
+  refreshDocuSignToken,
   refreshDropboxToken,
   refreshDynamics365Token,
   refreshFigmaToken,
@@ -545,6 +547,37 @@ export async function refreshConnectorToken(
           accessToken: adoResult.accessToken,
           expiresIn: adoResult.expiresIn,
           refreshToken: adoResult.refreshToken,
+        };
+        break;
+      }
+
+      case "DOCUSIGN": {
+        const dsConfig =
+          docuSignApp.auth.type === "OAUTH2"
+            ? docuSignApp.auth.config
+            : undefined;
+        if (!dsConfig) {
+          throw new Error("DocuSign OAuth config not found");
+        }
+        const connectorConfig = connector.config as Record<
+          string,
+          unknown
+        > | null;
+        const dsEnvironment =
+          (connectorConfig?.environment as string) === "demo"
+            ? ("demo" as const)
+            : ("production" as const);
+        const dsResult = await refreshDocuSignToken({
+          config: dsConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+          environment: dsEnvironment,
+        });
+        newToken = {
+          accessToken: dsResult.accessToken,
+          expiresIn: dsResult.expiresIn,
+          refreshToken: dsResult.refreshToken,
         };
         break;
       }

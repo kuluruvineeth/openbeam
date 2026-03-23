@@ -36,7 +36,8 @@ type IntegrationName =
   | "airtable"
   | "onenote"
   | "miro"
-  | "dynamics365";
+  | "dynamics365"
+  | "docusign";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -197,6 +198,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  docusign: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/docusign/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(
