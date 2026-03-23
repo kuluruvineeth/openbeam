@@ -14,6 +14,7 @@ import {
   boxApp,
   dropboxApp,
   hubspotApp,
+  miroApp,
   pipedriveApp,
   refreshAirtableToken,
   refreshAsanaToken,
@@ -32,6 +33,7 @@ import {
   refreshJiraToken,
   refreshLinearToken,
   refreshMicrosoftCalendarToken,
+  refreshMiroToken,
   refreshOneNoteToken,
   refreshOutlookToken,
   refreshPipedriveToken,
@@ -492,6 +494,26 @@ export async function refreshConnectorToken(
           accessToken: atResult.accessToken,
           expiresIn: atResult.expiresIn,
           refreshToken: atResult.refreshToken,
+        };
+        break;
+      }
+
+      case "MIRO": {
+        const miroConfig =
+          miroApp.auth.type === "OAUTH2" ? miroApp.auth.config : undefined;
+        if (!miroConfig) {
+          throw new Error("Miro OAuth config not found");
+        }
+        const miroResult = await refreshMiroToken({
+          config: miroConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: miroResult.accessToken,
+          expiresIn: miroResult.expiresIn,
+          refreshToken: miroResult.refreshToken,
         };
         break;
       }

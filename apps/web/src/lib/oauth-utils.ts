@@ -34,7 +34,8 @@ type IntegrationName =
   | "workday"
   | "pipedrive"
   | "airtable"
-  | "onenote";
+  | "onenote"
+  | "miro";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -179,6 +180,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   onenote: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/onenote/callback", {
+      code,
+      state,
+    }),
+  miro: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/miro/callback", {
       code,
       state,
     }),

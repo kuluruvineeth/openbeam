@@ -30,6 +30,7 @@ import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
+import { miroApp } from "./miro/config";
 import { mitreAttackApp } from "./mitre-attack/config";
 import { mondayApp } from "./monday/config";
 import { mqttApp } from "./mqtt/config";
@@ -62,6 +63,7 @@ import { zoomApp } from "./zoom/config";
 export {
   airtableApp,
   codaApp,
+  miroApp,
   onenoteApp,
   asanaApp,
   awsIotApp,
@@ -420,6 +422,22 @@ export {
   refreshMicrosoftCalendarToken,
 } from "./microsoft-calendar/oauth";
 export type {
+  ExchangeMiroCodeParams,
+  GenerateMiroAuthUrlParams,
+  MiroOAuthResult,
+  MiroTokenResponse,
+  MiroUserInfo,
+  RefreshMiroTokenParams,
+  RefreshMiroTokenResult,
+} from "./miro";
+export {
+  exchangeMiroCode,
+  generateMiroAuthUrl,
+  MIRO_TOKEN_LIFETIME_SECONDS,
+  MiroOAuthError,
+  refreshMiroToken,
+} from "./miro";
+export type {
   ExchangeMondayCodeParams,
   GenerateMondayAuthUrlParams,
 } from "./monday/oauth";
@@ -629,4 +647,5 @@ export const appStore: UnifiedApp[] = [
   airtableApp,
   codaApp,
   onenoteApp,
+  miroApp,
 ];

@@ -762,6 +762,27 @@ export {
   teamsIncrementalSync,
   transformTeamsMessage,
 } from "./microsoft-teams";
+export type {
+  MiroActionResult,
+  MiroBoard,
+  MiroClient,
+  MiroItem,
+  MiroItemType,
+  MiroTag,
+} from "./miro";
+export {
+  createMiroBoard,
+  createMiroClient,
+  createMiroStickyNote,
+  deleteMiroItem,
+  MiroApiError,
+  MiroAuth,
+  miroFullSync,
+  miroIncrementalSync,
+  transformMiroBoard,
+  transformMiroItem,
+  updateMiroStickyNote,
+} from "./miro";
 export {
   fetchStixBundle,
   fullSync as mitreAttackFullSync,

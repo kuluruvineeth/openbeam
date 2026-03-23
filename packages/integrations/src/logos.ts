@@ -34,6 +34,7 @@ import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
+import { Logo as MiroLogo } from "./miro/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
 import { Logo as MondayLogo } from "./monday/assets/logo";
 import { Logo as MQTTLogo } from "./mqtt/assets/logo";
@@ -123,6 +124,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.GREENHOUSE]: GreenhouseLogo,
   [AppType.GURU]: GuruLogo,
   [AppType.ONENOTE]: OneNoteLogo,
+  [AppType.MIRO]: MiroLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

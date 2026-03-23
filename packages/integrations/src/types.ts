@@ -103,6 +103,7 @@ export enum AppType {
   AIRTABLE = "AIRTABLE",
   CODA = "CODA",
   ONENOTE = "ONENOTE",
+  MIRO = "MIRO",
 }
 
 export enum SyncMode {

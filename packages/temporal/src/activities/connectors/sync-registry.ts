@@ -56,6 +56,7 @@ import {
   createLinearClient,
   createMatterportClient,
   createMicrosoftGraphClient,
+  createMiroClient,
   createMondayClient,
   createMqttConnectorClient,
   createNodeRedClient,
@@ -115,6 +116,8 @@ import {
   matterportIncrementalSync,
   microsoftCalendarFullSync,
   microsoftCalendarIncrementalSync,
+  miroFullSync,
+  miroIncrementalSync,
   mitreAttackFullSync,
   mondayFullSync,
   mondayIncrementalSync,
@@ -4342,6 +4345,63 @@ export function registerAllSyncFactories(): void {
             syncNotes,
             syncOrganizations,
             pipelineFilter,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MIRO",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const includeBoardsStr = (config?.include_boards as string) ?? "";
+      const excludeBoardsStr = (config?.exclude_boards as string) ?? "";
+      const includeBoards = includeBoardsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const excludeBoards = excludeBoardsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const client = createMiroClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? miroFullSync(client, context, {
+            batchSize: 100,
+            includeBoards,
+            excludeBoards,
+          })
+        : miroIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            includeBoards,
+            excludeBoards,
           });
 
       for await (const batch of syncGenerator) {

@@ -28,6 +28,7 @@ import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
+import miro from "./miro/miro.index";
 import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
 import onenote from "./onenote/onenote.index";
@@ -95,6 +96,7 @@ integrations.route("/workday", workday);
 integrations.route("/greenhouse", greenhouse);
 integrations.route("/guru", guru);
 integrations.route("/airtable", airtable);
+integrations.route("/miro", miro);
 
 integrations.get("/health", (c) =>
   c.json({

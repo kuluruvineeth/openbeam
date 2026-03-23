@@ -82,6 +82,7 @@ export const AppTypeSchema = z.enum([
   "GURU",
   "AIRTABLE",
   "ONENOTE",
+  "MIRO",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

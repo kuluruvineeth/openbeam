@@ -26,6 +26,7 @@ import { intercomActionsRegistry } from "./intercom";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { microsoftCalendarActionsRegistry } from "./microsoft-calendar";
+import { miroActionsRegistry } from "./miro";
 import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
 import { onenoteActionsRegistry } from "./onenote";
@@ -91,4 +92,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   guruActionsRegistry,
   airtableActionsRegistry,
   codaActionsRegistry,
+  miroActionsRegistry,
 ];
