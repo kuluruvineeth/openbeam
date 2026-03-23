@@ -1,19 +1,27 @@
 /** @jsxImportSource react */
 import type { LogoProps } from "../../types";
 
-export const Logo = ({ size = 32, className }: LogoProps) => (
-  // biome-ignore lint/a11y/noSvgWithoutTitle: This is a logo
-  <svg
-    className={className}
-    height={size}
-    viewBox="0 0 256 256"
-    width={size}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <rect fill="#FFC829" height="256" rx="28" width="256" />
-    <path
-      d="M175.5 60.2c-3.4-3.4-8.9-3.4-12.3 0L73.6 149.8c-6.8 6.8-10.6 16-10.6 25.6v17.4c0 2.4 1.9 4.3 4.3 4.3h17.4c9.6 0 18.8-3.8 25.6-10.6l89.6-89.6c3.4-3.4 3.4-8.9 0-12.3L175.5 60.2zM100.1 176.3c-3.4 3.4-8 5.3-12.8 5.3H80v-7.3c0-4.8 1.9-9.4 5.3-12.8l63.5-63.5 14.8 14.8-63.5 63.5zm75.8-75.8L161.1 85.7l8.3-8.3 14.8 14.8-8.3 8.3z"
-      fill="#1B1B1F"
-    />
-  </svg>
-);
+export function Logo({ size = 32 }: LogoProps) {
+  return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+    <svg
+      height={size}
+      viewBox="0 0 194 194"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M139.5 139.5v49.5c0 2.6-2.1 4.7-4.7 4.7H4.7c-2.6 0-4.7-2.1-4.7-4.7V59c0-2.6 2.1-4.7 4.7-4.7h49.4v80.5c0 2.6 2.1 4.7 4.7 4.7h80.7z"
+        fill="#4C00FF"
+      />
+      <path
+        d="M193.7 69.7c0 41.6-24.3 69.7-54.2 69.8V87.1c0-1.5-.6-3-1.7-4L110.6 55.9c-1.1-1.1-2.5-1.7-4-1.7H54.2V4.8c0-2.6 2.1-4.7 4.7-4.7h73.3c34.8-.1 61.5 27.9 61.5 69.6z"
+        fill="#FF5252"
+      />
+      <path
+        d="M137.8 83c1.1 1.1 1.7 2.5 1.7 4v52.4H58.9c-2.6 0-4.7-2.1-4.7-4.7V54.2h52.4c1.5 0 3 .6 4 1.7L137.8 83z"
+        fill="#1B1B1F"
+      />
+    </svg>
+  );
+}
