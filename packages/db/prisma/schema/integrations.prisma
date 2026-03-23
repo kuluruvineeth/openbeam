@@ -144,6 +144,7 @@ enum AppType {
   GREENHOUSE
   GURU
   ONENOTE
+  DYNAMICS_365
 }
 
 enum ConnectorStatus {

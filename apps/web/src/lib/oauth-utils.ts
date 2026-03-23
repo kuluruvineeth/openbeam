@@ -35,7 +35,8 @@ type IntegrationName =
   | "pipedrive"
   | "airtable"
   | "onenote"
-  | "miro";
+  | "miro"
+  | "dynamics365";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -188,6 +189,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  dynamics365: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/dynamics365/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

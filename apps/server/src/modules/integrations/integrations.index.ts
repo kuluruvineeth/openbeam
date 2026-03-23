@@ -12,6 +12,7 @@ import clickup from "./clickup/clickup.index";
 import coda from "./coda/coda.index";
 import confluence from "./confluence/confluence.index";
 import dropbox from "./dropbox/dropbox.index";
+import dynamics365 from "./dynamics365/dynamics365.index";
 import figma from "./figma/figma.index";
 import freshservice from "./freshservice/freshservice.index";
 import github from "./github/github.index";
@@ -97,6 +98,7 @@ integrations.route("/greenhouse", greenhouse);
 integrations.route("/guru", guru);
 integrations.route("/airtable", airtable);
 integrations.route("/miro", miro);
+integrations.route("/dynamics365", dynamics365);
 
 integrations.get("/health", (c) =>
   c.json({

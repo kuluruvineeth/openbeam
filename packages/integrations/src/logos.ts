@@ -16,6 +16,7 @@ import { Logo as ClickUpLogo } from "./clickup/assets/logo";
 import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
+import { Logo as Dynamics365Logo } from "./dynamics365/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as FigmaLogo } from "./figma/assets/logo";
 import { Logo as FreshserviceLogo } from "./freshservice/assets/logo";
@@ -125,6 +126,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.GURU]: GuruLogo,
   [AppType.ONENOTE]: OneNoteLogo,
   [AppType.MIRO]: MiroLogo,
+  [AppType.DYNAMICS_365]: Dynamics365Logo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

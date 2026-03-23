@@ -1,0 +1,12 @@
+export type { Dynamics365Account } from "./accounts";
+export { listAllAccounts } from "./accounts";
+export type { Dynamics365Activity } from "./activities";
+export { listAllActivities } from "./activities";
+export type { Dynamics365Case } from "./cases";
+export { listAllCases } from "./cases";
+export type { Dynamics365Contact } from "./contacts";
+export { listAllContacts } from "./contacts";
+export type { Dynamics365Lead } from "./leads";
+export { listAllLeads } from "./leads";
+export type { Dynamics365Opportunity } from "./opportunities";
+export { listAllOpportunities } from "./opportunities";

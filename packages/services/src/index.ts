@@ -327,6 +327,35 @@ export {
   transformDropboxFile,
 } from "./dropbox";
 export type {
+  Dynamics365Account,
+  Dynamics365Activity,
+  Dynamics365Case,
+  Dynamics365Client,
+  Dynamics365Contact,
+  Dynamics365Lead,
+  Dynamics365Opportunity,
+  Dynamics365RecordActionResult,
+} from "./dynamics365";
+export {
+  createDynamics365Account,
+  createDynamics365Client,
+  createDynamics365Contact,
+  createDynamics365Opportunity,
+  Dynamics365ApiError,
+  Dynamics365Auth,
+  dynamics365FullSync,
+  dynamics365IncrementalSync,
+  transformDynamics365Account,
+  transformDynamics365Activity,
+  transformDynamics365Case,
+  transformDynamics365Contact,
+  transformDynamics365Lead,
+  transformDynamics365Opportunity,
+  updateDynamics365Account,
+  updateDynamics365Contact,
+  updateDynamics365Opportunity,
+} from "./dynamics365";
+export type {
   ChunkOptions,
   ChunkResponse,
   DocumentChunk,

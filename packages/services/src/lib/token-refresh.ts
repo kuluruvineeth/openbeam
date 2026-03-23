@@ -22,6 +22,7 @@ import {
   refreshBoxToken,
   refreshConfluenceToken,
   refreshDropboxToken,
+  refreshDynamics365Token,
   refreshFigmaToken,
   refreshGitHubToken,
   refreshGitLabToken,
@@ -199,6 +200,14 @@ export async function refreshConnectorToken(
 
       case "OUTLOOK":
         newToken = await refreshOutlookToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "DYNAMICS_365":
+        newToken = await refreshDynamics365Token({
           clientId,
           clientSecret,
           refreshToken,

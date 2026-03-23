@@ -39,6 +39,7 @@ import {
   createClickUpClient,
   createCodaClient,
   createDropboxClient,
+  createDynamics365Client,
   createFhirClient,
   createFigmaClient,
   createFreshserviceClient,
@@ -81,6 +82,8 @@ import {
   createZoomClient,
   dropboxFullSync,
   dropboxIncrementalSync,
+  dynamics365FullSync,
+  dynamics365IncrementalSync,
   fhirFullSync,
   fhirIncrementalSync,
   figmaFullSync,
@@ -4402,6 +4405,70 @@ export function registerAllSyncFactories(): void {
             batchSize: 100,
             includeBoards,
             excludeBoards,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "DYNAMICS_365",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const orgUrl = (config?.org_url as string) ?? "";
+      const syncLeads = config?.sync_leads !== false;
+      const syncCases = config?.sync_cases !== false;
+      const syncActivities = config?.sync_activities !== false;
+
+      if (!orgUrl) {
+        throw ApplicationFailure.nonRetryable(
+          "Dynamics 365 org_url not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, orgUrl }, "Dynamics 365 sync config loaded");
+
+      const client = createDynamics365Client({
+        connectorId,
+        accessToken,
+        orgUrl,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        orgUrl,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? dynamics365FullSync(client, context, {
+            batchSize: 100,
+            syncLeads,
+            syncCases,
+            syncActivities,
+          })
+        : dynamics365IncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncLeads,
+            syncCases,
+            syncActivities,
           });
 
       for await (const batch of syncGenerator) {

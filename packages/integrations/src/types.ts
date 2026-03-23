@@ -104,6 +104,7 @@ export enum AppType {
   CODA = "CODA",
   ONENOTE = "ONENOTE",
   MIRO = "MIRO",
+  DYNAMICS_365 = "DYNAMICS_365",
 }
 
 export enum SyncMode {

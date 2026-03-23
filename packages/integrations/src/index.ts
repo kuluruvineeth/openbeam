@@ -12,6 +12,7 @@ import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
+import { dynamics365App } from "./dynamics365/config";
 import { fhirApp } from "./fhir/config";
 import { figmaApp } from "./figma/config";
 import { freshserviceApp } from "./freshservice/config";
@@ -63,6 +64,7 @@ import { zoomApp } from "./zoom/config";
 export {
   airtableApp,
   codaApp,
+  dynamics365App,
   miroApp,
   onenoteApp,
   asanaApp,
@@ -248,6 +250,18 @@ export {
   generateDropboxAuthUrl,
   refreshDropboxToken,
 } from "./dropbox";
+export type {
+  Dynamics365Config,
+  Dynamics365OAuthResult,
+  ExchangeDynamics365CodeParams,
+  GenerateDynamics365AuthUrlParams,
+  RefreshDynamics365TokenParams,
+} from "./dynamics365";
+export {
+  exchangeDynamics365Code,
+  generateDynamics365AuthUrl,
+  refreshDynamics365Token,
+} from "./dynamics365";
 export type {
   ExchangeFigmaCodeParams,
   GenerateFigmaAuthUrlParams,
@@ -648,4 +662,5 @@ export const appStore: UnifiedApp[] = [
   codaApp,
   onenoteApp,
   miroApp,
+  dynamics365App,
 ];
