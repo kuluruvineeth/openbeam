@@ -4,6 +4,7 @@ import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureDevOps from "./azure-devops/azure-devops.index";
 import azureIot from "./azure-iot/azure-iot.index";
+import bamboohr from "./bamboohr/bamboohr.index";
 import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
 import clickup from "./clickup/clickup.index";
@@ -79,6 +80,7 @@ integrations.route("/azure-devops", azureDevOps);
 integrations.route("/s3", s3);
 integrations.route("/freshservice", freshservice);
 integrations.route("/gong", gong);
+integrations.route("/bamboohr", bamboohr);
 
 integrations.get("/health", (c) =>
   c.json({

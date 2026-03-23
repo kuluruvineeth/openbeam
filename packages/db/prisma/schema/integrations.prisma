@@ -139,6 +139,7 @@ enum AppType {
   AZURE_DEVOPS
   FRESHSERVICE
   GONG
+  BAMBOOHR
 }
 
 enum ConnectorStatus {

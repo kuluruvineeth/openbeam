@@ -188,6 +188,17 @@ export {
   transformDevice as transformBacnetDevice,
   transformObject as transformBacnetObject,
 } from "./bacnet";
+export type { BambooHRClient } from "./bamboohr";
+export {
+  BambooHRApiError,
+  bamboohrFullSync,
+  bamboohrIncrementalSync,
+  createBambooHRClient,
+  transformBambooHREmployee,
+  transformBambooHREmployees,
+  transformBambooHRTimeOffRequest,
+  transformBambooHRTimeOffRequests,
+} from "./bamboohr";
 export type { BitbucketClient } from "./bitbucket";
 export {
   addIssueComment as addBitbucketIssueComment,

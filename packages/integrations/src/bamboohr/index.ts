@@ -1,0 +1,1 @@
+export { bamboohrApp } from "./config";

@@ -3,6 +3,7 @@ import { awsIotApp } from "./aws-iot/config";
 import { azureDevOpsApp } from "./azure-devops/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
+import { bamboohrApp } from "./bamboohr/config";
 import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
 import { cisaKevApp } from "./cisa-kev/config";
@@ -55,6 +56,7 @@ export {
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
+  bamboohrApp,
   bitbucketApp,
   s3App,
   azureIotApp,
@@ -547,4 +549,5 @@ export const appStore: UnifiedApp[] = [
   s3App,
   freshserviceApp,
   gongApp,
+  bamboohrApp,
 ];

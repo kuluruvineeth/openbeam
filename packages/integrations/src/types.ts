@@ -95,6 +95,7 @@ export enum AppType {
   S3 = "S3",
   FRESHSERVICE = "FRESHSERVICE",
   GONG = "GONG",
+  BAMBOOHR = "BAMBOOHR",
 }
 
 export enum SyncMode {

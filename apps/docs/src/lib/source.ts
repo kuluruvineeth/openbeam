@@ -20,6 +20,7 @@ import {
   AzureDevOpsIcon,
   AzureIotIcon,
   BACnetIcon,
+  BambooHRIcon,
   BitbucketIcon,
   BoxIcon,
   ClickUpIcon,
@@ -134,6 +135,7 @@ const customIconMap: Record<
   AzureDevOps: AzureDevOpsIcon,
   S3: S3Icon,
   Gong: GongIcon,
+  BambooHR: BambooHRIcon,
 };
 
 export const source = loader({

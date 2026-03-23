@@ -86,7 +86,11 @@ export async function getConnectorForTeam(
   const appDefinition = appStore.find((app) => app.id === input.id);
 
   if (appDefinition) {
-    const connector = await findConnectorByTeam(db, teamId, appDefinition.id);
+    const connector = await findConnectorByTeam(
+      db,
+      teamId,
+      appDefinition.id as string as Parameters<typeof findConnectorByTeam>[2]
+    );
     if (!connector) {
       throw new AppsServiceError("NOT_FOUND", "Connector not found");
     }

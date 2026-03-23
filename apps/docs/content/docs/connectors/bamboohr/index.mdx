@@ -1,0 +1,33 @@
+---
+title: BambooHR
+description: Search across your employee directory, org chart, and time off records from BambooHR
+---
+
+# BambooHR
+
+Index and search your BambooHR employee directory, organizational hierarchy, and time off requests. The connector uses API key authentication and supports incremental sync via the changed employees endpoint.
+
+BambooHR gives you searchable access to employee profiles including names, job titles, departments, locations, reporting structure, and time off records.
+
+## Authentication
+
+**Method:** API Key (Basic Auth)
+
+Generate an API key from BambooHR under Account > API Keys. The key is used with HTTP Basic Authentication where the key is the username and `x` is the password.
+
+[BambooHR API docs](https://documentation.bamboohr.com/docs/getting-started)
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Employees** | Name, email, title, department, location, manager, hire date, status | Periodic | 60 min |
+| **Time Off Requests** | Employee, type, dates, status, amount, notes | Periodic | 120 min |
+
+## Quick Start
+
+1. Generate an API key in BambooHR (Account > API Keys)
+2. Note your company subdomain (the `acme` part of `acme.bamboohr.com`)
+3. Add the BambooHR connector in OpenBeam
+4. Enter your API key and subdomain
+5. Configure which streams to sync

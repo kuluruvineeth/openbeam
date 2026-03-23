@@ -7,6 +7,7 @@ import { Logo as AwsIotLogo } from "./aws-iot/assets/logo";
 import { Logo as AzureDevOpsLogo } from "./azure-devops/assets/logo";
 import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
+import { Logo as BambooHRLogo } from "./bamboohr/assets/logo";
 import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
@@ -107,6 +108,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.S3]: S3Logo,
   [AppType.FRESHSERVICE]: FreshserviceLogo,
   [AppType.GONG]: GongLogo,
+  [AppType.BAMBOOHR]: BambooHRLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

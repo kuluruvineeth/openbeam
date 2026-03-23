@@ -1,0 +1,33 @@
+---
+title: Configuration
+description: BambooHR connector configuration options
+---
+
+# Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **API Key** | Your BambooHR API key. Generate from Account > API Keys. |
+| **Subdomain** | Your company subdomain (e.g., `acme` from `acme.bamboohr.com`) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Include Terminated Employees** | Off | When enabled, terminated employees are included in sync |
+| **Sync Time Off Requests** | On | Toggle syncing of time off request records |
+| **Lookback Days** | 90 | Number of days of historical time off data to sync. Set to 0 for all history. |
+
+## API Key Permissions
+
+The API key inherits the access level of the BambooHR user who creates it. For full directory access:
+
+- Use an admin account to generate the key
+- Ensure the account has access to all employee fields
+- If using a restricted account, only visible employees will be synced
+
+## Rate Limits
+
+BambooHR does not publish official rate limits. The connector uses conservative limits (80 requests/minute) with automatic backoff on 429 responses. If you encounter throttling, the connector will retry with exponential backoff.

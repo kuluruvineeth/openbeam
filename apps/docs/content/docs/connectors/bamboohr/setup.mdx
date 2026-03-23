@@ -1,0 +1,37 @@
+---
+title: Setup
+description: How to set up the BambooHR connector
+---
+
+# BambooHR Setup
+
+## Prerequisites
+
+- A BambooHR account with admin or API access
+- An API key generated from BambooHR
+- Your company subdomain
+
+## Step 1: Generate an API Key
+
+1. Log in to BambooHR
+2. Click your profile in the top right corner
+3. Go to **API Keys**
+4. Click **Add New Key**
+5. Give it a descriptive name (e.g., "OpenBeam Integration")
+6. Copy the generated key
+
+The API key grants the same access level as the user who creates it. Use an admin account for full directory access.
+
+## Step 2: Find Your Subdomain
+
+Your subdomain is the first part of your BambooHR URL. For example, if you log in at `https://acme.bamboohr.com`, your subdomain is `acme`.
+
+## Step 3: Configure in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **BambooHR**
+3. Enter your API key and subdomain
+4. Toggle optional streams (Time Off Requests)
+5. Click **Connect**
+
+The connector will validate your credentials by fetching the employee directory.

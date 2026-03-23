@@ -2,6 +2,7 @@ import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
 import { asanaActionsRegistry } from "./asana";
 import { awsIotActionsRegistry } from "./aws-iot";
 import { azureDevOpsActionsRegistry } from "./azure-devops";
+import { bamboohrActionsRegistry } from "./bamboohr";
 import { bitbucketActionsRegistry } from "./bitbucket";
 import { boxActionsRegistry } from "./box";
 import { clickUpActionsRegistry } from "./clickup";
@@ -75,4 +76,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   s3ActionsRegistry,
   freshserviceActionsRegistry,
   gongActionsRegistry,
+  bamboohrActionsRegistry,
 ];

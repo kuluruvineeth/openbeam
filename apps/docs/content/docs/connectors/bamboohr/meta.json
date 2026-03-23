@@ -1,0 +1,12 @@
+{
+  "title": "BambooHR",
+  "icon": "BambooHR",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}

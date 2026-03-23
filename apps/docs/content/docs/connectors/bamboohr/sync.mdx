@@ -1,0 +1,35 @@
+---
+title: Sync
+description: How BambooHR data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+On initial connection, the connector fetches the entire employee directory and (optionally) all time off requests within the configured lookback period.
+
+The employee directory endpoint returns all employees in a single response -- no pagination required.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the BambooHR changed employees endpoint (`/employees/changed?since={timestamp}`) to detect:
+
+- New employees added since the last sync
+- Updated employee records (title changes, department moves, etc.)
+- Deleted employees (marked with deletion markers)
+
+For time off requests, incremental syncs re-fetch requests within the lookback window and update any changed records.
+
+## Deletion Detection
+
+When an employee is marked as deleted in the changed employees response, the connector emits a deletion marker to remove the document from the search index.
+
+## Sync Frequency
+
+| Stream | Default Interval | Recommended |
+|--------|-----------------|-------------|
+| Employees | 60 minutes | 60 minutes |
+| Time Off | 120 minutes | 120 minutes |
+
+Employee data changes infrequently, so hourly sync is sufficient for most organizations.

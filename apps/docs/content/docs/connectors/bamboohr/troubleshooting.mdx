@@ -1,0 +1,43 @@
+---
+title: Troubleshooting
+description: Common issues with the BambooHR connector
+---
+
+# Troubleshooting
+
+## Authentication Failed
+
+**Symptom:** Connector returns "Cannot access BambooHR" during setup.
+
+**Solutions:**
+1. Verify your API key is correct and not expired
+2. Double-check the subdomain (case-sensitive)
+3. Ensure the API key owner account is active in BambooHR
+4. BambooHR temporarily blocks API keys after repeated invalid attempts -- wait 10-15 minutes
+
+## Missing Employees
+
+**Symptom:** Some employees don't appear in search results.
+
+**Solutions:**
+1. Check if missing employees are terminated -- enable "Include Terminated Employees" if needed
+2. The API key inherits the creator's access level -- use an admin account
+3. Some custom fields may not be accessible to all users
+
+## Time Off Data Not Syncing
+
+**Symptom:** Time off requests are not appearing.
+
+**Solutions:**
+1. Ensure "Sync Time Off Requests" is enabled in settings
+2. Check the lookback days setting -- requests older than this window are excluded
+3. The API key owner must have time off data access
+
+## Rate Limiting
+
+**Symptom:** Sync is slow or returns intermittent errors.
+
+**Solutions:**
+1. The connector handles rate limits automatically with backoff
+2. Avoid running multiple connectors against the same BambooHR instance simultaneously
+3. If errors persist, increase the sync interval

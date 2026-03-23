@@ -10,6 +10,8 @@ import {
   azureIotIncrementalSync,
   bacnetFullSync,
   bacnetIncrementalSync,
+  bamboohrFullSync,
+  bamboohrIncrementalSync,
   bitbucketFullSync,
   bitbucketIncrementalSync,
   boxFullSync,
@@ -26,6 +28,7 @@ import {
   createAzureDevOpsClient,
   createAzureIotClient,
   createBacnetClient,
+  createBambooHRClient,
   createBitbucketClient,
   createBoxClient,
   createClickUpClient,
@@ -3802,6 +3805,64 @@ export function registerAllSyncFactories(): void {
             lastSyncTime:
               parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
             callDirectionFilter,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "BAMBOOHR",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      const subdomain = config?.subdomain as string | undefined;
+      if (!(apiKey && subdomain)) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key or subdomain for BambooHR connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncTerminated =
+        parseBooleanConfig(config?.sync_terminated) === true;
+      const syncTimeOff = parseBooleanConfig(config?.sync_time_off) !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+
+      const client = createBambooHRClient({
+        connectorId,
+        apiKey,
+        subdomain,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        subdomain,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? bamboohrFullSync(client, context, {
+            syncTerminated,
+            syncTimeOff,
+            lookbackDays,
+          })
+        : bamboohrIncrementalSync(client, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            syncTerminated,
+            syncTimeOff,
+            lookbackDays,
           });
 
       for await (const batch of syncGenerator) {
