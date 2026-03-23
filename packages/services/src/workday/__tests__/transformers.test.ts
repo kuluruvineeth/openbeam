@@ -77,7 +77,7 @@ describe("transformWorker", () => {
     const doc = await transformWorker(worker, CTX);
     expect(doc.checksum).toBeDefined();
     expect(typeof doc.checksum).toBe("string");
-    expect(doc.checksum!.length).toBeGreaterThan(0);
+    expect(doc.checksum?.length).toBeGreaterThan(0);
   });
 
   it("marks inactive workers correctly", async () => {
