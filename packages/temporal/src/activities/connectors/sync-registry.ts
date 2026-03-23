@@ -65,6 +65,7 @@ import {
   createNvdClient,
   createOmniverseClient,
   createOpcUaClient,
+  createOpsGenieClient,
   createOwaspClient,
   createPagerDutyClient,
   createPipedriveClient,
@@ -137,6 +138,8 @@ import {
   onenoteIncrementalSync,
   opcUaFullSync,
   opcUaIncrementalSync,
+  opsgenieFullSync,
+  opsgenieIncrementalSync,
   outlookIncrementalSync,
   owaspFullSync,
   pagerdutyFullSync,
@@ -4469,6 +4472,63 @@ export function registerAllSyncFactories(): void {
             syncLeads,
             syncCases,
             syncActivities,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "OPSGENIE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      if (!apiKey) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key for OpsGenie connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const region =
+        (config?.region as string) === "eu" ? ("eu" as const) : ("us" as const);
+      const syncServices = parseBooleanConfig(config?.sync_services) !== false;
+      const syncSchedules =
+        parseBooleanConfig(config?.sync_schedules) !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+
+      const client = createOpsGenieClient({ connectorId, apiKey, region });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        region,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? opsgenieFullSync(client, context, {
+            syncServices,
+            syncSchedules,
+            lookbackDays,
+          })
+        : opsgenieIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastAlertUpdatedAt?: string;
+              lastIncidentUpdatedAt?: string;
+            },
+            syncServices,
+            syncSchedules,
           });
 
       for await (const batch of syncGenerator) {

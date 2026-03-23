@@ -41,6 +41,7 @@ import { nvdApp } from "./nvd/config";
 import { omniverseApp } from "./omniverse/config";
 import { onenoteApp } from "./onenote/config";
 import { opcuaApp } from "./opcua/config";
+import { opsgenieApp } from "./opsgenie/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { pagerdutyApp } from "./pagerduty/config";
@@ -67,6 +68,7 @@ export {
   dynamics365App,
   miroApp,
   onenoteApp,
+  opsgenieApp,
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
@@ -663,4 +665,5 @@ export const appStore: UnifiedApp[] = [
   onenoteApp,
   miroApp,
   dynamics365App,
+  opsgenieApp,
 ];

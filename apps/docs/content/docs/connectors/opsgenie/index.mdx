@@ -1,0 +1,38 @@
+---
+title: OpsGenie
+description: Search alerts, incidents, services, and on-call schedules from OpsGenie
+---
+
+# OpsGenie
+
+Index incident management data from OpsGenie including alerts, incidents, services, and on-call schedules. Supports API key authentication (GenieKey) with offset-based pagination and createdAt/updatedAt incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Alerts** | Message, priority, status, tags, responders, source, occurrence count |
+| **Incidents** | Message, severity, status, responders, impacted services, tags |
+| **Services** | Name, description, team ownership, tags |
+| **Schedules** | Name, timezone, rotations, current on-call participants |
+
+## Authentication
+
+**Method:** API Key (GenieKey)
+
+Generate an API key from **Settings > API key management** in OpsGenie. The key must have read access to alerts, incidents, services, and schedules.
+
+## Quick Start
+
+1. Generate an API key in OpsGenie
+2. Add the OpsGenie connector in OpenBeam
+3. Enter your GenieKey and select your region (US or EU)
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/opsgenie/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/opsgenie/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/opsgenie/configuration" description="Entity selection, region settings, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/opsgenie/sync" description="Full sync, incremental sync via updatedAt queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/opsgenie/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -926,6 +926,23 @@ export {
   incrementalSync as opcUaIncrementalSync,
   OpcUaApiError,
 } from "./opcua";
+export type { OpsGenieClient } from "./opsgenie";
+export {
+  acknowledgeAlert as opsgenieAcknowledgeAlert,
+  addAlertNote as opsgenieAddAlertNote,
+  closeAlert as opsgenieCloseAlert,
+  createAlert as opsgenieCreateAlert,
+  createIncident as opsgenieCreateIncident,
+  createOpsGenieClient,
+  OpsGenieApiError,
+  opsgenieFullSync,
+  opsgenieIncrementalSync,
+  resolveIncident as opsgenieResolveIncident,
+  transformAlert as transformOpsGenieAlert,
+  transformIncident as transformOpsGenieIncident,
+  transformSchedule as transformOpsGenieSchedule,
+  transformService as transformOpsGenieService,
+} from "./opsgenie";
 export type { OutlookMessage } from "./outlook";
 export {
   OutlookAuth,

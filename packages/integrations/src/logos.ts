@@ -45,6 +45,7 @@ import { Logo as NvdLogo } from "./nvd/assets/logo";
 import { Logo as OmniverseLogo } from "./omniverse/assets/logo";
 import { Logo as OneNoteLogo } from "./onenote/assets/logo";
 import { Logo as OPCUALogo } from "./opcua/assets/logo";
+import { Logo as OpsGenieLogo } from "./opsgenie/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
@@ -127,6 +128,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.ONENOTE]: OneNoteLogo,
   [AppType.MIRO]: MiroLogo,
   [AppType.DYNAMICS_365]: Dynamics365Logo,
+  [AppType.OPSGENIE]: OpsGenieLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

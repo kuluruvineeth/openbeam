@@ -1,0 +1,40 @@
+---
+title: Features
+description: What OpsGenie data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Alerts
+Full-text search across alert messages, descriptions, tags, and responder assignments. Metadata includes priority (P1-P5), status, source integration, acknowledgement state, and occurrence count.
+
+### Incidents
+Search across incident messages, descriptions, and tags. Includes severity, status, responder assignments, and impacted service references.
+
+### Services
+Service catalog entries with names, descriptions, and team ownership. Useful for understanding service dependencies and ownership.
+
+### Schedules
+On-call schedule definitions including rotation rules, participant lists, timezones, and current on-call status. Enables quick lookup of who is on-call.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Alert** | Create a new alert with message, priority, and tags |
+| **Acknowledge Alert** | Acknowledge a triggered alert |
+| **Close Alert** | Close an active alert |
+| **Add Alert Note** | Add a note to an existing alert |
+| **Create Incident** | Create a new incident with priority and impacted services |
+| **Resolve Incident** | Resolve an active incident |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Responder attribution** from alert and incident assignments
+- **Service relationships** between incidents and impacted services
+- **Team ownership** from services and schedules

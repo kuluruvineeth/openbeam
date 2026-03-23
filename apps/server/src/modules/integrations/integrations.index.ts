@@ -33,6 +33,7 @@ import miro from "./miro/miro.index";
 import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
 import onenote from "./onenote/onenote.index";
+import opsgenie from "./opsgenie/opsgenie.index";
 import outlook from "./outlook/outlook.index";
 import pagerduty from "./pagerduty/pagerduty.index";
 import pipedrive from "./pipedrive/pipedrive.index";
@@ -99,6 +100,7 @@ integrations.route("/guru", guru);
 integrations.route("/airtable", airtable);
 integrations.route("/miro", miro);
 integrations.route("/dynamics365", dynamics365);
+integrations.route("/opsgenie", opsgenie);
 
 integrations.get("/health", (c) =>
   c.json({

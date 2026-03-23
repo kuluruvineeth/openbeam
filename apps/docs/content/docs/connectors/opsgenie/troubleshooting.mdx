@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common OpsGenie connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your GenieKey is correct and has not been revoked. Re-generate from OpsGenie Settings > API key management if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has at least Read access to alerts, incidents, services, and schedules.
+
+**Wrong region:** If you get connection errors, verify your region setting matches your OpsGenie instance. EU accounts must use the EU region.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Old alerts not appearing:** Check the lookback days setting. Only alerts within the lookback period are synced on the initial run.
+
+**Services/Schedules missing:** Verify these entity types are enabled in the connector settings.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** OpsGenie API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your OpsGenie account has no alerts in the lookback period, the sync will complete with zero documents. Try increasing the lookback period.

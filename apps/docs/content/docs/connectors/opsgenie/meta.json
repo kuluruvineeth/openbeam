@@ -1,0 +1,12 @@
+{
+  "title": "OpsGenie",
+  "icon": "OpsGenie",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

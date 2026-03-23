@@ -105,6 +105,7 @@ export enum AppType {
   ONENOTE = "ONENOTE",
   MIRO = "MIRO",
   DYNAMICS_365 = "DYNAMICS_365",
+  OPSGENIE = "OPSGENIE",
 }
 
 export enum SyncMode {

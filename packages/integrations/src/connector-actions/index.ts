@@ -30,6 +30,7 @@ import { miroActionsRegistry } from "./miro";
 import { mondayActionsRegistry } from "./monday";
 import { notionActionsRegistry } from "./notion";
 import { onenoteActionsRegistry } from "./onenote";
+import { opsgenieActionsRegistry } from "./opsgenie";
 import { outlookActionsRegistry } from "./outlook";
 import { pagerdutyActionsRegistry } from "./pagerduty";
 import { pipedriveActionsRegistry } from "./pipedrive";
@@ -93,4 +94,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   airtableActionsRegistry,
   codaActionsRegistry,
   miroActionsRegistry,
+  opsgenieActionsRegistry,
 ];

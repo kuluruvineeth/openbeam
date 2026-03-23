@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Connect OpsGenie to OpenBeam via API key
+---
+
+# OpsGenie Setup
+
+## Prerequisites
+
+- An OpsGenie account with admin access
+- Access to OpsGenie API key management
+
+## Step 1: Generate an API Key
+
+1. Log into [OpsGenie](https://app.opsgenie.com)
+2. Go to **Settings > Integrations > API** or **Settings > API key management**
+3. Click **Add new API key**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access (Configuration Access and Read Access)
+6. Copy the generated API key
+
+## Step 2: Determine Your Region
+
+OpsGenie has two regions:
+- **US**: `api.opsgenie.com` (default)
+- **EU**: `api.eu.opsgenie.com`
+
+Check your OpsGenie URL. If it contains `.eu.`, select the EU region.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **OpsGenie**
+3. Enter your **API Key** (GenieKey)
+4. Select your **Region** (US or EU)
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your OpsGenie data. The first sync fetches alerts and incidents from the last 90 days (configurable), plus all services and schedules.

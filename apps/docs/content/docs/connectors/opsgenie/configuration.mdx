@@ -1,0 +1,35 @@
+---
+title: Configuration
+description: Configure which OpsGenie data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | OpsGenie GenieKey for authentication | Required |
+| **Region** | US or EU instance region | US |
+| **Sync Services** | Index service catalog entries | Enabled |
+| **Sync Schedules** | Index on-call schedules | Enabled |
+| **Lookback Days** | How far back to sync alerts/incidents | 90 days |
+
+## Region Selection
+
+OpsGenie operates in two regions with separate API endpoints:
+
+| Region | API Base URL |
+|--------|-------------|
+| US | `https://api.opsgenie.com/v2` |
+| EU | `https://api.eu.opsgenie.com/v2` |
+
+Select the region that matches your OpsGenie instance.
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Alerts and incidents are always synced. Services and schedules can be individually disabled to reduce sync time.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches alerts and incidents. Set to 0 to use the default of 90 days. For large OpsGenie accounts, consider starting with a shorter period.

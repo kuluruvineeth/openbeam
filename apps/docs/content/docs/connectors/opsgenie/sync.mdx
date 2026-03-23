@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How OpsGenie data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from OpsGenie:
+
+1. **Alerts** filtered by lookback period, sorted by createdAt
+2. **Incidents** sorted by createdAt
+3. **Services** (if enabled) from the service catalog
+4. **Schedules** (if enabled) with current on-call participants
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use OpsGenie's query filtering with `updatedAt` timestamps to fetch only alerts modified since the last sync. Incidents are filtered client-side by updatedAt comparison.
+
+Services and schedules are always fully re-synced during incremental runs since they change infrequently.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Alerts | Every 15 minutes |
+| Incidents | Every 15 minutes |
+| Services | Every 60 minutes |
+| Schedules | Every 60 minutes |
+
+## Rate Limits
+
+OpsGenie enforces rate limits of approximately 4,150 API calls per account per minute. The connector handles rate limiting with exponential backoff and respects the `X-RateLimit-Period-In-Sec` header.

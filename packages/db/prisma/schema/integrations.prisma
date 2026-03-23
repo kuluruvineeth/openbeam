@@ -145,6 +145,7 @@ enum AppType {
   GURU
   ONENOTE
   DYNAMICS_365
+  OPSGENIE
 }
 
 enum ConnectorStatus {
