@@ -2,31 +2,98 @@
 import type { LogoProps } from "../../types";
 
 export const Logo = ({ size = 32, className }: LogoProps) => (
-  // biome-ignore lint/a11y/noSvgWithoutTitle: This is a logo
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Logo component
   <svg
     className={className}
+    fill="none"
     height={size}
-    viewBox="9.699 9.646 580.301 120.705"
+    viewBox="0 0 48 48"
     width={size}
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <linearGradient
-        gradientUnits="userSpaceOnUse"
-        id="st-grad"
-        x1="50.656"
-        x2="88.708"
-        y1="92.592"
-        y2="51.647"
-      >
-        <stop offset="0" stopColor="#3b6bb2" />
-        <stop offset="1" stopColor="#22b3c1" />
+      <linearGradient id="st-g" x1="0" x2="1" y1="1" y2="0">
+        <stop offset="0" stopColor="#3B6BB2" />
+        <stop offset="1" stopColor="#16B0C0" />
       </linearGradient>
     </defs>
-    <path d="M26.47 26.12h87.757v87.757H26.47z" fill="url(#st-grad)" />
-    <path
-      d="M68.14 10.49c-2.9 0-8.46.156-15.538 1.091-11.051 1.465-21.068 5.378-28.404 12.275-6.897 7.337-10.807 17.351-12.271 28.404-1.402 10.554-1.058 17.742-1.058 17.742s-.344 7.186 1.058 17.742c1.465 11.051 5.374 21.07 12.271 28.404 7.336 6.898 17.353 10.81 28.404 12.275 7.07.938 12.626 1.091 15.53 1.091 1.427 0 2.212-.035 2.212-.035s.786.035 2.215.035c2.9 0 8.46-.153 15.53-1.09 11.053-1.466 21.067-5.378 28.401-12.276 6.898-7.334 10.813-17.353 12.275-28.404 1.4-10.557 1.055-17.742 1.055-17.742s.345-7.187-1.055-17.742c-1.462-11.053-5.377-21.068-12.275-28.404-7.334-6.897-17.347-10.81-28.4-12.275-7.079-.935-12.643-1.091-15.542-1.091-1.422 0-2.204.036-2.204.036s-.783-.036-2.205-.036z"
-      fill="#fefefe"
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="24"
+      x2="24"
+      y1="8"
+      y2="40"
     />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="24"
+      x2="10.2"
+      y1="8"
+      y2="16"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="24"
+      x2="37.8"
+      y1="8"
+      y2="16"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="24"
+      x2="10.2"
+      y1="40"
+      y2="32"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="24"
+      x2="37.8"
+      y1="40"
+      y2="32"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="10.2"
+      x2="10.2"
+      y1="16"
+      y2="32"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="37.8"
+      x2="37.8"
+      y1="16"
+      y2="32"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="10.2"
+      x2="37.8"
+      y1="16"
+      y2="32"
+    />
+    <line
+      stroke="url(#st-g)"
+      strokeWidth="2.5"
+      x1="37.8"
+      x2="10.2"
+      y1="16"
+      y2="32"
+    />
+    <circle cx="24" cy="8" fill="url(#st-g)" r="5" />
+    <circle cx="24" cy="40" fill="url(#st-g)" r="5" />
+    <circle cx="10.2" cy="16" fill="url(#st-g)" r="5" />
+    <circle cx="37.8" cy="16" fill="url(#st-g)" r="5" />
+    <circle cx="10.2" cy="32" fill="url(#st-g)" r="5" />
+    <circle cx="37.8" cy="32" fill="url(#st-g)" r="5" />
   </svg>
 );
