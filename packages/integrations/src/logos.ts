@@ -13,6 +13,7 @@ import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ClickUpLogo } from "./clickup/assets/logo";
+import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
@@ -111,6 +112,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.PAGERDUTY]: PagerDutyLogo,
   [AppType.PIPEDRIVE]: PipedriveLogo,
   [AppType.CLICKUP]: ClickUpLogo,
+  [AppType.CODA]: CodaLogo,
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
   [AppType.S3]: S3Logo,
   [AppType.FRESHSERVICE]: FreshserviceLogo,

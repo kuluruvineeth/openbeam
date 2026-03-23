@@ -101,6 +101,7 @@ export enum AppType {
   GURU = "GURU",
   PIPEDRIVE = "PIPEDRIVE",
   AIRTABLE = "AIRTABLE",
+  CODA = "CODA",
 }
 
 export enum SyncMode {

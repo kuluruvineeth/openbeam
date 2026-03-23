@@ -9,6 +9,7 @@ import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { clickUpApp } from "./clickup/config";
+import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
 import { dropboxApp } from "./dropbox/config";
 import { fhirApp } from "./fhir/config";
@@ -59,6 +60,7 @@ import { zoomApp } from "./zoom/config";
 
 export {
   airtableApp,
+  codaApp,
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
@@ -611,4 +613,5 @@ export const appStore: UnifiedApp[] = [
   greenhouseApp,
   guruApp,
   airtableApp,
+  codaApp,
 ];

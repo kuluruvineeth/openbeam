@@ -22,6 +22,8 @@ import {
   cisaKevIncrementalSync,
   clickUpFullSync,
   clickUpIncrementalSync,
+  codaFullSync,
+  codaIncrementalSync,
   confluenceFullSync,
   confluenceIncrementalSync,
   createAirtableClient,
@@ -35,6 +37,7 @@ import {
   createBitbucketClient,
   createBoxClient,
   createClickUpClient,
+  createCodaClient,
   createDropboxClient,
   createFhirClient,
   createFigmaClient,
@@ -4160,6 +4163,53 @@ export function registerAllSyncFactories(): void {
             includeBases,
             excludeBases,
             syncComments,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "CODA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      if (!apiKey) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key for Coda connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncTables = parseBooleanConfig(config?.sync_tables) !== false;
+      const syncRows = parseBooleanConfig(config?.sync_rows) !== false;
+
+      const client = createCodaClient({ connectorId, apiKey });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? codaFullSync(client, context, { syncTables, syncRows })
+        : codaIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            syncTables,
+            syncRows,
           });
 
       for await (const batch of syncGenerator) {

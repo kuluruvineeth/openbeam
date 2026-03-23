@@ -283,6 +283,21 @@ export {
   transformTask as transformClickUpTask,
   updateTask as updateClickUpTask,
 } from "./clickup";
+export type { CodaClient } from "./coda";
+export {
+  CodaApiError,
+  codaFullSync,
+  codaIncrementalSync,
+  createCodaClient,
+  createCodaDoc,
+  createCodaRow,
+  deleteCodaRow,
+  transformCodaDoc,
+  transformCodaPage,
+  transformCodaRow,
+  transformCodaTable,
+  updateCodaRow,
+} from "./coda";
 export type {
   ConfluenceBlogpost,
   ConfluencePage,
