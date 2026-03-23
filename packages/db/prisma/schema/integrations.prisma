@@ -142,6 +142,7 @@ enum AppType {
   BAMBOOHR
   WORKDAY
   GREENHOUSE
+  GURU
 }
 
 enum ConnectorStatus {

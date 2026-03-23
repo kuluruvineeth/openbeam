@@ -25,6 +25,7 @@ import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleChatLogo } from "./google-chat/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as GreenhouseLogo } from "./greenhouse/assets/logo";
+import { Logo as GuruLogo } from "./guru/assets/logo";
 import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
@@ -113,6 +114,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.BAMBOOHR]: BambooHRLogo,
   [AppType.WORKDAY]: WorkdayLogo,
   [AppType.GREENHOUSE]: GreenhouseLogo,
+  [AppType.GURU]: GuruLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

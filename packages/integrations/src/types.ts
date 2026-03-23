@@ -98,6 +98,7 @@ export enum AppType {
   BAMBOOHR = "BAMBOOHR",
   WORKDAY = "WORKDAY",
   GREENHOUSE = "GREENHOUSE",
+  GURU = "GURU",
 }
 
 export enum SyncMode {

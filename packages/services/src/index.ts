@@ -520,6 +520,18 @@ export {
   transformJob as transformGreenhouseJob,
   transformOffer as transformGreenhouseOffer,
 } from "./greenhouse";
+export type { GuruClient } from "./guru";
+export {
+  createCard as guruCreateCard,
+  createGuruClient,
+  fullSync as guruFullSync,
+  GuruApiError,
+  incrementalSync as guruIncrementalSync,
+  transformCard as transformGuruCard,
+  transformCollection as transformGuruCollection,
+  transformFolder as transformGuruFolder,
+  updateCard as guruUpdateCard,
+} from "./guru";
 export type {
   BatchHealthCheckResult,
   CheckStatus,

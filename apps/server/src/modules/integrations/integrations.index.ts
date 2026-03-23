@@ -20,6 +20,7 @@ import googleCalendar from "./google-calendar/google-calendar.index";
 import googleChat from "./google-chat/google-chat.index";
 import googleDrive from "./google-drive/google-drive.index";
 import greenhouse from "./greenhouse/greenhouse.index";
+import guru from "./guru/guru.index";
 import hubspot from "./hubspot/hubspot.index";
 import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
@@ -85,6 +86,7 @@ integrations.route("/gong", gong);
 integrations.route("/bamboohr", bamboohr);
 integrations.route("/workday", workday);
 integrations.route("/greenhouse", greenhouse);
+integrations.route("/guru", guru);
 
 integrations.get("/health", (c) =>
   c.json({

@@ -1,0 +1,49 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Guru connector
+---
+
+# Guru Troubleshooting
+
+## Authentication Failures
+
+**Symptom:** Connector shows "Invalid credentials or unreachable API"
+
+**Causes:**
+- Incorrect email or API token
+- API token has been revoked
+- Using a Collection Token instead of a User Token
+
+**Fix:** Regenerate a User Token from Guru Settings > API Access and update the connector.
+
+## No Cards Indexed
+
+**Symptom:** Sync completes but no cards appear in search
+
+**Causes:**
+- **Verified Only** is enabled but no cards are verified
+- Collection filters exclude all collections
+- API token lacks access to the target collections
+
+**Fix:** Disable "Verified Only" or check collection filter settings. Ensure the API token user has access to the collections you want to index.
+
+## Rate Limit Errors
+
+**Symptom:** Sync stalls or produces rate limit warnings
+
+**Causes:**
+- Too many concurrent API requests
+- Guru workspace plan has lower rate limits
+
+**Fix:** The connector automatically backs off on 429 responses. If issues persist, increase the sync interval or reduce the scope of synced collections.
+
+## Partial Sync Results
+
+**Symptom:** Some cards are missing from search
+
+**Causes:**
+- Cards in excluded collections
+- Cards created after the lookback window
+- Cards skipped due to transformation errors
+
+**Fix:** Check the sync logs for error counts. Expand the lookback window or remove collection filters.

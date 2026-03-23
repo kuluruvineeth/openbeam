@@ -44,6 +44,7 @@ import {
   createGoogleChatClient,
   createGoogleDriveClient,
   createGreenhouseClient,
+  createGuruClient,
   createHubSpotClient,
   createIntercomClient,
   createLinearClient,
@@ -93,6 +94,8 @@ import {
   googleDriveIncrementalSync,
   greenhouseFullSync,
   greenhouseIncrementalSync,
+  guruFullSync,
+  guruIncrementalSync,
   hubspotFullSync,
   hubspotIncrementalSync,
   intercomFullSync,
@@ -4006,6 +4009,90 @@ export function registerAllSyncFactories(): void {
             syncOffers,
             statusFilter,
             departmentId,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GURU",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const email = config?.email as string | undefined;
+      const apiToken = config?.api_token as string | undefined;
+      if (!(email && apiToken)) {
+        throw ApplicationFailure.nonRetryable(
+          `No credentials for Guru connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncCollections = config?.sync_collections !== false;
+      const syncFolders = config?.sync_folders !== false;
+      const verifiedOnly = config?.verified_only === true;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 365);
+      const includeCollectionsRaw =
+        (config?.include_collections as string) ?? "";
+      const excludeCollectionsRaw =
+        (config?.exclude_collections as string) ?? "";
+      const includeCollections = includeCollectionsRaw
+        ? includeCollectionsRaw
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeCollections = excludeCollectionsRaw
+        ? excludeCollectionsRaw
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      logger.info(
+        { connectorId, syncCollections, syncFolders, verifiedOnly },
+        "Guru sync config loaded"
+      );
+
+      const client = createGuruClient({
+        connectorId,
+        email,
+        apiToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? guruFullSync(client, context, {
+            batchSize: 100,
+            syncCollections,
+            syncFolders,
+            verifiedOnly,
+            lookbackDays,
+            includeCollections,
+            excludeCollections,
+          })
+        : guruIncrementalSync(client, context, {
+            cursor: {
+              lastSyncTime: parseNumericConfig(cursor?.lastSyncTime),
+              lastCardModifiedAt: cursor?.lastCardModifiedAt as
+                | string
+                | undefined,
+            },
+            verifiedOnly,
           });
 
       for await (const batch of syncGenerator) {

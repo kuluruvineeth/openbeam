@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: Configure Guru connector settings and filters
+---
+
+# Guru Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Email** | text | — | Guru account email (required) |
+| **API Token** | password | — | User API token (required) |
+| **Sync Collections** | switch | `true` | Include collections in search |
+| **Sync Folders** | switch | `true` | Include folders in search |
+| **Verified Only** | switch | `false` | Only sync cards with TRUSTED verification state |
+| **Include Collections** | text | — | Comma-separated collection names to include |
+| **Exclude Collections** | text | — | Comma-separated collection names to exclude |
+| **Lookback Days** | text | `365` | Number of days of card history to sync |
+
+## Collection Filtering
+
+Use **Include Collections** to limit sync to specific collections, or **Exclude Collections** to skip certain ones. Names are case-insensitive.
+
+- If both are empty, all collections are synced
+- If **Include** is set, only named collections are synced
+- **Exclude** takes precedence over include
+
+## Verified Only Mode
+
+When enabled, only cards with `verificationState: "TRUSTED"` are indexed. This ensures search results only contain verified, up-to-date knowledge.

@@ -21,6 +21,7 @@ import { googleCalendarApp } from "./google-calendar/config";
 import { googleChatApp } from "./google-chat/config";
 import { googleDriveApp } from "./google-drive/config";
 import { greenhouseApp } from "./greenhouse/config";
+import { guruApp } from "./guru/config";
 import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
 import { jiraApp } from "./jira/config";
@@ -74,6 +75,7 @@ export {
   gmailApp,
   gongApp,
   greenhouseApp,
+  guruApp,
   githubApp,
   gitlabApp,
   googleCalendarApp,
@@ -570,4 +572,5 @@ export const appStore: UnifiedApp[] = [
   bamboohrApp,
   workdayApp,
   greenhouseApp,
+  guruApp,
 ];

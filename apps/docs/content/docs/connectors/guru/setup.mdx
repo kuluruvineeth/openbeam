@@ -1,0 +1,38 @@
+---
+title: Setup
+description: Generate a Guru API token and connect to OpenBeam
+---
+
+# Guru Setup
+
+## Prerequisites
+
+- Guru account with admin access
+- API access enabled on your workspace
+
+## Step 1: Generate an API Token
+
+1. Log in to Guru at [app.getguru.com](https://app.getguru.com)
+2. Click your profile icon and select **Settings**
+3. Navigate to **API Access**
+4. Click **Obtain Token** or **Generate Token**
+5. Copy both your **email** and the generated **API token**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector**
+2. Select **Guru**
+3. Enter your email address and API token
+4. Configure optional settings (collection filters, verified only)
+5. Click **Connect**
+
+## Step 3: Verify Connection
+
+OpenBeam validates the credentials by calling the Guru `/teams` endpoint. If validation succeeds, the connector status changes to **Active** and the initial sync begins.
+
+## Security Notes
+
+- API tokens provide read/write access to your Guru workspace
+- Use a dedicated service account for production deployments
+- Rotate tokens periodically via Guru settings
+- Collection tokens provide read-only access if write access is not needed

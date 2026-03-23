@@ -1,0 +1,40 @@
+---
+title: Guru
+description: Search knowledge cards, collections, and folders from Guru with incremental sync
+---
+
+# Guru
+
+Index knowledge management data from Guru including cards, collections, and folders. Supports Basic authentication (email + API token), Link-header pagination, and incremental sync via lastModified timestamps.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Cards** | Title, HTML content, collection, tags, verification state, owner |
+| **Collections** | Name, description, color, type |
+| **Folders** | Title, collection, card count, subfolder count |
+
+## Authentication
+
+**Method:** Basic Auth (email:token)
+
+**Header:** `Authorization: Basic {base64(email:api_token)}`
+
+Generate a user API token from your Guru account settings.
+
+## Quick Start
+
+1. Generate a user API token in Guru account settings
+2. Add the Guru connector in OpenBeam
+3. Enter your email and API token
+4. Configure sync settings (verified only, collection filters)
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/guru/setup" description="API token generation and connector activation" />
+  <Card title="Features" href="/docs/connectors/guru/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/guru/configuration" description="Filters, lookback period, and entity selection" />
+  <Card title="Sync Behavior" href="/docs/connectors/guru/sync" description="Full sync, incremental sync, and pagination" />
+  <Card title="Troubleshooting" href="/docs/connectors/guru/troubleshooting" description="Common issues and fixes" />
+</Cards>

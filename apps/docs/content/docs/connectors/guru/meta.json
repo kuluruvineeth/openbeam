@@ -1,0 +1,12 @@
+{
+  "title": "Guru",
+  "icon": "Guru",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

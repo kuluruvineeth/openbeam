@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Guru data is synced to OpenBeam
+---
+
+# Guru Sync Behavior
+
+## Full Sync
+
+During a full sync, OpenBeam fetches all content:
+
+1. **Collections** — fetched via `GET /collections`
+2. **Folders** — fetched per collection via `GET /folders?collection={id}`
+3. **Cards** — paginated via `GET /search/cardmgr` with Link-header pagination
+
+Cards are processed in pages. The Guru API uses Link headers with `rel="next-page"` for cursor-based pagination.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs only fetch cards modified since the last sync:
+
+- Uses the `lastModified` query parameter on the card search endpoint
+- Only cards are synced incrementally (collections and folders are static)
+- Falls back to full sync if no previous cursor exists
+
+## Sync Intervals
+
+| Content | Default Interval | Notes |
+|---------|-----------------|-------|
+| Cards | 15 minutes | Primary content, supports incremental |
+| Collections | 60 minutes | Rarely change |
+| Folders | 60 minutes | Rarely change |
+
+## Rate Limiting
+
+The connector respects Guru API rate limits with automatic backoff:
+
+- Monitors `429 Too Many Requests` responses
+- Reads `Retry-After` header for backoff duration
+- Exponential backoff for server errors (5xx)
