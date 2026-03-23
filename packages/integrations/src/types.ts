@@ -92,6 +92,7 @@ export enum AppType {
   PAGERDUTY = "PAGERDUTY",
   CLICKUP = "CLICKUP",
   AZURE_DEVOPS = "AZURE_DEVOPS",
+  S3 = "S3",
 }
 
 export enum SyncMode {

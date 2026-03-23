@@ -38,6 +38,7 @@ import { Logo as OPCUALogo } from "./opcua/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
+import { Logo as S3Logo } from "./s3/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
 import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
@@ -101,6 +102,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.PAGERDUTY]: PagerDutyLogo,
   [AppType.CLICKUP]: ClickUpLogo,
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
+  [AppType.S3]: S3Logo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

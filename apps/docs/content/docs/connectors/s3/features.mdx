@@ -1,0 +1,30 @@
+---
+title: Features
+description: Amazon S3 connector capabilities
+---
+
+# Features
+
+## Object Listing and Metadata Search
+
+Search across all objects in your S3 bucket by file name, path, extension, and size. Object metadata including storage class and ETag is indexed for filtering.
+
+## Prefix-Based Filtering
+
+Focus sync on specific object prefixes (folders). Only objects matching the configured prefix are indexed, reducing noise from large buckets.
+
+## File Type Filtering
+
+Restrict sync to specific file extensions (e.g., pdf, txt, docx). Useful for indexing only document files in buckets that contain mixed content.
+
+## File Size Limits
+
+Skip objects larger than a configurable threshold. Prevents indexing of large binary files that are not useful for search.
+
+## Incremental Sync
+
+After the initial full sync, only objects modified since the last sync are processed. This minimizes API calls and processing time for large buckets.
+
+## Multi-Region Support
+
+Connect to S3 buckets in any supported AWS region including US, EU, Asia Pacific, South America, Canada, Middle East, and Africa regions.

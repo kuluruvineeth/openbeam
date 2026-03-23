@@ -1,0 +1,52 @@
+---
+title: Troubleshooting
+description: Common issues with the Amazon S3 connector
+---
+
+# Troubleshooting
+
+## Authentication Failed
+
+**Symptom:** "Cannot access S3 bucket" error during setup.
+
+**Causes:**
+- Invalid Access Key ID or Secret Access Key
+- IAM user lacks required permissions (`s3:ListBucket`, `s3:GetObject`)
+- Wrong AWS region selected
+- Bucket name is misspelled or does not exist
+- Bucket policy denies access from the IAM user
+
+**Fix:** Verify credentials, check IAM permissions, confirm bucket name and region match.
+
+## No Objects Indexed
+
+**Symptom:** Sync completes but no documents appear in search.
+
+**Causes:**
+- Prefix filter is too restrictive
+- File types filter excludes all objects in the bucket
+- Max file size is set too low
+- Lookback days is too small and no recent objects exist
+- Bucket is empty
+
+**Fix:** Check filter settings. Try removing all filters temporarily to verify objects are accessible.
+
+## Slow Sync
+
+**Symptom:** Full sync takes a long time.
+
+**Causes:**
+- Bucket contains millions of objects
+- Large number of objects match the filters
+
+**Fix:** Use prefix filtering to target specific directories. Consider increasing the sync interval for large buckets.
+
+## Access Denied on Specific Objects
+
+**Symptom:** Some objects fail to index.
+
+**Causes:**
+- Object-level ACLs restrict access
+- Objects encrypted with customer-managed KMS keys the IAM user cannot access
+
+**Fix:** Ensure the IAM policy grants access to all objects in the bucket, including any KMS key permissions needed for encrypted objects.

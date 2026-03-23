@@ -1,0 +1,56 @@
+---
+title: Setup
+description: How to set up the Amazon S3 connector
+---
+
+# Setting Up Amazon S3
+
+## Prerequisites
+
+- An AWS account with an S3 bucket
+- An IAM user or role with S3 read permissions
+- AWS Access Key ID and Secret Access Key
+
+## Step 1: Create IAM Policy
+
+Create a custom IAM policy with the following permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name",
+        "arn:aws:s3:::your-bucket-name/*"
+      ]
+    }
+  ]
+}
+```
+
+Replace `your-bucket-name` with your actual bucket name.
+
+## Step 2: Create IAM User
+
+1. Go to the AWS IAM Console
+2. Create a new IAM user for programmatic access
+3. Attach the policy created in Step 1
+4. Generate an Access Key ID and Secret Access Key
+5. Save the credentials securely
+
+## Step 3: Connect in OpenBeam
+
+1. Navigate to **Connectors** in OpenBeam
+2. Select **Amazon S3**
+3. Enter the Access Key ID and Secret Access Key
+4. Select the AWS region where your bucket is located
+5. Enter the bucket name
+6. Configure any optional filters (prefix, file types, size limits)
+7. Save and start the initial sync

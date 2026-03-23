@@ -808,6 +808,15 @@ export {
   updateQueryEmbedding,
   updateTopicAffinity,
 } from "./personalization";
+export type { S3Client } from "./s3";
+export {
+  createS3Client,
+  fullSync as s3FullSync,
+  incrementalSync as s3IncrementalSync,
+  S3ApiError,
+  transformObject as transformS3Object,
+  transformObjects as transformS3Objects,
+} from "./s3";
 export type {
   SalesforceAccount,
   SalesforceCase,

@@ -25,6 +25,7 @@ import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
 import pagerduty from "./pagerduty/pagerduty.index";
+import s3 from "./s3/s3.index";
 import salesforce from "./salesforce/salesforce.index";
 import samsara from "./samsara/samsara.index";
 import servicenow from "./servicenow/servicenow.index";
@@ -73,6 +74,7 @@ integrations.route("/monday", monday);
 integrations.route("/pagerduty", pagerduty);
 integrations.route("/clickup", clickup);
 integrations.route("/azure-devops", azureDevOps);
+integrations.route("/s3", s3);
 
 integrations.get("/health", (c) =>
   c.json({

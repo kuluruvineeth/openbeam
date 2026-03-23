@@ -1,0 +1,70 @@
+---
+title: Amazon S3
+description: Search across objects and files stored in Amazon S3 buckets
+---
+
+# Amazon S3
+
+Index and search objects stored in Amazon S3 buckets. The connector uses IAM access keys and supports prefix filtering, file type filtering, and incremental sync via LastModified timestamps.
+
+Amazon S3 gives you searchable access to your object storage -- file names, paths, sizes, storage classes, and metadata across your S3 buckets.
+
+## Authentication
+
+**Method:** IAM Access Keys
+
+Provide an AWS Access Key ID and Secret Access Key for an IAM user or role with S3 read permissions.
+
+Required IAM permissions:
+- `s3:ListBucket`
+- `s3:GetObject`
+- `s3:GetBucketLocation`
+
+[AWS S3 security docs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-iam.html)
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Objects** | Key, size, last modified, ETag, content type, storage class | Periodic | 60 min |
+
+Full backfill is supported.
+
+## Setup
+
+1. In the **AWS IAM Console**, create an IAM user or role with the permissions listed above
+2. Generate an **Access Key ID** and **Secret Access Key**
+3. In OpenBeam, add the Amazon S3 connector
+4. Enter the credentials, select the AWS region, and specify the bucket name
+5. Optionally configure prefix filters, file type filters, and size limits
+6. Start the initial sync
+
+## Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| AWS Access Key ID | -- | IAM access key with S3 read permissions (required) |
+| AWS Secret Access Key | -- | Corresponding secret key (required) |
+| AWS Region | us-east-1 | Region where the S3 bucket is located (required) |
+| Bucket Name | -- | Name of the S3 bucket to sync (required) |
+| Prefix Filter | -- | Only sync objects with keys starting with this prefix |
+| Exclude Prefixes | -- | Comma-separated prefixes to skip |
+| File Types Filter | -- | Comma-separated extensions to include (empty = all) |
+| Max File Size (MB) | 100 | Skip objects larger than this size |
+| Lookback Days | 0 | Only sync objects modified within N days (0 = all) |
+
+## Sync Details
+
+**Full sync** lists all objects in the bucket (or matching the prefix filter) and indexes their metadata.
+
+**Incremental sync** lists all objects and filters by LastModified timestamp, only processing objects modified since the last sync.
+
+Objects are filtered by prefix, file extension, and size before indexing. Folder markers (zero-byte keys ending in /) are excluded.
+
+## Related Connectors
+
+<Cards>
+  <Card title="Google Drive" href="/docs/connectors/google-drive" description="Google cloud file storage" />
+  <Card title="Dropbox" href="/docs/connectors/dropbox" description="Dropbox file sync" />
+  <Card title="Box" href="/docs/connectors/box" description="Box enterprise content" />
+</Cards>

@@ -47,6 +47,7 @@ import {
   OPCUAIcon,
   OutlookIcon,
   PagerDutyIcon,
+  S3Icon,
   SalesforceIcon,
   SamsaraIcon,
   SecurityShieldIcon,
@@ -128,6 +129,7 @@ const customIconMap: Record<
   PagerDuty: PagerDutyIcon,
   ClickUp: ClickUpIcon,
   AzureDevOps: AzureDevOpsIcon,
+  S3: S3Icon,
 };
 
 export const source = loader({

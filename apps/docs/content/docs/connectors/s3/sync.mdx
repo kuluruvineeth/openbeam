@@ -1,0 +1,34 @@
+---
+title: Sync
+description: How Amazon S3 sync works
+---
+
+# Sync Behavior
+
+## Full Sync
+
+Full sync uses the `ListObjectsV2` API to enumerate all objects in the bucket. Each page returns up to 1,000 objects with pagination via `ContinuationToken`.
+
+For each object, the following metadata is indexed:
+- **Key** (full path)
+- **File name** (extracted from key)
+- **Size** (formatted as KB/MB/GB)
+- **Storage class** (STANDARD, GLACIER, etc.)
+- **ETag** (content hash)
+- **Last modified** timestamp
+
+Objects are filtered before indexing based on configured prefix, exclude prefixes, file type, size limit, and lookback days.
+
+## Incremental Sync
+
+Incremental sync lists all objects but only processes those with a `LastModified` timestamp after the last sync time. This approach is necessary because S3 does not provide a native delta API.
+
+For buckets with millions of objects, incremental sync still lists all keys but skips transformation and indexing for unchanged objects.
+
+## Rate Limits
+
+S3 supports 5,500 GET requests per second per prefix. The connector uses built-in rate limiting to stay well within these limits.
+
+## Deletion Detection
+
+S3 does not provide a native mechanism for detecting deleted objects during incremental sync. Deleted objects are cleaned up during the next full sync when they no longer appear in the listing.

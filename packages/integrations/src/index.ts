@@ -34,6 +34,7 @@ import { opcuaApp } from "./opcua/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { pagerdutyApp } from "./pagerduty/config";
+import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
 import { servicenowApp } from "./servicenow/config";
@@ -53,6 +54,7 @@ export {
   awsIotApp,
   azureDevOpsApp,
   bitbucketApp,
+  s3App,
   azureIotApp,
   bacnetApp,
   boxApp,
@@ -538,4 +540,5 @@ export const appStore: UnifiedApp[] = [
   pagerdutyApp,
   clickUpApp,
   azureDevOpsApp,
+  s3App,
 ];

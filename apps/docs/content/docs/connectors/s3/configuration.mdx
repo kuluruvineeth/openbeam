@@ -1,0 +1,47 @@
+---
+title: Configuration
+description: Amazon S3 connector configuration options
+---
+
+# Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **AWS Access Key ID** | IAM access key with `s3:ListBucket` and `s3:GetObject` permissions |
+| **AWS Secret Access Key** | Corresponding secret key |
+| **AWS Region** | Region where the S3 bucket is located |
+| **Bucket Name** | Name of the S3 bucket to sync |
+
+## Optional Settings
+
+### Prefix Filter
+
+Only sync objects whose keys start with this prefix. Useful for targeting a specific "folder" within a bucket.
+
+**Example:** `documents/` syncs only objects under the `documents/` prefix.
+
+### Exclude Prefixes
+
+Comma-separated list of prefixes to exclude from sync. Objects matching any excluded prefix are skipped.
+
+**Example:** `tmp/,logs/,backups/` excludes temporary files, logs, and backups.
+
+### File Types Filter
+
+Comma-separated list of file extensions to include. When set, only objects with matching extensions are synced. Leave empty to sync all file types.
+
+**Example:** `pdf,txt,docx,csv,json` syncs only these document types.
+
+### Max File Size (MB)
+
+Skip objects larger than this size in megabytes. Default is 100 MB.
+
+### Lookback Days
+
+Only sync objects modified within this many days. Set to 0 (default) to sync all objects regardless of age.
+
+## Supported Regions
+
+US East (N. Virginia), US East (Ohio), US West (N. California), US West (Oregon), EU (Ireland), EU (London), EU (Paris), EU (Frankfurt), EU (Stockholm), Asia Pacific (Tokyo), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Mumbai), South America (Sao Paulo), Canada (Central), Middle East (Bahrain), Africa (Cape Town).

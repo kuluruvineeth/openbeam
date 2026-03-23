@@ -6,6 +6,7 @@
     "slack",
     "gmail",
     "google-drive",
+    "s3",
     "dropbox",
     "box",
     "google-calendar",
