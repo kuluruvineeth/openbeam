@@ -138,6 +138,7 @@ enum AppType {
   PAGERDUTY
   AZURE_DEVOPS
   FRESHSERVICE
+  GONG
 }
 
 enum ConnectorStatus {

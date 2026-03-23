@@ -1,0 +1,40 @@
+---
+title: Troubleshooting
+description: Common issues with the Gong connector
+---
+
+# Troubleshooting
+
+## Authentication Failures
+
+**"Cannot connect to Gong"**
+
+- Verify the access key and secret are correct
+- Ensure API access is enabled in Gong admin settings
+- Check that the API key has not been revoked or expired
+
+## Rate Limiting
+
+**Sync is slow or pausing frequently**
+
+Gong enforces strict rate limits (3 requests/second, 10,000/day). If you have a large call library:
+
+- Increase the lookback window gradually
+- Disable transcript sync for the initial import, then re-enable
+- Contact Gong support to request higher API limits
+
+## Missing Transcripts
+
+**Calls appear but transcripts are empty**
+
+- Verify the Gong API key has transcript read permissions
+- Check that transcript processing is complete in Gong (transcripts are generated asynchronously)
+- Ensure the "Sync Transcripts" setting is enabled
+
+## Incomplete Sync
+
+**Not all calls are appearing**
+
+- Check the lookback days setting -- calls older than this window are excluded
+- Verify the call direction filter is not excluding calls unintentionally
+- Check the connector sync history for error details

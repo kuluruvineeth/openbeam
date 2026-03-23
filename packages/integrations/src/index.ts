@@ -15,6 +15,7 @@ import { freshserviceApp } from "./freshservice/config";
 import { githubApp } from "./github/config";
 import { gitlabApp } from "./gitlab/config";
 import { gmailApp } from "./gmail/config";
+import { gongApp } from "./gong/config";
 import { googleCalendarApp } from "./google-calendar/config";
 import { googleChatApp } from "./google-chat/config";
 import { googleDriveApp } from "./google-drive/config";
@@ -67,6 +68,7 @@ export {
   fhirApp,
   freshserviceApp,
   gmailApp,
+  gongApp,
   githubApp,
   gitlabApp,
   googleCalendarApp,
@@ -544,4 +546,5 @@ export const appStore: UnifiedApp[] = [
   azureDevOpsApp,
   s3App,
   freshserviceApp,
+  gongApp,
 ];

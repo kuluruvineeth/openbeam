@@ -14,6 +14,7 @@ import freshservice from "./freshservice/freshservice.index";
 import github from "./github/github.index";
 import gitlab from "./gitlab/gitlab.index";
 import gmail from "./gmail/gmail.index";
+import gong from "./gong/gong.index";
 import googleCalendar from "./google-calendar/google-calendar.index";
 import googleChat from "./google-chat/google-chat.index";
 import googleDrive from "./google-drive/google-drive.index";
@@ -77,6 +78,7 @@ integrations.route("/clickup", clickup);
 integrations.route("/azure-devops", azureDevOps);
 integrations.route("/s3", s3);
 integrations.route("/freshservice", freshservice);
+integrations.route("/gong", gong);
 
 integrations.get("/health", (c) =>
   c.json({

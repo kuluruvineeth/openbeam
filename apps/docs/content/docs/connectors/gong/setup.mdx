@@ -1,0 +1,40 @@
+---
+title: Setup
+description: How to set up the Gong connector
+---
+
+# Setting Up Gong
+
+## Prerequisites
+
+- A Gong account with API access enabled
+- Admin access to generate API credentials
+- Gong Technical Administrator or API scope permissions
+
+## Step 1: Enable API Access
+
+1. Log in to Gong as an administrator
+2. Navigate to **Company Settings** > **Ecosystem** > **API**
+3. Enable API access for your organization
+
+## Step 2: Generate API Credentials
+
+1. In the API settings page, create a new API key
+2. Note down the **Access Key** and **Access Key Secret**
+3. Store the credentials securely -- the secret is shown only once
+
+## Step 3: Connect in OpenBeam
+
+1. Navigate to **Connectors** in OpenBeam
+2. Select **Gong**
+3. Enter the Access Key and Access Key Secret
+4. Configure sync options (transcript indexing, lookback window)
+5. Save and start the initial sync
+
+## Verifying the Connection
+
+After saving, OpenBeam validates your credentials by making a test API call. If validation fails, verify:
+
+- The access key and secret are correct
+- API access is enabled in Gong admin settings
+- The API key has the required scopes

@@ -12,6 +12,7 @@ import { freshserviceActionsRegistry } from "./freshservice";
 import { githubActionsRegistry } from "./github";
 import { gitlabActionsRegistry } from "./gitlab";
 import { gmailActionsRegistry } from "./gmail";
+import { gongActionsRegistry } from "./gong";
 import { googleCalendarActionsRegistry } from "./google-calendar";
 import { googleChatActionsRegistry } from "./google-chat";
 import { googleDriveActionsRegistry } from "./google-drive";
@@ -73,4 +74,5 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   azureDevOpsActionsRegistry,
   s3ActionsRegistry,
   freshserviceActionsRegistry,
+  gongActionsRegistry,
 ];

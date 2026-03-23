@@ -31,6 +31,7 @@ import {
   GitHubIcon,
   GitLabIcon,
   GmailIcon,
+  GongIcon,
   GoogleCalendarIcon,
   GoogleChatIcon,
   GoogleDriveIcon,
@@ -132,6 +133,7 @@ const customIconMap: Record<
   ClickUp: ClickUpIcon,
   AzureDevOps: AzureDevOpsIcon,
   S3: S3Icon,
+  Gong: GongIcon,
 };
 
 export const source = loader({

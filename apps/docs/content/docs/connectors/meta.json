@@ -51,6 +51,7 @@
     "pagerduty",
     "clickup",
     "azure-devops",
-    "freshservice"
+    "freshservice",
+    "gong"
   ]
 }

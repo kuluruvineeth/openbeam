@@ -1,0 +1,37 @@
+---
+title: Configuration
+description: Gong connector configuration options
+---
+
+# Configuration
+
+## Authentication Settings
+
+| Setting | Required | Description |
+|---------|----------|-------------|
+| **Access Key** | Yes | Gong API access key from admin settings |
+| **Access Key Secret** | Yes | Paired secret for the access key |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Sync Transcripts** | Enabled | Index full call transcripts with speaker attribution |
+| **Lookback Days** | 90 | Only sync calls from the last N days |
+| **Call Direction Filter** | Empty (all) | Filter by `Inbound` or `Outbound` |
+
+## Transcript Sync
+
+When enabled, the connector fetches the full transcript for each call. This includes:
+
+- Speaker-attributed text segments
+- Timestamp markers
+- Topic annotations (when available)
+
+Disabling transcript sync reduces API calls and sync time but limits search to call metadata only.
+
+## Lookback Window
+
+Controls how far back the initial full sync reaches. Set to `0` to sync all available calls (may be slow for large accounts).
+
+For incremental syncs, only calls since the last sync timestamp are fetched regardless of this setting.

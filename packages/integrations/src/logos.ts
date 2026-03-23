@@ -19,6 +19,7 @@ import { Logo as FreshserviceLogo } from "./freshservice/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GitLabLogo } from "./gitlab/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
+import { Logo as GongLogo } from "./gong/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleChatLogo } from "./google-chat/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
@@ -105,6 +106,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
   [AppType.S3]: S3Logo,
   [AppType.FRESHSERVICE]: FreshserviceLogo,
+  [AppType.GONG]: GongLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

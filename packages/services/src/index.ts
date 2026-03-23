@@ -432,6 +432,15 @@ export {
   validateGmailWebhook,
   verifyPubSubToken,
 } from "./gmail";
+export type { GongClient } from "./gong";
+export {
+  createGongClient,
+  fullSync as gongFullSync,
+  GongApiError,
+  incrementalSync as gongIncrementalSync,
+  transformCall as transformGongCall,
+  transformCalls as transformGongCalls,
+} from "./gong";
 export type {
   CalendarEvent,
   CalendarListEntry,

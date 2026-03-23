@@ -1,0 +1,47 @@
+---
+title: Gong
+description: Search across sales calls, transcripts, and conversation intelligence from Gong
+---
+
+# Gong
+
+Index and search sales calls, transcripts, and participant metadata from Gong. The connector uses API key authentication (access key + secret) and supports date-range incremental sync with full transcript indexing.
+
+Gong gives you searchable access to your entire conversation intelligence library -- call recordings, transcripts with speaker attribution, participant details, and call metadata.
+
+## Authentication
+
+**Method:** API Key (Basic Auth)
+
+Provide a Gong access key and access key secret from your Gong admin settings.
+
+Required API scopes:
+- `api:calls:read:basic`
+- `api:calls:read:extensive`
+- `api:calls:read:transcript`
+- `api:users:read`
+
+[Gong API access docs](https://help.gong.io/docs/receive-access-to-the-api)
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Calls** | Title, date, duration, direction, participants, disposition, purpose | Periodic | 60 min |
+| **Transcripts** | Full call transcript with speaker attribution and timestamps | Periodic | 60 min |
+
+## Key Features
+
+- Full-text search across call transcripts
+- Speaker-attributed transcript segments
+- Participant metadata (name, email, title, affiliation)
+- Call direction filtering (inbound/outbound)
+- Configurable lookback window
+- Date-range incremental sync
+
+## Limitations
+
+- Gong API rate limits: 3 requests/second, 10,000/day
+- Transcript availability depends on Gong plan
+- No webhook support (polling-based sync only)
+- Read-only connector (no write operations)

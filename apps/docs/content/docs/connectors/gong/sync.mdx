@@ -1,0 +1,37 @@
+---
+title: Sync
+description: How Gong data sync works
+---
+
+# Sync Behavior
+
+## Full Sync
+
+On initial connection, OpenBeam performs a full sync of all calls within the configured lookback window (default: 90 days).
+
+The sync process:
+
+1. Fetches all calls via the Gong Extensive API
+2. Optionally fetches transcripts for each call batch
+3. Transforms calls and transcripts into searchable documents
+4. Indexes documents for full-text search
+
+## Incremental Sync
+
+After the initial sync, OpenBeam uses date-range filtering to fetch only calls that occurred since the last sync.
+
+- Uses the `fromDateTime` parameter on the Gong API
+- Only new or updated calls are processed
+- Runs on the configured interval (default: 60 minutes)
+
+## Pagination
+
+The Gong API returns up to 100 records per page with cursor-based pagination. OpenBeam handles pagination automatically, following cursors until all records are fetched.
+
+## Rate Limiting
+
+Gong enforces API rate limits (3 requests/second, 10,000/day). The connector respects these limits with:
+
+- Pre-request rate limit checking via Redis
+- Automatic backoff on 429 responses
+- Retry-After header compliance

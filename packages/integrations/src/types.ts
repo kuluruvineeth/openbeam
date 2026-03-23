@@ -94,6 +94,7 @@ export enum AppType {
   AZURE_DEVOPS = "AZURE_DEVOPS",
   S3 = "S3",
   FRESHSERVICE = "FRESHSERVICE",
+  GONG = "GONG",
 }
 
 export enum SyncMode {

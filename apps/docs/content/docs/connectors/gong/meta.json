@@ -1,0 +1,12 @@
+{
+  "title": "Gong",
+  "icon": "Gong",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
+}

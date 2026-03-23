@@ -36,6 +36,7 @@ import {
   createGitHubClient,
   createGitLabClient,
   createGmailClient,
+  createGongClient,
   createGoogleCalendarClient,
   createGoogleChatClient,
   createGoogleDriveClient,
@@ -78,6 +79,8 @@ import {
   gitlabFullSync,
   gitlabIncrementalSync,
   gmailIncrementalSync,
+  gongFullSync,
+  gongIncrementalSync,
   googleCalendarFullSync,
   googleCalendarIncrementalSync,
   googleChatFullSync,
@@ -3739,6 +3742,66 @@ export function registerAllSyncFactories(): void {
         : freshserviceIncrementalSync(client, context, {
             cursor,
             batchSize: 100,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GONG",
+    async function* (connectorId, connector, cursor, syncType) {
+      const config = connector.config as Record<string, unknown> | null;
+      const accessKey = config?.access_key as string | undefined;
+      const accessKeySecret = config?.access_key_secret as string | undefined;
+      if (!(accessKey && accessKeySecret)) {
+        throw ApplicationFailure.nonRetryable(
+          `Missing Gong API credentials for connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncTranscripts = config?.sync_transcripts !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+      const callDirectionFilter =
+        (config?.call_direction_filter as string) ?? "";
+
+      logger.info(
+        { connectorId, syncTranscripts, lookbackDays, callDirectionFilter },
+        "Gong sync config loaded"
+      );
+
+      const client = createGongClient({
+        connectorId,
+        accessKey,
+        accessKeySecret,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        syncTranscripts,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? gongFullSync(client, context, {
+            lookbackDays,
+            callDirectionFilter,
+          })
+        : gongIncrementalSync(client, context, {
+            lastSyncTime:
+              parseNumericConfig(cursor?.lastSyncTime) ?? Date.now(),
+            callDirectionFilter,
           });
 
       for await (const batch of syncGenerator) {
