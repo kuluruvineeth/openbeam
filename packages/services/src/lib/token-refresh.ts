@@ -13,6 +13,7 @@ import {
   boxApp,
   dropboxApp,
   hubspotApp,
+  pipedriveApp,
   refreshAsanaToken,
   refreshBitbucketToken,
   refreshBoxToken,
@@ -30,6 +31,7 @@ import {
   refreshLinearToken,
   refreshMicrosoftCalendarToken,
   refreshOutlookToken,
+  refreshPipedriveToken,
   refreshSalesforceToken,
   refreshServiceNowToken,
   refreshSharePointToken,
@@ -435,6 +437,28 @@ export async function refreshConnectorToken(
           accessToken: wdResult.accessToken,
           expiresIn: wdResult.expiresIn,
           refreshToken: wdResult.refreshToken,
+        };
+        break;
+      }
+
+      case "PIPEDRIVE": {
+        const pdConfig =
+          pipedriveApp.auth.type === "OAUTH2"
+            ? pipedriveApp.auth.config
+            : undefined;
+        if (!pdConfig) {
+          throw new Error("Pipedrive OAuth config not found");
+        }
+        const pdResult = await refreshPipedriveToken({
+          config: pdConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: pdResult.accessToken,
+          expiresIn: pdResult.expiresIn,
+          refreshToken: pdResult.refreshToken,
         };
         break;
       }

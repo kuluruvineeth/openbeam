@@ -1,0 +1,33 @@
+---
+title: Setup
+description: Connect Pipedrive to OpenBeam via OAuth 2.0
+---
+
+# Pipedrive Setup
+
+## Prerequisites
+
+- A Pipedrive account with admin access
+- Access to the Pipedrive Marketplace Manager
+
+## Step 1: Create a Marketplace App
+
+1. Go to [Pipedrive Marketplace Manager](https://app.pipedrive.com/marketplace-manager)
+2. Click **Create new app** and select **Custom app**
+3. Under **OAuth & Access Scopes**, add the callback URL:
+   ```
+   https://your-openbeam-domain.com/connectors/setup/pipedrive/oauth/callback
+   ```
+4. Note your **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Pipedrive**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+5. Authorize access in Pipedrive
+
+## Step 3: Initial Sync
+
+After authorization, OpenBeam will automatically run a full sync of your Pipedrive data. The first sync may take several minutes depending on data volume.

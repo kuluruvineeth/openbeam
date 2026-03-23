@@ -31,7 +31,8 @@ type IntegrationName =
   | "monday"
   | "clickup"
   | "azure-devops"
-  | "workday";
+  | "workday"
+  | "pipedrive";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -161,6 +162,11 @@ const INTEGRATION_HANDLERS: Record<
     ),
   workday: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/workday/callback", {
+      code,
+      state,
+    }),
+  pipedrive: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/pipedrive/callback", {
       code,
       state,
     }),

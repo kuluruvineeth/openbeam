@@ -1,0 +1,12 @@
+{
+  "title": "Pipedrive",
+  "icon": "Pipedrive",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

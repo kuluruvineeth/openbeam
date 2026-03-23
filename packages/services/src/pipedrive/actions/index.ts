@@ -1,0 +1,8 @@
+export type { RecordActionResult } from "./records";
+export {
+  createPipedriveActivity,
+  createPipedriveDeal,
+  createPipedriveNote,
+  createPipedrivePerson,
+  updatePipedriveDeal,
+} from "./records";

@@ -99,6 +99,7 @@ export enum AppType {
   WORKDAY = "WORKDAY",
   GREENHOUSE = "GREENHOUSE",
   GURU = "GURU",
+  PIPEDRIVE = "PIPEDRIVE",
 }
 
 export enum SyncMode {

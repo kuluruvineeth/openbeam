@@ -867,6 +867,32 @@ export {
   updateQueryEmbedding,
   updateTopicAffinity,
 } from "./personalization";
+export type {
+  PipedriveActivity,
+  PipedriveClient,
+  PipedriveDeal,
+  PipedriveNote,
+  PipedriveOrganization,
+  PipedrivePerson,
+  PipedriveRecordActionResult,
+} from "./pipedrive";
+export {
+  createPipedriveActivity,
+  createPipedriveClient,
+  createPipedriveDeal,
+  createPipedriveNote,
+  createPipedrivePerson,
+  PipedriveApiError,
+  PipedriveAuth,
+  pipedriveFullSync,
+  pipedriveIncrementalSync,
+  transformPipedriveActivity,
+  transformPipedriveDeal,
+  transformPipedriveNote,
+  transformPipedriveOrganization,
+  transformPipedrivePerson,
+  updatePipedriveDeal,
+} from "./pipedrive";
 export type { S3Client } from "./s3";
 export {
   createS3Client,

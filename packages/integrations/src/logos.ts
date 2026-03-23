@@ -43,6 +43,7 @@ import { Logo as OPCUALogo } from "./opcua/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
+import { Logo as PipedriveLogo } from "./pipedrive/assets/logo";
 import { Logo as S3Logo } from "./s3/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
@@ -106,6 +107,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.ZOOM]: ZoomLogo,
   [AppType.MONDAY]: MondayLogo,
   [AppType.PAGERDUTY]: PagerDutyLogo,
+  [AppType.PIPEDRIVE]: PipedriveLogo,
   [AppType.CLICKUP]: ClickUpLogo,
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
   [AppType.S3]: S3Logo,

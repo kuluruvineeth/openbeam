@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How Pipedrive data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Pipedrive using paginated API calls:
+
+1. **Deals** (all or filtered by pipeline)
+2. **Persons** (contacts)
+3. **Organizations** (if enabled)
+4. **Activities** (if enabled)
+5. **Notes** (if enabled)
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the Pipedrive `/recents` API endpoint with a `since_timestamp` parameter to fetch only items modified since the last sync.
+
+If the incremental sync fails (e.g., timestamp too old), OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Deals | Every 15 minutes |
+| Persons | Every 30 minutes |
+| Organizations | Every 30 minutes |
+| Activities | Every 15 minutes |
+| Notes | Every 30 minutes |
+
+## Rate Limits
+
+Pipedrive enforces rate limits of 80 requests per 2 seconds (Standard plan). The connector automatically handles rate limiting with exponential backoff.

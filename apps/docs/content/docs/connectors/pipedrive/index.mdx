@@ -1,0 +1,41 @@
+---
+title: Pipedrive
+description: Search deals, contacts, organizations, activities, and notes from Pipedrive CRM
+---
+
+# Pipedrive
+
+Index CRM data from Pipedrive including deals, persons (contacts), organizations, activities, and notes. Supports OAuth 2.0 with timestamp-based incremental sync via the recents API.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Deals** | Title, value, currency, stage, pipeline, status, owner |
+| **Persons** | Name, email, phone, organization, owner |
+| **Organizations** | Name, address, people count, owner |
+| **Activities** | Subject, type, due date, notes, done status |
+| **Notes** | Content, linked deal/person/organization |
+
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `deals:read`, `contacts:read`, `activities:read`
+
+Create an app in the [Pipedrive Marketplace](https://app.pipedrive.com/marketplace-manager) and configure the OAuth settings.
+
+## Quick Start
+
+1. Create a Marketplace app in Pipedrive
+2. Configure the OAuth redirect URL
+3. Add the Pipedrive connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/pipedrive/setup" description="Marketplace app creation and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/pipedrive/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/pipedrive/configuration" description="Entity selection, pipeline filtering, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/pipedrive/sync" description="Full sync, incremental sync via recents API" />
+  <Card title="Troubleshooting" href="/docs/connectors/pipedrive/troubleshooting" description="Common issues and fixes" />
+</Cards>

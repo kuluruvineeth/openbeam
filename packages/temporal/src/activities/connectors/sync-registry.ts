@@ -59,6 +59,7 @@ import {
   createOpcUaClient,
   createOwaspClient,
   createPagerDutyClient,
+  createPipedriveClient,
   createS3Client,
   createSalesforceClient,
   createSamsaraClient,
@@ -127,6 +128,8 @@ import {
   owaspFullSync,
   pagerdutyFullSync,
   pagerdutyIncrementalSync,
+  pipedriveFullSync,
+  pipedriveIncrementalSync,
   s3FullSync,
   s3IncrementalSync,
   salesforceFullSync,
@@ -4093,6 +4096,82 @@ export function registerAllSyncFactories(): void {
                 | undefined,
             },
             verifiedOnly,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "PIPEDRIVE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const companyDomain = (config?.companyDomain as string) ?? "";
+      const syncActivities = config?.sync_activities !== false;
+      const syncNotes = config?.sync_notes !== false;
+      const syncOrganizations = config?.sync_organizations !== false;
+      const pipelineFilterStr = (config?.pipeline_filter as string) ?? "";
+      const pipelineFilter = pipelineFilterStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map(Number)
+        .filter((n) => !Number.isNaN(n));
+
+      if (!companyDomain) {
+        throw ApplicationFailure.nonRetryable(
+          "Pipedrive companyDomain not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info(
+        { connectorId, companyDomain },
+        "Pipedrive sync config loaded"
+      );
+
+      const client = createPipedriveClient({
+        connectorId,
+        accessToken,
+        companyDomain,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        companyDomain,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? pipedriveFullSync(client, context, {
+            batchSize: 100,
+            syncActivities,
+            syncNotes,
+            syncOrganizations,
+            pipelineFilter,
+          })
+        : pipedriveIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncActivities,
+            syncNotes,
+            syncOrganizations,
+            pipelineFilter,
           });
 
       for await (const batch of syncGenerator) {

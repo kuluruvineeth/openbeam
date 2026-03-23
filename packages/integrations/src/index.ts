@@ -39,6 +39,7 @@ import { opcuaApp } from "./opcua/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { pagerdutyApp } from "./pagerduty/config";
+import { pipedriveApp } from "./pipedrive/config";
 import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
@@ -98,6 +99,7 @@ export {
   outlookApp,
   owaspApp,
   pagerdutyApp,
+  pipedriveApp,
   salesforceApp,
   samsaraApp,
   servicenowApp,
@@ -422,6 +424,22 @@ export {
   refreshOutlookToken,
 } from "./outlook/oauth";
 export type {
+  ExchangePipedriveCodeParams,
+  GeneratePipedriveAuthUrlParams,
+  PipedriveOAuthResult,
+  PipedriveTokenResponse,
+  PipedriveUserInfo,
+  RefreshPipedriveTokenParams,
+  RefreshPipedriveTokenResult,
+} from "./pipedrive";
+export {
+  exchangePipedriveCode,
+  generatePipedriveAuthUrl,
+  PIPEDRIVE_TOKEN_LIFETIME_SECONDS,
+  PipedriveOAuthError,
+  refreshPipedriveToken,
+} from "./pipedrive";
+export type {
   ExchangeSalesforceCodeParams,
   GenerateSalesforceAuthUrlParams,
   RefreshSalesforceTokenParams,
@@ -564,6 +582,7 @@ export const appStore: UnifiedApp[] = [
   bitbucketApp,
   mondayApp,
   pagerdutyApp,
+  pipedriveApp,
   clickUpApp,
   azureDevOpsApp,
   s3App,
