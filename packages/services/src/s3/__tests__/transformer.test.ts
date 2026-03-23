@@ -130,8 +130,8 @@ describe("transformObject", () => {
     const docs = await transformObjects(objects, context);
 
     expect(docs).toHaveLength(2);
-    expect(docs[0].title).toBe("a.txt");
-    expect(docs[1].title).toBe("b.pdf");
+    expect(docs[0]?.title).toBe("a.txt");
+    expect(docs[1]?.title).toBe("b.pdf");
   });
 
   it("produces deterministic checksum for identical content", async () => {
