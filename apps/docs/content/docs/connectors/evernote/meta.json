@@ -1,0 +1,12 @@
+{
+  "title": "Evernote",
+  "icon": "Evernote",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

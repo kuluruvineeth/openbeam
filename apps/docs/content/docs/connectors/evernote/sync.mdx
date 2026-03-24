@@ -1,0 +1,39 @@
+---
+title: Sync Behavior
+description: How Evernote data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Evernote:
+
+1. **Notebooks** listed via the notebooks endpoint
+2. **Notes** with content fetched per-note for ENML extraction
+3. **Tags** (if enabled) from the tags endpoint
+
+Results are streamed in batches to minimize memory usage. Each note's ENML content is fetched individually and stripped to plain text.
+
+## Incremental Sync
+
+Subsequent syncs use Evernote's update sequence number (USN) tracking and date-based filtering:
+
+- Notes are queried with an `updated:YYYYMMDD` search filter based on the last sync timestamp
+- Each note's update timestamp is compared client-side to skip already-synced items
+- Tags are compared by USN to detect new or modified tags
+- Notebooks are checked by `serviceUpdated` timestamp
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Notes | Every 15 minutes |
+| Notebooks | Every 60 minutes |
+| Tags | Every 60 minutes |
+
+## Rate Limits
+
+Evernote enforces a rate limit of 200 API calls per hour per developer token. The connector handles rate limiting with exponential backoff and quota-based waiting.

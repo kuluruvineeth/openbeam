@@ -1,0 +1,33 @@
+---
+title: Configuration
+description: Configure which Evernote data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Developer Token** | Evernote developer token for authentication | Required |
+| **Environment** | Production or Sandbox | Production |
+| **Sync Tags** | Index tag entities | Enabled |
+| **Lookback Days** | How far back to sync notes | 0 (all) |
+| **Notebook Filter** | Comma-separated notebook names to sync | Empty (all) |
+
+## Environment Selection
+
+Evernote provides two environments:
+
+| Environment | API Base URL | Use Case |
+|-------------|-------------|----------|
+| Production | `api.evernote.com` | Real account data |
+| Sandbox | `sandbox.evernote.com` | Testing and development |
+
+## Notebook Filtering
+
+Use the notebook filter to limit which notebooks are synced. Enter a comma-separated list of notebook names. Leave empty to sync all notebooks.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches notes. Set to 0 to sync all notes regardless of age. For accounts with large note histories, consider starting with a shorter period.

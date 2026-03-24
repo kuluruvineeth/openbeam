@@ -150,6 +150,7 @@ enum AppType {
   DOCUSIGN
   CANVA
   EGNYTE
+  EVERNOTE
 }
 
 enum ConnectorStatus {

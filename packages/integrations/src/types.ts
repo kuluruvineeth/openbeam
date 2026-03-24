@@ -111,6 +111,7 @@ export enum AppType {
   MARKETO = "MARKETO",
   CANVA = "CANVA",
   EGNYTE = "EGNYTE",
+  EVERNOTE = "EVERNOTE",
 }
 
 export enum SyncMode {

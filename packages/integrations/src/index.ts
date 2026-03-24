@@ -17,6 +17,7 @@ import { docuSignApp } from "./docusign/config";
 import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
 import { egnyteApp } from "./egnyte/config";
+import { evernoteApp } from "./evernote/config";
 import { fhirApp } from "./fhir/config";
 import { figmaApp } from "./figma/config";
 import { freshserviceApp } from "./freshservice/config";
@@ -75,6 +76,7 @@ export {
   docuSignApp,
   dynamics365App,
   egnyteApp,
+  evernoteApp,
   miroApp,
   onenoteApp,
   opsgenieApp,
@@ -735,4 +737,5 @@ export const appStore: UnifiedApp[] = [
   marketoApp,
   canvaApp,
   egnyteApp,
+  evernoteApp,
 ];

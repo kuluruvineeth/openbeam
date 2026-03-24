@@ -1,0 +1,38 @@
+---
+title: Troubleshooting
+description: Common Evernote connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid developer token:** Verify your token is correct and has not expired. Re-generate from dev.evernote.com if needed.
+
+**403 Forbidden:** The developer token may have been revoked or the account suspended. Generate a new token.
+
+**Wrong environment:** If you get connection errors, verify your environment setting matches where your token was generated. Sandbox tokens only work with the sandbox API.
+
+## Rate Limiting
+
+**429 Too Many Requests:** Evernote allows 200 API calls per hour. The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of notebooks being synced via the notebook filter.
+
+## Missing Data
+
+**Old notes not appearing:** Check the lookback days setting. Only notes updated within the lookback period are synced on the initial run (0 = all notes).
+
+**Tags missing:** Verify the "Sync Tags" toggle is enabled in connector settings.
+
+**Specific notebooks missing:** Check the notebook filter setting. If set, only listed notebooks are synced.
+
+## Content Issues
+
+**Note content empty:** Some notes may fail content extraction if they use unsupported ENML features or contain only media attachments. The note title and metadata are still indexed.
+
+**Garbled text:** The ENML-to-text conversion strips all markup. If notes rely heavily on formatting for meaning, some context may be lost in the plain text extraction.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Evernote API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.

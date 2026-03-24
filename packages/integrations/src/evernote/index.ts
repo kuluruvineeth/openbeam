@@ -1,0 +1,1 @@
+export { evernoteApp } from "./config";

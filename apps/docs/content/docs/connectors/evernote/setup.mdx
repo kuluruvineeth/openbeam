@@ -1,0 +1,33 @@
+---
+title: Setup
+description: Connect Evernote to OpenBeam via developer token
+---
+
+# Evernote Setup
+
+## Prerequisites
+
+- An Evernote account (Basic, Premium, or Business)
+- Access to the Evernote developer portal
+
+## Step 1: Generate a Developer Token
+
+1. Visit [dev.evernote.com](https://dev.evernote.com/get-api-key)
+2. Sign in with your Evernote account
+3. Navigate to the developer token section
+4. Click **Create a developer token**
+5. Copy the generated token
+
+For testing, you can use the sandbox environment at sandbox.evernote.com.
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Evernote**
+3. Enter your **Developer Token**
+4. Select the **Environment** (Production or Sandbox)
+5. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Evernote data. The first sync fetches all notebooks, then all notes with their content, and optionally all tags.

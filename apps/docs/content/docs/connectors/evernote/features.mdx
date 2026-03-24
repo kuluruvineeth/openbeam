@@ -1,0 +1,37 @@
+---
+title: Features
+description: What Evernote data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Notes
+Full-text search across note titles and content. ENML (Evernote Markup Language) is stripped to plain text, preserving structure like lists and todos. Metadata includes notebook, tags, author, source URL, and content length.
+
+### Notebooks
+Notebook names and stack grouping. Useful for understanding organizational structure and filtering search results by notebook.
+
+### Tags
+Tag names with parent-child hierarchy. Tags are indexed as standalone entities and also attached as metadata to notes.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Note** | Create a new note with title, content, notebook, and tags |
+| **Update Note** | Update an existing note's title, content, or tags |
+| **Delete Note** | Move a note to the trash |
+
+## Content Processing
+
+Evernote stores note content in ENML, a subset of XHTML. The connector strips ENML tags and converts the content to plain text:
+
+- HTML tags are removed
+- Todo checkboxes are converted to `[ ]` and `[x]` markers
+- Line breaks and paragraph boundaries are preserved
+- Media attachments are referenced but not indexed
+- HTML entities are decoded

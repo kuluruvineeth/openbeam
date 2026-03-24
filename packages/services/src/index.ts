@@ -481,6 +481,20 @@ export {
   isRetryableError,
   normalizeApiError,
 } from "./errors";
+export type { EvernoteClient } from "./evernote";
+export {
+  createEvernoteClient,
+  createNote as createEvernoteNote,
+  deleteNote as deleteEvernoteNote,
+  EvernoteApiError,
+  evernoteFullSync,
+  evernoteIncrementalSync,
+  stripEnml,
+  transformNote as transformEvernoteNote,
+  transformNotebook as transformEvernoteNotebook,
+  transformTag as transformEvernoteTag,
+  updateNote as updateEvernoteNote,
+} from "./evernote";
 export type { FhirClient } from "./fhir";
 export {
   createFhirClient,

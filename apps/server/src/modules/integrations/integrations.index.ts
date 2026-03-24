@@ -17,6 +17,7 @@ import docusign from "./docusign/docusign.index";
 import dropbox from "./dropbox/dropbox.index";
 import dynamics365 from "./dynamics365/dynamics365.index";
 import egnyte from "./egnyte/egnyte.index";
+import evernote from "./evernote/evernote.index";
 import figma from "./figma/figma.index";
 import freshservice from "./freshservice/freshservice.index";
 import github from "./github/github.index";
@@ -111,6 +112,7 @@ integrations.route("/datadog", datadog);
 integrations.route("/docusign", docusign);
 integrations.route("/marketo", marketo);
 integrations.route("/canva", canva);
+integrations.route("/evernote", evernote);
 
 integrations.get("/health", (c) =>
   c.json({
