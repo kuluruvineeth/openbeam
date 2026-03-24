@@ -1,0 +1,51 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Benchling connector
+---
+
+# Benchling Troubleshooting
+
+## Authentication Fails
+
+**Symptom:** "Cannot access Benchling" error during setup
+
+**Solutions:**
+- Verify your API key is correct (starts with `sk_`)
+- Confirm the tenant name matches your URL (e.g., `mycompany` for `mycompany.benchling.com`)
+- Check that API access is enabled for your Benchling account
+- Ensure the API key has not been revoked
+
+## No Data After Sync
+
+**Symptom:** Sync completes but no documents appear in search
+
+**Solutions:**
+- Verify the API key user has read access to the relevant entries, projects, and sequences
+- Check if "Sync Sequences" and "Sync Assay Results" are enabled if you expect those entity types
+- If using Lookback Days, ensure the value covers the time range of your data
+
+## Rate Limit Errors
+
+**Symptom:** Sync slows down or reports rate limit errors
+
+**Solutions:**
+- The connector automatically handles rate limits with backoff. No action needed.
+- If persistent, check if other integrations are consuming your Benchling API quota
+- Consider increasing the sync interval in connector settings
+
+## Missing Sequence Annotations
+
+**Symptom:** DNA/protein sequences sync but annotations are not searchable
+
+**Solutions:**
+- Annotations are included in the content field and are searchable by name and type
+- Ensure the sequences have annotations defined in Benchling
+
+## Assay Results Missing Fields
+
+**Symptom:** Assay results sync but some fields are empty
+
+**Solutions:**
+- Field values depend on the assay schema definition in Benchling
+- Only fields with non-null values are indexed
+- Check the schema definition in Benchling to verify expected fields

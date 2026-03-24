@@ -1,0 +1,1 @@
+export { benchlingApp } from "./config";

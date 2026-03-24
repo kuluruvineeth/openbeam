@@ -117,6 +117,7 @@ export enum AppType {
   AMPLITUDE = "AMPLITUDE",
   AHA = "AHA",
   FIFTEEN_FIVE = "FIFTEEN_FIVE",
+  BENCHLING = "BENCHLING",
 }
 
 export enum SyncMode {

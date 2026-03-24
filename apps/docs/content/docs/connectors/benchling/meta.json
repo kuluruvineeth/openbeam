@@ -1,0 +1,12 @@
+{
+  "title": "Benchling",
+  "icon": "Benchling",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

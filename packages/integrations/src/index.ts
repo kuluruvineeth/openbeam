@@ -7,6 +7,7 @@ import { azureDevOpsApp } from "./azure-devops/config";
 import { azureIotApp } from "./azure-iot/config";
 import { bacnetApp } from "./bacnet/config";
 import { bamboohrApp } from "./bamboohr/config";
+import { benchlingApp } from "./benchling/config";
 import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
 import { canvaApp } from "./canva/config";
@@ -75,6 +76,7 @@ import { zoomApp } from "./zoom/config";
 
 export {
   ahaApp,
+  benchlingApp,
   airtableApp,
   amplitudeApp,
   canvaApp,
@@ -783,4 +785,5 @@ export const appStore: UnifiedApp[] = [
   amplitudeApp,
   ahaApp,
   fifteenFiveApp,
+  benchlingApp,
 ];

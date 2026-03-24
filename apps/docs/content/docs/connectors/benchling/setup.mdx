@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Configure the Benchling connector with API key authentication
+---
+
+# Benchling Setup
+
+## Prerequisites
+
+- A Benchling account with API access enabled
+- Your Benchling tenant name (the part before `.benchling.com` in your URL)
+
+## Generate an API Key
+
+1. Log into your Benchling tenant
+2. Click your profile icon in the bottom-left corner
+3. Go to **Settings > API keys**
+4. Click **Generate API Key**
+5. Copy the generated key (it starts with `sk_`)
+
+## Add the Connector
+
+1. In OpenBeam, navigate to **Connectors > Add Connector**
+2. Select **Benchling** from the list
+3. Enter your **API Key** and **Tenant** name
+4. Click **Connect**
+5. OpenBeam will validate your credentials by calling the Benchling API
+6. Once verified, the initial sync begins automatically
+
+## Required Permissions
+
+The API key inherits the permissions of the user who generated it. For full sync coverage, the user should have:
+
+- Read access to entries, folders, and projects
+- Read access to DNA sequences and AA sequences
+- Read access to assay results and schemas
+
+## Tenant Name
+
+Your tenant is the first part of your Benchling URL. For example, if you access Benchling at `https://mycompany.benchling.com`, your tenant is `mycompany`.

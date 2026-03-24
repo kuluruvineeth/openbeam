@@ -1,0 +1,40 @@
+---
+title: Benchling
+description: Search notebook entries, sequences, projects, and assay results from Benchling
+---
+
+# Benchling
+
+Index life sciences R&D data from Benchling including notebook entries, DNA/protein sequences, projects, folders, and assay results. Supports API key authentication with Basic auth encoding and cursor-based pagination.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Notebook Entries** | Name, content fields, authors, schema, folder, review status |
+| **Folders** | Name, parent folder, project association |
+| **Projects** | Name, owner, archive status |
+| **DNA Sequences** | Name, length, bases, circular flag, annotations, schema, registry ID |
+| **Protein Sequences** | Name, length, amino acids, annotations, schema, registry ID |
+| **Assay Results** | Schema, field values, associated entry and project |
+
+## Authentication
+
+**Method:** API Key (Basic auth)
+
+Generate an API key from **Settings > API keys** in your Benchling tenant. The key is used as the username in HTTP Basic authentication with an empty password.
+
+## Quick Start
+
+1. Generate an API key in Benchling
+2. Add the Benchling connector in OpenBeam
+3. Enter your API key and tenant name
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/benchling/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/benchling/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/benchling/configuration" description="Sequence sync, assay results, and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/benchling/sync" description="Full sync, incremental sync via modifiedAt" />
+  <Card title="Troubleshooting" href="/docs/connectors/benchling/troubleshooting" description="Common issues and fixes" />
+</Cards>

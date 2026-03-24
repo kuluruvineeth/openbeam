@@ -23,6 +23,7 @@ import {
   AzureIotIcon,
   BACnetIcon,
   BambooHRIcon,
+  BenchlingIcon,
   BitbucketIcon,
   BoxIcon,
   CanvaIcon,
@@ -176,6 +177,7 @@ const customIconMap: Record<
   GoogleSites: GoogleSitesIcon,
   Amplitude: AmplitudeIcon,
   FifteenFive: FifteenFiveIcon,
+  Benchling: BenchlingIcon,
 };
 
 export const source = loader({

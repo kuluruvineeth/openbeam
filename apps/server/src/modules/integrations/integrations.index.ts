@@ -8,6 +8,7 @@ import awsIot from "./aws-iot/aws-iot.index";
 import azureDevOps from "./azure-devops/azure-devops.index";
 import azureIot from "./azure-iot/azure-iot.index";
 import bamboohr from "./bamboohr/bamboohr.index";
+import benchling from "./benchling/benchling.index";
 import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
 import canva from "./canva/canva.index";
@@ -123,6 +124,7 @@ integrations.route("/amplitude", amplitude);
 integrations.route("/aha", aha);
 integrations.route("/evernote", evernote);
 integrations.route("/fifteen-five", fifteenFive);
+integrations.route("/benchling", benchling);
 
 integrations.get("/health", (c) =>
   c.json({

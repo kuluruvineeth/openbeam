@@ -1,0 +1,39 @@
+---
+title: Sync Behavior
+description: How Benchling data is synced to OpenBeam
+---
+
+# Benchling Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data from your Benchling tenant in this order:
+
+1. **Entries** - All notebook entries sorted by modification date
+2. **Folders** - Complete folder hierarchy
+3. **Projects** - All projects with owner info
+4. **DNA Sequences** - All DNA sequences (if enabled)
+5. **Protein Sequences** - All AA sequences (if enabled)
+6. **Assay Results** - All assay results (if enabled)
+
+Data is processed in batches of 50 documents and uses cursor-based pagination via Benchling's `nextToken` parameter.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs only fetch data modified since the last sync. This uses the `modifiedAt.gte` filter parameter on each endpoint.
+
+If incremental sync fails for any reason, it automatically falls back to a full sync.
+
+## Sync Frequency
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Entries | 15 minutes |
+| Folders | 60 minutes |
+| Projects | 60 minutes |
+| Sequences | 30 minutes |
+| Assay Results | 30 minutes |
+
+## Rate Limits
+
+The connector respects Benchling's API rate limits (typically 1000 requests per minute). If rate-limited, it automatically backs off and retries with exponential delay.

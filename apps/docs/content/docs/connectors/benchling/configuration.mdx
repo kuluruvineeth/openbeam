@@ -1,0 +1,28 @@
+---
+title: Configuration
+description: Configure Benchling connector settings
+---
+
+# Benchling Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **API Key** | Password | Required | Your Benchling API key |
+| **Tenant** | Text | Required | Benchling tenant name |
+| **Sync Sequences** | Switch | On | Include DNA and protein sequences |
+| **Sync Assay Results** | Switch | On | Include assay results |
+| **Lookback Days** | Number | 0 (all) | Days of history for initial sync |
+
+## Sync Sequences
+
+When enabled, OpenBeam indexes both DNA sequences (`/dna-sequences`) and amino acid sequences (`/aa-sequences`). Disable if your Benchling tenant primarily uses notebook entries and you want faster sync times.
+
+## Sync Assay Results
+
+When enabled, OpenBeam indexes assay results with their schema fields. Assay results can be voluminous depending on your usage, so disable if not needed for search.
+
+## Lookback Days
+
+Controls how far back the initial full sync reaches. Set to `0` to sync all historical data, or specify a number of days (e.g., `90` for the last 3 months).

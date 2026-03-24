@@ -267,6 +267,37 @@ export {
   transformBambooHRTimeOffRequest,
   transformBambooHRTimeOffRequests,
 } from "./bamboohr";
+export type {
+  BenchlingAaSequence,
+  BenchlingAssayResult,
+  BenchlingClient,
+  BenchlingDnaSequence,
+  BenchlingEntry,
+  BenchlingEntryDetailed,
+  BenchlingFolder,
+  BenchlingProject,
+} from "./benchling";
+export {
+  BenchlingApiError,
+  benchlingFullSync,
+  benchlingIncrementalSync,
+  createBenchlingClient,
+  createEntry as createBenchlingEntry,
+  getEntry as getBenchlingEntry,
+  listAaSequences as listBenchlingAaSequences,
+  listAssayResults as listBenchlingAssayResults,
+  listDnaSequences as listBenchlingDnaSequences,
+  listEntries as listBenchlingEntries,
+  listFolders as listBenchlingFolders,
+  listProjects as listBenchlingProjects,
+  transformAaSequence as transformBenchlingAaSequence,
+  transformAssayResult as transformBenchlingAssayResult,
+  transformDnaSequence as transformBenchlingDnaSequence,
+  transformEntry as transformBenchlingEntry,
+  transformFolder as transformBenchlingFolder,
+  transformProject as transformBenchlingProject,
+  updateEntry as updateBenchlingEntry,
+} from "./benchling";
 export type { BitbucketClient } from "./bitbucket";
 export {
   addIssueComment as addBitbucketIssueComment,

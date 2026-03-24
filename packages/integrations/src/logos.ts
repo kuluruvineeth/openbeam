@@ -11,6 +11,7 @@ import { Logo as AzureDevOpsLogo } from "./azure-devops/assets/logo";
 import { Logo as AzureIotLogo } from "./azure-iot/assets/logo";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as BambooHRLogo } from "./bamboohr/assets/logo";
+import { Logo as BenchlingLogo } from "./benchling/assets/logo";
 import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
 import { Logo as CanvaLogo } from "./canva/assets/logo";
@@ -151,6 +152,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MARKETO]: MarketoLogo,
   [AppType.EVERNOTE]: EvernoteLogo,
   [AppType.FIFTEEN_FIVE]: FifteenFiveLogo,
+  [AppType.BENCHLING]: BenchlingLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
