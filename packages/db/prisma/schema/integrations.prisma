@@ -148,6 +148,7 @@ enum AppType {
   OPSGENIE
   DATADOG
   DOCUSIGN
+  CANVA
 }
 
 enum ConnectorStatus {

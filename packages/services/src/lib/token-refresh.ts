@@ -12,6 +12,7 @@ import prisma, {
 import {
   airtableApp,
   boxApp,
+  canvaApp,
   docuSignApp,
   dropboxApp,
   hubspotApp,
@@ -21,6 +22,7 @@ import {
   refreshAsanaToken,
   refreshBitbucketToken,
   refreshBoxToken,
+  refreshCanvaToken,
   refreshConfluenceToken,
   refreshDocuSignToken,
   refreshDropboxToken,
@@ -506,6 +508,26 @@ export async function refreshConnectorToken(
           accessToken: atResult.accessToken,
           expiresIn: atResult.expiresIn,
           refreshToken: atResult.refreshToken,
+        };
+        break;
+      }
+
+      case "CANVA": {
+        const canvaConfig =
+          canvaApp.auth.type === "OAUTH2" ? canvaApp.auth.config : undefined;
+        if (!canvaConfig) {
+          throw new Error("Canva OAuth config not found");
+        }
+        const canvaResult = await refreshCanvaToken({
+          config: canvaConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: canvaResult.accessToken,
+          expiresIn: canvaResult.expiresIn,
+          refreshToken: canvaResult.refreshToken,
         };
         break;
       }

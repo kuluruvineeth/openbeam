@@ -1,0 +1,39 @@
+---
+title: Canva
+description: Search across designs, brand templates, folders, and comments from Canva
+---
+
+# Canva
+
+Index design content from Canva including designs, brand templates, folders, and comments. Supports OAuth 2.0 with PKCE and incremental sync via updated_at filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Designs** | Title, type, owner, page count, thumbnail, edit URL |
+| **Brand Templates** | Title, description, thumbnail |
+| **Folders** | Name, creation and modification timestamps |
+| **Comments** | Message text, author, associated design |
+
+## Authentication
+
+**Method:** OAuth 2.0 with PKCE (Authorization Code Grant)
+
+Create an integration in the [Canva Developer Portal](https://www.canva.dev/) to obtain client credentials. The integration requires scopes for reading designs, folders, brand templates, and comments.
+
+## Quick Start
+
+1. Create an integration in the Canva Developer Portal
+2. Add the Canva connector in OpenBeam
+3. Enter your Client ID and Client Secret
+4. Complete the OAuth authorization flow
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/canva/setup" description="Canva Developer Portal integration and OAuth configuration" />
+  <Card title="Features" href="/docs/connectors/canva/features" description="Indexed content types, actions, and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/canva/configuration" description="Entity toggles, lookback period, and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/canva/sync" description="Full sync, incremental sync via updated_at queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/canva/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -262,6 +262,24 @@ export {
   shareBoxItem,
   transformBoxItem,
 } from "./box";
+export type {
+  CanvaClient,
+  CanvaClientConfig,
+  CanvaRecordActionResult,
+} from "./canva";
+export {
+  CanvaApiError,
+  CanvaAuth,
+  canvaFullSync,
+  canvaIncrementalSync,
+  createCanvaClient,
+  createCanvaDesign,
+  createCanvaFolder,
+  transformCanvaBrandTemplate,
+  transformCanvaComment,
+  transformCanvaDesign,
+  transformCanvaFolder,
+} from "./canva";
 export {
   CisaKevApiError,
   fetchKevCatalog,

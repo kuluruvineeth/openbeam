@@ -1,0 +1,12 @@
+{
+  "title": "Canva",
+  "icon": "Canva",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

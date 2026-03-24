@@ -18,6 +18,8 @@ import {
   bitbucketIncrementalSync,
   boxFullSync,
   boxIncrementalSync,
+  canvaFullSync,
+  canvaIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
   clickUpFullSync,
@@ -36,6 +38,7 @@ import {
   createBambooHRClient,
   createBitbucketClient,
   createBoxClient,
+  createCanvaClient,
   createClickUpClient,
   createCodaClient,
   createDatadogClient,
@@ -4767,6 +4770,58 @@ export function registerAllSyncFactories(): void {
             syncPrograms,
             syncEmails,
             syncLandingPages,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "CANVA",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const syncBrandTemplates = config?.sync_brand_templates !== false;
+      const syncFolders = config?.sync_folders !== false;
+      const syncComments = config?.sync_comments === true;
+
+      const client = createCanvaClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? canvaFullSync(client, context, {
+            batchSize: 100,
+            syncBrandTemplates,
+            syncFolders,
+            syncComments,
+          })
+        : canvaIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncBrandTemplates,
+            syncFolders,
+            syncComments,
           });
 
       for await (const batch of syncGenerator) {

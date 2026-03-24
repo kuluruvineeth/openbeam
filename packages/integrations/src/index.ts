@@ -7,6 +7,7 @@ import { bacnetApp } from "./bacnet/config";
 import { bamboohrApp } from "./bamboohr/config";
 import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
+import { canvaApp } from "./canva/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
@@ -67,6 +68,7 @@ import { zoomApp } from "./zoom/config";
 
 export {
   airtableApp,
+  canvaApp,
   codaApp,
   datadogApp,
   docuSignApp,
@@ -217,6 +219,22 @@ export {
   generateBoxAuthUrl,
   refreshBoxToken,
 } from "./box";
+export type {
+  CanvaOAuthResult,
+  CanvaTokenResponse,
+  CanvaUserProfile,
+  ExchangeCanvaCodeParams,
+  GenerateCanvaAuthUrlParams,
+  RefreshCanvaTokenParams,
+  RefreshCanvaTokenResult,
+} from "./canva";
+export {
+  CANVA_TOKEN_LIFETIME_SECONDS,
+  CanvaOAuthError,
+  exchangeCanvaCode,
+  generateCanvaAuthUrl,
+  refreshCanvaToken,
+} from "./canva";
 export type {
   ExchangeClickUpCodeParams,
   GenerateClickUpAuthUrlParams,
@@ -701,4 +719,5 @@ export const appStore: UnifiedApp[] = [
   datadogApp,
   docuSignApp,
   marketoApp,
+  canvaApp,
 ];

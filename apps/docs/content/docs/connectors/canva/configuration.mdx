@@ -1,0 +1,29 @@
+---
+title: Configuration
+description: Configure which Canva data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Client ID** | Canva OAuth integration Client ID | Required |
+| **Client Secret** | Canva OAuth integration Client Secret | Required |
+| **Sync Brand Templates** | Index brand templates | Enabled |
+| **Sync Folders** | Index folders | Enabled |
+| **Sync Comments** | Index design comments | Disabled |
+| **Lookback Days** | How far back to sync designs | Unlimited |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Designs are always synced. Brand templates, folders, and comments can be individually toggled to reduce sync time.
+
+## Comment Syncing
+
+Comment syncing is disabled by default because it requires an additional API call per design. Enable it if your team actively uses Canva comments for collaboration and wants them searchable.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches designs. Leave empty for unlimited history. For large Canva accounts, consider starting with a shorter period (e.g., 90 days).

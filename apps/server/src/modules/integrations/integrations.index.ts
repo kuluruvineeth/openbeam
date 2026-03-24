@@ -8,6 +8,7 @@ import azureIot from "./azure-iot/azure-iot.index";
 import bamboohr from "./bamboohr/bamboohr.index";
 import bitbucket from "./bitbucket/bitbucket.index";
 import box from "./box/box.index";
+import canva from "./canva/canva.index";
 import clickup from "./clickup/clickup.index";
 import coda from "./coda/coda.index";
 import confluence from "./confluence/confluence.index";
@@ -107,6 +108,7 @@ integrations.route("/opsgenie", opsgenie);
 integrations.route("/datadog", datadog);
 integrations.route("/docusign", docusign);
 integrations.route("/marketo", marketo);
+integrations.route("/canva", canva);
 
 integrations.get("/health", (c) =>
   c.json({

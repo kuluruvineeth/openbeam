@@ -37,7 +37,8 @@ type IntegrationName =
   | "onenote"
   | "miro"
   | "dynamics365"
-  | "docusign";
+  | "docusign"
+  | "canva";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -200,6 +201,11 @@ const INTEGRATION_HANDLERS: Record<
     ),
   docusign: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/docusign/callback", {
+      code,
+      state,
+    }),
+  canva: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/canva/callback", {
       code,
       state,
     }),

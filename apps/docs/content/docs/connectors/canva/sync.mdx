@@ -1,0 +1,37 @@
+---
+title: Sync Behavior
+description: How Canva data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Canva:
+
+1. **Designs** via the List Designs endpoint with cursor-based pagination
+2. **Folders** (if enabled) via the List Folders endpoint
+3. **Brand Templates** (if enabled) via the List Brand Templates endpoint
+4. **Comments** (if enabled) for each design via per-design comment endpoints
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs filter designs by `updated_at` timestamp to fetch only designs modified since the last sync. Designs with an `updated_at` older than the last sync cursor are skipped.
+
+Folders and brand templates are always fully re-synced during incremental runs since they change infrequently.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Designs | Every 15 minutes |
+| Brand Templates | Every 60 minutes |
+| Folders | Every 60 minutes |
+
+## Rate Limits
+
+The Canva Connect API enforces rate limits of approximately 100 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

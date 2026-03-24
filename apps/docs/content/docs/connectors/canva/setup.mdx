@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Connect Canva to OpenBeam via OAuth 2.0 with PKCE
+---
+
+# Canva Setup
+
+## Prerequisites
+
+- A Canva account (Free, Pro, or Enterprise)
+- Access to the [Canva Developer Portal](https://www.canva.dev/)
+
+## Step 1: Create a Canva Integration
+
+1. Go to the [Canva Developer Portal](https://www.canva.dev/)
+2. Click **Create an app** (or **Your integrations** if you already have one)
+3. Enter an app name like "OpenBeam"
+4. Under **Authentication**, enable **OAuth 2.0**
+5. Set the **Redirect URL** to your OpenBeam instance callback URL: `https://your-instance.com/connectors/setup/canva/oauth/callback`
+6. Under **Scopes**, enable:
+   - `design:content:read`
+   - `design:meta:read`
+   - `folder:read`
+   - `brandtemplate:content:read`
+   - `brandtemplate:meta:read`
+   - `asset:read`
+   - `comment:read`
+7. Copy the **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Canva**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+5. Authorize OpenBeam in the Canva consent screen
+
+## Step 3: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Canva data. The first sync fetches all designs, folders, and brand templates accessible to the authorized user.

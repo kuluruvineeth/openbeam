@@ -11,6 +11,7 @@ import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as BambooHRLogo } from "./bamboohr/assets/logo";
 import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
+import { Logo as CanvaLogo } from "./canva/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ClickUpLogo } from "./clickup/assets/logo";
 import { Logo as CodaLogo } from "./coda/assets/logo";
@@ -71,6 +72,7 @@ import { Logo as ZoomLogo } from "./zoom/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
   [AppType.AIRTABLE]: AirtableLogo,
+  [AppType.CANVA]: CanvaLogo,
   [AppType.ASANA]: AsanaLogo,
   [AppType.BITBUCKET]: BitbucketLogo,
   [AppType.GMAIL]: GmailLogo,
