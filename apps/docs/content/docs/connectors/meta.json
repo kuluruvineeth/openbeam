@@ -71,6 +71,7 @@
     "egnyte",
     "evernote",
     "highspot",
-    "google-sites"
+    "google-sites",
+    "amplitude"
   ]
 }

@@ -139,6 +139,17 @@ export {
   transformAirtableTable,
   updateAirtableRecord,
 } from "./airtable";
+export type { AmplitudeClient } from "./amplitude";
+export {
+  AmplitudeApiError,
+  amplitudeFullSync,
+  amplitudeIncrementalSync,
+  createAmplitudeClient,
+  getChartAnnotations as amplitudeGetChartAnnotations,
+  transformChart as transformAmplitudeChart,
+  transformCohort as transformAmplitudeCohort,
+  transformDashboard as transformAmplitudeDashboard,
+} from "./amplitude";
 export type {
   AsanaClient,
   AsanaClientConfig,

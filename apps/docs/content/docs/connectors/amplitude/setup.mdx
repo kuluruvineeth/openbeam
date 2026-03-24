@@ -1,0 +1,45 @@
+---
+title: Setup
+description: Configure the Amplitude connector with API key authentication
+---
+
+# Amplitude Setup
+
+## Prerequisites
+
+- An Amplitude account with at least read access to the project
+- API Key and Secret Key from your Amplitude project settings
+
+## Step 1: Get API Credentials
+
+1. Log in to [Amplitude](https://analytics.amplitude.com)
+2. Navigate to **Settings** (gear icon) > **Projects**
+3. Select your project
+4. Find the **API Key** and **Secret Key** in the General section
+5. Copy both values
+
+## Step 2: Add the Connector
+
+1. In OpenBeam, go to **Settings > Connectors**
+2. Click **Add Connector** and select **Amplitude**
+3. Enter your **API Key** and **Secret Key**
+4. Optionally enter your **Organization Slug** (the subdomain in your Amplitude URL)
+5. Click **Connect**
+
+## Step 3: Configure Sync
+
+1. Choose which entity types to sync (charts, dashboards, cohorts)
+2. Set the sync interval (default: 30 minutes for charts/dashboards, 60 minutes for cohorts)
+3. Click **Start Sync** to begin the initial full sync
+
+## Required Permissions
+
+The API key must have read access to:
+
+| Resource | Permission |
+|----------|-----------|
+| Charts | Read |
+| Dashboards | Read |
+| Cohorts | Read |
+
+Most Amplitude API keys have read access by default. No special scopes are required.

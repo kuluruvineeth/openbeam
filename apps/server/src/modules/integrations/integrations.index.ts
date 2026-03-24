@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import airtable from "./airtable/airtable.index";
+import amplitude from "./amplitude/amplitude.index";
 import asana from "./asana/asana.index";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureDevOps from "./azure-devops/azure-devops.index";
@@ -116,6 +117,7 @@ integrations.route("/datadog", datadog);
 integrations.route("/docusign", docusign);
 integrations.route("/marketo", marketo);
 integrations.route("/canva", canva);
+integrations.route("/amplitude", amplitude);
 integrations.route("/evernote", evernote);
 
 integrations.get("/health", (c) =>

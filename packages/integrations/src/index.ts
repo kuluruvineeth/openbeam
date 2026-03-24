@@ -1,4 +1,5 @@
 import { airtableApp } from "./airtable/config";
+import { amplitudeApp } from "./amplitude/config";
 import { asanaApp } from "./asana/config";
 import { awsIotApp } from "./aws-iot/config";
 import { azureDevOpsApp } from "./azure-devops/config";
@@ -72,6 +73,7 @@ import { zoomApp } from "./zoom/config";
 
 export {
   airtableApp,
+  amplitudeApp,
   canvaApp,
   codaApp,
   datadogApp,
@@ -774,4 +776,5 @@ export const appStore: UnifiedApp[] = [
   egnyteApp,
   evernoteApp,
   googleSitesApp,
+  amplitudeApp,
 ];

@@ -1,0 +1,50 @@
+---
+title: Sync Behavior
+description: How the Amplitude connector syncs data
+---
+
+# Amplitude Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all charts, dashboards, and cohorts from your Amplitude project:
+
+1. **Charts** — Fetches all saved charts via the Chart API
+2. **Dashboards** — Fetches all dashboards via the Dashboard API
+3. **Cohorts** — Fetches all non-archived cohorts via the Cohort API
+
+Documents are processed in batches of 50 and indexed incrementally during the sync.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs only process items modified since the last sync:
+
+- Charts and dashboards are filtered by `lastModified` timestamp
+- Cohorts are filtered by `lastModified` timestamp
+- If incremental sync fails, the connector falls back to a full sync
+
+## Sync Cursor
+
+The connector tracks:
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Epoch timestamp of the last successful sync |
+| `lastChartModified` | Most recent chart modification timestamp |
+| `lastDashboardModified` | Most recent dashboard modification timestamp |
+
+## Rate Limits
+
+Amplitude enforces a rate limit of approximately 360 requests per hour for the management API. The connector respects these limits with:
+
+- Pre-request rate limit checking via Redis
+- Exponential backoff with jitter on 429 responses
+- Automatic retry (up to 3 attempts) on server errors
+
+## Data Volume
+
+| Entity | Typical Volume | Sync Duration |
+|--------|---------------|---------------|
+| Charts | 50-500 | 1-5 minutes |
+| Dashboards | 10-100 | < 1 minute |
+| Cohorts | 20-200 | < 1 minute |

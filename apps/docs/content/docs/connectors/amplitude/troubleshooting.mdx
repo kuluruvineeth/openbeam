@@ -1,0 +1,63 @@
+---
+title: Troubleshooting
+description: Common issues with the Amplitude connector
+---
+
+# Amplitude Troubleshooting
+
+## Authentication Errors
+
+### 401 Unauthorized
+
+**Cause:** Invalid API key or secret key.
+
+**Fix:**
+1. Verify both the API Key and Secret Key in Amplitude project settings
+2. Ensure you are using the correct project's credentials
+3. Re-enter the credentials in OpenBeam
+
+### 403 Forbidden
+
+**Cause:** The API key lacks sufficient permissions.
+
+**Fix:**
+1. Check that the API key has read access to charts, dashboards, and cohorts
+2. Contact your Amplitude admin to verify permissions
+
+## Sync Issues
+
+### Empty Sync Results
+
+**Cause:** The project has no saved charts, dashboards, or cohorts.
+
+**Fix:**
+1. Verify that your Amplitude project contains saved analyses
+2. Check that you are connecting to the correct project
+
+### Rate Limit Errors
+
+**Cause:** Exceeded Amplitude's API rate limit (360 requests/hour).
+
+**Fix:**
+1. The connector automatically retries with backoff
+2. If persistent, increase the sync interval to reduce request frequency
+3. Consider syncing fewer entity types
+
+### Missing Charts or Dashboards
+
+**Cause:** Items may have been created after the last sync or the lookback window is too narrow.
+
+**Fix:**
+1. Trigger a manual full sync from the connector settings
+2. Set lookback days to 0 (all time) for comprehensive coverage
+
+## Connection Issues
+
+### Timeout Errors
+
+**Cause:** Network issues or Amplitude API latency.
+
+**Fix:**
+1. Check your network connectivity
+2. Verify that `amplitude.com` and `analytics.amplitude.com` are accessible
+3. The connector retries automatically on timeout; if persistent, contact support

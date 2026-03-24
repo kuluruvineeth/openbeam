@@ -153,6 +153,7 @@ enum AppType {
   EVERNOTE
   HIGHSPOT
   GOOGLE_SITES
+  AMPLITUDE
 }
 
 enum ConnectorStatus {

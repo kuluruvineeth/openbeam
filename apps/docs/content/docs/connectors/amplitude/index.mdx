@@ -1,0 +1,37 @@
+---
+title: Amplitude
+description: Search charts, dashboards, and cohorts from Amplitude
+---
+
+# Amplitude
+
+Index product analytics data from Amplitude including saved charts, dashboards, and user cohorts. Supports API key + secret key authentication with Basic auth encoding.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Charts** | Name, chart type, description, creator, sharing status |
+| **Dashboards** | Name, description, included charts, creator, sharing status |
+| **Cohorts** | Name, description, definition, estimated size, creator |
+
+## Authentication
+
+**Method:** API Key + Secret Key (Basic Auth)
+
+Both keys are found in **Settings > Projects > [Your Project]** in Amplitude. The connector uses HTTP Basic authentication with the API key as the username and secret key as the password.
+
+## Quick Start
+
+1. Copy your API Key and Secret Key from Amplitude project settings
+2. Add the Amplitude connector in OpenBeam
+3. Enter both keys and optionally your organization slug
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/amplitude/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/amplitude/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/amplitude/configuration" description="Entity selection, org slug, and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/amplitude/sync" description="Full sync, incremental sync via modification timestamps" />
+  <Card title="Troubleshooting" href="/docs/connectors/amplitude/troubleshooting" description="Common issues and fixes" />
+</Cards>

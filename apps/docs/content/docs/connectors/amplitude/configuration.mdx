@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Configure the Amplitude connector settings
+---
+
+# Amplitude Configuration
+
+## Settings
+
+| Setting | Required | Default | Description |
+|---------|----------|---------|-------------|
+| API Key | Yes | — | Amplitude project API key |
+| Secret Key | Yes | — | Amplitude project secret key |
+| Organization Slug | No | — | Subdomain in your Amplitude URL for building links |
+| Sync Cohorts | No | Yes | Include user cohorts in search results |
+| Lookback Days | No | 0 (all) | Limit initial sync to recent items |
+
+## Organization Slug
+
+The organization slug is used to build direct links to charts, dashboards, and cohorts in Amplitude. It is the subdomain in your Amplitude URL:
+
+```
+https://analytics.amplitude.com/YOUR-ORG-SLUG/chart/12345
+```
+
+If not provided, links will omit the organization prefix.
+
+## Entity Selection
+
+By default, all entity types are synced. Use the **Sync Cohorts** toggle to exclude cohort data if your team only needs charts and dashboards.
+
+## Sync Intervals
+
+| Entity | Default Interval | Recommended |
+|--------|-----------------|-------------|
+| Charts | 30 minutes | 15-60 minutes |
+| Dashboards | 30 minutes | 15-60 minutes |
+| Cohorts | 60 minutes | 30-120 minutes |
