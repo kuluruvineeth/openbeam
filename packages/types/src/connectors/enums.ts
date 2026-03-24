@@ -86,6 +86,7 @@ export const AppTypeSchema = z.enum([
   "DYNAMICS_365",
   "OPSGENIE",
   "DATADOG",
+  "DOCUSIGN",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;
