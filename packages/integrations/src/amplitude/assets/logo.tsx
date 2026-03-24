@@ -1,41 +1,23 @@
 /** @jsxImportSource react */
 import type { LogoProps } from "../../types";
 
-export const Logo = ({ size = 32, className }: LogoProps) => (
-  // biome-ignore lint/a11y/noSvgWithoutTitle: This is a logo
-  <svg
-    className={className}
-    fill="none"
-    height={size}
-    viewBox="0 0 64 64"
-    width={size}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <rect fill="#1B1F3B" height="64" rx="12" width="64" />
-    <path
-      d="M32 12C31.2 12 30.5 12.5 30.2 13.3L18.4 44.2C18 45.2 18.7 46.3 19.8 46.3H23.6C24.4 46.3 25.1 45.8 25.4 45L28.2 37.7H35.8L38.6 45C38.9 45.8 39.6 46.3 40.4 46.3H44.2C45.3 46.3 46 45.2 45.6 44.2L33.8 13.3C33.5 12.5 32.8 12 32 12ZM30.4 31.7L32 27.1L33.6 31.7H30.4Z"
-      fill="url(#amp_grad)"
-    />
-    <path
-      d="M11.5 38.8C10.7 38.8 10 39.5 10 40.3V44.8C10 45.6 10.7 46.3 11.5 46.3H14.5C15.3 46.3 16 45.6 16 44.8V40.3C16 39.5 15.3 38.8 14.5 38.8H11.5Z"
-      fill="url(#amp_grad)"
-    />
-    <path
-      d="M49.5 38.8C48.7 38.8 48 39.5 48 40.3V44.8C48 45.6 48.7 46.3 49.5 46.3H52.5C53.3 46.3 54 45.6 54 44.8V40.3C54 39.5 53.3 38.8 52.5 38.8H49.5Z"
-      fill="url(#amp_grad)"
-    />
-    <defs>
-      <linearGradient
-        gradientUnits="userSpaceOnUse"
-        id="amp_grad"
-        x1="10"
-        x2="54"
-        y1="12"
-        y2="46.3"
-      >
-        <stop stopColor="#36B4F5" />
-        <stop offset="1" stopColor="#1B74E4" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
+export function Logo({ size = 32 }: LogoProps) {
+  return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+    <svg
+      height={size}
+      viewBox="0 0 64 64"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M28.2 14.4C28 14.2 27.8 14 27.6 14c-.2 0-.3.1-.5.2-1.7 1.3-4 7-5.9 14.5l1.7 0c3.3 0 6.8.1 10.2.1-.9-3.4-1.7-6.4-2.5-8.7-1.2-3.5-1.9-5-2.4-5.7z"
+        fill="#00A7CF"
+      />
+      <path
+        d="M32 0C14.3 0 0 14.3 0 32s14.3 32 32 32 32-14.3 32-32S49.7 0 32 0zm23 32.6s-.1.1-.1.1h-.1l-.1 0c-.2.1-.5.2-.8.2H38.8c.1.5.3 1.1.4 1.7.8 3.6 3 13.1 5.4 13.1h.1c1.8 0 2.8-2.6 4.8-8.4l0-.1c.3-.9.7-2 1.1-3.1l.1-.3c.1-.4.5-.6.9-.5.4.1.6.5.5.9l0 0-.1.4c-.2.7-.4 1.6-.7 2.7-1.2 5.1-3.1 12.7-7.8 12.7h0c-3.1 0-4.9-4.9-5.7-7-1.5-3.9-2.6-8.1-3.6-12.1h-14l-2.9 9.3c-.4.7-1.3.9-2 .5-.4-.3-.7-.7-.7-1.2v-.1l.2-1c.4-2.4.9-4.9 1.4-7.4h-5.9c-1.1-.2-1.9-1.1-1.9-2.2 0-1.1.8-2 1.8-2.2.2 0 .5 0 .7 0h.3c1.9 0 3.8.1 6 .1 3.1-12.5 6.6-18.8 10.6-18.9 4.2 0 7.4 9.7 9.9 19.1 5.2.1 10.7.3 16 .6l.2 0c.1 0 .2 0 .3 0 .9.2 1.5 1.1 1.3 2-.1.8-.3 1.1-.6 1.4z"
+        fill="#00A7CF"
+      />
+    </svg>
+  );
+}
