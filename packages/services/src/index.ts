@@ -473,6 +473,34 @@ export {
   updateMonitor as datadogUpdateMonitor,
 } from "./datadog";
 export type {
+  DoceboCertification,
+  DoceboClient,
+  DoceboCourse,
+  DoceboEnrollment,
+  DoceboLearningPlan,
+  DoceboRecordActionResult,
+  DoceboUser,
+} from "./docebo";
+export {
+  createDoceboClient,
+  createDoceboEnrollment,
+  DoceboApiError,
+  DoceboAuth,
+  doceboFullSync,
+  doceboIncrementalSync,
+  listAllCertifications as listAllDoceboCertifications,
+  listAllCourses as listAllDoceboCourses,
+  listAllEnrollments as listAllDoceboEnrollments,
+  listAllLearningPlans as listAllDoceboLearningPlans,
+  listAllUsers as listAllDoceboUsers,
+  transformDoceboCertification,
+  transformDoceboCourse,
+  transformDoceboEnrollment,
+  transformDoceboLearningPlan,
+  transformDoceboUser,
+  updateDoceboCourse,
+} from "./docebo";
+export type {
   DocuSignClient,
   DocuSignClientConfig,
   DocuSignEnvelope,

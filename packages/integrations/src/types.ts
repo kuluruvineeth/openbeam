@@ -120,6 +120,7 @@ export enum AppType {
   BENCHLING = "BENCHLING",
   BYNDER = "BYNDER",
   COUPA = "COUPA",
+  DOCEBO = "DOCEBO",
 }
 
 export enum SyncMode {

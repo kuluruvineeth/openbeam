@@ -1,0 +1,47 @@
+---
+title: Setup
+description: Configure Docebo API credentials for OpenBeam
+---
+
+# Docebo Setup
+
+## Prerequisites
+
+- Docebo platform with API access enabled
+- Admin or Superadmin role to generate API credentials
+- OAuth 2.0 client credentials (client ID and client secret)
+
+## Step 1: Generate API Credentials
+
+1. Log in to your Docebo platform as an admin
+2. Navigate to **Admin Menu > API and SSO > API Credentials**
+3. Click **Add OAuth2 App**
+4. Set the grant type to **Client Credentials**
+5. Enable the required scopes for read access
+6. Save and copy the **Client ID** and **Client Secret**
+
+## Step 2: Add the Connector
+
+1. In OpenBeam, go to **Settings > Connectors**
+2. Find **Docebo** and click **Connect**
+3. Enter the following:
+   - **Instance URL**: Your Docebo URL (e.g., `https://yourcompany.docebosaas.com`)
+   - **Client ID**: The client ID from step 1
+   - **Client Secret**: The client secret from step 1
+4. Click **Authenticate**
+
+## Step 3: Start Sync
+
+After authentication succeeds, OpenBeam will run an initial full sync to index all your Docebo content. This may take several minutes depending on the volume of data.
+
+## Required Permissions
+
+The API credentials must have read access to:
+
+| Scope | Required For |
+|-------|-------------|
+| Courses (read) | Indexing courses |
+| Learning Plans (read) | Indexing learning plans |
+| Users (read) | Indexing user profiles |
+| Enrollments (read) | Indexing enrollment records |
+| Certifications (read) | Indexing certifications |

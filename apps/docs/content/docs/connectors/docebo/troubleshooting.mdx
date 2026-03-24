@@ -1,0 +1,66 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Docebo connector
+---
+
+# Docebo Troubleshooting
+
+## Authentication Failures
+
+### "Unauthorized - invalid or expired access token"
+
+The client credentials may be incorrect or the API app may be disabled.
+
+**Fix:**
+1. Verify your client ID and client secret in Docebo admin
+2. Ensure the OAuth2 app is active and not revoked
+3. Check that the grant type is set to Client Credentials
+4. Re-authenticate the connector in OpenBeam
+
+### "Cannot access Docebo. Check your instance URL and credentials."
+
+The health check failed after obtaining a token. This usually means the API credentials lack sufficient permissions.
+
+**Fix:**
+1. Verify the instance URL is correct (e.g., `https://yourcompany.docebosaas.com`)
+2. Ensure API credentials have read access to courses
+3. Check that API access is enabled for your Docebo plan
+
+## Sync Issues
+
+### Missing Data
+
+Some entity types may return empty results if the API credentials lack the required scopes.
+
+**Fix:**
+1. Check the OAuth2 app scopes in Docebo admin
+2. Ensure read access is granted for all entity types you want to sync
+3. Verify the account has visibility to the data (branch restrictions may apply)
+
+### Rate Limiting
+
+If sync progress is slow, the connector may be hitting Docebo API rate limits.
+
+**Fix:**
+1. Rate limits vary by Docebo plan tier
+2. The connector automatically backs off and retries on 429 responses
+3. Consider increasing the sync interval if rate limiting is frequent
+
+### Incremental Sync Not Detecting Changes
+
+If the `last_update_from` filter does not return expected results, the modification timestamps in Docebo may not reflect all types of changes.
+
+**Fix:**
+1. Trigger a manual full sync to re-index all content
+2. Some bulk operations in Docebo may not update individual record timestamps
+
+## Connection Timeouts
+
+### "Request timed out"
+
+API requests time out after 30 seconds by default.
+
+**Fix:**
+1. Check your Docebo instance health
+2. Large responses (many enrollments) may take longer to process
+3. The connector retries on server errors up to 3 times with exponential backoff

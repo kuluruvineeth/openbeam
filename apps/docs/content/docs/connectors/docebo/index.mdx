@@ -1,0 +1,39 @@
+---
+title: Docebo
+description: Search courses, learning plans, users, enrollments, and certifications from Docebo LMS
+---
+
+# Docebo
+
+Index learning management data from Docebo including courses, learning plans, users, enrollments, and certifications. Supports OAuth 2.0 client credentials authentication with page-based pagination and last_update incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Courses** | Name, code, type, status, category, duration, language, enrollment count |
+| **Learning Plans** | Name, description, status, course count, duration, category |
+| **Users** | Username, full name, email, role, status, branch |
+| **Enrollments** | User, course, status, progress, completion date, score |
+| **Certifications** | Title, code, description, status, duration, expiration |
+
+## Authentication
+
+**Method:** OAuth 2.0 Client Credentials
+
+Generate API credentials from **Admin Menu > API and SSO > API Credentials** in Docebo. The client must have read access to courses, users, enrollments, learning plans, and certifications.
+
+## Quick Start
+
+1. Generate API credentials in Docebo admin
+2. Add the Docebo connector in OpenBeam
+3. Enter your instance URL, client ID, and client secret
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/docebo/setup" description="API credential generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/docebo/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/docebo/configuration" description="Entity selection and sync interval settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/docebo/sync" description="Full sync, incremental sync via last_update filters" />
+  <Card title="Troubleshooting" href="/docs/connectors/docebo/troubleshooting" description="Common issues and fixes" />
+</Cards>

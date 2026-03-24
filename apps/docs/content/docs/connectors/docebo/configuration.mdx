@@ -1,0 +1,42 @@
+---
+title: Configuration
+description: Configure Docebo connector entity selection and sync settings
+---
+
+# Docebo Configuration
+
+## Entity Selection
+
+Toggle which entity types to index from your Docebo instance:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Courses | Enabled | Index training courses |
+| Sync Learning Plans | Enabled | Index learning plans |
+| Sync Users | Enabled | Index learner profiles |
+| Sync Enrollments | Enabled | Index enrollment records |
+| Sync Certifications | Enabled | Index certifications |
+
+Disable entity types you do not need to reduce sync time and storage usage.
+
+## Sync Intervals
+
+| Entity | Default Interval | Recommended |
+|--------|-----------------|-------------|
+| Courses | 30 minutes | 30-60 minutes |
+| Learning Plans | 30 minutes | 30-60 minutes |
+| Users | 60 minutes | 60 minutes |
+| Enrollments | 30 minutes | 15-30 minutes |
+| Certifications | 60 minutes | 60 minutes |
+
+Adjust intervals based on how frequently your Docebo data changes. Enrollments typically change most frequently as learners progress through courses.
+
+## Instance URL Format
+
+Your instance URL must follow the pattern:
+
+```
+https://{subdomain}.docebosaas.com
+```
+
+Do not include trailing slashes or path segments.

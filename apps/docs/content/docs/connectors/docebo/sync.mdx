@@ -1,0 +1,46 @@
+---
+title: Sync Behavior
+description: How OpenBeam syncs data from Docebo
+---
+
+# Docebo Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all records from each enabled entity type using Docebo's paginated API endpoints. Records are fetched in pages of 200 items and transformed into searchable documents.
+
+### Sync Order
+
+1. Courses
+2. Learning Plans
+3. Users
+4. Enrollments
+5. Certifications
+
+Each entity type is fully synced before moving to the next. Batches are yielded to the indexer as they reach the configured batch size (default: 100 documents).
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the `last_update_from` filter parameter to fetch only records modified since the last sync. This significantly reduces API calls and processing time.
+
+### Fallback Behavior
+
+If an incremental sync fails (e.g., due to API changes or network issues), the connector automatically falls back to a full sync to ensure data consistency.
+
+## API Endpoints Used
+
+| Entity | Endpoint | Incremental Filter |
+|--------|----------|-------------------|
+| Courses | `GET /api/learn/v1/courses` | `last_update_from` |
+| Learning Plans | `GET /api/learn/v1/learningplans` | `last_update_from` |
+| Users | `GET /api/manage/v1/user` | `last_update_from` |
+| Enrollments | `GET /api/learn/v1/enrollment` | `last_update_from` |
+| Certifications | `GET /api/learn/v1/certifications` | `last_update_from` |
+
+## Rate Limiting
+
+The connector enforces rate limits of 500 requests per minute with a burst limit of 50 concurrent requests. If the Docebo API returns a 429 status, the connector backs off and retries automatically.
+
+## Pagination
+
+All list endpoints use page-based pagination with `page` and `page_size` parameters. The default page size is 200. The connector follows `has_more_data` flags to iterate through all pages.

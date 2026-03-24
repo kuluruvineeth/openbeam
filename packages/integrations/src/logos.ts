@@ -22,6 +22,7 @@ import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as CoupaLogo } from "./coupa/assets/logo";
 import { Logo as DatadogLogo } from "./datadog/assets/logo";
+import { Logo as DoceboLogo } from "./docebo/assets/logo";
 import { Logo as DocuSignLogo } from "./docusign/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as Dynamics365Logo } from "./dynamics365/assets/logo";
@@ -113,6 +114,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MICROSOFT_TEAMS]: TeamsLogo,
   [AppType.CONFLUENCE]: ConfluenceLogo,
   [AppType.COUPA]: CoupaLogo,
+  [AppType.DOCEBO]: DoceboLogo,
   [AppType.BOX]: BoxLogo,
   [AppType.DROPBOX]: DropboxLogo,
   [AppType.EGNYTE]: EgnyteLogo,

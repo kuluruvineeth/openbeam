@@ -18,6 +18,7 @@ import coda from "./coda/coda.index";
 import confluence from "./confluence/confluence.index";
 import coupa from "./coupa/coupa.index";
 import datadog from "./datadog/datadog.index";
+import docebo from "./docebo/docebo.index";
 import docusign from "./docusign/docusign.index";
 import dropbox from "./dropbox/dropbox.index";
 import dynamics365 from "./dynamics365/dynamics365.index";
@@ -129,6 +130,7 @@ integrations.route("/evernote", evernote);
 integrations.route("/fifteen-five", fifteenFive);
 integrations.route("/benchling", benchling);
 integrations.route("/coupa", coupa);
+integrations.route("/docebo", docebo);
 
 integrations.get("/health", (c) =>
   c.json({

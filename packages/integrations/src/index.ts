@@ -18,6 +18,7 @@ import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
 import { coupaApp } from "./coupa/config";
 import { datadogApp } from "./datadog/config";
+import { doceboApp } from "./docebo/config";
 import { docuSignApp } from "./docusign/config";
 import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
@@ -85,6 +86,7 @@ export {
   canvaApp,
   codaApp,
   coupaApp,
+  doceboApp,
   datadogApp,
   docuSignApp,
   dynamics365App,
@@ -305,6 +307,17 @@ export {
   exchangeCoupaCredentials,
   refreshCoupaToken,
 } from "./coupa";
+export type {
+  DoceboAuthResult,
+  DoceboTokenResponse,
+  ExchangeDoceboCredentialsParams,
+} from "./docebo";
+export {
+  DOCEBO_TOKEN_LIFETIME_SECONDS,
+  DoceboOAuthError,
+  exchangeDoceboCredentials,
+  refreshDoceboToken,
+} from "./docebo";
 export type {
   DocuSignOAuthResult,
   DocuSignTokenResponse,
@@ -817,4 +830,5 @@ export const appStore: UnifiedApp[] = [
   benchlingApp,
   bynderApp,
   coupaApp,
+  doceboApp,
 ];

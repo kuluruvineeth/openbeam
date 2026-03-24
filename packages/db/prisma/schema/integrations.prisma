@@ -159,6 +159,7 @@ enum AppType {
   BENCHLING
   BYNDER
   COUPA
+  DOCEBO
 }
 
 enum ConnectorStatus {
