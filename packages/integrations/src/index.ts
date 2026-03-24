@@ -16,6 +16,7 @@ import { datadogApp } from "./datadog/config";
 import { docuSignApp } from "./docusign/config";
 import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
+import { egnyteApp } from "./egnyte/config";
 import { fhirApp } from "./fhir/config";
 import { figmaApp } from "./figma/config";
 import { freshserviceApp } from "./freshservice/config";
@@ -73,6 +74,7 @@ export {
   datadogApp,
   docuSignApp,
   dynamics365App,
+  egnyteApp,
   miroApp,
   onenoteApp,
   opsgenieApp,
@@ -304,6 +306,18 @@ export {
   generateDynamics365AuthUrl,
   refreshDynamics365Token,
 } from "./dynamics365";
+export type {
+  EgnyteOAuthResult,
+  EgnyteTokenResponse,
+  EgnyteUserInfo,
+  ExchangeEgnyteCodeParams,
+  GenerateEgnyteAuthUrlParams,
+} from "./egnyte";
+export {
+  EgnyteOAuthError,
+  exchangeEgnyteCode,
+  generateEgnyteAuthUrl,
+} from "./egnyte";
 export type {
   ExchangeFigmaCodeParams,
   GenerateFigmaAuthUrlParams,
@@ -720,4 +734,5 @@ export const appStore: UnifiedApp[] = [
   docuSignApp,
   marketoApp,
   canvaApp,
+  egnyteApp,
 ];

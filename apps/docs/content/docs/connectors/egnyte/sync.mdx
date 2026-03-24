@@ -1,0 +1,47 @@
+---
+title: Sync Behavior
+description: How the Egnyte connector syncs data
+---
+
+# Egnyte Sync Behavior
+
+## Full Sync
+
+The full sync recursively traverses all folders starting from the configured root folder path. For each folder, it:
+
+1. Lists all files and subfolders using offset-based pagination
+2. Queues subfolders for recursive traversal
+3. Transforms each entry into a searchable document
+4. Yields batches of documents for indexing
+
+After file traversal, if shared link syncing is enabled, all shared links are fetched and indexed.
+
+At the end of a full sync, the connector captures the latest event ID from the Egnyte Events API, which is used as the starting cursor for subsequent incremental syncs.
+
+## Incremental Sync
+
+Incremental sync uses the Egnyte Events API to detect changes since the last sync:
+
+- **File/folder creates, uploads, moves, renames, restores** are re-indexed
+- **File/folder deletes** are marked as deleted in the search index
+- **Deduplication** ensures each path is processed only once per sync cycle
+
+If no event cursor is available (first run or cursor lost), the connector falls back to a full sync.
+
+## Sync Schedule
+
+The default sync interval is 15 minutes. During each periodic sync:
+
+1. Check for an existing event cursor
+2. If cursor exists, run incremental sync via the Events API
+3. If no cursor, run full sync
+
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| **Batch size** | 100 documents per batch |
+| **Folder page size** | 500 items per API call |
+| **Links page size** | 100 links per API call |
+| **Events page size** | 100 events per API call |
+| **Rate limit** | 2 requests/second, 5000/day |

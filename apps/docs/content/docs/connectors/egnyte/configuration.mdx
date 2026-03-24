@@ -1,0 +1,40 @@
+---
+title: Configuration
+description: Configure the Egnyte connector settings
+---
+
+# Egnyte Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Domain** | Your Egnyte subdomain (e.g., `acme` for acme.egnyte.com) | Required |
+| **Client ID** | OAuth application client ID from Egnyte Developer Portal | Required |
+| **Client Secret** | OAuth application client secret | Required |
+| **Root Folder Path** | Starting folder path for sync | `/Shared` |
+| **Sync Shared Links** | Index shared links alongside files and folders | Enabled |
+| **File Types Filter** | Comma-separated list of extensions to include | All types |
+| **Max File Size (MB)** | Skip files larger than this size | No limit |
+
+## Root Folder Path
+
+By default, the connector syncs from `/Shared`, which is the standard shared folder in Egnyte. You can configure a more specific path to limit the scope:
+
+- `/Shared` — All shared content (default)
+- `/Shared/Engineering` — Only the Engineering folder
+- `/Private` — Private user folders (requires appropriate permissions)
+
+## File Type Filtering
+
+To limit indexing to specific file types, enter a comma-separated list of extensions:
+
+```
+pdf,docx,xlsx,pptx,txt,md
+```
+
+Leave empty to index all file types.
+
+## Rate Limits
+
+Egnyte enforces rate limits of 2 requests per second per user and 5,000 requests per day. The connector automatically handles rate limiting with exponential backoff.

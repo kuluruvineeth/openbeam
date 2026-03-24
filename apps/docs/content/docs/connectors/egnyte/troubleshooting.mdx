@@ -1,0 +1,58 @@
+---
+title: Troubleshooting
+description: Common issues and fixes for the Egnyte connector
+---
+
+# Egnyte Troubleshooting
+
+## Authentication Errors
+
+### "Invalid or expired access token"
+
+Egnyte access tokens do not expire automatically but can be revoked. If you see this error:
+
+1. Check that the OAuth application has not been deleted in the Egnyte Developer Portal
+2. Reconnect the connector by starting a new OAuth flow
+3. Verify the domain setting matches your Egnyte subdomain
+
+### "Egnyte OAuth credentials or domain not configured"
+
+The connector is missing required configuration. Ensure:
+- **Domain** is set (e.g., `acme` for acme.egnyte.com)
+- **Client ID** and **Client Secret** are entered correctly
+
+## Rate Limiting
+
+### "Rate limited" errors
+
+Egnyte enforces strict rate limits (2 requests/second per user, 5,000/day). The connector handles this automatically with exponential backoff, but if you see persistent rate limit errors:
+
+1. Check if other applications are consuming your API quota
+2. Consider reducing sync frequency
+3. Narrow the root folder path to reduce the number of API calls
+
+## Sync Issues
+
+### "Not found" errors during sync
+
+If folders or files return 404 errors:
+
+1. Verify the root folder path exists in your Egnyte account
+2. Check that the authenticated user has read access to the configured path
+3. The path may have been moved or deleted since the last sync
+
+### Incremental sync not detecting changes
+
+If changes are not being picked up:
+
+1. The Events API cursor may have expired. Run a full sync to reset it
+2. Verify the Events API is enabled for your Egnyte plan
+3. Check that the event types match supported actions (file/folder create, modify, delete)
+
+### Large initial sync is slow
+
+For accounts with many files:
+
+1. Narrow the root folder path to sync a subset
+2. Use file type filtering to reduce the scope
+3. The connector respects rate limits, so large accounts may take several hours

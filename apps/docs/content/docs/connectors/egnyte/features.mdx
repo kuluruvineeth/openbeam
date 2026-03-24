@@ -1,0 +1,52 @@
+---
+title: Features
+description: Egnyte connector capabilities and indexed content
+---
+
+# Egnyte Features
+
+## Indexed Content Types
+
+### Files
+
+All files within the configured root folder path are indexed with:
+- File name and full path
+- File size and checksum
+- Upload date and last modified date
+- Uploaded by (author)
+- File extension and document subtype (document, spreadsheet, presentation, image)
+- Lock status
+
+### Folders
+
+Folders are indexed with:
+- Folder name and full path
+- File and subfolder counts
+- Creation and modification dates
+
+### Shared Links
+
+When shared link syncing is enabled, all shared links are indexed with:
+- Link URL and target path
+- Link type (file, folder, upload)
+- Accessibility level (anyone, domain, password, recipients)
+- Creation date and expiry date
+- Creator and recipients
+
+## Search Capabilities
+
+- **Full-text search** across file names, paths, and extensions
+- **Filter by type** (file, folder, shared link)
+- **Filter by subtype** (document, spreadsheet, presentation, image)
+- **Path-based browsing** using metadata filters
+- **Author filtering** by uploaded-by name
+
+## Actions
+
+The Egnyte connector supports the following write operations:
+
+| Action | Description |
+|--------|-------------|
+| **Create Folder** | Create a new folder at a specified path |
+| **Delete Item** | Delete a file or folder by path |
+| **Create Shared Link** | Generate a shared link for a file or folder |

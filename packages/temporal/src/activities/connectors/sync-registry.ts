@@ -45,6 +45,7 @@ import {
   createDocuSignClient,
   createDropboxClient,
   createDynamics365Client,
+  createEgnyteClient,
   createFhirClient,
   createFigmaClient,
   createFreshserviceClient,
@@ -95,6 +96,8 @@ import {
   dropboxIncrementalSync,
   dynamics365FullSync,
   dynamics365IncrementalSync,
+  egnyteFullSync,
+  egnyteIncrementalSync,
   fhirFullSync,
   fhirIncrementalSync,
   figmaFullSync,
@@ -2083,6 +2086,53 @@ export function registerAllSyncFactories(): void {
         : dropboxIncrementalSync(client, context, {
             cursor,
             batchSize: 100,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "EGNYTE",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const domain = (config?.domain as string) ?? "";
+      const rootFolderPath = (config?.root_folder_path as string) || "/Shared";
+      const syncSharedLinks = config?.sync_shared_links !== false;
+
+      logger.info({ connectorId, domain }, "Egnyte sync config loaded");
+
+      const client = createEgnyteClient({ connectorId, accessToken, domain });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        domain,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? egnyteFullSync(client, context, {
+            batchSize: 100,
+            rootFolderPath,
+            syncSharedLinks,
+          })
+        : egnyteIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            rootFolderPath,
+            syncSharedLinks,
           });
 
       for await (const batch of syncGenerator) {

@@ -1,0 +1,12 @@
+{
+  "title": "Egnyte",
+  "icon": "Egnyte",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

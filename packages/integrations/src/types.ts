@@ -110,6 +110,7 @@ export enum AppType {
   DOCUSIGN = "DOCUSIGN",
   MARKETO = "MARKETO",
   CANVA = "CANVA",
+  EGNYTE = "EGNYTE",
 }
 
 export enum SyncMode {

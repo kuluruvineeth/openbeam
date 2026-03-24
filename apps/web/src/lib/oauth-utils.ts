@@ -38,7 +38,8 @@ type IntegrationName =
   | "miro"
   | "dynamics365"
   | "docusign"
-  | "canva";
+  | "canva"
+  | "egnyte";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -206,6 +207,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   canva: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/canva/callback", {
+      code,
+      state,
+    }),
+  egnyte: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/egnyte/callback", {
       code,
       state,
     }),

@@ -1,0 +1,39 @@
+---
+title: Setup
+description: Connect Egnyte to OpenBeam via OAuth 2.0
+---
+
+# Egnyte Setup
+
+## Prerequisites
+
+- An Egnyte account with admin access
+- Access to the Egnyte Developer Portal
+
+## Step 1: Create an API Application
+
+1. Go to the [Egnyte Developer Portal](https://developers.egnyte.com/)
+2. Sign in with your Egnyte admin account
+3. Navigate to **My Apps** and click **Create New Application**
+4. Fill in the application details:
+   - **Application Name**: OpenBeam Integration
+   - **Application Type**: Internal Application
+5. Note the **Client ID** (API Key) and **Client Secret**
+6. Add the OAuth redirect URI provided by OpenBeam
+
+## Step 2: Identify Your Domain
+
+Your Egnyte domain is the subdomain of your Egnyte URL. For example, if your URL is `https://acme.egnyte.com`, your domain is `acme`.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Egnyte**
+3. Enter your **Domain** (e.g., `acme`)
+4. Enter your **Client ID** and **Client Secret**
+5. Click **Connect** to begin the OAuth flow
+6. Authorize OpenBeam in the Egnyte consent screen
+
+## Step 4: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Egnyte content. The first sync recursively traverses all folders starting from the root folder path (default: `/Shared`), indexing files, folders, and shared links.

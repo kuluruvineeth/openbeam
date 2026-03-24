@@ -149,6 +149,7 @@ enum AppType {
   DATADOG
   DOCUSIGN
   CANVA
+  EGNYTE
 }
 
 enum ConnectorStatus {

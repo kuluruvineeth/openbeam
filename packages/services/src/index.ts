@@ -413,6 +413,27 @@ export {
   updateDynamics365Opportunity,
 } from "./dynamics365";
 export type {
+  EgnyteClient,
+  EgnyteClientConfig,
+  EgnyteEvent,
+  EgnyteFileActionResult,
+  EgnyteFileEntry,
+  EgnyteLink,
+  EgnyteLinkActionResult,
+} from "./egnyte";
+export {
+  createEgnyteClient,
+  createEgnyteFolder,
+  createEgnyteSharedLink,
+  deleteEgnyteItem,
+  EgnyteApiError,
+  EgnyteAuth,
+  egnyteFullSync,
+  egnyteIncrementalSync,
+  transformEgnyteFile,
+  transformEgnyteLink,
+} from "./egnyte";
+export type {
   ChunkOptions,
   ChunkResponse,
   DocumentChunk,
