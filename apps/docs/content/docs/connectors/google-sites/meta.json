@@ -1,0 +1,12 @@
+{
+  "title": "Google Sites",
+  "icon": "GoogleSites",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -32,6 +32,7 @@ import { Logo as GongLogo } from "./gong/assets/logo";
 import { Logo as GoogleCalendarLogo } from "./google-calendar/assets/logo";
 import { Logo as GoogleChatLogo } from "./google-chat/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
+import { Logo as GoogleSitesLogo } from "./google-sites/assets/logo";
 import { Logo as GreenhouseLogo } from "./greenhouse/assets/logo";
 import { Logo as GuruLogo } from "./guru/assets/logo";
 import { Logo as HighspotLogo } from "./highspot/assets/logo";
@@ -109,6 +110,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.JIRA]: JiraLogo,
   [AppType.SALESFORCE]: SalesforceLogo,
   [AppType.SERVICENOW]: ServiceNowLogo,
+  [AppType.GOOGLE_SITES]: GoogleSitesLogo,
   [AppType.GOOGLE_CALENDAR]: GoogleCalendarLogo,
   [AppType.GOOGLE_CHAT]: GoogleChatLogo,
   [AppType.MICROSOFT_CALENDAR]: MicrosoftCalendarLogo,

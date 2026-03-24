@@ -40,7 +40,8 @@ type IntegrationName =
   | "docusign"
   | "canva"
   | "egnyte"
-  | "highspot";
+  | "highspot"
+  | "google-sites";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -221,6 +222,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  "google-sites": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/google-sites/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

@@ -1,0 +1,34 @@
+---
+title: Features
+description: Google Sites connector features and capabilities
+---
+
+# Features
+
+## Indexed Content
+
+### Sites
+- Site name and description
+- Owner information (name, email)
+- Creation and modification timestamps
+- Direct URL to the site
+
+### Pages
+- Page title
+- Full HTML content extracted and stripped to plain text
+- Parent site association
+- Owner and modification metadata
+
+## Search Capabilities
+
+- **Full-text search** across all page content
+- **Site-level filtering** to scope results to specific sites
+- **Author filtering** by page or site owner
+- **Date range queries** using modification timestamps
+
+## Sync Features
+
+- **Full sync** discovers all sites and pages
+- **Incremental sync** uses `modifiedTime` filtering for efficient updates
+- **Automatic fallback** to full sync when incremental sync fails
+- **HTML export** extracts page content via Drive API export endpoint

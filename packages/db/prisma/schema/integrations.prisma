@@ -152,6 +152,7 @@ enum AppType {
   EGNYTE
   EVERNOTE
   HIGHSPOT
+  GOOGLE_SITES
 }
 
 enum ConnectorStatus {

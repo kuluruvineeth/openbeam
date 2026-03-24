@@ -28,6 +28,7 @@ import { gongApp } from "./gong/config";
 import { googleCalendarApp } from "./google-calendar/config";
 import { googleChatApp } from "./google-chat/config";
 import { googleDriveApp } from "./google-drive/config";
+import { googleSitesApp } from "./google-sites/config";
 import { greenhouseApp } from "./greenhouse/config";
 import { guruApp } from "./guru/config";
 import { highspotApp } from "./highspot/config";
@@ -107,6 +108,7 @@ export {
   googleCalendarApp,
   googleChatApp,
   googleDriveApp,
+  googleSitesApp,
   hubspotApp,
   intercomApp,
   jiraApp,
@@ -429,6 +431,20 @@ export type {
   GoogleDriveFile,
   GoogleDriveFolder,
 } from "./google-drive/types";
+export type {
+  ExchangeGoogleSitesCodeParams,
+  GenerateGoogleSitesAuthUrlParams,
+  RefreshGoogleSitesTokenParams,
+} from "./google-sites/oauth";
+export {
+  exchangeGoogleSitesCode,
+  generateGoogleSitesAuthUrl,
+  refreshGoogleSitesToken,
+} from "./google-sites/oauth";
+export type {
+  GoogleSitesAuthMethod,
+  GoogleSitesConfig,
+} from "./google-sites/types";
 export type {
   ExchangeHighspotCodeParams,
   GenerateHighspotAuthUrlParams,
@@ -757,4 +773,5 @@ export const appStore: UnifiedApp[] = [
   canvaApp,
   egnyteApp,
   evernoteApp,
+  googleSitesApp,
 ];

@@ -1,0 +1,32 @@
+---
+title: Configuration
+description: Configuring the Google Sites connector
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Description |
+|---------|-------------|
+| **Authentication Method** | OAuth 2.0 for personal accounts, Service Account for Workspace |
+| **OAuth Credentials** | Upload JSON or enter Client ID and Secret manually |
+| **Service Account Key** | JSON key file for domain-wide delegation |
+| **Admin Email** | Workspace admin email for service account impersonation |
+
+## Site Filtering
+
+| Setting | Description |
+|---------|-------------|
+| **Include Sites** | Comma-separated site names to include. Leave empty for all sites. |
+| **Exclude Sites** | Comma-separated site names to exclude from sync. |
+
+## Examples
+
+### Sync only specific sites
+
+Set **Include Sites** to `Engineering Wiki, Product Portal` to only index those two sites and their pages.
+
+### Exclude archived sites
+
+Set **Exclude Sites** to `Archive, Old Projects` to skip those sites during sync.

@@ -1,0 +1,60 @@
+---
+title: Troubleshooting
+description: Common issues with the Google Sites connector
+---
+
+# Troubleshooting
+
+## Common Issues
+
+### No sites found
+
+**Symptom:** Sync completes but reports 0 documents.
+
+**Causes:**
+- The connected account does not own or have access to any Google Sites
+- Google Drive API is not enabled in the Cloud Console project
+- OAuth scopes do not include `drive.readonly`
+
+**Fix:** Verify API access by checking the Google Cloud Console and ensuring the account has Google Sites in its Drive.
+
+### Page content is empty
+
+**Symptom:** Sites are indexed but pages show no content.
+
+**Causes:**
+- The page export endpoint may fail for certain page types
+- Pages may be empty (no content added yet)
+
+**Fix:** This is expected for empty pages. For export failures, check the connector logs for specific error details.
+
+### Rate limit errors
+
+**Symptom:** Sync fails with "Rate limit exceeded" errors.
+
+**Causes:**
+- Too many concurrent requests to the Google Drive API
+- Organization-level quota exhaustion
+
+**Fix:** The connector automatically retries with exponential backoff. If the issue persists, reduce the sync frequency or check your Google Cloud project quotas.
+
+### OAuth token expired
+
+**Symptom:** Sync fails with "unauthorized" or "invalid_grant" errors.
+
+**Causes:**
+- The refresh token has been revoked
+- The OAuth app credentials have changed
+
+**Fix:** Reconnect the Google Sites connector by going through the OAuth flow again.
+
+### Service account delegation errors
+
+**Symptom:** "Forbidden" errors when using service account authentication.
+
+**Causes:**
+- Domain-wide delegation is not enabled for the service account
+- Required scopes are not authorized in the Google Admin console
+- The delegated email address is invalid
+
+**Fix:** Verify domain-wide delegation settings in both Google Cloud Console and Google Admin console.

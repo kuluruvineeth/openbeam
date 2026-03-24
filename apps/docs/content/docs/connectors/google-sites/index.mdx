@@ -1,0 +1,37 @@
+---
+title: Google Sites
+description: Search across internal wikis, project sites, and team portals from Google Sites
+---
+
+# Google Sites
+
+Index internal company wikis, project sites, team portals, and documentation hubs from Google Sites. Uses the Google Drive API to discover sites (MIME type filtering) and export page content as HTML for full-text search.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Sites** | Name, description, owner, created/modified dates, URL |
+| **Pages** | Title, HTML content (stripped to text), parent site, owner, modified date |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Google Workspace)
+
+Connect your Google account via OAuth. The connector requests `drive.readonly` scope to discover Google Sites files and export page content.
+
+## Quick Start
+
+1. Enable the Google Drive API in Google Cloud Console
+2. Create OAuth 2.0 credentials (or upload existing JSON)
+3. Add the Google Sites connector in OpenBeam
+4. Authorize via OAuth
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/google-sites/setup" description="OAuth app creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/google-sites/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/google-sites/configuration" description="Site filtering and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/google-sites/sync" description="Full sync, incremental sync via modifiedTime" />
+  <Card title="Troubleshooting" href="/docs/connectors/google-sites/troubleshooting" description="Common issues and fixes" />
+</Cards>

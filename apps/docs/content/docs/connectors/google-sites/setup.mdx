@@ -1,0 +1,45 @@
+---
+title: Setup
+description: Setting up the Google Sites connector
+---
+
+# Google Sites Setup
+
+## Prerequisites
+
+- Google Workspace or personal Google account
+- Google Cloud Console project with Drive API enabled
+- OAuth 2.0 credentials configured
+
+## Step 1: Enable the Google Drive API
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select or create a project
+3. Navigate to **APIs & Services > Library**
+4. Search for "Google Drive API" and enable it
+
+## Step 2: Create OAuth Credentials
+
+1. Navigate to **APIs & Services > Credentials**
+2. Click **Create Credentials > OAuth client ID**
+3. Select **Web application**
+4. Add the OpenBeam callback URL as an authorized redirect URI
+5. Download the JSON credentials file
+
+## Step 3: Add the Connector
+
+1. In OpenBeam, go to **Connectors > Add Connector**
+2. Select **Google Sites**
+3. Upload the OAuth credentials JSON or enter Client ID and Secret manually
+4. Click **Connect** and authorize the application
+5. The connector will activate and begin the initial sync
+
+## Service Account (Workspace)
+
+For domain-wide access across a Google Workspace organization:
+
+1. Create a Service Account in Google Cloud Console
+2. Enable domain-wide delegation
+3. Add the required scopes in the Google Admin console
+4. Upload the service account JSON key in the connector settings
+5. Enter the admin email for impersonation

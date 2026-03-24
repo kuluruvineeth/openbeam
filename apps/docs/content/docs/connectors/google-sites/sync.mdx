@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How the Google Sites connector syncs data
+---
+
+# Sync Behavior
+
+## Full Sync
+
+1. Lists all Google Sites via Drive API (MIME type `application/vnd.google-apps.site`)
+2. For each site, lists all child pages (files with the site as parent)
+3. Exports each page's HTML content via the Drive export endpoint
+4. Strips HTML to plain text for indexing
+5. Transforms sites and pages into search documents
+
+## Incremental Sync
+
+1. Uses `modifiedTime` filter to find sites and pages modified since the last sync
+2. Re-exports modified pages to capture content changes
+3. Falls back to full sync if incremental sync encounters an error
+
+## Sync Frequency
+
+- **Sites**: Every 60 minutes (default)
+- **Pages**: Every 15 minutes (default)
+
+## Rate Limits
+
+The connector respects Google Drive API rate limits:
+- 100 requests per minute per connector
+- 10,000 requests per hour per connector
+- Automatic exponential backoff on 429 responses
+
+## Content Extraction
+
+Google Sites pages are exported as HTML using the Drive API export endpoint. The HTML is then stripped of tags and entities to produce clean plain text for full-text search indexing.

@@ -672,6 +672,25 @@ export {
   syncDomainDrives,
   validateNotificationSignature as validateDriveNotificationSignature,
 } from "./google-drive";
+export type {
+  GoogleSiteFile,
+  GoogleSitePage,
+  GoogleSitesClient,
+  SiteActionResult,
+} from "./google-sites";
+export {
+  createGoogleSitesClient,
+  exportPageContent as exportGoogleSitesPageContent,
+  GoogleSitesApiError,
+  GoogleSitesAuth,
+  getGoogleSiteMetadata,
+  googleSitesFullSync,
+  googleSitesIncrementalSync,
+  listAllSites as listAllGoogleSites,
+  listPagesForSite as listGoogleSitePagesForSite,
+  transformGoogleSite,
+  transformGoogleSitePage,
+} from "./google-sites";
 export type { GreenhouseClient } from "./greenhouse";
 export {
   addCandidateNote as addGreenhouseCandidateNote,

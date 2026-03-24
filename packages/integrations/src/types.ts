@@ -113,6 +113,7 @@ export enum AppType {
   EGNYTE = "EGNYTE",
   EVERNOTE = "EVERNOTE",
   HIGHSPOT = "HIGHSPOT",
+  GOOGLE_SITES = "GOOGLE_SITES",
 }
 
 export enum SyncMode {

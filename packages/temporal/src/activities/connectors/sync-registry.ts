@@ -56,6 +56,7 @@ import {
   createGoogleCalendarClient,
   createGoogleChatClient,
   createGoogleDriveClient,
+  createGoogleSitesClient,
   createGreenhouseClient,
   createGuruClient,
   createHighspotClient,
@@ -118,6 +119,8 @@ import {
   googleChatFullSync,
   googleChatIncrementalSync,
   googleDriveIncrementalSync,
+  googleSitesFullSync,
+  googleSitesIncrementalSync,
   greenhouseFullSync,
   greenhouseIncrementalSync,
   guruFullSync,
@@ -4922,6 +4925,50 @@ export function registerAllSyncFactories(): void {
             syncBrandTemplates,
             syncFolders,
             syncComments,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "GOOGLE_SITES",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const client = createGoogleSitesClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        domain:
+          ((connector.config as Record<string, unknown> | null)
+            ?.domain as string) ?? "",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? googleSitesFullSync(client, context, {
+            batchSize: 50,
+          })
+        : googleSitesIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 50,
           });
 
       for await (const batch of syncGenerator) {
