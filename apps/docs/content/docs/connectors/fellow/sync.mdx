@@ -1,0 +1,39 @@
+---
+title: Sync Behavior
+description: How Fellow data syncs with OpenBeam
+---
+
+# Fellow Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all meetings, action items, and streams from Fellow. Meetings and action items use cursor-based pagination with a page size of 100.
+
+### Sync Order
+
+1. **Meetings** - All meetings with their notes
+2. **Action Items** - All action items with assignees and due dates
+3. **Streams** - All note streams
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the `updated_after` parameter to fetch only changed records since the last sync time. This reduces API calls and sync duration.
+
+### Frequency
+
+- **Meetings**: Every 15 minutes
+- **Action Items**: Every 15 minutes
+- **Streams**: Every 60 minutes
+
+### Fallback
+
+If an incremental sync fails, OpenBeam automatically falls back to a full sync to ensure data consistency.
+
+## Cursor Management
+
+Sync progress is tracked via a cursor containing:
+
+- `lastSyncTime` - Timestamp of the last successful sync
+- `lastFullSync` - Timestamp of the last full sync
+
+If either value is missing, a full sync is triggered.

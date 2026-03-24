@@ -160,6 +160,7 @@ enum AppType {
   BYNDER
   COUPA
   DOCEBO
+  FELLOW
 }
 
 enum ConnectorStatus {

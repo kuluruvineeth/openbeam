@@ -1,0 +1,37 @@
+---
+title: Fellow
+description: Search meetings, notes, action items, and streams from Fellow
+---
+
+# Fellow
+
+Index meeting management data from Fellow including meetings with notes, action items, and streams. Supports API key authentication with cursor-based pagination and updated_after incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Meetings** | Title, notes, attendees, start/end time, duration |
+| **Action Items** | Title, description, assignee, due date, status, linked meeting |
+| **Streams** | Name, description, topic-based note feeds |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from **Settings > Integrations > API** in Fellow. The key must have read access to meetings, action items, and streams.
+
+## Quick Start
+
+1. Generate an API key in Fellow
+2. Add the Fellow connector in OpenBeam
+3. Enter your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/fellow/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/fellow/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/fellow/configuration" description="Lookback period and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/fellow/sync" description="Full sync, incremental sync via updated_after queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/fellow/troubleshooting" description="Common issues and fixes" />
+</Cards>

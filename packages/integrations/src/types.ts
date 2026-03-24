@@ -121,6 +121,7 @@ export enum AppType {
   BYNDER = "BYNDER",
   COUPA = "COUPA",
   DOCEBO = "DOCEBO",
+  FELLOW = "FELLOW",
 }
 
 export enum SyncMode {

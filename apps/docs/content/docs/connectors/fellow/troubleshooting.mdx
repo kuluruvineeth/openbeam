@@ -1,0 +1,40 @@
+---
+title: Troubleshooting
+description: Common Fellow connector issues and solutions
+---
+
+# Fellow Troubleshooting
+
+## Authentication Errors
+
+### 401 Unauthorized
+
+Your API key is invalid or expired. Generate a new API key from **Settings > Integrations > API** in Fellow.
+
+### 403 Forbidden
+
+Your API key lacks the required permissions. Ensure the key has read access to meetings, action items, and streams.
+
+## Sync Issues
+
+### Rate Limited (429)
+
+Fellow limits API requests to 100 per minute. OpenBeam handles this automatically with exponential backoff. If you see persistent rate limiting, consider increasing the sync interval.
+
+### Missing Meetings
+
+Only meetings accessible to the API key owner are synced. Ensure the user who generated the API key has access to the meetings you expect to see.
+
+### Empty Notes
+
+Some meetings may not have notes attached. These are still indexed but marked with subtype `no_notes`.
+
+## Connection Issues
+
+### Timeout Errors
+
+If Fellow API responses are slow, the default 30-second timeout may trigger. This is typically transient and resolves on the next sync cycle.
+
+### Server Errors (5xx)
+
+Fellow server errors are automatically retried up to 3 times with exponential backoff. If errors persist, check the [Fellow status page](https://status.fellow.ai).

@@ -28,6 +28,7 @@ import { Logo as DropboxLogo } from "./dropbox/assets/logo";
 import { Logo as Dynamics365Logo } from "./dynamics365/assets/logo";
 import { Logo as EgnyteLogo } from "./egnyte/assets/logo";
 import { Logo as EvernoteLogo } from "./evernote/assets/logo";
+import { Logo as FellowLogo } from "./fellow/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as FifteenFiveLogo } from "./fifteen-five/assets/logo";
 import { Logo as FigmaLogo } from "./figma/assets/logo";
@@ -156,6 +157,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.DOCUSIGN]: DocuSignLogo,
   [AppType.MARKETO]: MarketoLogo,
   [AppType.EVERNOTE]: EvernoteLogo,
+  [AppType.FELLOW]: FellowLogo,
   [AppType.FIFTEEN_FIVE]: FifteenFiveLogo,
   [AppType.BENCHLING]: BenchlingLogo,
   [AppType.BYNDER]: BynderLogo,

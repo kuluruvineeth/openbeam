@@ -1,0 +1,1 @@
+export { fellowApp } from "./config";

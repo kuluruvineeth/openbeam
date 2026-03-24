@@ -24,6 +24,7 @@ import { dropboxApp } from "./dropbox/config";
 import { dynamics365App } from "./dynamics365/config";
 import { egnyteApp } from "./egnyte/config";
 import { evernoteApp } from "./evernote/config";
+import { fellowApp } from "./fellow/config";
 import { fhirApp } from "./fhir/config";
 import { fifteenFiveApp } from "./fifteen-five/config";
 import { figmaApp } from "./figma/config";
@@ -92,6 +93,7 @@ export {
   dynamics365App,
   egnyteApp,
   evernoteApp,
+  fellowApp,
   fifteenFiveApp,
   miroApp,
   onenoteApp,
@@ -831,4 +833,5 @@ export const appStore: UnifiedApp[] = [
   bynderApp,
   coupaApp,
   doceboApp,
+  fellowApp,
 ];

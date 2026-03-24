@@ -1,0 +1,21 @@
+---
+title: Configuration
+description: Configure Fellow connector settings
+---
+
+# Fellow Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Fellow API key for authentication | Required |
+| **Lookback Days** | Days of history for first sync (0 = all time) | 90 |
+
+## Lookback Days
+
+Controls how far back the initial full sync reaches. Set to `0` to sync all historical data. Subsequent incremental syncs always capture changes since the last sync.
+
+## Rate Limits
+
+Fellow enforces a rate limit of 100 requests per minute. OpenBeam automatically handles rate limiting with exponential backoff, so no configuration is needed.

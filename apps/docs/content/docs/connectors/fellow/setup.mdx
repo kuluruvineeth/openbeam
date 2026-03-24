@@ -1,0 +1,30 @@
+---
+title: Setup
+description: Connect Fellow to OpenBeam via API key
+---
+
+# Fellow Setup
+
+## Prerequisites
+
+- A Fellow account with admin access
+- Access to Fellow API key management
+
+## Step 1: Generate an API Key
+
+1. Log into [Fellow](https://fellow.ai)
+2. Go to **Settings > Integrations > API**
+3. Click **Generate API Key**
+4. Name it something like "OpenBeam Integration"
+5. Copy the generated API key
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Fellow**
+3. Enter your **API Key**
+4. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Fellow data. The first sync fetches meetings from the last 90 days (configurable), plus all action items and streams.
