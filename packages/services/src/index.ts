@@ -713,6 +713,25 @@ export {
   needsAttention,
 } from "./health";
 export type {
+  HighspotClient,
+  HighspotClientConfig,
+  HighspotItem,
+  HighspotPitch,
+  HighspotSpot,
+} from "./highspot";
+export {
+  createHighspotClient,
+  createHighspotPitch,
+  HighspotApiError,
+  HighspotAuth,
+  highspotFullSync,
+  highspotIncrementalSync,
+  transformHighspotItem,
+  transformHighspotPitch,
+  transformHighspotSpot,
+  updateHighspotItemMetadata,
+} from "./highspot";
+export type {
   HubSpotClient,
   HubSpotClientConfig,
   HubSpotCompany,
