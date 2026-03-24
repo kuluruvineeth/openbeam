@@ -29,12 +29,12 @@ export const datadogApp: UnifiedApp = {
       monitor: {
         label: "monitor",
         iconKey: "AlertCircleIcon",
-        category: "monitor",
+        category: "alert",
       },
       dashboard: {
         label: "dashboard",
         iconKey: "LayoutDashboardIcon",
-        category: "dashboard",
+        category: "document",
       },
       incident: {
         label: "incident",
@@ -49,12 +49,12 @@ export const datadogApp: UnifiedApp = {
       notebook: {
         label: "notebook",
         iconKey: "FileTextIcon",
-        category: "notebook",
+        category: "document",
       },
       slo: {
         label: "SLO",
         iconKey: "TargetIcon",
-        category: "slo",
+        category: "automation",
       },
     },
   },
