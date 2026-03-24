@@ -96,6 +96,10 @@ export async function refreshConnectorToken(
     );
   }
 
+  const validClientId: string = clientId;
+  const validClientSecret: string = clientSecret;
+  const validRefreshToken: string = refreshToken ?? "";
+
   try {
     let newToken: {
       accessToken: string;
@@ -106,41 +110,41 @@ export async function refreshConnectorToken(
     switch (oauth.app) {
       case "GMAIL":
         newToken = await refreshGmailToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "GOOGLE_DRIVE":
         newToken = await refreshGoogleDriveToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "GOOGLE_CALENDAR":
         newToken = await refreshGoogleCalendarToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "GOOGLE_CHAT":
         newToken = await refreshGoogleChatToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "LINEAR": {
         const linearResult = await refreshLinearToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: linearResult.accessToken,
@@ -152,9 +156,9 @@ export async function refreshConnectorToken(
 
       case "GITHUB": {
         const githubResult = await refreshGitHubToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
 
         if (githubResult.expiresIn === undefined) {
@@ -174,9 +178,9 @@ export async function refreshConnectorToken(
         const gitlabInstanceUrl =
           (gitlabConfig?.instance_url as string) || undefined;
         const gitlabResult = await refreshGitLabToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
           instanceUrl: gitlabInstanceUrl,
         });
         newToken = {
@@ -189,57 +193,57 @@ export async function refreshConnectorToken(
 
       case "MICROSOFT_CALENDAR":
         newToken = await refreshMicrosoftCalendarToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "ONENOTE":
         newToken = await refreshOneNoteToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "OUTLOOK":
         newToken = await refreshOutlookToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "DYNAMICS_365":
         newToken = await refreshDynamics365Token({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "SHAREPOINT":
         newToken = await refreshSharePointToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "MICROSOFT_TEAMS":
         newToken = await refreshTeamsToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         break;
 
       case "CONFLUENCE": {
         const confluenceResult = await refreshConfluenceToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: confluenceResult.accessToken,
@@ -251,9 +255,9 @@ export async function refreshConnectorToken(
 
       case "JIRA": {
         const jiraResult = await refreshJiraToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: jiraResult.accessToken,
@@ -273,9 +277,9 @@ export async function refreshConnectorToken(
         }
         const sfResult = await refreshSalesforceToken({
           config: sfConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: sfResult.accessToken,
@@ -292,9 +296,9 @@ export async function refreshConnectorToken(
         }
         const boxResult = await refreshBoxToken({
           config: boxConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: boxResult.accessToken,
@@ -314,9 +318,9 @@ export async function refreshConnectorToken(
         }
         const dbxResult = await refreshDropboxToken({
           config: dbxConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: dbxResult.accessToken,
@@ -335,9 +339,9 @@ export async function refreshConnectorToken(
         }
         const snResult = await refreshServiceNowToken({
           instance: snInstance,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: snResult.accessToken,
@@ -349,9 +353,9 @@ export async function refreshConnectorToken(
 
       case "ASANA": {
         const asanaResult = await refreshAsanaToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: asanaResult.accessToken,
@@ -363,9 +367,9 @@ export async function refreshConnectorToken(
 
       case "FIGMA": {
         const figmaResult = await refreshFigmaToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: figmaResult.accessToken,
@@ -385,9 +389,9 @@ export async function refreshConnectorToken(
         }
         const hsResult = await refreshHubSpotToken({
           config: hsConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: hsResult.accessToken,
@@ -399,9 +403,9 @@ export async function refreshConnectorToken(
 
       case "BITBUCKET": {
         const bitbucketResult = await refreshBitbucketToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: bitbucketResult.accessToken,
@@ -416,9 +420,9 @@ export async function refreshConnectorToken(
 
       case "ZOOM": {
         const zoomResult = await refreshZoomToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: zoomResult.accessToken,
@@ -454,9 +458,9 @@ export async function refreshConnectorToken(
         }
         const { refreshWorkdayToken } = await import("@openbeam/integrations");
         const wdResult = await refreshWorkdayToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
           tenant: wdTenant,
           host: wdHost,
         });
@@ -478,9 +482,9 @@ export async function refreshConnectorToken(
         }
         const pdResult = await refreshPipedriveToken({
           config: pdConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: pdResult.accessToken,
@@ -500,9 +504,9 @@ export async function refreshConnectorToken(
         }
         const atResult = await refreshAirtableToken({
           config: atConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: atResult.accessToken,
@@ -520,9 +524,9 @@ export async function refreshConnectorToken(
         }
         const canvaResult = await refreshCanvaToken({
           config: canvaConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: canvaResult.accessToken,
@@ -540,9 +544,9 @@ export async function refreshConnectorToken(
         }
         const miroResult = await refreshMiroToken({
           config: miroConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
         });
         newToken = {
           accessToken: miroResult.accessToken,
@@ -561,9 +565,9 @@ export async function refreshConnectorToken(
             ? `${process.env.WEB_URL || "http://localhost:3001"}${azureDevOpsApp.auth.config.redirectPath}`
             : "";
         const adoResult = await refreshAzureDevOpsToken({
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
           redirectUri: adoRedirectUri,
         });
         newToken = {
@@ -592,9 +596,9 @@ export async function refreshConnectorToken(
             : ("production" as const);
         const dsResult = await refreshDocuSignToken({
           config: dsConfig,
-          clientId,
-          clientSecret,
-          refreshToken,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
+          refreshToken: validRefreshToken,
           environment: dsEnvironment,
         });
         newToken = {
@@ -618,8 +622,8 @@ export async function refreshConnectorToken(
         );
         const mktoResult = await exchangeMarketoCredentials({
           munchkinId,
-          clientId,
-          clientSecret,
+          clientId: validClientId,
+          clientSecret: validClientSecret,
         });
         newToken = {
           accessToken: mktoResult.accessToken,
