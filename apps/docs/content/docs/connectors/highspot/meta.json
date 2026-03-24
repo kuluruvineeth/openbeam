@@ -1,0 +1,12 @@
+{
+  "title": "Highspot",
+  "icon": "Highspot",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

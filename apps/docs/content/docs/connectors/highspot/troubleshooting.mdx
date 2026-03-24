@@ -1,0 +1,49 @@
+---
+title: Troubleshooting
+description: Common issues with the Highspot connector
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Token exchange failed"
+
+The OAuth authorization code may have expired. Authorization codes are short-lived (typically 10 minutes). Restart the OAuth flow.
+
+### "Token refresh failed"
+
+The refresh token may have been revoked or the OAuth app credentials changed. Re-authorize the connector.
+
+### "Authentication failed" (401/403)
+
+Verify that:
+- The OAuth app has the required scopes (items:read, spots:read, pitches:read)
+- The user who authorized has sufficient permissions in Highspot
+- The OAuth app has not been deactivated
+
+## Sync Issues
+
+### Empty sync results
+
+- Verify the Highspot account contains content
+- Check if the lookback_days setting is too restrictive
+- Ensure the OAuth token has not expired
+
+### Incremental sync fetches everything
+
+This happens when the `updated_after` filter is not supported for certain entity types. The connector will automatically fall back to a full sync when incremental sync fails.
+
+### Rate limiting
+
+The Highspot API has rate limits. The connector handles 429 responses with automatic retry and exponential backoff. If syncs are consistently slow, reduce the sync frequency.
+
+## Connection Issues
+
+### "Connector configuration not found"
+
+The connector was created but not fully configured. Re-enter the Client ID and Client Secret in the connector settings.
+
+### "Highspot OAuth credentials not configured"
+
+Both Client ID and Client Secret are required. Verify both fields are populated in the connector settings.

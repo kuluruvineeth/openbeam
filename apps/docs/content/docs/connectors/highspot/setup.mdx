@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Configure the Highspot connector with OAuth 2.0
+---
+
+# Setup
+
+## Prerequisites
+
+- A Highspot account with admin access
+- Access to the Highspot developer portal to create an OAuth app
+
+## Step 1: Create an OAuth App
+
+1. Go to the [Highspot developer portal](https://developer.highspot.com/)
+2. Create a new OAuth application
+3. Set the redirect URI to: `https://your-openbeam-domain.com/connectors/setup/highspot/oauth/callback`
+4. Note the **Client ID** and **Client Secret**
+
+## Step 2: Add the Connector
+
+1. In OpenBeam, go to **Settings > Connectors**
+2. Click **Add Connector** and select **Highspot**
+3. Enter the **Client ID** and **Client Secret** from Step 1
+
+## Step 3: Authorize
+
+1. Click **Connect** to start the OAuth flow
+2. You will be redirected to Highspot to authorize the connection
+3. Grant the requested permissions (items:read, spots:read, pitches:read)
+4. You will be redirected back to OpenBeam
+
+## Step 4: Start Sync
+
+Once authorized, OpenBeam will begin the initial full sync. This indexes all items, spots, and pitches from your Highspot account.
+
+## Required Scopes
+
+| Scope | Purpose |
+|-------|---------|
+| `items:read` | Read content items (documents, presentations, videos) |
+| `spots:read` | Read content collections (spots) |
+| `pitches:read` | Read buyer-facing content shares |

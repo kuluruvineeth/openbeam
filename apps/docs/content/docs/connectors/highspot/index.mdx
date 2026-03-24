@@ -1,0 +1,38 @@
+---
+title: Highspot
+description: Search across sales content, spots, and pitches from Highspot
+---
+
+# Highspot
+
+Index sales enablement content from Highspot including items (documents, presentations, videos), spots (content collections), and pitches (buyer-facing content shares). Supports OAuth 2.0 with timestamp-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Items** | Title, description, type, author, tags, spot, view count, pitch count |
+| **Spots** | Name, description, owner, item count, visibility |
+| **Pitches** | Title, sender, recipients, attached items, status, view count |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Connect your Highspot account via OAuth. The connector requests read-only scopes for items, spots, and pitches.
+
+## Quick Start
+
+1. Create an OAuth app in the Highspot developer portal
+2. Add the Highspot connector in OpenBeam
+3. Enter your Client ID and Client Secret
+4. Authorize via OAuth
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/highspot/setup" description="OAuth app creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/highspot/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/highspot/configuration" description="Entity selection, pitch sync, and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/highspot/sync" description="Full sync, incremental sync via updated_after filtering" />
+  <Card title="Troubleshooting" href="/docs/connectors/highspot/troubleshooting" description="Common issues and fixes" />
+</Cards>

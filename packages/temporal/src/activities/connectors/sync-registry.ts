@@ -58,6 +58,7 @@ import {
   createGoogleDriveClient,
   createGreenhouseClient,
   createGuruClient,
+  createHighspotClient,
   createHubSpotClient,
   createIntercomClient,
   createLinearClient,
@@ -121,6 +122,8 @@ import {
   greenhouseIncrementalSync,
   guruFullSync,
   guruIncrementalSync,
+  highspotFullSync,
+  highspotIncrementalSync,
   hubspotFullSync,
   hubspotIncrementalSync,
   intercomFullSync,
@@ -4413,6 +4416,53 @@ export function registerAllSyncFactories(): void {
             syncNotes,
             syncOrganizations,
             pipelineFilter,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "HIGHSPOT",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const syncPitches = config?.sync_pitches !== false;
+
+      const client = createHighspotClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        domain: (config?.domain as string) ?? "app.highspot.com",
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? highspotFullSync(client, context, {
+            batchSize: 100,
+            syncPitches,
+          })
+        : highspotIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncPitches,
           });
 
       for await (const batch of syncGenerator) {

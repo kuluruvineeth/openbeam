@@ -39,7 +39,8 @@ type IntegrationName =
   | "dynamics365"
   | "docusign"
   | "canva"
-  | "egnyte";
+  | "egnyte"
+  | "highspot";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -212,6 +213,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   egnyte: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/egnyte/callback", {
+      code,
+      state,
+    }),
+  highspot: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/highspot/callback", {
       code,
       state,
     }),

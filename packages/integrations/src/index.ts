@@ -30,6 +30,7 @@ import { googleChatApp } from "./google-chat/config";
 import { googleDriveApp } from "./google-drive/config";
 import { greenhouseApp } from "./greenhouse/config";
 import { guruApp } from "./guru/config";
+import { highspotApp } from "./highspot/config";
 import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
 import { jiraApp } from "./jira/config";
@@ -100,6 +101,7 @@ export {
   gongApp,
   greenhouseApp,
   guruApp,
+  highspotApp,
   githubApp,
   gitlabApp,
   googleCalendarApp,
@@ -428,6 +430,22 @@ export type {
   GoogleDriveFolder,
 } from "./google-drive/types";
 export type {
+  ExchangeHighspotCodeParams,
+  GenerateHighspotAuthUrlParams,
+  HighspotOAuthResult,
+  HighspotTokenResponse,
+  HighspotUserInfo,
+  RefreshHighspotTokenParams,
+  RefreshHighspotTokenResult,
+} from "./highspot";
+export {
+  exchangeHighspotCode,
+  generateHighspotAuthUrl,
+  HIGHSPOT_TOKEN_LIFETIME_SECONDS,
+  HighspotOAuthError,
+  refreshHighspotToken,
+} from "./highspot";
+export type {
   ExchangeHubSpotCodeParams,
   GenerateHubSpotAuthUrlParams,
   RefreshHubSpotTokenParams,
@@ -726,6 +744,7 @@ export const appStore: UnifiedApp[] = [
   workdayApp,
   greenhouseApp,
   guruApp,
+  highspotApp,
   airtableApp,
   codaApp,
   onenoteApp,

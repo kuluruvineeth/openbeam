@@ -1,0 +1,58 @@
+---
+title: Features
+description: What the Highspot connector indexes and how to search it
+---
+
+# Features
+
+## Indexed Content
+
+### Items
+
+Content pieces stored in Highspot: documents, presentations, videos, and other file types.
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Title | Yes | Full-text |
+| Description | Yes | Full-text |
+| Type | Yes | Filter |
+| Author | Yes | Filter |
+| Tags | Yes | Filter |
+| Spot name | Yes | Filter |
+| View count | Yes | Metadata |
+| Pitch count | Yes | Metadata |
+| MIME type | Yes | Metadata |
+
+### Spots
+
+Content collections that organize items by topic, team, or sales play.
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Name | Yes | Full-text |
+| Description | Yes | Full-text |
+| Owner | Yes | Filter |
+| Item count | Yes | Metadata |
+| Visibility | Yes | Metadata |
+
+### Pitches
+
+Buyer-facing content shares sent to prospects and customers.
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Title | Yes | Full-text |
+| Description | Yes | Full-text |
+| Sender | Yes | Filter |
+| Recipients | Yes | Metadata |
+| Status | Yes | Filter |
+| View count | Yes | Metadata |
+| Attached items | Yes | Metadata |
+
+## Search Examples
+
+- `"sales deck Q4"` -- Find presentations for Q4 sales
+- `"onboarding spot"` -- Find the onboarding content collection
+- `"pitch acme"` -- Find pitches sent to Acme
+- `type:presentation` -- Filter by content type
+- `tag:competitive` -- Filter by tag

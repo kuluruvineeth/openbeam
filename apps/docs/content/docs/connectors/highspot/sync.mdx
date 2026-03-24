@@ -1,0 +1,43 @@
+---
+title: Sync Behavior
+description: How the Highspot connector syncs content
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all content from Highspot in this order:
+
+1. **Items** -- All content pieces (documents, presentations, videos)
+2. **Spots** -- All content collections
+3. **Pitches** -- All buyer-facing content shares (if enabled)
+
+Content is fetched in pages of 100 and indexed in batches. The sync tracks the latest `updated_at` timestamp for incremental sync.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_after` filter to fetch only content modified since the last sync. This runs on a configurable schedule (default: 15 minutes for items and pitches, 30 minutes for spots).
+
+If the incremental sync fails (e.g., due to API changes), it automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval | Sync Mode |
+|--------|-----------------|-----------|
+| Items | 15 minutes | Periodic |
+| Spots | 30 minutes | Periodic |
+| Pitches | 15 minutes | Periodic |
+
+## Rate Limits
+
+The connector respects Highspot API rate limits (typically 100 requests per minute). When rate-limited, it automatically retries with exponential backoff.
+
+## Cursor
+
+The sync cursor tracks:
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Latest `updated_at` timestamp from synced content |
+| `lastFullSync` | When the last full sync completed |

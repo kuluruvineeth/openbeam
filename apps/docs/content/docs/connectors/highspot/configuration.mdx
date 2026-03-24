@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: Configure which Highspot content to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Sync Pitches** | Toggle | Enabled | Index buyer-facing pitches as searchable documents |
+| **History (days)** | Number | Unlimited | How far back to sync content. Leave empty for all history |
+
+## Sync Pitches
+
+When enabled, the connector indexes all pitches (buyer-facing content shares) along with their recipients, attached items, and engagement status. Disable this if your team only needs to search items and spots.
+
+## History Lookback
+
+By default, the connector syncs all content from your Highspot account. Set a lookback period (in days) to limit the initial sync to recent content only. This is useful for large accounts where historical content is not needed.
+
+## Entity Types
+
+Items and spots are always synced. Pitches can be toggled on or off.
+
+| Entity | Always Synced | Configurable |
+|--------|--------------|-------------|
+| Items | Yes | -- |
+| Spots | Yes | -- |
+| Pitches | No | Toggle on/off |

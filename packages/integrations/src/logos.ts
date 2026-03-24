@@ -34,6 +34,7 @@ import { Logo as GoogleChatLogo } from "./google-chat/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as GreenhouseLogo } from "./greenhouse/assets/logo";
 import { Logo as GuruLogo } from "./guru/assets/logo";
+import { Logo as HighspotLogo } from "./highspot/assets/logo";
 import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
@@ -133,6 +134,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.WORKDAY]: WorkdayLogo,
   [AppType.GREENHOUSE]: GreenhouseLogo,
   [AppType.GURU]: GuruLogo,
+  [AppType.HIGHSPOT]: HighspotLogo,
   [AppType.ONENOTE]: OneNoteLogo,
   [AppType.MIRO]: MiroLogo,
   [AppType.DYNAMICS_365]: Dynamics365Logo,

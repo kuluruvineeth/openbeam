@@ -1,0 +1,13 @@
+export type { ItemActionResult, PitchActionResult } from "./actions";
+export { createHighspotPitch, updateHighspotItemMetadata } from "./actions";
+export type { HighspotItem, HighspotPitch, HighspotSpot } from "./api";
+export { listAllItems, listAllPitches, listAllSpots } from "./api";
+export { HighspotAuth } from "./auth";
+export type { HighspotClient, HighspotClientConfig } from "./client";
+export { createHighspotClient } from "./client";
+export { highspotFullSync } from "./sync/full";
+export { highspotIncrementalSync } from "./sync/incremental";
+export { transformHighspotItem } from "./transformers/item";
+export { transformHighspotPitch } from "./transformers/pitch";
+export { transformHighspotSpot } from "./transformers/spot";
+export { HighspotApiError } from "./types";

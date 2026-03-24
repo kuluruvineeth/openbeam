@@ -112,6 +112,7 @@ export enum AppType {
   CANVA = "CANVA",
   EGNYTE = "EGNYTE",
   EVERNOTE = "EVERNOTE",
+  HIGHSPOT = "HIGHSPOT",
 }
 
 export enum SyncMode {
