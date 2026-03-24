@@ -1,4 +1,33 @@
 export type {
+  AhaClient,
+  AhaEpic,
+  AhaFeature,
+  AhaIdea,
+  AhaInitiative,
+  AhaProduct,
+  AhaRelease,
+} from "./aha";
+export {
+  AhaApiError,
+  ahaFullSync,
+  ahaIncrementalSync,
+  createAhaClient,
+  createFeature as createAhaFeature,
+  createIdea as createAhaIdea,
+  listEpics as listAhaEpics,
+  listFeatures as listAhaFeatures,
+  listIdeas as listAhaIdeas,
+  listInitiatives as listAhaInitiatives,
+  listProducts as listAhaProducts,
+  listReleases as listAhaReleases,
+  transformEpic as transformAhaEpic,
+  transformFeature as transformAhaFeature,
+  transformIdea as transformAhaIdea,
+  transformInitiative as transformAhaInitiative,
+  transformRelease as transformAhaRelease,
+  updateIdea as updateAhaIdea,
+} from "./aha";
+export type {
   AIInitOptions,
   AnswerCitation,
   CachedEmbedding,

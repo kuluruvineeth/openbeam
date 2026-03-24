@@ -1,0 +1,33 @@
+---
+title: Configuration
+description: Configure entity selection, product filtering, and sync behavior
+---
+
+# Aha! Configuration
+
+## Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **API Key** | (required) | Your Aha! API key |
+| **Subdomain** | (required) | Your Aha! subdomain |
+| **Sync Epics** | Enabled | Include epics in search results |
+| **Sync Initiatives** | Enabled | Include initiatives in search results |
+| **Lookback Days** | 0 (all time) | Days of history to sync on first run |
+| **Product Filter** | Empty (all) | Comma-separated product IDs to sync |
+
+## Product Filtering
+
+By default, OpenBeam syncs all products your API key can access. To limit sync to specific products:
+
+1. Find your product IDs in Aha! (visible in URLs or via the API)
+2. Enter them as a comma-separated list in the **Product Filter** setting
+3. Both product IDs and reference numbers (e.g., `PROD-1`) are accepted
+
+## Entity Selection
+
+Toggle **Sync Epics** and **Sync Initiatives** to control which entity types are indexed. Ideas, features, and releases are always synced.
+
+## Lookback Days
+
+Set to `0` to sync all historical data (default). Set to a positive number to limit the initial sync to recent data only. Incremental syncs always capture all changes since the last sync regardless of this setting.

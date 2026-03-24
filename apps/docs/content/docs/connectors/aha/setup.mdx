@@ -1,0 +1,39 @@
+---
+title: Setup
+description: Configure the Aha! connector with API key authentication
+---
+
+# Aha! Setup
+
+## Prerequisites
+
+- An Aha! account with API access
+- Your Aha! subdomain (the part before `.aha.io` in your URL)
+
+## Generate an API Key
+
+1. Log into your Aha! account
+2. Click your avatar in the top-right corner
+3. Go to **Settings > Personal > Developer > API Key**
+4. Click **Generate API Key**
+5. Copy the generated key
+
+## Add the Connector
+
+1. In OpenBeam, navigate to **Connectors > Add Connector**
+2. Select **Aha!** from the list
+3. Enter your **API Key** and **Subdomain**
+4. Click **Connect**
+5. OpenBeam will validate your credentials by calling the Aha! API
+6. Once verified, the initial sync begins automatically
+
+## Required Permissions
+
+The API key inherits the permissions of the user who generated it. For full sync coverage, the user should have:
+
+- Read access to all products you want to index
+- Read access to ideas, features, releases, initiatives, and epics
+
+## Subdomain
+
+Your subdomain is the first part of your Aha! URL. For example, if you access Aha! at `https://company.aha.io`, your subdomain is `company`.

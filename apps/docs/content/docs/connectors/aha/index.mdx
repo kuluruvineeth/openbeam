@@ -1,0 +1,39 @@
+---
+title: Aha!
+description: Search ideas, features, releases, initiatives, and epics from Aha!
+---
+
+# Aha!
+
+Index product management data from Aha! including ideas, features, releases, initiatives, and epics. Supports API key authentication (Bearer token) with page-based pagination and updated_since incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Ideas** | Name, description, status, categories, votes, endorsements, assignee |
+| **Features** | Name, description, workflow status, assignee, due date, release, epic, tags |
+| **Releases** | Name, theme, release date, status, progress, owner |
+| **Initiatives** | Name, description, status, progress, effort, value |
+| **Epics** | Name, description, workflow status, progress |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from **Settings > Personal > Developer > API Key** in Aha!. The key provides read access to all product data.
+
+## Quick Start
+
+1. Generate an API key in Aha!
+2. Add the Aha! connector in OpenBeam
+3. Enter your API key and subdomain
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/aha/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/aha/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/aha/configuration" description="Product filtering, entity selection, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/aha/sync" description="Full sync, incremental sync via updated_since" />
+  <Card title="Troubleshooting" href="/docs/connectors/aha/troubleshooting" description="Common issues and fixes" />
+</Cards>

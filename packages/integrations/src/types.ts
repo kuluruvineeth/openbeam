@@ -115,6 +115,7 @@ export enum AppType {
   HIGHSPOT = "HIGHSPOT",
   GOOGLE_SITES = "GOOGLE_SITES",
   AMPLITUDE = "AMPLITUDE",
+  AHA = "AHA",
 }
 
 export enum SyncMode {

@@ -94,6 +94,7 @@ export const AppTypeSchema = z.enum([
   "HIGHSPOT",
   "GOOGLE_SITES",
   "AMPLITUDE",
+  "AHA",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

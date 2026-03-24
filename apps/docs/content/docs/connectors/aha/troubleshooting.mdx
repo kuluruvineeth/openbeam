@@ -1,0 +1,45 @@
+---
+title: Troubleshooting
+description: Common issues and fixes for the Aha! connector
+---
+
+# Aha! Troubleshooting
+
+## Authentication Errors
+
+### "Unauthorized - invalid API key"
+- Verify your API key is correct and hasn't been revoked
+- Regenerate the key from **Settings > Personal > Developer > API Key**
+- Ensure the key belongs to an active user account
+
+### "Cannot access Aha!"
+- Check that the subdomain is correct (e.g., `company` for `company.aha.io`)
+- Verify your Aha! account is active and not suspended
+- Try accessing `https://{subdomain}.aha.io/api/v1/me` in a browser with the API key
+
+## Sync Issues
+
+### Missing products or entities
+- Check that the API key user has read access to the relevant products
+- If using the Product Filter, verify the product IDs are correct
+- Ensure Sync Epics and Sync Initiatives are enabled if you expect those entities
+
+### Rate limiting (429 errors)
+- The connector automatically retries rate-limited requests
+- If persistent, reduce the sync frequency or contact Aha! about rate limit increases
+- Check the Aha! API dashboard for usage metrics
+
+### Slow sync performance
+- Large Aha! accounts with thousands of features may take longer on initial sync
+- Use the Product Filter to limit sync scope
+- Increase the Lookback Days to skip old historical data
+
+## Data Quality
+
+### HTML content in search results
+- The connector strips HTML tags from descriptions and themes
+- Rich formatting (tables, images) is converted to plain text
+
+### Missing description content
+- Some ideas or features may have empty descriptions
+- The connector still indexes the title, status, and metadata for searchability

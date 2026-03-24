@@ -1,0 +1,1 @@
+export { ahaApp } from "./config";

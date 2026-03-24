@@ -154,6 +154,7 @@ enum AppType {
   HIGHSPOT
   GOOGLE_SITES
   AMPLITUDE
+  AHA
 }
 
 enum ConnectorStatus {

@@ -2,6 +2,7 @@ import {
   type ConnectorType,
   normalizeToConnectorType,
 } from "@openbeam/types/services/connectors/events";
+import { Logo as AhaLogo } from "./aha/assets/logo";
 import { Logo as AirtableLogo } from "./airtable/assets/logo";
 import { Logo as AmplitudeLogo } from "./amplitude/assets/logo";
 import { Logo as AsanaLogo } from "./asana/assets/logo";
@@ -76,6 +77,7 @@ import { Logo as ZendeskLogo } from "./zendesk/assets/logo";
 import { Logo as ZoomLogo } from "./zoom/assets/logo";
 
 export const appLogos: Record<string, LogoComponent> = {
+  [AppType.AHA]: AhaLogo,
   [AppType.AIRTABLE]: AirtableLogo,
   [AppType.AMPLITUDE]: AmplitudeLogo,
   [AppType.CANVA]: CanvaLogo,

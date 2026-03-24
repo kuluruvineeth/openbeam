@@ -1,3 +1,4 @@
+import { ahaApp } from "./aha/config";
 import { airtableApp } from "./airtable/config";
 import { amplitudeApp } from "./amplitude/config";
 import { asanaApp } from "./asana/config";
@@ -72,6 +73,7 @@ import { zendeskApp } from "./zendesk/config";
 import { zoomApp } from "./zoom/config";
 
 export {
+  ahaApp,
   airtableApp,
   amplitudeApp,
   canvaApp,
@@ -777,4 +779,5 @@ export const appStore: UnifiedApp[] = [
   evernoteApp,
   googleSitesApp,
   amplitudeApp,
+  ahaApp,
 ];

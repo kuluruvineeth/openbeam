@@ -1,0 +1,41 @@
+---
+title: Sync Behavior
+description: Full and incremental sync patterns for Aha!
+---
+
+# Aha! Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data from Aha!:
+
+1. **Products** — Lists all accessible products (filtered if configured)
+2. **Per Product** — For each product, syncs in order:
+   - Ideas (page-based, 200 per page)
+   - Features (page-based, 200 per page)
+   - Releases (page-based, 200 per page)
+   - Initiatives (if enabled)
+   - Epics (if enabled)
+
+Documents are yielded in batches of 50 for memory-efficient indexing.
+
+## Incremental Sync
+
+After the initial sync, incremental syncs use the `updated_since` parameter:
+
+- Only fetches entities modified since the last sync time
+- Falls back to full sync if the incremental sync fails
+- Runs on a 15-minute interval for ideas and features
+- Runs on a 60-minute interval for releases, initiatives, and epics
+
+## Rate Limits
+
+Aha! allows 300 requests per minute. The connector implements:
+
+- Rate limiting via Redis to stay within quotas
+- Exponential backoff with jitter on 429 responses
+- Automatic retry on 5xx server errors (up to 3 attempts)
+
+## Pagination
+
+All list endpoints use page-based pagination with `page` and `per_page` parameters. The connector fetches 200 items per page to minimize API calls.
