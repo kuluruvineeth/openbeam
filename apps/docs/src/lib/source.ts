@@ -36,6 +36,7 @@ import {
   EgnyteIcon,
   EvernoteIcon,
   FHIRIcon,
+  FifteenFiveIcon,
   FigmaIcon,
   FreshserviceIcon,
   GitHubIcon,
@@ -174,6 +175,7 @@ const customIconMap: Record<
   Highspot: HighspotIcon,
   GoogleSites: GoogleSitesIcon,
   Amplitude: AmplitudeIcon,
+  FifteenFive: FifteenFiveIcon,
 };
 
 export const source = loader({

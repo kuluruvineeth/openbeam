@@ -20,6 +20,7 @@ import dropbox from "./dropbox/dropbox.index";
 import dynamics365 from "./dynamics365/dynamics365.index";
 import egnyte from "./egnyte/egnyte.index";
 import evernote from "./evernote/evernote.index";
+import fifteenFive from "./fifteen-five/fifteen-five.index";
 import figma from "./figma/figma.index";
 import freshservice from "./freshservice/freshservice.index";
 import github from "./github/github.index";
@@ -121,6 +122,7 @@ integrations.route("/canva", canva);
 integrations.route("/amplitude", amplitude);
 integrations.route("/aha", aha);
 integrations.route("/evernote", evernote);
+integrations.route("/fifteen-five", fifteenFive);
 
 integrations.get("/health", (c) =>
   c.json({

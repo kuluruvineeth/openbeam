@@ -1,0 +1,12 @@
+{
+  "title": "15Five",
+  "icon": "FifteenFive",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

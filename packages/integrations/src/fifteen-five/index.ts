@@ -1,0 +1,1 @@
+export { fifteenFiveApp } from "./config";

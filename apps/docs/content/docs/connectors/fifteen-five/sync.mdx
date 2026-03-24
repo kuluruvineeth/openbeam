@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: Full and incremental sync patterns for the 15Five connector
+---
+
+# 15Five Sync Behavior
+
+## Full Sync
+
+On initial connection, OpenBeam performs a full sync of all 15Five data:
+
+1. **Users** are fetched first to build a lookup table for name resolution
+2. **Check-ins** are paginated and transformed with user names
+3. **Objectives** and **Key Results** are synced with owner information
+4. **High Fives** are synced with sender/receiver names (if enabled)
+5. **Reviews** are synced with reviewer/reviewee names (if enabled)
+
+## Incremental Sync
+
+After the initial sync, OpenBeam uses the `modified_after` parameter to fetch only updated records:
+
+- Check-ins, objectives, key results, and reviews support `modified_after` filtering
+- High fives use `created_after` since they are immutable once created
+- If incremental sync fails, it automatically falls back to a full sync
+
+## Sync Schedule
+
+| Entity | Default Interval | Reason |
+|--------|-----------------|--------|
+| Check-ins | 15 minutes | Weekly submissions, timely indexing |
+| Objectives | 15 minutes | Progress updates throughout the week |
+| Key Results | 15 minutes | Value updates linked to objectives |
+| High Fives | 30 minutes | Less time-sensitive recognition |
+| Reviews | 60 minutes | Cycle-based, less frequent changes |
+
+## Pagination
+
+The 15Five API uses page-based pagination with `page` and `page_size` parameters. Each page returns up to 100-200 results. The connector follows `next` links until all pages are consumed.

@@ -25,6 +25,7 @@ import { Logo as Dynamics365Logo } from "./dynamics365/assets/logo";
 import { Logo as EgnyteLogo } from "./egnyte/assets/logo";
 import { Logo as EvernoteLogo } from "./evernote/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
+import { Logo as FifteenFiveLogo } from "./fifteen-five/assets/logo";
 import { Logo as FigmaLogo } from "./figma/assets/logo";
 import { Logo as FreshserviceLogo } from "./freshservice/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
@@ -149,6 +150,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.DOCUSIGN]: DocuSignLogo,
   [AppType.MARKETO]: MarketoLogo,
   [AppType.EVERNOTE]: EvernoteLogo,
+  [AppType.FIFTEEN_FIVE]: FifteenFiveLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

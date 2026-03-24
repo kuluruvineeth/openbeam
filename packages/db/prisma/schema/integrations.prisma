@@ -155,6 +155,7 @@ enum AppType {
   GOOGLE_SITES
   AMPLITUDE
   AHA
+  FIFTEEN_FIVE
 }
 
 enum ConnectorStatus {

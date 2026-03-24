@@ -1,0 +1,39 @@
+---
+title: 15Five
+description: Search check-ins, objectives, key results, high fives, and reviews from 15Five
+---
+
+# 15Five
+
+Index performance management data from 15Five including weekly check-ins, OKRs, peer recognition (High Fives), and performance reviews. Supports API key authentication (Bearer token) with page-based pagination and modified_after incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Check-ins** | Weekly reports with pulse scores, questions, and answers |
+| **Objectives** | OKR objectives with status, owner, progress, and dates |
+| **Key Results** | Key results linked to objectives with target/current values |
+| **High Fives** | Peer recognition with sender, receiver, and message |
+| **Reviews** | Performance reviews with cycle, status, and submission tracking |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from **Features > API & Connectors > Public API** in 15Five admin settings.
+
+## Quick Start
+
+1. Generate an API key in 15Five admin settings
+2. Add the 15Five connector in OpenBeam
+3. Enter your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/fifteen-five/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/fifteen-five/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/fifteen-five/configuration" description="Entity selection and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/fifteen-five/sync" description="Full sync, incremental sync via modified_after" />
+  <Card title="Troubleshooting" href="/docs/connectors/fifteen-five/troubleshooting" description="Common issues and fixes" />
+</Cards>

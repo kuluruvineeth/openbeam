@@ -21,6 +21,7 @@ import { dynamics365App } from "./dynamics365/config";
 import { egnyteApp } from "./egnyte/config";
 import { evernoteApp } from "./evernote/config";
 import { fhirApp } from "./fhir/config";
+import { fifteenFiveApp } from "./fifteen-five/config";
 import { figmaApp } from "./figma/config";
 import { freshserviceApp } from "./freshservice/config";
 import { githubApp } from "./github/config";
@@ -83,6 +84,7 @@ export {
   dynamics365App,
   egnyteApp,
   evernoteApp,
+  fifteenFiveApp,
   miroApp,
   onenoteApp,
   opsgenieApp,
@@ -780,4 +782,5 @@ export const appStore: UnifiedApp[] = [
   googleSitesApp,
   amplitudeApp,
   ahaApp,
+  fifteenFiveApp,
 ];

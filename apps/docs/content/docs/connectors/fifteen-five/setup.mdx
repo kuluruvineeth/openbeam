@@ -1,0 +1,37 @@
+---
+title: Setup
+description: Configure the 15Five connector with API key authentication
+---
+
+# 15Five Setup
+
+## Prerequisites
+
+- A 15Five account with admin access
+- API access enabled for your 15Five plan
+
+## Generate an API Key
+
+1. Log into your 15Five account as an admin
+2. Go to **Features > API & Connectors > Public API**
+3. Generate a new API key
+4. Copy the generated key
+
+## Add the Connector
+
+1. In OpenBeam, navigate to **Connectors > Add Connector**
+2. Select **15Five** from the list
+3. Enter your **API Key**
+4. Click **Connect**
+5. OpenBeam will validate your credentials by calling the 15Five API
+6. Once verified, the initial sync begins automatically
+
+## Required Permissions
+
+The API key inherits the permissions of the admin who generated it. For full sync coverage, the admin should have read access to all company data including check-ins, objectives, high fives, and reviews.
+
+## API Key Security
+
+- Store the API key securely; OpenBeam encrypts it at rest
+- The key provides read access to all 15Five data in your organization
+- Rotate the key periodically for security best practices
