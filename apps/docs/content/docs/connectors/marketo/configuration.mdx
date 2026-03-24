@@ -1,0 +1,39 @@
+---
+title: Configuration
+description: Configure Marketo connector settings
+---
+
+# Marketo Configuration
+
+## Entity Selection
+
+Toggle which entity types to sync. All are enabled by default.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Activities | On | Index lead engagement activities |
+| Sync Campaigns | On | Index smart campaigns |
+| Sync Programs | On | Index marketing programs |
+| Sync Emails | On | Index email templates |
+| Sync Landing Pages | On | Index landing page assets |
+
+## History Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Lookback Days | 90 | How far back to sync activities on first full sync |
+
+## Credential Settings
+
+| Setting | Required | Description |
+|---------|----------|-------------|
+| Munchkin ID | Yes | Instance identifier (format: `123-ABC-456`) |
+| Client ID | Yes | OAuth client ID from LaunchPoint |
+| Client Secret | Yes | OAuth client secret from LaunchPoint |
+
+## Notes
+
+- Leads are synced via static lists. Ensure your leads belong to at least one static list.
+- Activities are fetched using the paging token mechanism with the configured lookback window.
+- Emails and landing pages only index **approved** assets by default.
+- The access token expires every 3600 seconds and is automatically refreshed.

@@ -1,0 +1,54 @@
+---
+title: Setup
+description: Configure Adobe Marketo Engage credentials for OpenBeam
+---
+
+# Marketo Setup
+
+## Prerequisites
+
+- Adobe Marketo Engage subscription with API access
+- Admin role or API user permissions
+
+## Step 1: Find Your Munchkin ID
+
+1. Log in to your Marketo instance
+2. Navigate to **Admin** > **Integration** > **Munchkin**
+3. Copy the **Munchkin Account ID** (format: `123-ABC-456`)
+
+## Step 2: Create a LaunchPoint Service
+
+1. Navigate to **Admin** > **Integration** > **LaunchPoint**
+2. Click **New** > **New Service**
+3. Configure:
+   - **Display Name:** OpenBeam Integration
+   - **Service:** Custom
+   - **API Only User:** Select or create an API-only user
+4. Click **Create**
+5. Copy the **Client ID** and **Client Secret**
+
+## Step 3: Create an API-Only User (if needed)
+
+1. Navigate to **Admin** > **Users & Roles**
+2. Click **Invite New User**
+3. Set up with:
+   - **Email:** A service account email
+   - **API Only:** Check this option
+4. Assign the **API User** role with appropriate permissions
+
+## Step 4: Connect in OpenBeam
+
+1. In OpenBeam, add a new Marketo connector
+2. Enter your **Munchkin ID**, **Client ID**, and **Client Secret**
+3. Click **Authenticate**
+4. The connector validates your credentials and activates
+
+## Required Permissions
+
+The API user needs the following permissions:
+
+| Permission | Required For |
+|------------|-------------|
+| Read-Only Lead | Syncing leads and activities |
+| Read-Only Assets | Syncing emails, landing pages, programs |
+| Read-Only Campaign | Syncing campaigns |

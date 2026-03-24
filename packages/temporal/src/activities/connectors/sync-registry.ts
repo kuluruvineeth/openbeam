@@ -57,6 +57,7 @@ import {
   createHubSpotClient,
   createIntercomClient,
   createLinearClient,
+  createMarketoClient,
   createMatterportClient,
   createMicrosoftGraphClient,
   createMiroClient,
@@ -122,6 +123,8 @@ import {
   jiraIncrementalSync,
   linearFullSync,
   linearIncrementalSync,
+  marketoFullSync,
+  marketoIncrementalSync,
   matterportFullSync,
   matterportIncrementalSync,
   microsoftCalendarFullSync,
@@ -4688,6 +4691,82 @@ export function registerAllSyncFactories(): void {
             syncFolders,
             envelopeStatusFilter,
             lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MARKETO",
+    async function* (connectorId, connector, cursor, syncType) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const munchkinId =
+        (config?.munchkinId as string) ?? (config?.munchkin_id as string) ?? "";
+      const syncActivities =
+        parseBooleanConfig(config?.sync_activities) !== false;
+      const syncCampaigns =
+        parseBooleanConfig(config?.sync_campaigns) !== false;
+      const syncPrograms = parseBooleanConfig(config?.sync_programs) !== false;
+      const syncEmails = parseBooleanConfig(config?.sync_emails) !== false;
+      const syncLandingPages =
+        parseBooleanConfig(config?.sync_landing_pages) !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days, 90);
+
+      if (!munchkinId) {
+        throw ApplicationFailure.nonRetryable(
+          "Marketo munchkinId not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info({ connectorId, munchkinId }, "Marketo sync config loaded");
+
+      const client = createMarketoClient({
+        connectorId,
+        accessToken,
+        munchkinId,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        munchkinId,
+      };
+
+      const runFull = shouldRunFullSync(syncType, cursor);
+
+      const syncGenerator = runFull
+        ? marketoFullSync(client, context, {
+            batchSize: 100,
+            syncActivities,
+            syncCampaigns,
+            syncPrograms,
+            syncEmails,
+            syncLandingPages,
+            lookbackDays,
+          })
+        : marketoIncrementalSync(client, context, {
+            cursor: cursor as {
+              lastSyncTime?: number;
+              lastFullSync?: number;
+            },
+            batchSize: 100,
+            syncActivities,
+            syncCampaigns,
+            syncPrograms,
+            syncEmails,
+            syncLandingPages,
           });
 
       for await (const batch of syncGenerator) {

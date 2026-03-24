@@ -35,6 +35,7 @@ import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
+import { Logo as MarketoLogo } from "./marketo/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
 import { Logo as MiroLogo } from "./miro/assets/logo";
@@ -133,6 +134,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.OPSGENIE]: OpsGenieLogo,
   [AppType.DATADOG]: DatadogLogo,
   [AppType.DOCUSIGN]: DocuSignLogo,
+  [AppType.MARKETO]: MarketoLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

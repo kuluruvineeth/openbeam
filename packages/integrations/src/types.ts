@@ -108,6 +108,7 @@ export enum AppType {
   OPSGENIE = "OPSGENIE",
   DATADOG = "DATADOG",
   DOCUSIGN = "DOCUSIGN",
+  MARKETO = "MARKETO",
 }
 
 export enum SyncMode {

@@ -1,0 +1,60 @@
+---
+title: Sync Behavior
+description: How Marketo data is synced to OpenBeam
+---
+
+# Marketo Sync Behavior
+
+## Full Sync
+
+On the first sync or when forced:
+
+1. **Leads** - Fetched via static lists using the Lead Database API
+2. **Campaigns** - Fetched via the Campaigns REST API with cursor pagination
+3. **Programs** - Fetched via the Asset API with offset pagination
+4. **Emails** - Fetched via the Asset API (approved only)
+5. **Landing Pages** - Fetched via the Asset API (approved only)
+6. **Activities** - Fetched using paging tokens from the configured lookback window
+
+## Incremental Sync
+
+After the initial sync:
+
+- **Leads** - Re-fetched via lists, filtered by `updatedAt > lastSyncTime`
+- **Campaigns** - Re-fetched, filtered by `updatedAt > lastSyncTime`
+- **Programs** - Re-fetched, filtered by `updatedAt > lastSyncTime`
+- **Emails** - Re-fetched, filtered by `updatedAt > lastSyncTime`
+- **Landing Pages** - Re-fetched, filtered by `updatedAt > lastSyncTime`
+- **Activities** - Fetched using `sinceDatetime` parameter from last sync time
+
+If incremental sync fails, it falls back to a full sync automatically.
+
+## Rate Limits
+
+Marketo enforces the following API limits:
+
+| Limit | Value |
+|-------|-------|
+| Requests per 20 seconds | 100 |
+| Daily API calls | 50,000 |
+| Concurrent API calls | 10 |
+| Bulk extract bandwidth | 500MB/day |
+
+The connector respects these limits with built-in rate limiting and exponential backoff with jitter.
+
+## Token Management
+
+- Access tokens expire every **3600 seconds** (1 hour)
+- The connector automatically re-authenticates using client credentials
+- No refresh token is needed; a new access token is obtained each time
+- Stored in the OAuth provider table for reuse within the validity window
+
+## Error Codes
+
+| Marketo Code | Meaning | Behavior |
+|-------------|---------|----------|
+| 601 | Access token invalid | Re-authenticate |
+| 602 | Access token expired | Re-authenticate |
+| 606 | Max rate limit exceeded | Retry with backoff |
+| 607 | Daily quota reached | Wait until reset |
+| 615 | Concurrent access limit | Retry with backoff |

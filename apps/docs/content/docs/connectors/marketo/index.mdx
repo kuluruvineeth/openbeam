@@ -1,0 +1,42 @@
+---
+title: Marketo
+description: Search leads, activities, campaigns, programs, emails, and landing pages from Adobe Marketo Engage
+---
+
+# Marketo
+
+Index marketing automation data from Adobe Marketo Engage including leads, activities, campaigns, programs, emails, and landing pages. Uses OAuth 2.0 client credentials with cursor-based pagination and incremental sync via updatedAt filters.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Leads** | Name, email, company, title, phone, lead source, status, location |
+| **Activities** | Type, lead, primary attribute, date, custom attributes |
+| **Campaigns** | Name, type, program, workspace, active status |
+| **Programs** | Name, type, channel, status, workspace, folder |
+| **Emails** | Name, subject, from name, status, workspace |
+| **Landing Pages** | Name, URL, status, template, workspace |
+
+## Authentication
+
+**Method:** OAuth 2.0 Client Credentials (server-to-server)
+
+**Required:** Munchkin ID, Client ID, Client Secret
+
+Create a LaunchPoint API Only service in Admin > Integration > LaunchPoint.
+
+## Quick Start
+
+1. Find your Munchkin ID in Admin > Integration > Munchkin
+2. Create a LaunchPoint service in Admin > Integration > LaunchPoint
+3. Add the Marketo connector in OpenBeam with your credentials
+4. Authenticate and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/marketo/setup" description="LaunchPoint service creation and credential configuration" />
+  <Card title="Features" href="/docs/connectors/marketo/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/marketo/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/marketo/sync" description="Full sync, incremental sync, and rate limits" />
+  <Card title="Troubleshooting" href="/docs/connectors/marketo/troubleshooting" description="Common issues and fixes" />
+</Cards>

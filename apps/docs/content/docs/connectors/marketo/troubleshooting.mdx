@@ -1,0 +1,61 @@
+---
+title: Troubleshooting
+description: Common Marketo connector issues and solutions
+---
+
+# Marketo Troubleshooting
+
+## Authentication Fails
+
+**Symptoms:** "Cannot access Marketo" or 401 errors
+
+**Solutions:**
+1. Verify your **Munchkin ID** is correct (Admin > Integration > Munchkin)
+2. Confirm the **Client ID** and **Client Secret** match the LaunchPoint service
+3. Ensure the API-only user is active and has the correct role
+4. Check that the LaunchPoint service is not revoked
+
+## No Leads Synced
+
+**Symptoms:** Sync completes but no leads appear
+
+**Solutions:**
+1. Leads are fetched via **static lists**. Ensure leads belong to at least one static list.
+2. The API user needs **Read-Only Lead** permission
+3. Check that your instance has leads in the database
+
+## No Emails or Landing Pages
+
+**Symptoms:** Programs and campaigns sync, but emails/landing pages are empty
+
+**Solutions:**
+1. Only **approved** emails and landing pages are synced by default
+2. Ensure you have approved assets in your instance
+3. The API user needs **Read-Only Assets** permission
+
+## Rate Limit Errors
+
+**Symptoms:** 606 or 607 error codes in sync logs
+
+**Solutions:**
+1. Marketo allows 100 API calls per 20 seconds and 50,000 per day
+2. If you have many integrations, consider reducing sync frequency
+3. The connector automatically handles rate limits with backoff
+
+## Activity Sync Incomplete
+
+**Symptoms:** Only recent activities appear
+
+**Solutions:**
+1. Activity sync uses the **Lookback Days** setting (default: 90 days)
+2. Increase this value in connector settings for deeper history
+3. Marketo retains activity data for 90 days by default; older data may not be available
+
+## Token Expired During Sync
+
+**Symptoms:** 601 or 602 errors mid-sync
+
+**Solutions:**
+1. This is handled automatically by token refresh
+2. If persistent, verify the LaunchPoint service credentials are still valid
+3. Check if the API user account is locked or disabled

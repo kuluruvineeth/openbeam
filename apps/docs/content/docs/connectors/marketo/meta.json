@@ -1,0 +1,12 @@
+{
+  "title": "Marketo",
+  "icon": "Marketo",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

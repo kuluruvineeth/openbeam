@@ -65,6 +65,7 @@
     "airtable",
     "opsgenie",
     "datadog",
-    "docusign"
+    "docusign",
+    "marketo"
   ]
 }

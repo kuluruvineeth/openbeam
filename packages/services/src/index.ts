@@ -764,6 +764,32 @@ export {
   transformProject as transformLinearProject,
   verifyWebhookSignature as verifyLinearWebhookSignature,
 } from "./linear";
+export type {
+  MarketoActivity,
+  MarketoActivityType,
+  MarketoCampaign,
+  MarketoClient,
+  MarketoEmail,
+  MarketoLandingPage,
+  MarketoLead,
+  MarketoProgram,
+  MarketoRecordActionResult,
+} from "./marketo";
+export {
+  createMarketoClient,
+  createOrUpdateMarketoLead,
+  MarketoApiError,
+  MarketoAuth,
+  marketoFullSync,
+  marketoIncrementalSync,
+  transformMarketoActivity,
+  transformMarketoCampaign,
+  transformMarketoEmail,
+  transformMarketoLandingPage,
+  transformMarketoLead,
+  transformMarketoProgram,
+  triggerMarketoCampaign,
+} from "./marketo";
 export type { MatterportClient } from "./matterport";
 export {
   createMatterportClient,

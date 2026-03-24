@@ -30,6 +30,7 @@ import hubspot from "./hubspot/hubspot.index";
 import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
+import marketo from "./marketo/marketo.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
 import miro from "./miro/miro.index";
 import monday from "./monday/monday.index";
@@ -105,6 +106,7 @@ integrations.route("/dynamics365", dynamics365);
 integrations.route("/opsgenie", opsgenie);
 integrations.route("/datadog", datadog);
 integrations.route("/docusign", docusign);
+integrations.route("/marketo", marketo);
 
 integrations.get("/health", (c) =>
   c.json({

@@ -1,0 +1,243 @@
+import {
+  AppType,
+  AuthType,
+  ConnectorType,
+  SyncMode,
+  type UnifiedApp,
+} from "../types";
+
+export const marketoApp: UnifiedApp = {
+  id: AppType.MARKETO,
+  name: "Marketo",
+  category: "Marketing Automation",
+  active: true,
+  logo: AppType.MARKETO,
+  short_description:
+    "Search leads, activities, campaigns, programs, emails, and landing pages.",
+  description:
+    "Connect Adobe Marketo Engage to search across marketing automation data including leads, activities, campaigns, programs, emails, and landing pages. Uses OAuth 2.0 client credentials with cursor-based pagination.",
+  images: [],
+  installed: false,
+  type: "official",
+  connectorType: ConnectorType.SOURCE,
+  developerName: "Adobe",
+  website: "https://business.adobe.com/products/marketo/adobe-marketo.html",
+
+  searchDisplay: {
+    defaultIconKey: "UserCircle",
+    documentTypes: {
+      lead: { label: "lead", iconKey: "UserCircle", category: "contact" },
+      activity: {
+        label: "activity",
+        iconKey: "Activity",
+        category: "event",
+      },
+      campaign: {
+        label: "campaign",
+        iconKey: "Megaphone",
+        category: "campaign",
+      },
+      program: { label: "program", iconKey: "Folder", category: "project" },
+      email: { label: "email", iconKey: "Mail", category: "document" },
+      landing_page: {
+        label: "landing page",
+        iconKey: "Globe",
+        category: "document",
+      },
+    },
+  },
+
+  features: [
+    "Lead search with company, title, and status filtering",
+    "Activity tracking with type-based categorization",
+    "Campaign and program indexing with membership counts",
+    "Email template search with subject and content",
+    "Landing page discovery with URL and status",
+    "OAuth 2.0 client credentials authentication",
+    "Incremental sync via updatedAt and sinceDatetime filters",
+  ],
+
+  auth: {
+    type: AuthType.API_KEY,
+    config: {
+      headerName: "Authorization",
+      documentationUrl:
+        "https://developers.marketo.com/rest-api/authentication/",
+    },
+  },
+
+  streams: [
+    {
+      name: "leads",
+      label: "Leads",
+      description: "Marketing leads and contacts",
+      entityType: "resource",
+      dataPoints: [
+        "Name",
+        "Email",
+        "Company",
+        "Title",
+        "Phone",
+        "Lead Source",
+        "Lead Status",
+      ],
+      isPii: true,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+    {
+      name: "activities",
+      label: "Activities",
+      description:
+        "Lead engagement activities (email opens, clicks, form fills)",
+      entityType: "activity",
+      dataPoints: [
+        "Activity Type",
+        "Lead",
+        "Campaign",
+        "Primary Attribute",
+        "Date",
+      ],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    {
+      name: "campaigns",
+      label: "Campaigns",
+      description: "Smart campaigns and trigger campaigns",
+      entityType: "resource",
+      dataPoints: ["Name", "Type", "Status", "Program", "Created", "Updated"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+    {
+      name: "programs",
+      label: "Programs",
+      description: "Marketing programs (email, event, engagement, default)",
+      entityType: "resource",
+      dataPoints: [
+        "Name",
+        "Type",
+        "Channel",
+        "Status",
+        "Workspace",
+        "Created",
+        "Updated",
+      ],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+    {
+      name: "emails",
+      label: "Emails",
+      description: "Email templates and assets",
+      entityType: "resource",
+      dataPoints: ["Name", "Subject", "From Name", "Status", "Program", "URL"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+    {
+      name: "landing_pages",
+      label: "Landing Pages",
+      description: "Landing page assets",
+      entityType: "resource",
+      dataPoints: ["Name", "URL", "Status", "Template", "Program"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+  ],
+
+  settings: [
+    {
+      id: "munchkin_id",
+      label: "Munchkin ID",
+      description:
+        "Your Marketo instance identifier. Found in Admin > Integration > Munchkin.",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "123-ABC-456",
+    },
+    {
+      id: "client_id",
+      label: "Client ID",
+      description:
+        "OAuth client ID from Admin > Integration > LaunchPoint > API Only service.",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "abc123-def456-...",
+    },
+    {
+      id: "client_secret",
+      label: "Client Secret",
+      description: "OAuth client secret from the same LaunchPoint service.",
+      type: "password",
+      required: true,
+      value: "",
+    },
+    {
+      id: "sync_activities",
+      label: "Sync Activities",
+      description: "Index lead activities (opens, clicks, form fills).",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_campaigns",
+      label: "Sync Campaigns",
+      description: "Index smart campaigns.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_programs",
+      label: "Sync Programs",
+      description: "Index marketing programs.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_emails",
+      label: "Sync Emails",
+      description: "Index email templates.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_landing_pages",
+      label: "Sync Landing Pages",
+      description: "Index landing pages.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "lookback_days",
+      label: "History (days)",
+      description:
+        "How far back to sync activities. Leave empty for 90 days default.",
+      type: "text",
+      required: false,
+      value: "90",
+      placeholder: "90",
+    },
+  ],
+};
+
+export default marketoApp;

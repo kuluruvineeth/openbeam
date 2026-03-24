@@ -83,7 +83,8 @@ export async function refreshConnectorToken(
     oauth.clientSecretIv
   );
 
-  if (!refreshToken) {
+  const usesClientCredentials = oauth.app === "MARKETO";
+  if (!(refreshToken || usesClientCredentials)) {
     throw new Error(`No refresh token available for connector ${connectorId}`);
   }
 
@@ -578,6 +579,29 @@ export async function refreshConnectorToken(
           accessToken: dsResult.accessToken,
           expiresIn: dsResult.expiresIn,
           refreshToken: dsResult.refreshToken,
+        };
+        break;
+      }
+
+      case "MARKETO": {
+        const mktoConfig = connector.config as Record<string, unknown> | null;
+        const munchkinId =
+          (mktoConfig?.munchkinId as string) ??
+          (mktoConfig?.munchkin_id as string);
+        if (!munchkinId) {
+          throw new Error("Marketo munchkinId not found in connector config");
+        }
+        const { exchangeMarketoCredentials } = await import(
+          "@openbeam/integrations"
+        );
+        const mktoResult = await exchangeMarketoCredentials({
+          munchkinId,
+          clientId,
+          clientSecret,
+        });
+        newToken = {
+          accessToken: mktoResult.accessToken,
+          expiresIn: mktoResult.expiresIn,
         };
         break;
       }

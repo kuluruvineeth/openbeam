@@ -31,6 +31,7 @@ import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
+import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
 import { miroApp } from "./miro/config";
@@ -102,6 +103,7 @@ export {
   intercomApp,
   jiraApp,
   linearApp,
+  marketoApp,
   microsoftCalendarApp,
   mondayApp,
   matterportApp,
@@ -446,6 +448,17 @@ export type {
 } from "./linear/types";
 export { appLogos, connectorLogos } from "./logos";
 export type {
+  ExchangeMarketoCredentialsParams,
+  MarketoAuthResult,
+  MarketoTokenResponse,
+} from "./marketo";
+export {
+  exchangeMarketoCredentials,
+  MARKETO_TOKEN_LIFETIME_SECONDS,
+  MarketoOAuthError,
+  refreshMarketoToken,
+} from "./marketo";
+export type {
   ExchangeMicrosoftCalendarCodeParams,
   GenerateMicrosoftCalendarAuthUrlParams,
   MicrosoftCalendarOAuthResult,
@@ -687,4 +700,5 @@ export const appStore: UnifiedApp[] = [
   opsgenieApp,
   datadogApp,
   docuSignApp,
+  marketoApp,
 ];
