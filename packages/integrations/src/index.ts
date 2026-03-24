@@ -39,6 +39,7 @@ import { googleDriveApp } from "./google-drive/config";
 import { googleSitesApp } from "./google-sites/config";
 import { greenhouseApp } from "./greenhouse/config";
 import { guruApp } from "./guru/config";
+import { harvestApp } from "./harvest/config";
 import { highspotApp } from "./highspot/config";
 import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
@@ -94,6 +95,7 @@ export {
   egnyteApp,
   evernoteApp,
   fellowApp,
+  harvestApp,
   fifteenFiveApp,
   miroApp,
   onenoteApp,
@@ -498,6 +500,22 @@ export type {
   GoogleSitesConfig,
 } from "./google-sites/types";
 export type {
+  ExchangeHarvestCodeParams,
+  GenerateHarvestAuthUrlParams,
+  HarvestOAuthResult,
+  HarvestTokenResponse,
+  HarvestUserInfo,
+  RefreshHarvestTokenParams,
+  RefreshHarvestTokenResult,
+} from "./harvest";
+export {
+  exchangeHarvestCode,
+  generateHarvestAuthUrl,
+  HARVEST_TOKEN_LIFETIME_SECONDS,
+  HarvestOAuthError,
+  refreshHarvestToken,
+} from "./harvest";
+export type {
   ExchangeHighspotCodeParams,
   GenerateHighspotAuthUrlParams,
   HighspotOAuthResult,
@@ -834,4 +852,5 @@ export const appStore: UnifiedApp[] = [
   coupaApp,
   doceboApp,
   fellowApp,
+  harvestApp,
 ];

@@ -1,0 +1,26 @@
+---
+title: Configuration
+description: Harvest connector settings and entity selection
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Client ID** | OAuth2 application Client ID | Required |
+| **Client Secret** | OAuth2 application Client Secret | Required |
+| **Sync Expenses** | Index expense entries | Enabled |
+| **Sync Invoices** | Index invoices | Enabled |
+| **History (days)** | How far back to sync on initial run | Unlimited |
+
+## Entity Selection
+
+By default, the connector syncs all entity types: time entries, projects, tasks, clients, invoices, and expenses. You can disable expense and invoice syncing via the settings toggles.
+
+Time entries, projects, tasks, and clients are always synced as they form the core of Harvest's data model.
+
+## Harvest Account ID
+
+The connector automatically detects and stores your Harvest Account ID during the OAuth flow. This ID is required as a header on all API requests. If you have multiple Harvest accounts, the first account returned by the OAuth flow will be used.

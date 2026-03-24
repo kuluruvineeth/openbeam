@@ -122,6 +122,7 @@ export enum AppType {
   COUPA = "COUPA",
   DOCEBO = "DOCEBO",
   FELLOW = "FELLOW",
+  HARVEST = "HARVEST",
 }
 
 export enum SyncMode {

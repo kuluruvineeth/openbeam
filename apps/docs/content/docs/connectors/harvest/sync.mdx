@@ -1,0 +1,50 @@
+---
+title: Sync Behavior
+description: How Harvest data is synced to OpenBeam
+---
+
+# Sync Behavior
+
+## Full Sync
+
+On the first connection, OpenBeam performs a full sync of all Harvest data:
+
+1. **Time Entries** - All time entries, paginated at 100 per page
+2. **Projects** - All projects with client associations
+3. **Tasks** - All task definitions
+4. **Clients** - All client records
+5. **Invoices** - All invoices (if enabled)
+6. **Expenses** - All expense entries (if enabled)
+
+## Incremental Sync
+
+After the initial sync, OpenBeam uses the `updated_since` parameter on all Harvest API endpoints to fetch only records modified since the last sync.
+
+The sync cursor stores:
+- `lastSyncTime` - Timestamp of the most recently modified record
+- `lastFullSync` - When the last full sync completed
+
+If incremental sync fails, the connector automatically falls back to a full sync.
+
+## Pagination
+
+Harvest uses page-based pagination with `page` and `per_page` parameters. The connector fetches 100 records per page and follows `next_page` until all data is retrieved.
+
+## Rate Limiting
+
+Harvest enforces a limit of 100 requests per 15 seconds. The connector:
+
+- Respects `Retry-After` headers on 429 responses
+- Retries up to 3 times with exponential backoff
+- Includes jitter to prevent thundering herd
+
+## Sync Frequency
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Time Entries | 15 minutes |
+| Projects | 60 minutes |
+| Tasks | 60 minutes |
+| Clients | 60 minutes |
+| Invoices | 30 minutes |
+| Expenses | 30 minutes |

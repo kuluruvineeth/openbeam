@@ -161,6 +161,7 @@ enum AppType {
   COUPA
   DOCEBO
   FELLOW
+  HARVEST
 }
 
 enum ConnectorStatus {

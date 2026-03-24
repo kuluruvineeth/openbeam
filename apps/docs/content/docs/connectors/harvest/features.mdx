@@ -1,0 +1,64 @@
+---
+title: Features
+description: Harvest connector capabilities and indexed content
+---
+
+# Features
+
+## Indexed Entity Types
+
+### Time Entries
+- Hours logged, including running timers
+- Project and task associations
+- User attribution
+- Billable/non-billable classification
+- Notes and date
+
+### Projects
+- Project name and code
+- Client assignment
+- Budget and billing configuration
+- Active/archived status
+- Date ranges
+
+### Tasks
+- Task definitions shared across projects
+- Default billable status
+- Hourly rate defaults
+
+### Clients
+- Client name and currency
+- Address information
+- Active/archived status
+
+### Invoices
+- Invoice number and client
+- Amount, currency, and payment status
+- Issue and due dates
+- Subject and notes
+- Creator attribution
+
+### Expenses
+- Amount and category
+- Project and client association
+- Receipt tracking
+- Billable status
+
+## Search Capabilities
+
+- Full-text search across all entity types
+- Filter by document type (time_entry, project, client, invoice, expense)
+- Filter by status (active, archived, billable)
+- Date range filtering on time entries and invoices
+
+## Actions
+
+The Harvest connector supports write operations:
+
+| Action | Description |
+|--------|-------------|
+| Create Time Entry | Log new time entries with project and task |
+| Update Time Entry | Modify hours, notes, or billable status |
+| Stop Timer | Stop a running time entry timer |
+| Restart Timer | Restart a stopped timer |
+| Create Expense | Log a new expense entry |

@@ -1,0 +1,41 @@
+---
+title: Harvest
+description: Search time entries, projects, clients, invoices, and expenses from Harvest
+---
+
+# Harvest
+
+Index time tracking and invoicing data from Harvest including time entries, projects, tasks, clients, invoices, and expenses. Supports OAuth 2.0 authentication with page-based pagination and updated_since incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Time Entries** | Hours, notes, project, task, user, date, billable status |
+| **Projects** | Name, code, client, budget, billing method, status |
+| **Tasks** | Name, billable default, hourly rate |
+| **Clients** | Name, currency, address, active status |
+| **Invoices** | Number, client, amount, due date, payment status |
+| **Expenses** | Amount, project, category, notes, receipt status |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Create an OAuth2 application in your Harvest account under **Settings > Developers > OAuth2 Applications**. Harvest requires the `Harvest-Account-Id` header on all API requests, which is automatically configured during the OAuth flow.
+
+## Quick Start
+
+1. Create an OAuth2 application in Harvest Developer settings
+2. Add the Harvest connector in OpenBeam
+3. Enter your Client ID and Client Secret
+4. Authorize via OAuth and select your Harvest account
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/harvest/setup" description="OAuth app creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/harvest/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/harvest/configuration" description="Entity selection, expense/invoice toggles, lookback period" />
+  <Card title="Sync Behavior" href="/docs/connectors/harvest/sync" description="Full sync, incremental sync via updated_since" />
+  <Card title="Troubleshooting" href="/docs/connectors/harvest/troubleshooting" description="Common issues and fixes" />
+</Cards>

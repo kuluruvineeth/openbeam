@@ -1,0 +1,50 @@
+---
+title: Troubleshooting
+description: Common Harvest connector issues and solutions
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Authentication failed" during OAuth
+- Verify your Client ID and Client Secret are correct
+- Ensure the redirect URL in your Harvest OAuth application matches exactly
+- Check that your Harvest account is active and not suspended
+
+### Token refresh failures
+- Harvest tokens expire after 18 hours (64,800 seconds)
+- If refresh fails, reconnect the connector via OAuth
+- Ensure the OAuth application has not been revoked in Harvest
+
+## Sync Issues
+
+### Missing time entries
+- The `updated_since` filter only returns records modified after the timestamp
+- Running timers update continuously and may appear in every sync
+- Check if the time entries are in a different Harvest account
+
+### Rate limit errors
+- Harvest allows 100 requests per 15 seconds
+- Large accounts with many time entries may trigger rate limits during full sync
+- The connector automatically retries with backoff
+
+### Invoices not syncing
+- Verify "Sync Invoices" is enabled in connector settings
+- Draft invoices are included in the sync
+- Deleted invoices will not appear in results
+
+## Account Selection
+
+### Wrong account connected
+- Harvest OAuth returns all accounts the user has access to
+- The connector uses the first account in the list
+- To connect a different account, disconnect and reconnect with the desired account
+- Ensure you are logged into the correct Harvest account before authorizing
+
+## Performance
+
+### Slow initial sync
+- Full sync time depends on the number of time entries and invoices
+- Consider setting a lookback period to limit the initial sync scope
+- Subsequent incremental syncs are significantly faster

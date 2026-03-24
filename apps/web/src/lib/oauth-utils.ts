@@ -42,7 +42,8 @@ type IntegrationName =
   | "egnyte"
   | "bynder"
   | "highspot"
-  | "google-sites";
+  | "google-sites"
+  | "harvest";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -236,6 +237,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  harvest: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/harvest/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(

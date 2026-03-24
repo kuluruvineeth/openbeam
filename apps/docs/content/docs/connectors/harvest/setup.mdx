@@ -1,0 +1,42 @@
+---
+title: Setup
+description: Configure Harvest OAuth2 credentials and connect to OpenBeam
+---
+
+# Harvest Setup
+
+## Prerequisites
+
+- A Harvest account with admin access
+- Access to Harvest Developer settings
+
+## Step 1: Create OAuth2 Application
+
+1. Log in to Harvest and go to **Settings > Developers > OAuth2 Applications**
+2. Click **Create New OAuth2 Application**
+3. Fill in the application details:
+   - **Name:** OpenBeam Integration
+   - **Redirect URL:** `https://your-openbeam-instance.com/connectors/setup/harvest/oauth/callback`
+4. Save and note the **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors** in OpenBeam
+2. Search for "Harvest" and click **Add**
+3. Enter the **Client ID** and **Client Secret** from Step 1
+4. Click **Connect** to start the OAuth flow
+
+## Step 3: Authorize
+
+1. You will be redirected to Harvest's authorization page
+2. Select the Harvest account to connect
+3. Click **Authorize** to grant OpenBeam access
+4. You will be redirected back to OpenBeam
+
+## Step 4: Start Sync
+
+Once connected, OpenBeam will begin syncing your Harvest data. The initial sync may take several minutes depending on the volume of time entries and invoices.
+
+## API Rate Limits
+
+Harvest allows 100 requests per 15 seconds. The connector automatically handles rate limiting with exponential backoff.
