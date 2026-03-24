@@ -158,6 +158,7 @@ enum AppType {
   FIFTEEN_FIVE
   BENCHLING
   BYNDER
+  COUPA
 }
 
 enum ConnectorStatus {

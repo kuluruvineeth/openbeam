@@ -20,6 +20,7 @@ import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ClickUpLogo } from "./clickup/assets/logo";
 import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
+import { Logo as CoupaLogo } from "./coupa/assets/logo";
 import { Logo as DatadogLogo } from "./datadog/assets/logo";
 import { Logo as DocuSignLogo } from "./docusign/assets/logo";
 import { Logo as DropboxLogo } from "./dropbox/assets/logo";
@@ -111,6 +112,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.SHAREPOINT]: SharePointLogo,
   [AppType.MICROSOFT_TEAMS]: TeamsLogo,
   [AppType.CONFLUENCE]: ConfluenceLogo,
+  [AppType.COUPA]: CoupaLogo,
   [AppType.BOX]: BoxLogo,
   [AppType.DROPBOX]: DropboxLogo,
   [AppType.EGNYTE]: EgnyteLogo,

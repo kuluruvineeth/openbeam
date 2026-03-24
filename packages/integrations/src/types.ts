@@ -119,6 +119,7 @@ export enum AppType {
   FIFTEEN_FIVE = "FIFTEEN_FIVE",
   BENCHLING = "BENCHLING",
   BYNDER = "BYNDER",
+  COUPA = "COUPA",
 }
 
 export enum SyncMode {

@@ -422,6 +422,39 @@ export {
   transformConfluencePage,
 } from "./confluence";
 export * from "./control";
+export type {
+  CoupaClient,
+  CoupaContract,
+  CoupaExpenseReport,
+  CoupaInvoice,
+  CoupaPurchaseOrder,
+  CoupaRecordActionResult,
+  CoupaRequisition,
+  CoupaSupplier,
+} from "./coupa";
+export {
+  CoupaApiError,
+  CoupaAuth,
+  coupaFullSync,
+  coupaIncrementalSync,
+  createCoupaClient,
+  createCoupaExpenseReport,
+  createCoupaRequisition,
+  createCoupaSupplier,
+  listAllContracts as listAllCoupaContracts,
+  listAllExpenseReports as listAllCoupaExpenseReports,
+  listAllInvoices as listAllCoupaInvoices,
+  listAllPurchaseOrders as listAllCoupaPurchaseOrders,
+  listAllRequisitions as listAllCoupaRequisitions,
+  listAllSuppliers as listAllCoupaSuppliers,
+  transformCoupaContract,
+  transformCoupaExpenseReport,
+  transformCoupaInvoice,
+  transformCoupaPurchaseOrder,
+  transformCoupaRequisition,
+  transformCoupaSupplier,
+  updateCoupaRequisition,
+} from "./coupa";
 export type { DatadogClient } from "./datadog";
 export {
   createDatadogClient,

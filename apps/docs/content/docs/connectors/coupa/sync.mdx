@@ -1,0 +1,33 @@
+---
+title: Sync Behavior
+description: How the Coupa connector syncs data
+---
+
+# Coupa Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all records across all enabled entity types using offset-based pagination with a page size of 50 records.
+
+### Sync Order
+
+1. Purchase Orders
+2. Invoices
+3. Requisitions
+4. Suppliers
+5. Contracts
+6. Expense Reports
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use the `updated_at[gt]` filter parameter to fetch only records modified since the last sync.
+
+If incremental sync fails, the connector automatically falls back to a full sync.
+
+## Rate Limits
+
+Coupa enforces API rate limits that vary by plan. The connector respects `429 Too Many Requests` responses and implements exponential backoff with jitter. Default limits are configured at 50 requests per minute.
+
+## Sync Schedule
+
+By default, all entity types sync every 30 minutes. Suppliers and contracts sync every 60 minutes due to lower change frequency.

@@ -16,6 +16,7 @@ import canva from "./canva/canva.index";
 import clickup from "./clickup/clickup.index";
 import coda from "./coda/coda.index";
 import confluence from "./confluence/confluence.index";
+import coupa from "./coupa/coupa.index";
 import datadog from "./datadog/datadog.index";
 import docusign from "./docusign/docusign.index";
 import dropbox from "./dropbox/dropbox.index";
@@ -127,6 +128,7 @@ integrations.route("/aha", aha);
 integrations.route("/evernote", evernote);
 integrations.route("/fifteen-five", fifteenFive);
 integrations.route("/benchling", benchling);
+integrations.route("/coupa", coupa);
 
 integrations.get("/health", (c) =>
   c.json({

@@ -16,6 +16,7 @@ import { cisaKevApp } from "./cisa-kev/config";
 import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
+import { coupaApp } from "./coupa/config";
 import { datadogApp } from "./datadog/config";
 import { docuSignApp } from "./docusign/config";
 import { dropboxApp } from "./dropbox/config";
@@ -83,6 +84,7 @@ export {
   amplitudeApp,
   canvaApp,
   codaApp,
+  coupaApp,
   datadogApp,
   docuSignApp,
   dynamics365App,
@@ -292,6 +294,17 @@ export {
   generateConfluenceAuthUrl,
   refreshConfluenceToken,
 } from "./confluence/oauth";
+export type {
+  CoupaAuthResult,
+  CoupaTokenResponse,
+  ExchangeCoupaCredentialsParams,
+} from "./coupa";
+export {
+  COUPA_TOKEN_LIFETIME_SECONDS,
+  CoupaOAuthError,
+  exchangeCoupaCredentials,
+  refreshCoupaToken,
+} from "./coupa";
 export type {
   DocuSignOAuthResult,
   DocuSignTokenResponse,
@@ -803,4 +816,5 @@ export const appStore: UnifiedApp[] = [
   fifteenFiveApp,
   benchlingApp,
   bynderApp,
+  coupaApp,
 ];

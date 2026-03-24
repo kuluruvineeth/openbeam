@@ -1,0 +1,27 @@
+---
+title: Configuration
+description: Configure which Coupa entities to sync
+---
+
+# Coupa Configuration
+
+## Entity Selection
+
+Toggle which entity types to index:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Purchase Orders | On | Index purchase orders |
+| Sync Invoices | On | Index invoices |
+| Sync Requisitions | On | Index purchase requisitions |
+| Sync Suppliers | On | Index supplier directory |
+| Sync Contracts | On | Index contracts |
+| Sync Expense Reports | On | Index expense reports |
+
+## Instance URL
+
+Your Coupa instance URL follows the pattern `https://{instance}.coupahost.com`. This is the same URL you use to access the Coupa web application.
+
+## API Permissions
+
+The OAuth client requires `core.read` scope to access all entity types. Write operations (creating requisitions, suppliers) require additional scopes to be configured.

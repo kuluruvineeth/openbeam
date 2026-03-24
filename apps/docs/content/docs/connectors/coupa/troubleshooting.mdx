@@ -1,0 +1,43 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Coupa connector
+---
+
+# Coupa Troubleshooting
+
+## Authentication Failures
+
+**Error:** "Coupa token exchange failed"
+
+- Verify your instance URL is correct (e.g., `https://yourcompany.coupahost.com`)
+- Confirm the client ID and client secret are copied without extra spaces
+- Ensure the OAuth client has `core.read` scope
+- Check that the OAuth client grant type is set to Client Credentials
+
+## Health Check Failed
+
+**Error:** "Failed to validate Coupa credentials - health check failed"
+
+- The OAuth token was obtained but the API is not accessible
+- Verify the OAuth client has read permissions on purchase orders
+- Check if IP restrictions are blocking the request
+
+## Rate Limiting
+
+**Error:** "Rate limited" or 429 responses
+
+- Coupa enforces rate limits that vary by plan
+- The connector automatically retries with backoff
+- If persistent, reduce sync frequency in connector settings
+
+## Empty Sync Results
+
+- Verify the OAuth client has access to the entity types you enabled
+- Check that your Coupa instance has data for the selected entity types
+- Review Coupa user permissions associated with the OAuth client
+
+## Connection Timeout
+
+- Ensure your Coupa instance is accessible from the OpenBeam server
+- Check for network firewall rules blocking outbound HTTPS traffic
+- The default timeout is 30 seconds per request

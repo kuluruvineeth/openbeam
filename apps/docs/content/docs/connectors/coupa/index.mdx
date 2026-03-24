@@ -1,0 +1,40 @@
+---
+title: Coupa
+description: Search purchase orders, invoices, requisitions, suppliers, contracts, and expense reports from Coupa
+---
+
+# Coupa
+
+Index business spend management data from Coupa including purchase orders, invoices, requisitions, suppliers, contracts, and expense reports. Supports OAuth 2.0 client credentials authentication with offset-based pagination and updated_at incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Purchase Orders** | PO number, status, total, currency, supplier, requester, line items |
+| **Invoices** | Invoice number, status, total, supplier, due date, payment date, line items |
+| **Requisitions** | Requisition number, status, total, requester, department, justification |
+| **Suppliers** | Name, number, status, payment terms, primary contact, address, tax ID |
+| **Contracts** | Name, number, status, start/end dates, value, supplier, terms |
+| **Expense Reports** | Title, status, total, submitter, department, expense lines |
+
+## Authentication
+
+**Method:** OAuth 2.0 Client Credentials (server-to-server)
+
+Create an OAuth 2.0 client from **Setup > Integrations > OAuth2/OpenID Connect Clients** in Coupa. The client must have `core.read` scope.
+
+## Quick Start
+
+1. Create an OAuth 2.0 client in Coupa
+2. Add the Coupa connector in OpenBeam
+3. Enter your instance URL, client ID, and client secret
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/coupa/setup" description="OAuth 2.0 client creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/coupa/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/coupa/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/coupa/sync" description="Full sync, incremental sync via updated_at filters" />
+  <Card title="Troubleshooting" href="/docs/connectors/coupa/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -1,0 +1,41 @@
+---
+title: Setup
+description: Configure the Coupa connector with OAuth 2.0 client credentials
+---
+
+# Coupa Setup
+
+## Prerequisites
+
+- A Coupa instance with API access enabled
+- Admin or Integration admin role in Coupa
+- Access to **Setup > Integrations > OAuth2/OpenID Connect Clients**
+
+## Step 1: Create an OAuth 2.0 Client
+
+1. Log into your Coupa instance
+2. Navigate to **Setup > Integrations > OAuth2/OpenID Connect Clients**
+3. Click **Create**
+4. Fill in:
+   - **Name:** OpenBeam Integration
+   - **Scopes:** Select `core.read`
+   - **Grant Type:** Client Credentials
+5. Save and note the **Client ID** and **Client Secret**
+
+## Step 2: Add the Connector in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector**
+2. Select **Coupa**
+3. Enter your configuration:
+   - **Instance URL:** Your Coupa instance URL (e.g., `https://yourcompany.coupahost.com`)
+   - **Client ID:** The OAuth client ID from step 1
+   - **Client Secret:** The OAuth client secret from step 1
+4. Click **Connect**
+
+## Step 3: Verify Connection
+
+OpenBeam will validate your credentials by fetching a test purchase order. If successful, the connector status changes to **Active**.
+
+## Step 4: Start Initial Sync
+
+The initial full sync begins automatically. Depending on data volume, this may take several minutes to complete.
