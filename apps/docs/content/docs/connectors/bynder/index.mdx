@@ -1,0 +1,37 @@
+---
+title: Bynder
+description: Search digital assets, collections, and tags from Bynder
+---
+
+# Bynder
+
+Index digital asset management data from Bynder including assets (images, videos, documents), collections, and tags. Supports OAuth 2.0 with domain-specific URLs and dateModified-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Assets** | Name, description, type, tags, dimensions, file size, copyright, brand |
+| **Collections** | Name, description, asset count, public/private status |
+| **Tags** | Tag name, associated media count |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Register an OAuth application in your Bynder portal under **Settings > OAuth Apps**. You will need your Bynder subdomain (e.g., `acme` for `acme.bynder.com`), a Client ID, and a Client Secret.
+
+## Quick Start
+
+1. Register an OAuth app in your Bynder portal
+2. Add the Bynder connector in OpenBeam
+3. Enter your domain, Client ID, and Client Secret
+4. Authorize via OAuth and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/bynder/setup" description="OAuth app registration and connector configuration" />
+  <Card title="Features" href="/docs/connectors/bynder/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/bynder/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/bynder/sync" description="Full sync, incremental sync via dateModified" />
+  <Card title="Troubleshooting" href="/docs/connectors/bynder/troubleshooting" description="Common issues and fixes" />
+</Cards>

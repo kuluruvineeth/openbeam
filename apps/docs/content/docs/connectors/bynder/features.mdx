@@ -1,0 +1,33 @@
+---
+title: Features
+description: What Bynder data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Assets
+Full-text search across asset names, descriptions, tags, and copyright information. Metadata includes asset type (image, video, document), dimensions, file size, brand, orientation, and archive status.
+
+### Collections
+Search across collection names and descriptions. Includes asset count, public/private status, and nested collection count.
+
+### Tags
+Tag names with associated media counts. Enables discovery of categorization patterns and frequently used labels across the asset library.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Collection** | Create a new collection with name and description |
+| **Add Asset to Collection** | Add an existing asset to a collection |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Brand attribution** from asset brand assignments
+- **Tag relationships** between assets sharing common tags
+- **Collection membership** linking assets to their organizational groups

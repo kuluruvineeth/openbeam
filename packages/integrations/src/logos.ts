@@ -14,6 +14,7 @@ import { Logo as BambooHRLogo } from "./bamboohr/assets/logo";
 import { Logo as BenchlingLogo } from "./benchling/assets/logo";
 import { Logo as BitbucketLogo } from "./bitbucket/assets/logo";
 import { Logo as BoxLogo } from "./box/assets/logo";
+import { Logo as BynderLogo } from "./bynder/assets/logo";
 import { Logo as CanvaLogo } from "./canva/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
 import { Logo as ClickUpLogo } from "./clickup/assets/logo";
@@ -153,6 +154,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.EVERNOTE]: EvernoteLogo,
   [AppType.FIFTEEN_FIVE]: FifteenFiveLogo,
   [AppType.BENCHLING]: BenchlingLogo,
+  [AppType.BYNDER]: BynderLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

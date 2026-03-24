@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common Bynder connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid OAuth credentials:** Verify your Client ID and Client Secret are correct. Re-generate from your Bynder portal under Settings > OAuth Apps if needed.
+
+**401 Unauthorized:** The access token may have expired. If refresh token rotation is enabled, the connector handles this automatically. Otherwise, re-authorize by reconnecting the connector.
+
+**403 Forbidden:** The OAuth app lacks sufficient scopes. Ensure `offline`, `asset:read`, and `collection:read` scopes are granted.
+
+**Wrong domain:** If you get connection errors, verify the domain matches your Bynder portal URL. For `https://acme.bynder.com`, the domain should be `acme`.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider disabling collections or tags to reduce API calls.
+
+## Missing Data
+
+**Assets not appearing:** Verify the OAuth app has `asset:read` scope. Archived assets (archive=1) are still indexed but marked as archived in metadata.
+
+**Collections/Tags missing:** Verify these entity types are enabled in the connector settings.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or missing. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Bynder API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.

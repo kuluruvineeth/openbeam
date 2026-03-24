@@ -1,0 +1,34 @@
+---
+title: Sync Behavior
+description: How Bynder data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Bynder:
+
+1. **Assets** via paginated `/media/` endpoint, ordered by dateModified
+2. **Collections** (if enabled) via paginated `/collections/` endpoint
+3. **Tags** (if enabled) via `/tags/` endpoint (single request, returns all)
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Bynder's `dateModified` filter parameter on the media endpoint to fetch only assets modified since the last sync. Collections are filtered client-side by dateModified comparison. Tags are always fully re-synced since the API returns them in a single response.
+
+If the incremental sync fails or no cursor exists, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Assets | Every 15 minutes |
+| Collections | Every 30 minutes |
+| Tags | Every 60 minutes |
+
+## Rate Limits
+
+Bynder enforces rate limits of 4,500 requests per 5 minutes. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

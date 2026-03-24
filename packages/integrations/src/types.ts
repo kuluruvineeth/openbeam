@@ -118,6 +118,7 @@ export enum AppType {
   AHA = "AHA",
   FIFTEEN_FIVE = "FIFTEEN_FIVE",
   BENCHLING = "BENCHLING",
+  BYNDER = "BYNDER",
 }
 
 export enum SyncMode {

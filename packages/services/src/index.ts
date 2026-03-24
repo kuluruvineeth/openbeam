@@ -334,6 +334,29 @@ export {
   transformBoxItem,
 } from "./box";
 export type {
+  BynderAsset,
+  BynderClient,
+  BynderClientConfig,
+  BynderCollection,
+  BynderCollectionActionResult,
+  BynderTag,
+} from "./bynder";
+export {
+  addAssetToBynderCollection,
+  BynderApiError,
+  BynderAuth,
+  bynderFullSync,
+  bynderIncrementalSync,
+  createBynderClient,
+  createBynderCollection,
+  listAllAssets as listAllBynderAssets,
+  listAllCollections as listAllBynderCollections,
+  listAllTags as listAllBynderTags,
+  transformBynderAsset,
+  transformBynderCollection,
+  transformBynderTag,
+} from "./bynder";
+export type {
   CanvaClient,
   CanvaClientConfig,
   CanvaRecordActionResult,

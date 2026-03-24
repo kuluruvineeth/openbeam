@@ -40,6 +40,7 @@ type IntegrationName =
   | "docusign"
   | "canva"
   | "egnyte"
+  | "bynder"
   | "highspot"
   | "google-sites";
 
@@ -214,6 +215,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   egnyte: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/egnyte/callback", {
+      code,
+      state,
+    }),
+  bynder: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/bynder/callback", {
       code,
       state,
     }),

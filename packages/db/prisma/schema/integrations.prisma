@@ -157,6 +157,7 @@ enum AppType {
   AHA
   FIFTEEN_FIVE
   BENCHLING
+  BYNDER
 }
 
 enum ConnectorStatus {

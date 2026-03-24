@@ -1,0 +1,38 @@
+---
+title: Setup
+description: Connect Bynder to OpenBeam via OAuth 2.0
+---
+
+# Bynder Setup
+
+## Prerequisites
+
+- A Bynder account with admin access
+- Access to Bynder portal settings (OAuth Apps)
+
+## Step 1: Register an OAuth Application
+
+1. Log into your Bynder portal (e.g., `https://acme.bynder.com`)
+2. Go to **Settings > OAuth Apps**
+3. Click **Add new app**
+4. Name it "OpenBeam Integration"
+5. Set the redirect URI to your OpenBeam callback URL
+6. Grant scopes: `offline`, `asset:read`, `collection:read`
+7. Copy the **Client ID** and **Client Secret**
+
+## Step 2: Determine Your Domain
+
+Your Bynder domain is the subdomain in your portal URL. For example, if your URL is `https://acme.bynder.com`, your domain is `acme`.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Bynder**
+3. Enter your **Domain** (e.g., `acme`)
+4. Enter your **Client ID** and **Client Secret**
+5. Click **Connect** to start the OAuth flow
+6. Authorize OpenBeam in the Bynder consent screen
+
+## Step 4: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Bynder data. The first sync indexes all assets, collections, and tags from your portal.

@@ -1,0 +1,29 @@
+---
+title: Configuration
+description: Configure which Bynder data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Domain** | Bynder subdomain (e.g., `acme` for acme.bynder.com) | Required |
+| **Client ID** | OAuth app Client ID | Required |
+| **Client Secret** | OAuth app Client Secret | Required |
+| **Sync Collections** | Index asset collections | Enabled |
+| **Sync Tags** | Index tags used to categorize assets | Enabled |
+
+## Domain Configuration
+
+Bynder uses customer-specific subdomains. The domain you enter determines the API endpoints used:
+
+| Setting | API Base URL |
+|---------|-------------|
+| `acme` | `https://acme.bynder.com/api/v4/` |
+| `mycompany` | `https://mycompany.bynder.com/api/v4/` |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Assets are always synced. Collections and tags can be individually disabled to reduce sync time.

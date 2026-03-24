@@ -10,6 +10,7 @@ import { bamboohrApp } from "./bamboohr/config";
 import { benchlingApp } from "./benchling/config";
 import { bitbucketApp } from "./bitbucket/config";
 import { boxApp } from "./box/config";
+import { bynderApp } from "./bynder/config";
 import { canvaApp } from "./canva/config";
 import { cisaKevApp } from "./cisa-kev/config";
 import { clickUpApp } from "./clickup/config";
@@ -77,6 +78,7 @@ import { zoomApp } from "./zoom/config";
 export {
   ahaApp,
   benchlingApp,
+  bynderApp,
   airtableApp,
   amplitudeApp,
   canvaApp,
@@ -235,6 +237,20 @@ export {
   generateBoxAuthUrl,
   refreshBoxToken,
 } from "./box";
+export type {
+  BynderCurrentUser,
+  BynderOAuthResult,
+  BynderTokenResponse,
+  ExchangeBynderCodeParams,
+  GenerateBynderAuthUrlParams,
+  RefreshBynderTokenParams,
+} from "./bynder";
+export {
+  BynderOAuthError,
+  exchangeBynderCode,
+  generateBynderAuthUrl,
+  refreshBynderToken,
+} from "./bynder";
 export type {
   CanvaOAuthResult,
   CanvaTokenResponse,
@@ -786,4 +802,5 @@ export const appStore: UnifiedApp[] = [
   ahaApp,
   fifteenFiveApp,
   benchlingApp,
+  bynderApp,
 ];
