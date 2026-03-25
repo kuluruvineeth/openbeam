@@ -1,0 +1,37 @@
+---
+title: Features
+description: What Jenkins data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Jobs
+Full-text search across job names, descriptions, and health reports. Metadata includes build status (color), health score, buildable flag, and last build result. Supports freestyle, pipeline, multibranch pipeline, and folder structures.
+
+### Builds
+Search across build numbers, results, trigger causes, parameters, and console output. Includes duration, timestamp, and the user who triggered the build. Console output is truncated at 50KB for large builds.
+
+### Views
+Jenkins views (job groups) with names, descriptions, and member job lists. Useful for finding which jobs belong to a particular team or project.
+
+### Nodes
+Agent node information including display name, executor count, online/offline status, architecture, and offline reasons. The Jenkins controller node is also indexed.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Trigger Build** | Start a new build for a specified job |
+| **Disable Job** | Disable a job to prevent new builds |
+| **Enable Job** | Re-enable a previously disabled job |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Job relationships** from folder/multibranch hierarchies
+- **Build history** linking jobs to their execution results
+- **Node assignments** connecting agents to the controller

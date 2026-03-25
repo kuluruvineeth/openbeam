@@ -1,0 +1,12 @@
+{
+  "title": "Jenkins",
+  "icon": "Jenkins",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -46,6 +46,7 @@ import insided from "./insided/insided.index";
 import interact from "./interact/interact.index";
 import intercom from "./intercom/intercom.index";
 import ironclad from "./ironclad/ironclad.index";
+import jenkins from "./jenkins/jenkins.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import marketo from "./marketo/marketo.index";
@@ -143,6 +144,7 @@ integrations.route("/docebo", docebo);
 integrations.route("/insided", insided);
 integrations.route("/interact", interact);
 integrations.route("/ironclad", ironclad);
+integrations.route("/jenkins", jenkins);
 
 integrations.get("/health", (c) =>
   c.json({

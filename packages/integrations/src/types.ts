@@ -127,6 +127,7 @@ export enum AppType {
   INSIDED = "INSIDED",
   INTERACT = "INTERACT",
   IRONCLAD = "IRONCLAD",
+  JENKINS = "JENKINS",
 }
 
 export enum SyncMode {

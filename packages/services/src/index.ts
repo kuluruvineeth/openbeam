@@ -1136,6 +1136,37 @@ export {
   updateWorkflow as updateIroncladWorkflow,
 } from "./ironclad";
 export type {
+  JenkinsBuild,
+  JenkinsBuildAction,
+  JenkinsBuildParameter,
+  JenkinsClient,
+  JenkinsHealthReport,
+  JenkinsJob,
+  JenkinsNode,
+  JenkinsView,
+} from "./jenkins";
+export {
+  createJenkinsClient,
+  disableJob as disableJenkinsJob,
+  enableJob as enableJenkinsJob,
+  formatBuildResult as formatJenkinsBuildResult,
+  formatDuration as formatJenkinsDuration,
+  formatJobStatus as formatJenkinsJobStatus,
+  getBuildConsoleOutput as getJenkinsBuildConsoleOutput,
+  JenkinsApiError,
+  jenkinsFullSync,
+  jenkinsIncrementalSync,
+  listBuilds as listJenkinsBuilds,
+  listJobs as listJenkinsJobs,
+  listNodes as listJenkinsNodes,
+  listViews as listJenkinsViews,
+  transformBuild as transformJenkinsBuild,
+  transformJob as transformJenkinsJob,
+  transformNode as transformJenkinsNode,
+  transformView as transformJenkinsView,
+  triggerBuild as triggerJenkinsBuild,
+} from "./jenkins";
+export type {
   JiraComment,
   JiraDocumentChange,
   JiraIssue,

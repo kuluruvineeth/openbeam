@@ -166,6 +166,7 @@ enum AppType {
   INSIDED
   INTERACT
   IRONCLAD
+  JENKINS
 }
 
 enum ConnectorStatus {

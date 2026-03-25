@@ -1,0 +1,34 @@
+---
+title: Troubleshooting
+description: Common Jenkins connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**401 Unauthorized:** Verify your username and API token are correct. API tokens are generated per-user in Jenkins under **User > Configure > API Token**. Ensure the token has not been revoked.
+
+**403 Forbidden:** The user account lacks sufficient permissions. The user needs at least "Overall/Read" permission in Jenkins. For build triggering actions, "Job/Build" permission is also required.
+
+**Connection refused:** Verify your Jenkins URL is correct and the instance is accessible from the OpenBeam server. Check firewall rules if Jenkins is behind a corporate network.
+
+## SSL/TLS Errors
+
+**Self-signed certificates:** If your Jenkins instance uses a self-signed certificate, the connector may fail to connect. Ensure the certificate is trusted by the OpenBeam server environment.
+
+## Missing Data
+
+**No builds appearing:** Check the "Max Builds Per Job" setting. If set too low, older builds will not be synced. The default is 25 builds per job.
+
+**Console output missing:** Verify "Sync Console Output" is enabled in the connector settings. Some builds may have empty console output if they were deleted or the build was never executed.
+
+**Folder jobs not appearing:** The connector automatically flattens folder structures. Nested jobs appear with their full path (e.g., "folder/subfolder/job-name").
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns unexpected errors. The connector automatically recovers by running a full sync.
+
+**Slow sync:** If sync is taking too long, consider reducing "Max Builds Per Job" or disabling "Sync Console Output". Large Jenkins instances with thousands of jobs may take longer on the initial sync.
+
+**Timeout errors:** The connector uses a 30-second timeout per API request. If your Jenkins instance is slow to respond, builds with very large console output may time out. The connector skips failed console output fetches gracefully.

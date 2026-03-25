@@ -47,6 +47,7 @@ import { insidedApp } from "./insided/config";
 import { interactApp } from "./interact/config";
 import { intercomApp } from "./intercom/config";
 import { ironcladApp } from "./ironclad/config";
+import { jenkinsApp } from "./jenkins/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { marketoApp } from "./marketo/config";
@@ -137,6 +138,7 @@ export {
   interactApp,
   intercomApp,
   ironcladApp,
+  jenkinsApp,
   jiraApp,
   linearApp,
   marketoApp,
@@ -865,4 +867,5 @@ export const appStore: UnifiedApp[] = [
   insidedApp,
   interactApp,
   ironcladApp,
+  jenkinsApp,
 ];

@@ -62,6 +62,7 @@ import {
   InteractIcon,
   IntercomIcon,
   IroncladIcon,
+  JenkinsIcon,
   JiraIcon,
   LinearIcon,
   MarketoIcon,
@@ -196,6 +197,7 @@ const customIconMap: Record<
   FifteenFive: FifteenFiveIcon,
   Benchling: BenchlingIcon,
   Ironclad: IroncladIcon,
+  Jenkins: JenkinsIcon,
 };
 
 export const source = loader({

@@ -1,0 +1,34 @@
+---
+title: Configuration
+description: Configure which Jenkins data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Jenkins URL** | Base URL of your Jenkins instance | Required |
+| **Username** | Jenkins username for authentication | Required |
+| **API Token** | Jenkins API token for authentication | Required |
+| **Sync Console Output** | Include build console logs in search results | Enabled |
+| **Max Builds Per Job** | Maximum recent builds to sync per job | 25 |
+| **Sync Nodes** | Index agent node information | Enabled |
+| **Sync Views** | Index view (job group) information | Enabled |
+
+## Console Output
+
+When enabled, build console output is fetched and indexed for each build. This makes build logs searchable but increases sync time and storage. Console output is truncated at 50KB per build to prevent excessive storage.
+
+Disable this setting for Jenkins instances with very large build outputs or if you only need job-level search.
+
+## Build Limits
+
+The "Max Builds Per Job" setting controls how many recent builds are fetched per job during full sync. Set to 0 to fetch all available builds (not recommended for jobs with thousands of builds).
+
+During incremental sync, only builds newer than the last known build number are fetched, regardless of this setting.
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Jobs and builds are always synced. Nodes and views can be individually disabled to reduce sync time.

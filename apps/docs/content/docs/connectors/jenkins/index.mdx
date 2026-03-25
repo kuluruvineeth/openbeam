@@ -1,0 +1,38 @@
+---
+title: Jenkins
+description: Search jobs, builds, and pipeline configurations from Jenkins CI/CD
+---
+
+# Jenkins
+
+Index CI/CD data from Jenkins including jobs, builds with console output, views, and agent nodes. Supports Basic auth with username + API token for self-hosted Jenkins instances.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Jobs** | Name, status, health report, last build result, description |
+| **Builds** | Build number, result, duration, parameters, trigger cause, console output |
+| **Views** | Name, description, member job list |
+| **Nodes** | Display name, executor count, online/offline status, architecture |
+
+## Authentication
+
+**Method:** Basic Auth (username + API token)
+
+Generate an API token from **User > Configure > API Token** in your Jenkins instance. The token is used with your username for HTTP Basic authentication.
+
+## Quick Start
+
+1. Generate an API token in Jenkins
+2. Add the Jenkins connector in OpenBeam
+3. Enter your Jenkins URL, username, and API token
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/jenkins/setup" description="API token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/jenkins/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/jenkins/configuration" description="Build sync limits, console output, and entity toggles" />
+  <Card title="Sync Behavior" href="/docs/connectors/jenkins/sync" description="Full sync, incremental sync via build number tracking" />
+  <Card title="Troubleshooting" href="/docs/connectors/jenkins/troubleshooting" description="Common issues and fixes" />
+</Cards>

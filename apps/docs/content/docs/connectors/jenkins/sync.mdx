@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Jenkins data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Jenkins:
+
+1. **Jobs** via the Jenkins Remote Access API with tree parameter for field selection
+2. **Builds** for each job (up to max builds per job), including console output
+3. **Views** with member job lists
+4. **Nodes** with executor and status information
+
+Folder structures and multibranch pipelines are automatically flattened into individual jobs. Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use build number tracking to fetch only new data:
+
+- **Jobs** are always re-synced to capture status changes
+- **Builds** are filtered by comparing against the last known build number per job. Only builds with a higher number than the last sync are fetched.
+- **Views** and **Nodes** are fully re-synced since they change infrequently
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Jobs | Every 15 minutes |
+| Builds | Every 15 minutes |
+| Views | Every 60 minutes |
+| Nodes | Every 60 minutes |
+
+## API Usage
+
+Jenkins does not enforce built-in rate limits (it is self-hosted), but the connector limits itself to 120 requests per minute to avoid overloading the server. The `tree` parameter is used to minimize response size by requesting only needed fields.

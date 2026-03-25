@@ -1,0 +1,39 @@
+---
+title: Setup
+description: Connect Jenkins to OpenBeam via API token
+---
+
+# Jenkins Setup
+
+## Prerequisites
+
+- A Jenkins instance (2.x or later) accessible via HTTPS
+- A Jenkins user account with read access to jobs, builds, and nodes
+
+## Step 1: Generate an API Token
+
+1. Log into your Jenkins instance
+2. Click your username in the top-right corner
+3. Go to **Configure**
+4. Scroll to **API Token** section
+5. Click **Add new Token**, name it "OpenBeam Integration"
+6. Click **Generate** and copy the token immediately (it cannot be viewed again)
+
+## Step 2: Verify Your URL
+
+Your Jenkins instance URL should be the base URL without any trailing path:
+- Correct: `https://jenkins.example.com`
+- Correct: `https://ci.company.com:8443`
+- Incorrect: `https://jenkins.example.com/job/my-project`
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Jenkins**
+3. Enter your **Jenkins URL**
+4. Enter your **Username** and **API Token**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Jenkins instance. The first sync fetches all jobs, their recent builds (up to 25 per job by default), views, and agent nodes.
