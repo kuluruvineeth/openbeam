@@ -48,6 +48,7 @@ import { Logo as HaystackLogo } from "./haystack/assets/logo";
 import { Logo as HighspotLogo } from "./highspot/assets/logo";
 import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as InsidedLogo } from "./insided/assets/logo";
+import { Logo as InteractLogo } from "./interact/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
@@ -167,6 +168,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.BENCHLING]: BenchlingLogo,
   [AppType.BYNDER]: BynderLogo,
   [AppType.INSIDED]: InsidedLogo,
+  [AppType.INTERACT]: InteractLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

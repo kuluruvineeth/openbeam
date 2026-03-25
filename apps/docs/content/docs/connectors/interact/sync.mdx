@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How Interact data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Interact:
+
+1. **Pages** from the content management system
+2. **News Articles** sorted by creation date
+3. **Documents** (if enabled) from the document library
+4. **People** (if enabled) from the employee directory
+5. **Spaces** (if enabled) including communities and teams
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use OData-style `$filter=ModifiedDate gt {datetime}` to fetch only entities modified since the last sync. This applies to all entity types.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Pages | Every 15 minutes |
+| News | Every 15 minutes |
+| Documents | Every 30 minutes |
+| People | Every 60 minutes |
+| Spaces | Every 60 minutes |
+
+## Rate Limits
+
+Interact enforces rate limits of approximately 200 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

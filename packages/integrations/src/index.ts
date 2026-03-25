@@ -44,6 +44,7 @@ import { haystackApp } from "./haystack/config";
 import { highspotApp } from "./highspot/config";
 import { hubspotApp } from "./hubspot/config";
 import { insidedApp } from "./insided/config";
+import { interactApp } from "./interact/config";
 import { intercomApp } from "./intercom/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
@@ -132,6 +133,7 @@ export {
   googleSitesApp,
   hubspotApp,
   insidedApp,
+  interactApp,
   intercomApp,
   jiraApp,
   linearApp,
@@ -859,4 +861,5 @@ export const appStore: UnifiedApp[] = [
   harvestApp,
   haystackApp,
   insidedApp,
+  interactApp,
 ];

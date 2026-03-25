@@ -1,0 +1,39 @@
+---
+title: Interact
+description: Search pages, news, documents, people, and spaces from your Interact intranet
+---
+
+# Interact
+
+Index intranet content from Interact including pages, news articles, documents, employee profiles, and community spaces. Supports API key authentication with OData-style pagination and ModifiedDate incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Pages** | Title, body content, section, author, status |
+| **News Articles** | Title, content, category, tags, publication date, author |
+| **Documents** | Title, description, file name, file type, file size, author |
+| **People** | Name, email, job title, department, location, manager, bio |
+| **Spaces** | Name, description, type, member count, owner |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from your Interact admin panel under **API settings**. The key must have read access to content, documents, people, and spaces.
+
+## Quick Start
+
+1. Generate an API key in Interact admin panel
+2. Add the Interact connector in OpenBeam
+3. Enter your API key and instance name
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/interact/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/interact/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/interact/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/interact/sync" description="Full sync, incremental sync via ModifiedDate" />
+  <Card title="Troubleshooting" href="/docs/connectors/interact/troubleshooting" description="Common issues and fixes" />
+</Cards>

@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common Interact connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Interact admin panel under API settings if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has at least read access to content, documents, people, and spaces.
+
+**Wrong instance name:** If you get connection errors, verify your instance name matches your Interact URL subdomain. For `https://company.interactsoftware.com`, use `company`.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Old content not appearing:** Check the lookback days setting. Only content within the lookback period is synced on the initial run when configured.
+
+**Documents/People/Spaces missing:** Verify these entity types are enabled in the connector settings.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Interact API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Interact instance has no content, the sync will complete with zero documents. Verify content exists in your Interact instance.

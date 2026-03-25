@@ -1062,6 +1062,32 @@ export {
   voteIdea as voteInsidedIdea,
 } from "./insided";
 export type {
+  InteractClient,
+  InteractDocument,
+  InteractNewsArticle,
+  InteractPage,
+  InteractPerson,
+  InteractSpace,
+} from "./interact";
+export {
+  createInteractClient,
+  createPage as createInteractPage,
+  InteractApiError,
+  interactFullSync,
+  interactIncrementalSync,
+  listDocuments as listInteractDocuments,
+  listNews as listInteractNews,
+  listPages as listInteractPages,
+  listPeople as listInteractPeople,
+  listSpaces as listInteractSpaces,
+  transformDocument as transformInteractDocument,
+  transformNews as transformInteractNews,
+  transformPage as transformInteractPage,
+  transformPerson as transformInteractPerson,
+  transformSpace as transformInteractSpace,
+  updatePage as updateInteractPage,
+} from "./interact";
+export type {
   IntercomArticle,
   IntercomArticleActionResult,
   IntercomClient,

@@ -125,6 +125,7 @@ export enum AppType {
   HARVEST = "HARVEST",
   HAYSTACK = "HAYSTACK",
   INSIDED = "INSIDED",
+  INTERACT = "INTERACT",
 }
 
 export enum SyncMode {

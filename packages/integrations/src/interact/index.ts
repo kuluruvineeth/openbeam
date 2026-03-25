@@ -1,0 +1,1 @@
+export { interactApp } from "./config";

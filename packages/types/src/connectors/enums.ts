@@ -104,6 +104,7 @@ export const AppTypeSchema = z.enum([
   "HARVEST",
   "HAYSTACK",
   "INSIDED",
+  "INTERACT",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

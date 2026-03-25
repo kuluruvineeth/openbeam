@@ -1,0 +1,36 @@
+---
+title: Setup
+description: Connect Interact to OpenBeam via API key
+---
+
+# Interact Setup
+
+## Prerequisites
+
+- An Interact account with admin access
+- Access to Interact API settings
+
+## Step 1: Generate an API Key
+
+1. Log into your Interact admin panel
+2. Go to **Settings > API** or **Administration > Integrations > API**
+3. Click **Create API Key**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access to content, documents, people, and spaces
+6. Copy the generated API key
+
+## Step 2: Determine Your Instance Name
+
+Your instance name is the subdomain of your Interact URL. For example, if your Interact URL is `https://company.interactsoftware.com`, your instance name is `company`.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Interact**
+3. Enter your **API Key**
+4. Enter your **Instance Name** (subdomain)
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Interact data. The first sync fetches all pages, news articles, documents (if enabled), people (if enabled), and spaces (if enabled).

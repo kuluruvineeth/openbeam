@@ -1,0 +1,10 @@
+export type { InteractDocument } from "./documents";
+export { listDocuments } from "./documents";
+export type { InteractNewsArticle } from "./news";
+export { listNews } from "./news";
+export type { InteractPage } from "./pages";
+export { listPages } from "./pages";
+export type { InteractPerson } from "./people";
+export { listPeople } from "./people";
+export type { InteractSpace } from "./spaces";
+export { listSpaces } from "./spaces";

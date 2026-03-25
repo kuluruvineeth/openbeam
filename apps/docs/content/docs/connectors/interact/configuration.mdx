@@ -1,0 +1,34 @@
+---
+title: Configuration
+description: Configure which Interact data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Interact API key for authentication | Required |
+| **Instance** | Interact instance name (subdomain) | Required |
+| **Sync Documents** | Index document library files | Enabled |
+| **Sync People** | Index employee profiles | Enabled |
+| **Sync Spaces** | Index community spaces | Enabled |
+| **Lookback Days** | How far back to sync on first run | All time |
+
+## Instance Name
+
+The instance name is extracted from your Interact URL:
+
+| Interact URL | Instance Name |
+|-------------|---------------|
+| `https://company.interactsoftware.com` | `company` |
+| `https://acme.interactsoftware.com` | `acme` |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Pages and news are always synced. Documents, people, and spaces can be individually disabled to reduce sync time.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches content. Set to 0 for all time (default). For large Interact instances, consider starting with a shorter period.

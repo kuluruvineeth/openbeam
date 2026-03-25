@@ -164,6 +164,7 @@ enum AppType {
   HARVEST
   HAYSTACK
   INSIDED
+  INTERACT
 }
 
 enum ConnectorStatus {

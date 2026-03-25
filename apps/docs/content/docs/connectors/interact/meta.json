@@ -1,0 +1,12 @@
+{
+  "title": "Interact",
+  "icon": "Interact",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}
