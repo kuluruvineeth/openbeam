@@ -1,0 +1,12 @@
+{
+  "title": "Lucid",
+  "icon": "Lucid",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,34 @@
+---
+title: Setup
+description: Connect Lucid to OpenBeam via OAuth 2.0
+---
+
+# Lucid Setup
+
+## Prerequisites
+
+- A Lucid account with admin access
+- Access to the Lucid developer portal
+
+## Step 1: Register an OAuth Application
+
+1. Go to the [Lucid Developer Portal](https://developer.lucid.co)
+2. Create a new OAuth 2.0 application
+3. Set the redirect URI to your OpenBeam instance callback URL (e.g., `https://your-domain.com/connectors/setup/lucid/oauth/callback`)
+4. Request the following scopes:
+   - `lucidchart.document.app:read`
+   - `lucidchart.folder.app:read`
+   - `account.user:read`
+5. Copy the **Client ID** and **Client Secret**
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Lucid**
+3. Enter the **Client ID** and **Client Secret** from step 1
+4. Click **Connect** to start the OAuth flow
+5. Authorize OpenBeam in the Lucid consent screen
+
+## Step 3: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Lucid workspace. The first sync fetches all documents, folders, and pages accessible to the authenticated user.

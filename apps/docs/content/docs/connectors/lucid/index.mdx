@@ -1,0 +1,37 @@
+---
+title: Lucid
+description: Search across Lucidchart diagrams, Lucidspark boards, folders, and pages
+---
+
+# Lucid
+
+Index visual collaboration content from Lucid including Lucidchart diagrams, Lucidspark whiteboards, folders, and individual pages. Supports OAuth 2.0 authentication with cursor-based pagination and timestamp-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Documents** | Title, product type, creator, last editor, status, page count |
+| **Folders** | Name, type, parent hierarchy |
+| **Pages** | Title, page index, parent document reference |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Register an OAuth application in the Lucid developer portal. The application needs read access to documents, folders, and user profiles.
+
+## Quick Start
+
+1. Register an OAuth app in the Lucid developer portal
+2. Add the Lucid connector in OpenBeam
+3. Enter your Client ID and Client Secret
+4. Authorize via OAuth and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/lucid/setup" description="OAuth app registration and connector configuration" />
+  <Card title="Features" href="/docs/connectors/lucid/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/lucid/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/lucid/sync" description="Full sync, incremental sync via modifiedSince" />
+  <Card title="Troubleshooting" href="/docs/connectors/lucid/troubleshooting" description="Common issues and fixes" />
+</Cards>

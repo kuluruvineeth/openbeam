@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: Common Lucid connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid credentials:** Verify your Client ID and Client Secret are correct. Re-copy them from the Lucid developer portal if needed.
+
+**403 Forbidden:** The OAuth application lacks sufficient scopes. Ensure it has `lucidchart.document.app:read`, `lucidchart.folder.app:read`, and `account.user:read`.
+
+**Token expired:** The connector automatically refreshes expired tokens. If refresh fails, re-authorize by disconnecting and reconnecting the connector.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider disabling page sync to reduce API calls.
+
+## Missing Data
+
+**Documents not appearing:** Only documents accessible to the authenticated user are synced. Verify the user has view access to the expected content.
+
+**Pages missing:** Check that page sync is enabled in connector settings. Pages are only fetched for documents with more than one page.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Lucid API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.

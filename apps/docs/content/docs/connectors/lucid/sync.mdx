@@ -1,0 +1,34 @@
+---
+title: Sync Behavior
+description: How Lucid data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Lucid:
+
+1. **Documents** with metadata, streamed in batches
+2. **Pages** for each multi-page document (if enabled)
+3. **Folders** (if enabled) from the folder hierarchy
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the `modifiedSince` parameter to fetch only documents modified since the last sync. Pages for modified documents are re-fetched. Folders are always fully re-synced during incremental runs since they change infrequently.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Documents | Every 30 minutes |
+| Pages | Every 30 minutes |
+| Folders | Every 60 minutes |
+
+## Rate Limits
+
+Lucid enforces rate limits of approximately 100 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

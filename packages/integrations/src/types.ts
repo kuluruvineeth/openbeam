@@ -133,6 +133,7 @@ export enum AppType {
   LESSONLY = "LESSONLY",
   LOOKER_STUDIO = "LOOKER_STUDIO",
   LOOPIO = "LOOPIO",
+  LUCID = "LUCID",
 }
 
 export enum SyncMode {

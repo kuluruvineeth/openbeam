@@ -1,0 +1,21 @@
+---
+title: Configuration
+description: Configure which Lucid data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Client ID** | OAuth application client ID | Required |
+| **Client Secret** | OAuth application client secret | Required |
+| **Sync Pages** | Index individual pages within documents | Enabled |
+| **Sync Folders** | Index folder hierarchy | Enabled |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Documents are always synced. Pages and folders can be individually disabled to reduce sync time and index size.
+
+Disabling pages is recommended for large workspaces where individual page-level search is not needed, as each multi-page document generates additional API calls to fetch page metadata.

@@ -44,7 +44,8 @@ type IntegrationName =
   | "highspot"
   | "google-sites"
   | "harvest"
-  | "looker-studio";
+  | "looker-studio"
+  | "lucid";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -251,6 +252,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  lucid: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/lucid/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(

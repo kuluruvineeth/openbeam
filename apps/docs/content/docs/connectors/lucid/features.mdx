@@ -1,0 +1,34 @@
+---
+title: Features
+description: What Lucid data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Documents
+Full-text search across Lucidchart diagrams and Lucidspark boards. Metadata includes product type (lucidchart/lucidspark), creator, last editor, status, and page count.
+
+### Folders
+Folder hierarchy with names, types, and parent references. Useful for navigating workspace organization.
+
+### Pages
+Individual pages within multi-page documents. Each page is indexed with its title, page index, and parent document reference.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Document** | Create a new Lucidchart or Lucidspark document |
+| **Update Document** | Update document metadata (title, etc.) |
+| **Create Folder** | Create a new folder in the workspace |
+
+## Search Capabilities
+
+- Find diagrams by title, creator name, or product type
+- Filter by document status or product (lucidchart vs lucidspark)
+- Navigate folder hierarchies to locate specific content
+- Search across page titles within documents

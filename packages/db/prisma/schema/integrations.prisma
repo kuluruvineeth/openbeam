@@ -172,6 +172,7 @@ enum AppType {
   LESSONLY
   LOOKER_STUDIO
   LOOPIO
+  LUCID
 }
 
 enum ConnectorStatus {

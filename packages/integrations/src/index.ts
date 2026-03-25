@@ -55,6 +55,7 @@ import { lessonlyApp } from "./lessonly/config";
 import { linearApp } from "./linear/config";
 import { lookerStudioApp } from "./looker-studio/config";
 import { loopioApp } from "./loopio/config";
+import { lucidApp } from "./lucid/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
@@ -151,6 +152,7 @@ export {
   linearApp,
   lookerStudioApp,
   loopioApp,
+  lucidApp,
   marketoApp,
   microsoftCalendarApp,
   mondayApp,
@@ -620,6 +622,22 @@ export type {
   LookerStudioConfig,
 } from "./looker-studio/types";
 export type {
+  ExchangeLucidCodeParams,
+  GenerateLucidAuthUrlParams,
+  LucidOAuthResult,
+  LucidTokenResponse,
+  LucidUserInfo,
+  RefreshLucidTokenParams,
+  RefreshLucidTokenResult,
+} from "./lucid";
+export {
+  exchangeLucidCode,
+  generateLucidAuthUrl,
+  LUCID_TOKEN_LIFETIME_SECONDS,
+  LucidOAuthError,
+  refreshLucidToken,
+} from "./lucid";
+export type {
   ExchangeMarketoCredentialsParams,
   MarketoAuthResult,
   MarketoTokenResponse,
@@ -897,4 +915,5 @@ export const appStore: UnifiedApp[] = [
   lessonlyApp,
   lookerStudioApp,
   loopioApp,
+  lucidApp,
 ];

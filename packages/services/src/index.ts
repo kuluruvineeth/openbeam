@@ -1356,6 +1356,31 @@ export {
   updateLibraryEntry as updateLoopioLibraryEntry,
 } from "./loopio";
 export type {
+  LucidClient,
+  LucidDocument,
+  LucidFolder,
+  LucidPage,
+  LucidRecordActionResult,
+} from "./lucid";
+export {
+  createLucidClient,
+  createLucidDocument,
+  createLucidFolder,
+  getDocument as getLucidDocument,
+  getFolder as getLucidFolder,
+  LucidApiError,
+  LucidAuth,
+  listAllDocuments as listAllLucidDocuments,
+  listAllFolders as listAllLucidFolders,
+  listDocumentPages as listLucidDocumentPages,
+  lucidFullSync,
+  lucidIncrementalSync,
+  transformLucidDocument,
+  transformLucidFolder,
+  transformLucidPage,
+  updateLucidDocument,
+} from "./lucid";
+export type {
   MarketoActivity,
   MarketoActivityType,
   MarketoCampaign,

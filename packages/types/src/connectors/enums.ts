@@ -112,6 +112,7 @@ export const AppTypeSchema = z.enum([
   "LESSONLY",
   "LOOKER_STUDIO",
   "LOOPIO",
+  "LUCID",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;
