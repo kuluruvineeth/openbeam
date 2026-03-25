@@ -1,0 +1,34 @@
+---
+title: Configuration
+description: Configure the LumApps connector settings
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Required | Default | Description |
+|---------|----------|---------|-------------|
+| **API Token** | Yes | — | LumApps Bearer token for API access |
+| **Base URL** | No | `https://api.lumapps.com/v2` | Override for custom LumApps domains |
+| **Sync Communities** | No | Enabled | Include communities in search results |
+| **Sync Posts** | No | Enabled | Include community posts in search results |
+
+## Entity Selection
+
+By default, all entity types are synced. Toggle individual entity types based on relevance:
+
+- **Contents** are always synced (articles, news, pages)
+- **Spaces** are always synced (organizational structure)
+- **Communities** can be disabled if not needed
+- **Posts** can be disabled to reduce sync volume
+
+## Custom Base URL
+
+If your LumApps instance uses a custom domain or API gateway, override the base URL:
+
+```
+https://your-company.lumapps.com/api/v2
+```
+
+The connector appends endpoint paths to this base URL.

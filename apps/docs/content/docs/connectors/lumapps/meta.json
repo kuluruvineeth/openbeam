@@ -1,0 +1,12 @@
+{
+  "title": "LumApps",
+  "icon": "LumApps",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

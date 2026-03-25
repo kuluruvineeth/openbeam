@@ -1381,6 +1381,26 @@ export {
   updateLucidDocument,
 } from "./lucid";
 export type {
+  LumAppsClient,
+  LumAppsCommunity,
+  LumAppsContent,
+  LumAppsPost,
+  LumAppsSpace,
+} from "./lumapps";
+export {
+  createContent as lumappsCreateContent,
+  createLumAppsClient,
+  createPost as lumappsCreatePost,
+  LumAppsApiError,
+  lumappsFullSync,
+  lumappsIncrementalSync,
+  transformCommunity as transformLumAppsCommunity,
+  transformContent as transformLumAppsContent,
+  transformPost as transformLumAppsPost,
+  transformSpace as transformLumAppsSpace,
+  updateContent as lumappsUpdateContent,
+} from "./lumapps";
+export type {
   MarketoActivity,
   MarketoActivityType,
   MarketoCampaign,

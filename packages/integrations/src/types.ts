@@ -134,6 +134,7 @@ export enum AppType {
   LOOKER_STUDIO = "LOOKER_STUDIO",
   LOOPIO = "LOOPIO",
   LUCID = "LUCID",
+  LUMAPPS = "LUMAPPS",
 }
 
 export enum SyncMode {

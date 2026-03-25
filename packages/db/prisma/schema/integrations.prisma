@@ -173,6 +173,7 @@ enum AppType {
   LOOKER_STUDIO
   LOOPIO
   LUCID
+  LUMAPPS
 }
 
 enum ConnectorStatus {

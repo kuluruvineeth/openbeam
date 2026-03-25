@@ -1,0 +1,52 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the LumApps connector
+---
+
+# Troubleshooting
+
+## Authentication Failed
+
+**Symptom:** Connector shows "Cannot access LumApps" error.
+
+**Solutions:**
+- Verify your Bearer token is valid and not expired
+- Confirm the token has read permissions for all required endpoints
+- Check if the base URL is correct for your LumApps instance
+- Try regenerating the token from your LumApps admin portal
+
+## No Content Found
+
+**Symptom:** Sync completes but no documents appear.
+
+**Solutions:**
+- Verify your LumApps instance has published content
+- Check that the token has permissions to access the content
+- If using a custom base URL, verify it points to the correct API version
+
+## Rate Limit Errors
+
+**Symptom:** Sync stalls or reports rate limit errors.
+
+**Solutions:**
+- LumApps allows 100 requests per minute — the connector handles this automatically
+- For large instances, initial sync may take longer due to pagination
+- Rate limits reset after 60 seconds; the connector retries automatically
+
+## Incremental Sync Not Detecting Changes
+
+**Symptom:** Updated content does not appear after incremental sync.
+
+**Solutions:**
+- LumApps may cache API responses briefly; wait for the next sync cycle
+- Verify the content's `updatedAt` timestamp changed (some edits may not update this field)
+- Force a full re-sync from the connector settings to rebuild the index
+
+## Connection Timeout
+
+**Symptom:** Sync fails with timeout errors.
+
+**Solutions:**
+- Check network connectivity to `api.lumapps.com`
+- Verify any firewall or proxy settings allow outbound HTTPS to LumApps
+- The default timeout is 30 seconds; contact support if your instance requires longer

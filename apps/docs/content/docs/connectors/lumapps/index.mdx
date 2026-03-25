@@ -1,0 +1,38 @@
+---
+title: LumApps
+description: Search articles, communities, posts, and spaces from LumApps
+---
+
+# LumApps
+
+Index intranet and employee experience data from LumApps including articles, news, pages, communities, posts, and spaces. Supports Bearer token authentication with cursor-based pagination and updatedAt incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Contents** | Articles, news, pages with title, body, author, tags, status |
+| **Communities** | Name, description, privacy settings, member counts |
+| **Posts** | Community posts with author, reactions, comments, attachments |
+| **Spaces** | Space catalog with names, descriptions, visibility settings |
+
+## Authentication
+
+**Method:** API Key (Bearer Token)
+
+Generate an API token from your LumApps admin portal under API Access. The token must have read access to contents, communities, posts, and spaces.
+
+## Quick Start
+
+1. Generate an API token in LumApps admin
+2. Add the LumApps connector in OpenBeam
+3. Enter your Bearer token
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/lumapps/setup" description="Token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/lumapps/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/lumapps/configuration" description="Entity selection and base URL settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/lumapps/sync" description="Full sync, incremental sync via updatedAt filtering" />
+  <Card title="Troubleshooting" href="/docs/connectors/lumapps/troubleshooting" description="Common issues and fixes" />
+</Cards>

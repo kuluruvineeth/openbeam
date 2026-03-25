@@ -1,0 +1,1 @@
+export { lumappsApp } from "./config";

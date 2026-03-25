@@ -1,0 +1,43 @@
+---
+title: Setup
+description: Connect LumApps to OpenBeam via API token
+---
+
+# LumApps Setup
+
+## Prerequisites
+
+- A LumApps account with admin access
+- Access to the LumApps admin portal API settings
+
+## Step 1: Generate an API Token
+
+1. Log into your LumApps admin portal
+2. Go to **Admin > API Access** or **Settings > API**
+3. Click **Generate new token**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access to contents, communities, posts, and spaces
+6. Copy the generated Bearer token
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **LumApps**
+3. Enter your **API Token** (Bearer token)
+4. Optionally override the **Base URL** if using a custom domain
+5. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your LumApps data. The first sync fetches all published content, communities, posts, and spaces.
+
+## API Token Permissions
+
+The token needs read access to the following LumApps API endpoints:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/v2/contents` | Fetch articles, news, pages |
+| `/v2/communities` | Fetch community listings |
+| `/v2/communities/{id}/posts` | Fetch community posts |
+| `/v2/spaces` | Fetch space catalog |

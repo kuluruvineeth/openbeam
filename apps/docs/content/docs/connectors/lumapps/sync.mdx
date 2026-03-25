@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How LumApps data is synced to OpenBeam
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all data from LumApps:
+
+1. **Contents** — All published articles, news items, and pages
+2. **Spaces** — All spaces in the organization
+3. **Communities** — All communities (if enabled)
+4. **Posts** — All posts across communities (if enabled)
+
+Pagination is cursor-based. Each page returns up to 50 items with a cursor for the next page.
+
+## Incremental Sync
+
+After the initial full sync, incremental syncs run every 15 minutes for contents and posts, and every 60 minutes for communities and spaces.
+
+Incremental sync filters items by their `updatedAt` timestamp, only processing records modified since the last sync. If incremental sync fails, it falls back to a full sync automatically.
+
+## Sync Schedule
+
+| Entity | Interval | Method |
+|--------|----------|--------|
+| Contents | 15 minutes | `updatedAt` filtering |
+| Posts | 15 minutes | `updatedAt` filtering |
+| Communities | 60 minutes | `updatedAt` filtering |
+| Spaces | 60 minutes | `updatedAt` filtering |
+
+## Rate Limits
+
+LumApps enforces 100 requests per minute. The connector respects these limits with automatic retry and exponential backoff. If rate limits are exceeded, sync pauses and retries after the rate limit window resets.

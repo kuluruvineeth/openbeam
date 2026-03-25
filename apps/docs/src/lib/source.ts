@@ -71,6 +71,7 @@ import {
   LookerStudioIcon,
   LoopioIcon,
   LucidIcon,
+  LumAppsIcon,
   MarketoIcon,
   MatterportIcon,
   MicrosoftCalendarIcon,
@@ -210,6 +211,7 @@ const customIconMap: Record<
   LookerStudio: LookerStudioIcon,
   Loopio: LoopioIcon,
   Lucid: LucidIcon,
+  LumApps: LumAppsIcon,
 };
 
 export const source = loader({
