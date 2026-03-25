@@ -1,0 +1,42 @@
+---
+title: Sync Behavior
+description: How Lessonly data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Lessonly:
+
+1. **Lessons** with titles, descriptions, tags, and completion stats
+2. **Learning Paths** with ordered lesson sequences
+3. **Assignments** with status and score data
+4. **Groups** with member counts
+5. **Users** with roles and group memberships
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Lessonly's `filter[updated_at]` parameter to fetch only entities modified since the last sync. All entity types support this filter.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Lessons | Every 15 minutes |
+| Learning Paths | Every 30 minutes |
+| Assignments | Every 15 minutes |
+| Groups | Every 60 minutes |
+| Users | Every 60 minutes |
+
+## Rate Limits
+
+Lessonly enforces a rate limit of 500 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.
+
+## Pagination
+
+Lessonly uses page-based pagination. The connector fetches all pages sequentially using the `page` parameter and `total_pages` response field.

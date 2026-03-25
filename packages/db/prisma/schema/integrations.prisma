@@ -169,6 +169,7 @@ enum AppType {
   JENKINS
   JFROG
   KLUE
+  LESSONLY
 }
 
 enum ConnectorStatus {

@@ -50,6 +50,7 @@ import jenkins from "./jenkins/jenkins.index";
 import jfrog from "./jfrog/jfrog.index";
 import jira from "./jira/jira.index";
 import klue from "./klue/klue.index";
+import lessonly from "./lessonly/lessonly.index";
 import linear from "./linear/linear.index";
 import marketo from "./marketo/marketo.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
@@ -149,6 +150,7 @@ integrations.route("/ironclad", ironclad);
 integrations.route("/jenkins", jenkins);
 integrations.route("/jfrog", jfrog);
 integrations.route("/klue", klue);
+integrations.route("/lessonly", lessonly);
 
 integrations.get("/health", (c) =>
   c.json({

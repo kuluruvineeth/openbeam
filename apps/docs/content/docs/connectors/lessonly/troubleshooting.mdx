@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common Lessonly connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Lessonly Settings > Integrations if needed.
+
+**Wrong subdomain:** The subdomain must match exactly. Check your Lessonly URL -- the subdomain is the part before `.lessonly.com`.
+
+**401 Unauthorized:** Both the subdomain and API key must be correct. The connector uses Basic auth with `subdomain:api_key` base64 encoded.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. Lessonly allows 500 requests per minute. If syncs are consistently slow, consider increasing the sync interval.
+
+## Missing Data
+
+**Lessons not appearing:** Archived lessons are synced but marked with `archived: true` in metadata. Check if the content was recently archived.
+
+**Assignments incomplete:** Only assignments that exist at the time of sync are captured. New assignments created between syncs will appear in the next incremental sync.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Lessonly API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Lessonly account has no content, the sync will complete with zero documents. Verify your account has lessons by checking the Lessonly dashboard.

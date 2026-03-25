@@ -130,6 +130,7 @@ export enum AppType {
   JENKINS = "JENKINS",
   JFROG = "JFROG",
   KLUE = "KLUE",
+  LESSONLY = "LESSONLY",
 }
 
 export enum SyncMode {

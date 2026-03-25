@@ -1,0 +1,31 @@
+---
+title: Setup
+description: Connect Lessonly to OpenBeam via API key
+---
+
+# Lessonly Setup
+
+## Prerequisites
+
+- A Lessonly (Seismic Learning) account with admin access
+- Access to Lessonly API settings
+
+## Step 1: Generate an API Key
+
+1. Log into your Lessonly account at `https://yourcompany.lessonly.com`
+2. Go to **Settings > Integrations**
+3. Locate the **API** section
+4. Click **Generate API Key** or copy your existing key
+5. Note your **subdomain** (the part before `.lessonly.com`)
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Lessonly**
+3. Enter your **API Key**
+4. Enter your **Subdomain** (e.g., `mycompany`)
+5. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Lessonly data. The first sync fetches all lessons, learning paths, assignments, groups, and users. This may take several minutes depending on your content volume.

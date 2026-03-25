@@ -1,0 +1,39 @@
+---
+title: Lessonly
+description: Search lessons, learning paths, and assignments from Lessonly (Seismic Learning)
+---
+
+# Lessonly
+
+Index training and enablement content from Lessonly (now Seismic Learning) including lessons, learning paths, assignments, groups, and users. Supports API key authentication with Basic auth encoding and page-based pagination.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Lessons** | Title, description, tags, assignees count, completion count, retake score |
+| **Learning Paths** | Title, description, ordered lesson sequences, assignee count |
+| **Assignments** | Assignee, resource type, status, score, due date, completion date |
+| **Groups** | Name, description, member count |
+| **Users** | Name, email, role, group memberships, custom fields |
+
+## Authentication
+
+**Method:** API Key (Basic Auth)
+
+Generate an API key from **Settings > Integrations** in your Lessonly account. The key is used with your subdomain for Basic auth (subdomain:api_key base64 encoded).
+
+## Quick Start
+
+1. Generate an API key in Lessonly
+2. Add the Lessonly connector in OpenBeam
+3. Enter your API key and subdomain
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/lessonly/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/lessonly/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/lessonly/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/lessonly/sync" description="Full sync, incremental sync via updatedAt filtering" />
+  <Card title="Troubleshooting" href="/docs/connectors/lessonly/troubleshooting" description="Common issues and fixes" />
+</Cards>

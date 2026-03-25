@@ -1,0 +1,27 @@
+---
+title: Configuration
+description: Configure which Lessonly data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Lessonly API key for authentication | Required |
+| **Subdomain** | Your Lessonly subdomain | Required |
+| **Lookback Days** | How far back to sync on first run | All time |
+
+## API Authentication
+
+Lessonly uses Basic auth with your subdomain as the username and API key as the password. The connector handles the base64 encoding automatically.
+
+| Component | Value |
+|-----------|-------|
+| Base URL | `https://api.lessonly.com/api/v1.1` |
+| Auth Header | `Authorization: Basic base64(subdomain:api_key)` |
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches data. Set to 0 (default) to sync all historical data. For large Lessonly accounts, consider starting with a shorter period to speed up the initial sync.

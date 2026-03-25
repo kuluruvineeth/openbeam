@@ -1,0 +1,39 @@
+---
+title: Features
+description: What Lessonly data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Lessons
+Full-text search across lesson titles, descriptions, and tags. Metadata includes assignees count, completion count, retake score, and public/archived status.
+
+### Learning Paths
+Search across path titles and descriptions. Includes the ordered sequence of lessons within each path, assignee count, and lesson count.
+
+### Assignments
+Track assignment status across your organization. Includes assignee ID, resource type (Lesson or Path), status (Incomplete/Complete/Overdue), score, due date, and completion date.
+
+### Groups
+Group definitions with names, descriptions, and member counts. Useful for understanding team structure and content assignments.
+
+### Users
+User profiles with names, emails, roles, group memberships, and custom field data. Enables looking up who has completed which training.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Assignment** | Assign a lesson or path to a user with optional due date |
+| **Update Lesson** | Update lesson title, description, or tags |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Group membership** linking users to their training groups
+- **Path structure** connecting lessons within learning paths
+- **Assignment attribution** tracking who completed what training

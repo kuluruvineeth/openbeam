@@ -51,6 +51,7 @@ import { jenkinsApp } from "./jenkins/config";
 import { jfrogApp } from "./jfrog/config";
 import { jiraApp } from "./jira/config";
 import { klueApp } from "./klue/config";
+import { lessonlyApp } from "./lessonly/config";
 import { linearApp } from "./linear/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
@@ -144,6 +145,7 @@ export {
   jfrogApp,
   jiraApp,
   klueApp,
+  lessonlyApp,
   linearApp,
   marketoApp,
   microsoftCalendarApp,
@@ -874,4 +876,5 @@ export const appStore: UnifiedApp[] = [
   jenkinsApp,
   jfrogApp,
   klueApp,
+  lessonlyApp,
 ];

@@ -1259,6 +1259,35 @@ export {
   resolveOrCreateEntity,
   updateExpertise,
 } from "./knowledge";
+export type {
+  LessonlyAssignment,
+  LessonlyClient,
+  LessonlyGroup,
+  LessonlyLesson,
+  LessonlyLessonDetail,
+  LessonlyPath,
+  LessonlyUser,
+} from "./lessonly";
+export {
+  createAssignment as createLessonlyAssignment,
+  createLessonlyClient,
+  getLesson as getLessonlyLesson,
+  getPath as getLessonlyPath,
+  LessonlyApiError,
+  lessonlyFullSync,
+  lessonlyIncrementalSync,
+  listAssignments as listLessonlyAssignments,
+  listGroups as listLessonlyGroups,
+  listLessons as listLessonlyLessons,
+  listPaths as listLessonlyPaths,
+  listUsers as listLessonlyUsers,
+  transformAssignment as transformLessonlyAssignment,
+  transformGroup as transformLessonlyGroup,
+  transformLesson as transformLessonlyLesson,
+  transformPath as transformLessonlyPath,
+  transformUser as transformLessonlyUser,
+  updateLesson as updateLessonlyLesson,
+} from "./lessonly";
 export { logger } from "./lib/logger";
 export type { OAuthState } from "./lib/oauth-state";
 export {
