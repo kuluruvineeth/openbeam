@@ -1,5 +1,4 @@
 import prisma, {
-  type AppType,
   activateConnector,
   createDefaultSyncJobs,
   getConnectorById,
@@ -79,7 +78,7 @@ export class NiceCxoneAuth implements IntegrationServiceAccountAuth {
 
         await upsertOAuthProvider(tx, {
           connectorId: result.id,
-          app: "NICE_CXONE" as AppType,
+          app: AppType.NICE_CXONE,
           accessToken: tokens.accessToken,
           refreshToken: "",
           expiresIn: tokens.expiresIn,
