@@ -1,4 +1,5 @@
 import prisma, {
+  AppType,
   activateConnector,
   createDefaultSyncJobs,
   getConnectorById,
