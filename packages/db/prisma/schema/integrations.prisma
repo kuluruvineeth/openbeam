@@ -176,6 +176,7 @@ enum AppType {
   LUMAPPS
   MINDTICKLE
   MINDTOUCH
+  NICE_CXONE
 }
 
 enum ConnectorStatus {

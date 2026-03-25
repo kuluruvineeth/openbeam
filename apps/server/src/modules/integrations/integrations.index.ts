@@ -63,6 +63,7 @@ import mindtouch from "./mindtouch/mindtouch.index";
 import miro from "./miro/miro.index";
 import monday from "./monday/monday.index";
 import netsuite from "./netsuite/netsuite.index";
+import niceCxone from "./nice-cxone/nice-cxone.index";
 import notion from "./notion/notion.index";
 import onenote from "./onenote/onenote.index";
 import opsgenie from "./opsgenie/opsgenie.index";
@@ -165,6 +166,7 @@ integrations.route("/lumapps", lumapps);
 integrations.route("/mindtickle", mindtickle);
 integrations.route("/mindtouch", mindtouch);
 integrations.route("/netsuite", netsuite);
+integrations.route("/nice-cxone", niceCxone);
 
 integrations.get("/health", (c) =>
   c.json({

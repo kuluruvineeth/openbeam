@@ -71,6 +71,7 @@ import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
 import { Logo as MondayLogo } from "./monday/assets/logo";
 import { Logo as MQTTLogo } from "./mqtt/assets/logo";
 import { Logo as NetsuiteLogo } from "./netsuite/assets/logo";
+import { Logo as NiceCxoneLogo } from "./nice-cxone/assets/logo";
 import { Logo as NodeREDLogo } from "./nodered/assets/logo";
 import { Logo as NotionLogo } from "./notion/assets/logo";
 import { Logo as NvdLogo } from "./nvd/assets/logo";
@@ -193,6 +194,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MINDTICKLE]: MindtickleLogo,
   [AppType.MINDTOUCH]: MindtouchLogo,
   [AppType.NETSUITE]: NetsuiteLogo,
+  [AppType.NICE_CXONE]: NiceCxoneLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

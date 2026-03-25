@@ -1,0 +1,12 @@
+{
+  "title": "NICE CXone",
+  "icon": "NiceCxone",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common NICE CXone connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid credentials:** Verify your client ID and secret are correct and the API application is active. Re-generate credentials from CXone Admin > API Applications if needed.
+
+**403 Forbidden:** The API application lacks sufficient permissions. Ensure it has read access to the Admin API endpoints for agents, skills, teams, campaigns, and contacts.
+
+**Wrong base URL:** If you get connection errors, verify your base URL matches your CXone cluster. Each cluster has a unique API endpoint.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Old contacts not appearing:** Check the lookback days setting. Only contacts within the lookback period are synced on the initial run.
+
+**Agents/Skills/Teams missing:** Verify these entity types are enabled in the connector settings. Also confirm your API application has read access to these endpoints.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** NICE CXone API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your CXone account has no completed contacts in the lookback period, the sync will complete with zero contact documents. Try increasing the lookback period.

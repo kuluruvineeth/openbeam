@@ -1,0 +1,45 @@
+---
+title: Setup
+description: Connect NICE CXone to OpenBeam via OAuth 2.0 client credentials
+---
+
+# NICE CXone Setup
+
+## Prerequisites
+
+- A NICE CXone account with admin access
+- Access to CXone Admin to create API applications
+
+## Step 1: Create an API Application
+
+1. Log into [CXone](https://cxone.niceincontact.com)
+2. Navigate to **Admin > API Applications**
+3. Click **Create API Application**
+4. Enter a name (e.g., "OpenBeam Integration")
+5. Select **Client Credentials** as the grant type
+6. Copy the generated **Client ID** and **Client Secret**
+
+## Step 2: Determine Your Base URL
+
+NICE CXone uses cluster-specific API URLs. Your base URL depends on which cluster your account is on:
+
+| Cluster | Base URL |
+|---------|----------|
+| C32 | `https://api-c32.niceincontact.com` |
+| C33 | `https://api-c33.niceincontact.com` |
+| C41 | `https://api-c41.niceincontact.com` |
+| C50 | `https://api-c50.niceincontact.com` |
+
+Check your CXone login URL to determine your cluster. Contact NICE support if unsure.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **NICE CXone**
+3. Enter your **Base URL** (e.g., `https://api-c32.niceincontact.com`)
+4. Enter your **Client ID** and **Client Secret**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your CXone data. The first sync fetches contacts from the last 90 days (configurable via lookback days), plus all agents, skills, teams, and campaigns.

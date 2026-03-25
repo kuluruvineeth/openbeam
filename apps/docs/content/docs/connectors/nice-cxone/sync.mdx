@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How NICE CXone data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from NICE CXone:
+
+1. **Contacts** filtered by lookback period using `startDate`/`endDate` parameters
+2. **Agents** from the agent directory
+3. **Skills** from routing configuration
+4. **Teams** from team definitions
+5. **Campaigns** from campaign configuration
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use date-range filtering to fetch only contacts completed since the last sync. Agents, skills, teams, and campaigns are fully re-synced during incremental runs since they change infrequently and the datasets are small.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Contacts | Every 15 minutes |
+| Agents | Every 60 minutes |
+| Skills | Every 60 minutes |
+| Teams | Every 60 minutes |
+| Campaigns | Every 60 minutes |
+
+## Rate Limits
+
+NICE CXone enforces rate limits of approximately 300 requests per minute per application. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

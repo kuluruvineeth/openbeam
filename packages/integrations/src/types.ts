@@ -138,6 +138,7 @@ export enum AppType {
   MINDTICKLE = "MINDTICKLE",
   MINDTOUCH = "MINDTOUCH",
   NETSUITE = "NETSUITE",
+  NICE_CXONE = "NICE_CXONE",
 }
 
 export enum SyncMode {

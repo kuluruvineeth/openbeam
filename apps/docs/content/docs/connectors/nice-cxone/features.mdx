@@ -1,0 +1,40 @@
+---
+title: Features
+description: What NICE CXone data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Contacts
+Full-text search across contact interactions including disposition notes, tags, and agent assignments. Metadata includes direction (inbound/outbound), media type, skill, duration, and abandonment status.
+
+### Agents
+Search agent profiles by name, email, team, and assigned skills. Includes active/inactive status, profile name, and last login timestamp.
+
+### Skills
+Routing skill definitions with media type, campaign linkage, service level goals, and agent count. Useful for understanding contact routing configuration.
+
+### Teams
+Team hierarchy with descriptions, team lead assignments, and member counts. Enables lookup of team structure and ownership.
+
+### Campaigns
+Campaign definitions including dialer mode, linked skills, and status. Supports understanding of outbound campaign configuration.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Add Contact Note** | Add a note to an existing contact interaction |
+| **Create Contact Signal** | Create a new contact signal on a skill |
+| **Update Agent State** | Change an agent's current state |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Agent attribution** from contact interaction assignments
+- **Skill relationships** between contacts and routing queues
+- **Team hierarchy** from agent team memberships

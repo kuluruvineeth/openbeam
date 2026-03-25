@@ -67,6 +67,7 @@ import { mitreAttackApp } from "./mitre-attack/config";
 import { mondayApp } from "./monday/config";
 import { mqttApp } from "./mqtt/config";
 import { netsuiteApp } from "./netsuite/config";
+import { niceCxoneApp } from "./nice-cxone/config";
 import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
 import { nvdApp } from "./nvd/config";
@@ -115,6 +116,7 @@ export {
   fifteenFiveApp,
   miroApp,
   netsuiteApp,
+  niceCxoneApp,
   onenoteApp,
   opsgenieApp,
   asanaApp,
@@ -706,6 +708,17 @@ export {
   NetsuiteAuthError,
   validateNetsuiteCredentials,
 } from "./netsuite";
+export type {
+  ExchangeNiceCxoneCredentialsParams,
+  NiceCxoneAuthResult,
+  NiceCxoneTokenResponse,
+} from "./nice-cxone";
+export {
+  exchangeNiceCxoneCredentials,
+  NICE_CXONE_TOKEN_LIFETIME_SECONDS,
+  NiceCxoneOAuthError,
+  refreshNiceCxoneToken,
+} from "./nice-cxone";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
 export type {
@@ -938,4 +951,5 @@ export const appStore: UnifiedApp[] = [
   mindtickleApp,
   mindtouchApp,
   netsuiteApp,
+  niceCxoneApp,
 ];

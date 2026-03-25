@@ -81,6 +81,7 @@ import {
   MondayIcon,
   MQTTIcon,
   NetSuiteIcon,
+  NiceCxoneIcon,
   NodeREDIcon,
   NotionIcon,
   OmniverseIcon,
@@ -218,6 +219,7 @@ const customIconMap: Record<
   Mindtouch: MindtouchIcon,
   Mindtickle: MindtickleIcon,
   NetSuite: NetSuiteIcon,
+  NiceCxone: NiceCxoneIcon,
 };
 
 export const source = loader({

@@ -1,0 +1,39 @@
+---
+title: NICE CXone
+description: Search contacts, agents, skills, teams, and campaigns from NICE CXone
+---
+
+# NICE CXone
+
+Index contact center data from NICE CXone including completed contact interactions, agent profiles, routing skills, teams, and campaigns. Supports OAuth 2.0 client credentials with page-based pagination and date-range incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Contacts** | Direction, media type, skill, agent, team, disposition, duration, tags |
+| **Agents** | Name, email, team, profile, status, assigned skills, last login |
+| **Skills** | Name, media type, campaign linkage, service level, agent count |
+| **Teams** | Name, description, team lead, agent count, status |
+| **Campaigns** | Name, description, dialer mode, linked skills |
+
+## Authentication
+
+**Method:** OAuth 2.0 Client Credentials
+
+Create an API application in CXone Admin to obtain a client ID and secret. The application must have read access to the Admin API.
+
+## Quick Start
+
+1. Create an API application in CXone Admin
+2. Add the NICE CXone connector in OpenBeam
+3. Enter your base URL, client ID, and client secret
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/nice-cxone/setup" description="API application creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/nice-cxone/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/nice-cxone/configuration" description="Entity selection, base URL, and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/nice-cxone/sync" description="Full sync, incremental sync via date-range queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/nice-cxone/troubleshooting" description="Common issues and fixes" />
+</Cards>

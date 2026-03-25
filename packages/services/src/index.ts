@@ -1624,6 +1624,36 @@ export {
   updateNetsuiteCustomer,
   updateNetsuiteSalesOrder,
 } from "./netsuite";
+export type {
+  CxoneAgent,
+  CxoneCampaign,
+  CxoneContact,
+  CxoneSkill,
+  CxoneTeam,
+  NiceCxoneClient,
+  NiceCxoneRecordActionResult,
+} from "./nice-cxone";
+export {
+  addContactNote,
+  createContactSignal,
+  createNiceCxoneClient,
+  getAgent as getCxoneAgent,
+  listAllAgents as listAllCxoneAgents,
+  listAllCampaigns as listAllCxoneCampaigns,
+  listAllSkills as listAllCxoneSkills,
+  listAllTeams as listAllCxoneTeams,
+  listCompletedContacts as listCxoneCompletedContacts,
+  NiceCxoneApiError,
+  NiceCxoneAuth,
+  niceCxoneFullSync,
+  niceCxoneIncrementalSync,
+  transformCxoneAgent,
+  transformCxoneCampaign,
+  transformCxoneContact,
+  transformCxoneSkill,
+  transformCxoneTeam,
+  updateAgentState,
+} from "./nice-cxone";
 export type { NodeRedClient } from "./nodered";
 export {
   createNodeRedClient,

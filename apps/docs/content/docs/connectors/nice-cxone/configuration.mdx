@@ -1,0 +1,32 @@
+---
+title: Configuration
+description: Configure which NICE CXone data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Base URL** | CXone cluster API URL | Required |
+| **Client ID** | OAuth 2.0 client ID | Required |
+| **Client Secret** | OAuth 2.0 client secret | Required |
+| **Sync Contacts** | Index completed contact interactions | Enabled |
+| **Sync Agents** | Index agent directory | Enabled |
+| **Sync Skills** | Index routing skills and queues | Enabled |
+| **Sync Teams** | Index team definitions | Enabled |
+| **Sync Campaigns** | Index campaign definitions | Enabled |
+| **Lookback Days** | How far back to sync contacts on initial full sync | 90 days |
+
+## Base URL
+
+NICE CXone operates across multiple clusters. Each cluster has a dedicated API endpoint. The base URL must match your CXone instance cluster.
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. All entity types are enabled by default. Disable unused entity types to reduce sync time and storage.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches completed contacts. Set a shorter period for large contact volumes to speed up the first sync. Subsequent incremental syncs fetch only contacts modified since the last run.
