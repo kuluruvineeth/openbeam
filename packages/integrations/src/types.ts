@@ -129,6 +129,7 @@ export enum AppType {
   IRONCLAD = "IRONCLAD",
   JENKINS = "JENKINS",
   JFROG = "JFROG",
+  KLUE = "KLUE",
 }
 
 export enum SyncMode {

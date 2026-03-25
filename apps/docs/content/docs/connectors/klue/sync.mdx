@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Klue data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Klue:
+
+1. **Competitors** with profiles, win rates, and status
+2. **Battlecards** with sales enablement content
+3. **Intel** items with source tracking
+4. **Boards** (if enabled) with card collections
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Klue's `updated_after` query parameter to fetch only entities modified since the last sync. All entity types support this filter.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Competitors | Every 60 minutes |
+| Battlecards | Every 30 minutes |
+| Intel | Every 15 minutes |
+| Boards | Every 60 minutes |
+
+## Rate Limits
+
+Klue enforces rate limits of approximately 100 API calls per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

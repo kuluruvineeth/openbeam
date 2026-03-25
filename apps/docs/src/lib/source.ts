@@ -65,6 +65,7 @@ import {
   JenkinsIcon,
   JFrogIcon,
   JiraIcon,
+  KlueIcon,
   LinearIcon,
   MarketoIcon,
   MatterportIcon,
@@ -200,6 +201,7 @@ const customIconMap: Record<
   Ironclad: IroncladIcon,
   Jenkins: JenkinsIcon,
   JFrog: JFrogIcon,
+  Klue: KlueIcon,
 };
 
 export const source = loader({

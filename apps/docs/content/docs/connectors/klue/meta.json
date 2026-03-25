@@ -1,0 +1,12 @@
+{
+  "title": "Klue",
+  "icon": "Klue",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

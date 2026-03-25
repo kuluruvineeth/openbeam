@@ -1,0 +1,22 @@
+---
+title: Configuration
+description: Configure which Klue data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Klue API key for authentication | Required |
+| **Sync Boards** | Index board collections | Enabled |
+| **Lookback Days** | How far back to sync intel on first run | All time |
+
+## Entity Toggles
+
+Competitors, battlecards, and intel are always synced. Boards can be individually disabled to reduce sync time.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches intel items. Set to 0 to sync all historical data. For large Klue accounts, consider starting with a shorter period.

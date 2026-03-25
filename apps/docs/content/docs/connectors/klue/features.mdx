@@ -1,0 +1,36 @@
+---
+title: Features
+description: What Klue data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Competitors
+Full-text search across competitor names, descriptions, and tags. Metadata includes status, win rate, website, and owner attribution.
+
+### Battlecards
+Search across battlecard titles and content for sales enablement. Includes competitor attribution, card type, review status, and tag assignments.
+
+### Intel
+Competitive intelligence items with source tracking and analysis. Search across titles, content, and tags. Metadata includes source, intel type, competitor links, and submitter attribution.
+
+### Boards
+Board collections that organize competitive intel by topic. Includes name, description, card count, and owner.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Intel** | Submit a new intel item with title, content, source, and competitor links |
+| **Update Intel** | Update an existing intel item's title, content, or tags |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Competitor relationships** from battlecard and intel attribution
+- **Owner attribution** from competitor profiles
+- **Source tracking** from intel items

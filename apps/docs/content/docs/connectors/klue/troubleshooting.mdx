@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: Common Klue connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Klue Settings > API if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has read access to competitors, battlecards, intel, and boards.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Boards not appearing:** Verify that "Sync Boards" is enabled in the connector settings.
+
+**Old intel not indexed:** Check the lookback days setting. If set to a value, only intel within that period is synced on the initial run.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Klue API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Klue account has no competitors or intel items, the sync will complete with zero documents.

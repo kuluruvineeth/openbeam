@@ -50,6 +50,7 @@ import { ironcladApp } from "./ironclad/config";
 import { jenkinsApp } from "./jenkins/config";
 import { jfrogApp } from "./jfrog/config";
 import { jiraApp } from "./jira/config";
+import { klueApp } from "./klue/config";
 import { linearApp } from "./linear/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
@@ -142,6 +143,7 @@ export {
   jenkinsApp,
   jfrogApp,
   jiraApp,
+  klueApp,
   linearApp,
   marketoApp,
   microsoftCalendarApp,
@@ -871,4 +873,5 @@ export const appStore: UnifiedApp[] = [
   ironcladApp,
   jenkinsApp,
   jfrogApp,
+  klueApp,
 ];

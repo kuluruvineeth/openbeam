@@ -1223,6 +1223,29 @@ export {
   verifyJiraWebhookToken,
 } from "./jira";
 export type {
+  KlueBattlecard,
+  KlueBoard,
+  KlueClient,
+  KlueCompetitor,
+  KlueIntel,
+} from "./klue";
+export {
+  createIntel as createKlueIntel,
+  createKlueClient,
+  KlueApiError,
+  klueFullSync,
+  klueIncrementalSync,
+  listBattlecards as listKlueBattlecards,
+  listBoards as listKlueBoards,
+  listCompetitors as listKlueCompetitors,
+  listIntel as listKlueIntel,
+  transformBattlecard as transformKlueBattlecard,
+  transformBoard as transformKlueBoard,
+  transformCompetitor as transformKlueCompetitor,
+  transformIntel as transformKlueIntel,
+  updateIntel as updateKlueIntel,
+} from "./klue";
+export type {
   ExpertiseUpdate,
   ResolutionContext,
   ResolvedEntity,

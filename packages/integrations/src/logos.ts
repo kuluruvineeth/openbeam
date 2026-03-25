@@ -54,6 +54,7 @@ import { Logo as IroncladLogo } from "./ironclad/assets/logo";
 import { Logo as JenkinsLogo } from "./jenkins/assets/logo";
 import { Logo as JFrogLogo } from "./jfrog/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
+import { Logo as KlueLogo } from "./klue/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MarketoLogo } from "./marketo/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
@@ -175,6 +176,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.IRONCLAD]: IroncladLogo,
   [AppType.JENKINS]: JenkinsLogo,
   [AppType.JFROG]: JFrogLogo,
+  [AppType.KLUE]: KlueLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

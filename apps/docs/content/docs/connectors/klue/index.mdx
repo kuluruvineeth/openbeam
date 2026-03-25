@@ -1,0 +1,38 @@
+---
+title: Klue
+description: Search competitors, battlecards, intel, and boards from Klue
+---
+
+# Klue
+
+Index competitive intelligence data from Klue including competitor profiles, battlecards, intel items, and boards. Supports API key authentication (Bearer token) with page-based pagination and updated_after incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Competitors** | Name, description, status, win rate, website, tags, owner |
+| **Battlecards** | Title, content, competitor attribution, card type, review status |
+| **Intel** | Title, content, source, competitor links, tags, submitter |
+| **Boards** | Name, description, card count, owner |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from **Settings > API** in your Klue account. The key must have read access to competitors, battlecards, intel, and boards.
+
+## Quick Start
+
+1. Generate an API key in Klue
+2. Add the Klue connector in OpenBeam
+3. Enter your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/klue/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/klue/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/klue/configuration" description="Entity selection and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/klue/sync" description="Full sync, incremental sync via updated_after queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/klue/troubleshooting" description="Common issues and fixes" />
+</Cards>
