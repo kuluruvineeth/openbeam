@@ -1,0 +1,27 @@
+---
+title: Configuration
+description: Configure which Ironclad data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Ironclad Bearer token for authentication | Required |
+| **Lookback Days** | How far back to sync on first run (0 = all time) | 0 (all) |
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches workflows and records. Set to 0 to sync all available data. For large Ironclad accounts with extensive contract history, consider starting with a shorter period (e.g., 365 days).
+
+## API Permissions
+
+The API key must have read access to:
+- Workflows (active contracts)
+- Records (executed contracts)
+- Workflow approvals
+- Workflow comments
+
+For write actions (create workflow, add comment), the key must also have write permissions.

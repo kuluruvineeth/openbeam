@@ -50,6 +50,7 @@ import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as InsidedLogo } from "./insided/assets/logo";
 import { Logo as InteractLogo } from "./interact/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
+import { Logo as IroncladLogo } from "./ironclad/assets/logo";
 import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MarketoLogo } from "./marketo/assets/logo";
@@ -169,6 +170,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.BYNDER]: BynderLogo,
   [AppType.INSIDED]: InsidedLogo,
   [AppType.INTERACT]: InteractLogo,
+  [AppType.IRONCLAD]: IroncladLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

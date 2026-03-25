@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: Common Ironclad connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Ironclad Admin Settings > API if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has at least read access to workflows, records, approvals, and comments.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. Ironclad allows 100 requests per minute. If syncs are consistently slow, consider increasing the sync interval.
+
+## Missing Data
+
+**Old contracts not appearing:** Check the lookback days setting. Only contracts within the lookback period are synced on the initial run when a lookback is configured.
+
+**Approvals or comments missing:** Approvals and comments are fetched per-workflow. If a workflow was not included in the sync, its approvals and comments will also be missing.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Ironclad API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Ironclad account has no workflows or records, the sync will complete with zero documents. Create a workflow in Ironclad and re-sync.

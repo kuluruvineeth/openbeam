@@ -126,6 +126,7 @@ export enum AppType {
   HAYSTACK = "HAYSTACK",
   INSIDED = "INSIDED",
   INTERACT = "INTERACT",
+  IRONCLAD = "IRONCLAD",
 }
 
 export enum SyncMode {

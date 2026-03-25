@@ -1,0 +1,37 @@
+---
+title: Features
+description: What Ironclad data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Workflows
+Full-text search across contract workflow titles, templates, statuses, and attributes. Metadata includes status, step, template name, creator, and counterparty. Active contracts in negotiation, review, or approval stages are all searchable.
+
+### Records
+Search across executed contract records including names, types, counterparties, and properties. Includes effective dates, expiration dates, and contract metadata for quick reference.
+
+### Approvals
+Approval chain entries with reviewer names, roles, status, and completion dates. Enables quick lookup of who needs to approve a contract and what the current state of each approval is.
+
+### Comments
+Full-text search of comments on active workflows. Author attribution and workflow context are preserved for easy navigation back to the source.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Workflow** | Launch a new contract workflow from a template |
+| **Update Workflow** | Update attributes on an active workflow |
+| **Add Comment** | Add a comment to an existing workflow |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Creator attribution** from workflow creation
+- **Counterparty relationships** between workflows and business entities
+- **Reviewer assignments** from approval chains

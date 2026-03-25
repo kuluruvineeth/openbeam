@@ -1,0 +1,1 @@
+export { ironcladApp } from "./config";

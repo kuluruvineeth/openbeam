@@ -165,6 +165,7 @@ enum AppType {
   HAYSTACK
   INSIDED
   INTERACT
+  IRONCLAD
 }
 
 enum ConnectorStatus {

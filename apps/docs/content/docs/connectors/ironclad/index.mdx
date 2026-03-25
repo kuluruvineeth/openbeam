@@ -1,0 +1,38 @@
+---
+title: Ironclad
+description: Search workflows, records, approvals, and comments from Ironclad
+---
+
+# Ironclad
+
+Index contract lifecycle data from Ironclad including active workflows, executed records, approval chains, and comments. Supports API key authentication with page-based pagination and lastUpdated incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Workflows** | Title, status, step, template, creator, counterparty, attributes |
+| **Records** | Name, type, status, counterparty, properties, effective/expiration dates |
+| **Approvals** | Role, reviewer, status, decision, completion date |
+| **Comments** | Body text, author, associated workflow |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from **Admin Settings > API** in Ironclad. The key must have read access to workflows, records, approvals, and comments.
+
+## Quick Start
+
+1. Generate an API key in Ironclad admin settings
+2. Add the Ironclad connector in OpenBeam
+3. Enter your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/ironclad/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/ironclad/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/ironclad/configuration" description="Sync settings and lookback period" />
+  <Card title="Sync Behavior" href="/docs/connectors/ironclad/sync" description="Full sync, incremental sync via lastUpdated filter" />
+  <Card title="Troubleshooting" href="/docs/connectors/ironclad/troubleshooting" description="Common issues and fixes" />
+</Cards>

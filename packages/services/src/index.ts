@@ -1112,6 +1112,30 @@ export {
   transformIntercomConversation,
 } from "./intercom";
 export type {
+  IroncladApproval,
+  IroncladClient,
+  IroncladComment,
+  IroncladRecord,
+  IroncladWorkflow,
+} from "./ironclad";
+export {
+  addComment as addIroncladComment,
+  createIroncladClient,
+  createWorkflow as createIroncladWorkflow,
+  IroncladApiError,
+  ironcladFullSync,
+  ironcladIncrementalSync,
+  listApprovals as listIroncladApprovals,
+  listComments as listIroncladComments,
+  listRecords as listIroncladRecords,
+  listWorkflows as listIroncladWorkflows,
+  transformApproval as transformIroncladApproval,
+  transformComment as transformIroncladComment,
+  transformRecord as transformIroncladRecord,
+  transformWorkflow as transformIroncladWorkflow,
+  updateWorkflow as updateIroncladWorkflow,
+} from "./ironclad";
+export type {
   JiraComment,
   JiraDocumentChange,
   JiraIssue,

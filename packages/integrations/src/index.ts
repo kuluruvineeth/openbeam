@@ -46,6 +46,7 @@ import { hubspotApp } from "./hubspot/config";
 import { insidedApp } from "./insided/config";
 import { interactApp } from "./interact/config";
 import { intercomApp } from "./intercom/config";
+import { ironcladApp } from "./ironclad/config";
 import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { marketoApp } from "./marketo/config";
@@ -135,6 +136,7 @@ export {
   insidedApp,
   interactApp,
   intercomApp,
+  ironcladApp,
   jiraApp,
   linearApp,
   marketoApp,
@@ -862,4 +864,5 @@ export const appStore: UnifiedApp[] = [
   haystackApp,
   insidedApp,
   interactApp,
+  ironcladApp,
 ];

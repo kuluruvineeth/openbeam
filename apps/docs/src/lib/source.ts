@@ -61,6 +61,7 @@ import {
   InsidedIcon,
   InteractIcon,
   IntercomIcon,
+  IroncladIcon,
   JiraIcon,
   LinearIcon,
   MarketoIcon,
@@ -194,6 +195,7 @@ const customIconMap: Record<
   Amplitude: AmplitudeIcon,
   FifteenFive: FifteenFiveIcon,
   Benchling: BenchlingIcon,
+  Ironclad: IroncladIcon,
 };
 
 export const source = loader({

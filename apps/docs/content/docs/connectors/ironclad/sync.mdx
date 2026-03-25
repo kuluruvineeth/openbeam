@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Ironclad data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Ironclad:
+
+1. **Workflows** with all pages of results
+2. **Approvals** for each workflow
+3. **Comments** for each workflow
+4. **Records** (executed contracts) with all pages of results
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Ironclad's `lastUpdated` filter to fetch only workflows and records modified since the last sync. Approvals and comments are re-fetched for any updated workflows.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Workflows | Every 15 minutes |
+| Records | Every 60 minutes |
+| Approvals | Every 15 minutes |
+| Comments | Every 15 minutes |
+
+## Rate Limits
+
+Ironclad enforces rate limits of 100 API calls per minute. The connector handles rate limiting with exponential backoff and quota management.
