@@ -135,6 +135,7 @@ export enum AppType {
   LOOPIO = "LOOPIO",
   LUCID = "LUCID",
   LUMAPPS = "LUMAPPS",
+  MINDTICKLE = "MINDTICKLE",
 }
 
 export enum SyncMode {

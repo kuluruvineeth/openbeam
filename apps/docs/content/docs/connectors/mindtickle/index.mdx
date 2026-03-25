@@ -1,0 +1,38 @@
+---
+title: Mindtickle
+description: Search courses, modules, missions, and content from Mindtickle
+---
+
+# Mindtickle
+
+Index sales readiness and enablement data from Mindtickle including training courses, lesson modules, assessment missions, and sales content. Supports API key authentication (Bearer token) with page-based pagination and updated_after incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Courses** | Name, description, status, category, module count, duration, tags |
+| **Modules** | Title, content, type, parent course, duration, order |
+| **Missions** | Name, description, type (quiz/role-play/assessment), status, scoring, due date |
+| **Content** | Title, description, type, category, file size, tags |
+
+## Authentication
+
+**Method:** API Key (Bearer Token)
+
+Generate an API key from **Admin > Integrations** in your Mindtickle account. The key must have read access to courses, modules, missions, and content.
+
+## Quick Start
+
+1. Generate an API key in Mindtickle
+2. Add the Mindtickle connector in OpenBeam
+3. Enter your API key
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/mindtickle/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/mindtickle/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/mindtickle/configuration" description="Entity selection and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/mindtickle/sync" description="Full sync, incremental sync via updated_after queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/mindtickle/troubleshooting" description="Common issues and fixes" />
+</Cards>

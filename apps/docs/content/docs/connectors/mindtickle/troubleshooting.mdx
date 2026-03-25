@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: Common Mindtickle connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Mindtickle Admin > Integrations if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has at least Read access to courses, modules, missions, and content.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider increasing the sync interval.
+
+## Missing Data
+
+**Courses not appearing:** Verify the courses are published in Mindtickle. Draft courses may not be available via the API.
+
+**Content not indexed:** Check that the content assets are accessible to the API key's user. Restricted content may not be returned.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Mindtickle API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Mindtickle account has no published content, the sync will complete with zero documents. Verify content exists in your Mindtickle instance.

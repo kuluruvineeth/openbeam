@@ -1,0 +1,31 @@
+---
+title: Setup
+description: Connect Mindtickle to OpenBeam via API key
+---
+
+# Mindtickle Setup
+
+## Prerequisites
+
+- A Mindtickle account with admin access
+- Access to Mindtickle API settings
+
+## Step 1: Generate an API Key
+
+1. Log into [Mindtickle](https://app.mindtickle.com)
+2. Go to **Admin > Integrations > API**
+3. Click **Generate API Key**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access to courses, modules, missions, and content
+6. Copy the generated API key
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Mindtickle**
+3. Enter your **API Key**
+4. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Mindtickle data. The first sync fetches all courses, modules, missions, and content assets.

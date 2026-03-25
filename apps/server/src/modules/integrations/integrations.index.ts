@@ -58,6 +58,7 @@ import lucid from "./lucid/lucid.index";
 import lumapps from "./lumapps/lumapps.index";
 import marketo from "./marketo/marketo.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
+import mindtickle from "./mindtickle/mindtickle.index";
 import miro from "./miro/miro.index";
 import monday from "./monday/monday.index";
 import notion from "./notion/notion.index";
@@ -159,6 +160,7 @@ integrations.route("/looker-studio", lookerStudio);
 integrations.route("/loopio", loopio);
 integrations.route("/lucid", lucid);
 integrations.route("/lumapps", lumapps);
+integrations.route("/mindtickle", mindtickle);
 
 integrations.get("/health", (c) =>
   c.json({

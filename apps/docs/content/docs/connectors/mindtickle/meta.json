@@ -1,0 +1,12 @@
+{
+  "title": "Mindtickle",
+  "icon": "Mindtickle",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

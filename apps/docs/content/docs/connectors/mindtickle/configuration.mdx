@@ -1,0 +1,28 @@
+---
+title: Configuration
+description: Configure which Mindtickle data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Mindtickle Bearer token for authentication | Required |
+| **Lookback Days** | How far back to sync on first run (0 = all time) | 0 |
+
+## Entity Types
+
+All four entity types are synced by default:
+
+| Entity | Default | Notes |
+|--------|---------|-------|
+| Courses | Enabled | Training programs with metadata |
+| Modules | Enabled | Individual lessons within courses |
+| Missions | Enabled | Assessments, quizzes, role-plays |
+| Content | Enabled | Sales enablement assets and documents |
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches data. Set to 0 to sync all available history. For large Mindtickle accounts, consider starting with a shorter period to reduce initial sync time.

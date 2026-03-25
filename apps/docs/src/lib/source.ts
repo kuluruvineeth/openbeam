@@ -75,6 +75,7 @@ import {
   MarketoIcon,
   MatterportIcon,
   MicrosoftCalendarIcon,
+  MindtickleIcon,
   MiroIcon,
   MondayIcon,
   MQTTIcon,
@@ -212,6 +213,7 @@ const customIconMap: Record<
   Loopio: LoopioIcon,
   Lucid: LucidIcon,
   LumApps: LumAppsIcon,
+  Mindtickle: MindtickleIcon,
 };
 
 export const source = loader({

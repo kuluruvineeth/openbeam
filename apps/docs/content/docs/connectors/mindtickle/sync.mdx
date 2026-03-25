@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Mindtickle data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Mindtickle:
+
+1. **Courses** with metadata, categories, and tags
+2. **Modules** across all courses with content
+3. **Missions** including assessments and quizzes
+4. **Content** assets with file metadata
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_after` parameter to fetch only entities modified since the last sync. All four entity types support incremental filtering.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Courses | Every 60 minutes |
+| Modules | Every 60 minutes |
+| Missions | Every 30 minutes |
+| Content | Every 30 minutes |
+
+## Rate Limits
+
+Mindtickle enforces rate limits of approximately 100 API calls per minute. The connector handles rate limiting with exponential backoff and respects the Retry-After header.

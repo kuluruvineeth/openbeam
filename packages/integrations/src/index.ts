@@ -60,6 +60,7 @@ import { lumappsApp } from "./lumapps/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
+import { mindtickleApp } from "./mindtickle/config";
 import { miroApp } from "./miro/config";
 import { mitreAttackApp } from "./mitre-attack/config";
 import { mondayApp } from "./monday/config";
@@ -156,6 +157,7 @@ export {
   lucidApp,
   lumappsApp,
   marketoApp,
+  mindtickleApp,
   microsoftCalendarApp,
   mondayApp,
   matterportApp,
@@ -919,4 +921,5 @@ export const appStore: UnifiedApp[] = [
   loopioApp,
   lucidApp,
   lumappsApp,
+  mindtickleApp,
 ];

@@ -1,0 +1,36 @@
+---
+title: Features
+description: What Mindtickle data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Courses
+Full-text search across course names, descriptions, and categories. Metadata includes status, module count, duration, and tags. Enables quick discovery of training programs.
+
+### Modules
+Search across individual lesson content within courses. Includes module type, parent course reference, duration, and ordering. Useful for finding specific training material.
+
+### Missions
+Search across assessment names, descriptions, and types. Includes mission type (quiz, role-play, assessment), scoring criteria, status, and due dates. Enables tracking of sales readiness activities.
+
+### Content
+Sales enablement assets with full-text search on titles, descriptions, and categories. Includes content type, file size, tags, and uploader attribution.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Mission** | Create a new assessment or quiz with type, description, and due date |
+| **Update Content** | Update content metadata including title, description, category, and tags |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Author attribution** from course creators and content uploaders
+- **Course structure** relationships between courses and their modules
+- **Category classification** across courses and content

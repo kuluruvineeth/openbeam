@@ -1493,6 +1493,29 @@ export {
   transformTeamsMessage,
 } from "./microsoft-teams";
 export type {
+  MindtickleClient,
+  MindtickleContent,
+  MindtickleCourse,
+  MindtickleMission,
+  MindtickleModule,
+} from "./mindtickle";
+export {
+  createMindtickleClient,
+  createMission as createMindtickleMission,
+  listContent as listMindtickleContent,
+  listCourses as listMindtickleCourses,
+  listMissions as listMindtickleMissions,
+  listModules as listMindtickleModules,
+  MindtickleApiError,
+  mindtickleFullSync,
+  mindtickleIncrementalSync,
+  transformContent as transformMindtickleContent,
+  transformCourse as transformMindtickleCourse,
+  transformMission as transformMindtickleMission,
+  transformModule as transformMindtickleModule,
+  updateContent as updateMindtickleContent,
+} from "./mindtickle";
+export type {
   MiroActionResult,
   MiroBoard,
   MiroClient,
