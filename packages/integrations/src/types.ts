@@ -140,6 +140,7 @@ export enum AppType {
   NETSUITE = "NETSUITE",
   NICE_CXONE = "NICE_CXONE",
   PANOPTO = "PANOPTO",
+  PHABRICATOR = "PHABRICATOR",
 }
 
 export enum SyncMode {

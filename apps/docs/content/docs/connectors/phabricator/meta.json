@@ -1,0 +1,12 @@
+{
+  "title": "Phabricator",
+  "icon": "Phabricator",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

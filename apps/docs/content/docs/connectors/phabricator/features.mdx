@@ -1,0 +1,34 @@
+---
+title: Features
+description: What Phabricator data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Tasks (Maniphest)
+Full-text search across task titles, descriptions, and metadata. Includes status (open, resolved, wontfix, etc.), priority (unbreak now, triage, high, normal, low, wishlist), assignee, and project associations.
+
+### Code Reviews (Differential)
+Search across revision titles, summaries, and test plans. Includes review status (needs review, needs revision, accepted, closed, abandoned), reviewer assignments, and repository references.
+
+### Wiki Pages (Phriction)
+Full-text search of Phriction wiki page content with Remarkup-to-plaintext conversion. Includes page paths, authors, and status.
+
+### Repositories (Diffusion)
+Repository metadata including names, callsigns, VCS type (git, hg, svn), clone URIs, and import status.
+
+### Projects
+Project hierarchy with names, descriptions, icons, colors, member counts, milestones, and parent-child relationships.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Task** | Create a new Maniphest task with title, description, and priority |
+| **Update Task** | Update an existing task's title, status, priority, or assignee |
+| **Create Wiki Page** | Create a new Phriction wiki page with content |
+| **Update Wiki Page** | Update an existing wiki page's content |

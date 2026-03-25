@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: Configure which Phabricator data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Token** | Phabricator Conduit API token | Required |
+| **Instance URL** | Full URL to your Phabricator instance | Required |
+| **Sync Wiki Pages** | Index Phriction wiki pages | Enabled |
+| **Sync Repositories** | Index Diffusion repositories | Enabled |
+| **Sync Projects** | Index projects | Enabled |
+| **Lookback Days** | How far back to sync on first run (0 = all time) | 0 |
+
+## Instance URL
+
+Enter the base URL of your Phabricator instance without trailing slashes. For example:
+- `https://phabricator.example.com`
+- `https://phab.internal.company.com`
+
+## Entity Toggles
+
+Tasks and code reviews are always synced. Wiki pages, repositories, and projects can be individually disabled to reduce sync time and index size.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches tasks and revisions. Set to 0 to sync all history. For large Phabricator instances, consider starting with 90 or 180 days.

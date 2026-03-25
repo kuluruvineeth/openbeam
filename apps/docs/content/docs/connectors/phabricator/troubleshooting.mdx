@@ -1,0 +1,34 @@
+---
+title: Troubleshooting
+description: Common Phabricator connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API token:** Verify your Conduit API token is correct and has not been revoked. Generate a new token from Settings > Conduit API Tokens in Phabricator.
+
+**ERR-INVALID-AUTH:** The API token is expired or invalid. Generate a new Conduit API token.
+
+**403 Forbidden:** The API token lacks sufficient permissions. Ensure the token owner has access to Maniphest, Differential, Phriction, and Diffusion.
+
+## Connection Errors
+
+**Cannot reach instance:** Verify the instance URL is correct and accessible from the OpenBeam server. Check firewall rules if the Phabricator instance is on a private network.
+
+**SSL certificate errors:** If using a self-signed certificate, ensure the OpenBeam server trusts the certificate.
+
+## Missing Data
+
+**Tasks not appearing:** Check that the Conduit API token owner has permission to view the tasks. Phabricator respects per-object visibility policies.
+
+**Wiki pages/Repositories missing:** Verify these entity types are enabled in the connector settings.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Self-hosted Phabricator instances may be slow under load. The connector retries with exponential backoff up to 3 times.
+
+**Conduit error codes:** Check the Phabricator logs for detailed error information. Common codes include ERR-CONDUIT-CORE for server-side issues.

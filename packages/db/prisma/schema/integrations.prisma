@@ -178,6 +178,7 @@ enum AppType {
   MINDTOUCH
   NICE_CXONE
   PANOPTO
+  PHABRICATOR
 }
 
 enum ConnectorStatus {

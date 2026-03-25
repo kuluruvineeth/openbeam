@@ -79,6 +79,7 @@ import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { pagerdutyApp } from "./pagerduty/config";
 import { panoptoApp } from "./panopto/config";
+import { phabricatorApp } from "./phabricator/config";
 import { pipedriveApp } from "./pipedrive/config";
 import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
@@ -192,6 +193,7 @@ export {
   viamApp,
   workdayApp,
   zendeskApp,
+  phabricatorApp,
   zoomApp,
 };
 
@@ -971,4 +973,5 @@ export const appStore: UnifiedApp[] = [
   netsuiteApp,
   niceCxoneApp,
   panoptoApp,
+  phabricatorApp,
 ];

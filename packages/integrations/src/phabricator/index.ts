@@ -1,0 +1,1 @@
+export { phabricatorApp } from "./config";

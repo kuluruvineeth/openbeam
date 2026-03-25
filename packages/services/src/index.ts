@@ -1844,6 +1844,34 @@ export {
   updateTopicAffinity,
 } from "./personalization";
 export type {
+  PhabricatorClient,
+  PhabricatorProject,
+  PhabricatorRepository,
+  PhabricatorRevision,
+  PhabricatorTask,
+  PhabricatorWikiPage,
+} from "./phabricator";
+export {
+  createPhabricatorClient,
+  createTask as createPhabricatorTask,
+  createWikiPage as createPhabricatorWikiPage,
+  listProjects as listPhabricatorProjects,
+  listRepositories as listPhabricatorRepositories,
+  listRevisions as listPhabricatorRevisions,
+  listTasks as listPhabricatorTasks,
+  listWikiPages as listPhabricatorWikiPages,
+  PhabricatorApiError,
+  phabricatorFullSync,
+  phabricatorIncrementalSync,
+  transformProject as transformPhabricatorProject,
+  transformRepository as transformPhabricatorRepository,
+  transformRevision as transformPhabricatorRevision,
+  transformTask as transformPhabricatorTask,
+  transformWikiPage as transformPhabricatorWikiPage,
+  updateTask as updatePhabricatorTask,
+  updateWikiPage as updatePhabricatorWikiPage,
+} from "./phabricator";
+export type {
   PipedriveActivity,
   PipedriveClient,
   PipedriveDeal,

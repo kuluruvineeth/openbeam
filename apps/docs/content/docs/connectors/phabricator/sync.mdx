@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How Phabricator data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Phabricator via the Conduit API:
+
+1. **Tasks** from Maniphest, ordered by newest first
+2. **Revisions** from Differential with reviewer attachments
+3. **Wiki Pages** from Phriction with content attachments (if enabled)
+4. **Repositories** from Diffusion with URI attachments (if enabled)
+5. **Projects** with member attachments (if enabled)
+
+All Conduit API calls use POST with form-encoded parameters. Results are streamed in batches using cursor-based pagination.
+
+## Incremental Sync
+
+Subsequent syncs use the `modifiedStart` constraint on each Conduit search endpoint to fetch only entities modified since the last sync. This uses Phabricator's `dateModified` field (Unix timestamp).
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Tasks | Every 15 minutes |
+| Revisions | Every 15 minutes |
+| Wiki Pages | Every 60 minutes |
+| Repositories | Every 60 minutes |
+| Projects | Every 60 minutes |
+
+## Rate Limits
+
+Phabricator is typically self-hosted without strict rate limits. The connector uses a conservative 120 requests per minute to avoid overwhelming the instance. This is configurable for larger deployments.

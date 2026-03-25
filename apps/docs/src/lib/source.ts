@@ -91,6 +91,7 @@ import {
   OutlookIcon,
   PagerDutyIcon,
   PanoptoIcon,
+  PhabricatorIcon,
   PipedriveIcon,
   S3Icon,
   SalesforceIcon,
@@ -222,6 +223,7 @@ const customIconMap: Record<
   NetSuite: NetSuiteIcon,
   NiceCxone: NiceCxoneIcon,
   Panopto: PanoptoIcon,
+  Phabricator: PhabricatorIcon,
 };
 
 export const source = loader({

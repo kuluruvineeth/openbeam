@@ -119,6 +119,7 @@ export const AppTypeSchema = z.enum([
   "NETSUITE",
   "NICE_CXONE",
   "PANOPTO",
+  "PHABRICATOR",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

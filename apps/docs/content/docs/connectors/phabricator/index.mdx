@@ -1,0 +1,39 @@
+---
+title: Phabricator
+description: Search tasks, code reviews, wiki pages, repositories, and projects from Phabricator
+---
+
+# Phabricator
+
+Index software development data from Phabricator including Maniphest tasks, Differential code reviews, Phriction wiki pages, Diffusion repositories, and projects. Supports API token (Conduit) authentication with cursor-based pagination and dateModified incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Tasks (Maniphest)** | Title, description, status, priority, assignee, project tags |
+| **Code Reviews (Differential)** | Title, summary, test plan, status, reviewers, repository |
+| **Wiki Pages (Phriction)** | Title, content, path, author, status |
+| **Repositories (Diffusion)** | Name, callsign, VCS type, clone URIs, status |
+| **Projects** | Name, description, icon, color, members, hierarchy |
+
+## Authentication
+
+**Method:** API Token (Conduit)
+
+Generate a Conduit API token from **Settings > Conduit API Tokens** in your Phabricator instance. The token must have read access to Maniphest, Differential, Phriction, Diffusion, and Projects.
+
+## Quick Start
+
+1. Generate a Conduit API token in Phabricator
+2. Add the Phabricator connector in OpenBeam
+3. Enter your API token and instance URL
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/phabricator/setup" description="API token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/phabricator/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/phabricator/configuration" description="Entity selection, instance settings, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/phabricator/sync" description="Full sync, incremental sync via dateModified constraint" />
+  <Card title="Troubleshooting" href="/docs/connectors/phabricator/troubleshooting" description="Common issues and fixes" />
+</Cards>

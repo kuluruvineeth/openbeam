@@ -70,6 +70,7 @@ import opsgenie from "./opsgenie/opsgenie.index";
 import outlook from "./outlook/outlook.index";
 import pagerduty from "./pagerduty/pagerduty.index";
 import panopto from "./panopto/panopto.index";
+import phabricator from "./phabricator/phabricator.index";
 import pipedrive from "./pipedrive/pipedrive.index";
 import s3 from "./s3/s3.index";
 import salesforce from "./salesforce/salesforce.index";
@@ -169,6 +170,7 @@ integrations.route("/mindtouch", mindtouch);
 integrations.route("/netsuite", netsuite);
 integrations.route("/nice-cxone", niceCxone);
 integrations.route("/panopto", panopto);
+integrations.route("/phabricator", phabricator);
 
 integrations.get("/health", (c) =>
   c.json({

@@ -1,0 +1,35 @@
+---
+title: Setup
+description: Connect Phabricator to OpenBeam via Conduit API token
+---
+
+# Phabricator Setup
+
+## Prerequisites
+
+- A Phabricator instance with admin or user access
+- Access to generate Conduit API tokens
+
+## Step 1: Generate a Conduit API Token
+
+1. Log into your Phabricator instance
+2. Go to **Settings** (click your avatar, then Settings)
+3. Navigate to **Conduit API Tokens**
+4. Click **Generate API Token**
+5. Copy the generated token (starts with `api-`)
+
+## Step 2: Find Your Instance URL
+
+Your Phabricator instance URL is the base URL you use to access Phabricator, for example `https://phabricator.example.com`. Do not include trailing slashes or paths.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Phabricator**
+3. Enter your **API Token** (Conduit token)
+4. Enter your **Instance URL**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Phabricator data. The first sync fetches all Maniphest tasks, Differential revisions, Phriction wiki pages, Diffusion repositories, and projects.
