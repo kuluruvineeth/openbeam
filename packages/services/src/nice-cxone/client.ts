@@ -16,10 +16,7 @@ const RATE_LIMITS: RateLimitConfig = {
   burstLimit: 30,
 };
 
-type CxonePagedResponse<T> = Record<
-  string,
-  T[] | Record<string, string> | undefined
->;
+type CxonePagedResponse = Record<string, unknown>;
 
 export type NiceCxoneClient = {
   readonly connectorId: string;
@@ -196,13 +193,13 @@ export function createNiceCxoneClient(
     let hasMore = true;
 
     while (hasMore) {
-      const response = await get<CxonePagedResponse<T>>(path, {
+      const response = await get<CxonePagedResponse>(path, {
         ...params,
         skip: String(skip),
         top: String(limit),
       });
 
-      const items = (response[resultKey] as T[]) ?? [];
+      const items = (response[resultKey] as T[] | undefined) ?? [];
       if (items.length > 0) {
         yield items;
       }
