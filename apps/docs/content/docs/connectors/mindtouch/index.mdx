@@ -1,0 +1,37 @@
+---
+title: Mindtouch
+description: Search knowledge base pages, categories, and tags from Mindtouch
+---
+
+# Mindtouch
+
+Index knowledge management data from Mindtouch (NICE CXone Expert) including knowledge base pages, categories, and tags. Supports API key authentication with page-based pagination and timestamp-based incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Pages** | Title, HTML content, path, tags, author, parent page, revision |
+| **Categories** | Title, parent category, page count, hierarchy path |
+| **Tags** | Name, type, associated page count |
+
+## Authentication
+
+**Method:** API Key (Bearer Token)
+
+Generate an API token from **Control Panel > Integrations > API Keys** in your Mindtouch instance. The token must have read access to pages, tags, and site settings.
+
+## Quick Start
+
+1. Generate an API token in Mindtouch
+2. Add the Mindtouch connector in OpenBeam
+3. Enter your API token and instance URL
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/mindtouch/setup" description="API token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/mindtouch/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/mindtouch/configuration" description="Instance URL, token settings, and sync options" />
+  <Card title="Sync Behavior" href="/docs/connectors/mindtouch/sync" description="Full sync, incremental sync via revision timestamps" />
+  <Card title="Troubleshooting" href="/docs/connectors/mindtouch/troubleshooting" description="Common issues and fixes" />
+</Cards>

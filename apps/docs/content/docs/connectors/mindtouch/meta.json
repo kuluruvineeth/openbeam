@@ -1,0 +1,12 @@
+{
+  "title": "Mindtouch",
+  "icon": "Mindtouch",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

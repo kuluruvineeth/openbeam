@@ -65,6 +65,7 @@ import { Logo as MarketoLogo } from "./marketo/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
 import { Logo as MindtickleLogo } from "./mindtickle/assets/logo";
+import { Logo as MindtouchLogo } from "./mindtouch/assets/logo";
 import { Logo as MiroLogo } from "./miro/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
 import { Logo as MondayLogo } from "./monday/assets/logo";
@@ -189,6 +190,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.LUCID]: LucidLogo,
   [AppType.LUMAPPS]: LumAppsLogo,
   [AppType.MINDTICKLE]: MindtickleLogo,
+  [AppType.MINDTOUCH]: MindtouchLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

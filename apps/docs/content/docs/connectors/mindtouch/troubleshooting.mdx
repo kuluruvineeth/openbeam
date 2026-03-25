@@ -1,0 +1,58 @@
+---
+title: Troubleshooting
+description: Common Mindtouch connector issues and solutions
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+### "Unauthorized - invalid API token"
+
+- Verify your API token is correct and has not expired
+- Ensure the token has read permissions for pages and site settings
+- Check that the instance URL matches your Mindtouch site
+
+### "Cannot access Mindtouch"
+
+- Verify the instance URL is correct and accessible
+- Check that your Mindtouch instance is online
+- Ensure there are no firewall rules blocking the connection
+
+## Sync Issues
+
+### Pages missing from search results
+
+- Check that the pages are not in a restricted section requiring additional permissions
+- Verify the API token has access to the page hierarchy
+- Some pages may be draft or unpublished and not accessible via API
+
+### Slow initial sync
+
+- Large knowledge bases with thousands of pages may take time for the first sync
+- Content is fetched page by page to extract HTML content
+- Subsequent incremental syncs will be much faster
+
+### Content appears truncated
+
+- Very large pages may have their content truncated during extraction
+- HTML with complex embedded content (iframes, scripts) is stripped during processing
+
+## Rate Limiting
+
+### "Rate limited" errors in logs
+
+- Mindtouch enforces rate limits that vary by plan
+- OpenBeam automatically retries with exponential backoff
+- If persistent, consider reducing the sync frequency in connector settings
+
+## Common API Responses
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| 200 | Success | Normal operation |
+| 401 | Invalid token | Re-authenticate with valid token |
+| 403 | Insufficient permissions | Check token permissions |
+| 404 | Page not found | Page may have been deleted |
+| 429 | Rate limited | Automatic retry with backoff |
+| 500 | Server error | Automatic retry, check Mindtouch status |

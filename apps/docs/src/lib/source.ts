@@ -76,6 +76,7 @@ import {
   MatterportIcon,
   MicrosoftCalendarIcon,
   MindtickleIcon,
+  MindtouchIcon,
   MiroIcon,
   MondayIcon,
   MQTTIcon,
@@ -213,6 +214,7 @@ const customIconMap: Record<
   Loopio: LoopioIcon,
   Lucid: LucidIcon,
   LumApps: LumAppsIcon,
+  Mindtouch: MindtouchIcon,
   Mindtickle: MindtickleIcon,
 };
 

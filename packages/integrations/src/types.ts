@@ -136,6 +136,7 @@ export enum AppType {
   LUCID = "LUCID",
   LUMAPPS = "LUMAPPS",
   MINDTICKLE = "MINDTICKLE",
+  MINDTOUCH = "MINDTOUCH",
 }
 
 export enum SyncMode {

@@ -1,0 +1,1 @@
+export { mindtouchApp } from "./config";

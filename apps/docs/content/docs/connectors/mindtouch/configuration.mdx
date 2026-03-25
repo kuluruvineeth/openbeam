@@ -1,0 +1,37 @@
+---
+title: Configuration
+description: Configure the Mindtouch connector settings
+---
+
+# Configuration
+
+## Required Settings
+
+| Setting | Description |
+|---------|-------------|
+| **API Token** | Bearer token for authenticating with the Mindtouch API |
+| **Instance URL** | Base URL of your Mindtouch instance (e.g., `https://company.mindtouch.us`) |
+
+## Optional Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Lookback Days** | `0` (all time) | Number of days of history to sync on first run |
+
+## Instance URL Format
+
+The instance URL must be the base URL of your Mindtouch site. Common formats:
+
+- **Mindtouch hosted**: `https://company.mindtouch.us`
+- **Custom domain**: `https://docs.company.com`
+- **NICE CXone Expert**: `https://company.niceincontact.com`
+
+Do not include any path after the domain (no `/en-us`, no `/@api/deki`).
+
+## API Rate Limits
+
+Mindtouch enforces rate limits that vary by plan. OpenBeam respects these limits with built-in rate limiting:
+
+- **120 requests per minute** (default)
+- Automatic retry with exponential backoff on 429 responses
+- Configurable burst limits for initial sync

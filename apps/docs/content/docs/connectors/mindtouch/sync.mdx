@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Mindtouch data is synced to OpenBeam
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial full sync fetches all data from your Mindtouch instance:
+
+1. **Pages** - All knowledge base pages with HTML content extraction
+2. **Categories** - All taxonomy categories with hierarchy
+3. **Tags** - All content tags with page counts
+
+Pages are fetched in batches of 200 with their full HTML content extracted and converted to plain text for indexing.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs only fetch changed content:
+
+- Uses `changefilter` and `since` parameters on the Mindtouch API
+- Fetches pages modified since the last sync timestamp
+- Categories and tags are refreshed on a longer interval (60 minutes)
+- Falls back to full sync if incremental sync encounters errors
+
+## Sync Schedule
+
+| Entity | Default Interval | Mode |
+|--------|-----------------|------|
+| Pages | 15 minutes | Incremental |
+| Categories | 60 minutes | Full refresh |
+| Tags | 60 minutes | Full refresh |
+
+## Content Processing
+
+- HTML content is stripped of tags and converted to searchable text
+- HTML entities are decoded (e.g., `&amp;` to `&`)
+- Page metadata (path, tags, author) is indexed as structured fields
+- Document checksums prevent redundant re-indexing of unchanged content

@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Connect Mindtouch to OpenBeam via API token
+---
+
+# Mindtouch Setup
+
+## Prerequisites
+
+- A Mindtouch (NICE CXone Expert) instance with admin access
+- Access to the Control Panel for API key management
+
+## Step 1: Generate an API Token
+
+1. Log into your Mindtouch instance
+2. Go to **Control Panel > Integrations > API Keys**
+3. Click **Add API Key**
+4. Name it "OpenBeam Integration"
+5. Grant **Read** permissions for pages, tags, and site settings
+6. Copy the generated API token
+
+## Step 2: Determine Your Instance URL
+
+Your Mindtouch instance URL is typically one of:
+- **Hosted**: `https://company.mindtouch.us`
+- **Custom domain**: `https://docs.company.com`
+
+The URL should be the base URL of your Mindtouch site without any trailing path.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Mindtouch**
+3. Enter your **API Token**
+4. Enter your **Instance URL**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Mindtouch data. The first sync fetches all knowledge base pages with their content, categories, and tags.

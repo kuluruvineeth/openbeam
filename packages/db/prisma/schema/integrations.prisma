@@ -175,6 +175,7 @@ enum AppType {
   LUCID
   LUMAPPS
   MINDTICKLE
+  MINDTOUCH
 }
 
 enum ConnectorStatus {

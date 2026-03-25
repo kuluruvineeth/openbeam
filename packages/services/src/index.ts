@@ -1516,6 +1516,31 @@ export {
   updateContent as updateMindtickleContent,
 } from "./mindtickle";
 export type {
+  MindtouchCategory,
+  MindtouchClient,
+  MindtouchPage,
+  MindtouchPageContent,
+  MindtouchPageTag,
+  MindtouchTag,
+} from "./mindtouch";
+export {
+  addPageTags as addMindtouchPageTags,
+  createMindtouchClient,
+  createPage as createMindtouchPage,
+  getPageContent as getMindtouchPageContent,
+  getPageInfo as getMindtouchPageInfo,
+  listCategories as listMindtouchCategories,
+  listPages as listMindtouchPages,
+  listTags as listMindtouchTags,
+  MindtouchApiError,
+  mindtouchFullSync,
+  mindtouchIncrementalSync,
+  transformCategory as transformMindtouchCategory,
+  transformPage as transformMindtouchPage,
+  transformTag as transformMindtouchTag,
+  updatePageContent as updateMindtouchPageContent,
+} from "./mindtouch";
+export type {
   MiroActionResult,
   MiroBoard,
   MiroClient,
