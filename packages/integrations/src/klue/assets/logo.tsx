@@ -10,19 +10,10 @@ export function Logo({ size = 32 }: LogoProps) {
       width={size}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect fill="#1a1a1a" height="100" rx="12" width="100" />
-      <text
-        dominantBaseline="central"
-        fill="#ffffff"
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="52"
-        fontWeight="800"
-        textAnchor="middle"
-        x="50"
-        y="52"
-      >
-        k
-      </text>
+      <path
+        d="M12 8h16v34.5L54.5 8H75L46 42.5 77 92H56L32 53l-4 4.5V92H12V8z"
+        fill="#1A1A1A"
+      />
     </svg>
   );
 }
