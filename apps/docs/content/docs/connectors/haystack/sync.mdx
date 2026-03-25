@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Haystack data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Haystack:
+
+1. **People** with full profile details, department, team, and manager
+2. **Teams** (if enabled) with leads and member lists
+3. **Departments** (if enabled) with hierarchy and headcount
+4. **Locations** (if enabled) with address and timezone
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_after` parameter to fetch only records modified since the last sync. All enabled entity types are checked for updates.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| People | Every 15 minutes |
+| Teams | Every 60 minutes |
+| Departments | Every 60 minutes |
+| Locations | Every 60 minutes |
+
+## Rate Limits
+
+Haystack enforces rate limits of approximately 100 requests per minute. The connector handles rate limiting with exponential backoff and respects the Retry-After header.

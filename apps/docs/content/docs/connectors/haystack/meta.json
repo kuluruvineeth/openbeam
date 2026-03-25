@@ -1,0 +1,12 @@
+{
+  "title": "Haystack",
+  "icon": "Haystack",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

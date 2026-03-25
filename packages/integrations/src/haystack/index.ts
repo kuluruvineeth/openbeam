@@ -1,0 +1,1 @@
+export { haystackApp } from "./config";

@@ -40,6 +40,7 @@ import { googleSitesApp } from "./google-sites/config";
 import { greenhouseApp } from "./greenhouse/config";
 import { guruApp } from "./guru/config";
 import { harvestApp } from "./harvest/config";
+import { haystackApp } from "./haystack/config";
 import { highspotApp } from "./highspot/config";
 import { hubspotApp } from "./hubspot/config";
 import { intercomApp } from "./intercom/config";
@@ -96,6 +97,7 @@ export {
   evernoteApp,
   fellowApp,
   harvestApp,
+  haystackApp,
   fifteenFiveApp,
   miroApp,
   onenoteApp,
@@ -853,4 +855,5 @@ export const appStore: UnifiedApp[] = [
   doceboApp,
   fellowApp,
   harvestApp,
+  haystackApp,
 ];

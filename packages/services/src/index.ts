@@ -963,6 +963,28 @@ export {
   updateHarvestTimeEntry,
 } from "./harvest";
 export type {
+  HaystackClient,
+  HaystackDepartment,
+  HaystackLocation,
+  HaystackPerson,
+  HaystackTeam,
+} from "./haystack";
+export {
+  createHaystackClient,
+  HaystackApiError,
+  haystackFullSync,
+  haystackIncrementalSync,
+  listDepartments as listHaystackDepartments,
+  listLocations as listHaystackLocations,
+  listPeople as listHaystackPeople,
+  listTeams as listHaystackTeams,
+  transformDepartment as transformHaystackDepartment,
+  transformLocation as transformHaystackLocation,
+  transformPerson as transformHaystackPerson,
+  transformTeam as transformHaystackTeam,
+  updatePerson as updateHaystackPerson,
+} from "./haystack";
+export type {
   BatchHealthCheckResult,
   CheckStatus,
   ConnectorHealthResult,

@@ -123,6 +123,7 @@ export enum AppType {
   DOCEBO = "DOCEBO",
   FELLOW = "FELLOW",
   HARVEST = "HARVEST",
+  HAYSTACK = "HAYSTACK",
 }
 
 export enum SyncMode {

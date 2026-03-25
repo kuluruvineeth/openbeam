@@ -1,0 +1,24 @@
+---
+title: Configuration
+description: Configure which Haystack data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Haystack API key for authentication | Required |
+| **Sync Teams** | Index team definitions | Enabled |
+| **Sync Departments** | Index department hierarchy | Enabled |
+| **Sync Locations** | Index office locations | Enabled |
+| **Lookback Days** | How far back to sync on first run (0 = all) | 0 |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. People are always synced. Teams, departments, and locations can be individually disabled to reduce sync time and storage.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches records. Set to 0 to sync all records. For large directories, consider starting with a shorter period to get results quickly.

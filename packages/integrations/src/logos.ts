@@ -44,6 +44,7 @@ import { Logo as GoogleSitesLogo } from "./google-sites/assets/logo";
 import { Logo as GreenhouseLogo } from "./greenhouse/assets/logo";
 import { Logo as GuruLogo } from "./guru/assets/logo";
 import { Logo as HarvestLogo } from "./harvest/assets/logo";
+import { Logo as HaystackLogo } from "./haystack/assets/logo";
 import { Logo as HighspotLogo } from "./highspot/assets/logo";
 import { Logo as HubSpotLogo } from "./hubspot/assets/logo";
 import { Logo as IntercomLogo } from "./intercom/assets/logo";
@@ -160,6 +161,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.EVERNOTE]: EvernoteLogo,
   [AppType.FELLOW]: FellowLogo,
   [AppType.HARVEST]: HarvestLogo,
+  [AppType.HAYSTACK]: HaystackLogo,
   [AppType.FIFTEEN_FIVE]: FifteenFiveLogo,
   [AppType.BENCHLING]: BenchlingLogo,
   [AppType.BYNDER]: BynderLogo,

@@ -1,0 +1,36 @@
+---
+title: Features
+description: What Haystack data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### People
+Full-text search across employee names, titles, departments, teams, bios, and contact information. Metadata includes email, phone, manager, location, start date, and pronouns.
+
+### Teams
+Search across team names, descriptions, and member lists. Includes lead assignment, member count, and individual member names.
+
+### Departments
+Department hierarchy with names, descriptions, headcount, and leadership. Includes parent department relationships for navigating the org structure.
+
+### Locations
+Office location directory with names, addresses, cities, countries, timezones, and capacity. Enables quick lookup of office details.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Update Person** | Update a person's title, phone, bio, or pronouns |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Manager relationships** from employee profile hierarchy
+- **Team membership** linking people to their teams
+- **Department structure** with parent-child relationships
+- **Location assignment** connecting people to offices

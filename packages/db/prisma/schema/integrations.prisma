@@ -162,6 +162,7 @@ enum AppType {
   DOCEBO
   FELLOW
   HARVEST
+  HAYSTACK
 }
 
 enum ConnectorStatus {
