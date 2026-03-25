@@ -1,0 +1,45 @@
+---
+title: Sync Behavior
+description: How JFrog data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from JFrog:
+
+1. **Repositories** from the Artifactory repositories API
+2. **Artifacts** via AQL (Artifactory Query Language) sorted by modified date
+3. **Builds** (if enabled) from the build info API with module details
+4. **Violations** (if enabled) from the Xray violations API
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use timestamps and AQL filters:
+
+- **Artifacts** use the `modified` field in AQL queries to fetch only files changed since the last sync
+- **Builds** filter by build start timestamp to skip previously synced runs
+- **Violations** use the `created_from` filter in the Xray API
+- **Repositories** are always fully re-synced since they change infrequently
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Repositories | Every 60 minutes |
+| Artifacts | Every 30 minutes |
+| Builds | Every 15 minutes |
+| Violations | Every 30 minutes |
+
+## Rate Limits
+
+JFrog enforces rate limits that vary by plan (typically 5,000 requests per hour). The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.
+
+## AQL (Artifactory Query Language)
+
+Artifact syncing uses AQL for efficient querying. AQL supports filtering by repository, path, modification date, and properties. The connector constructs optimized AQL queries to minimize API calls during both full and incremental syncs.

@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Configure which JFrog data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Access Token** | JFrog access token for authentication | Required |
+| **Instance URL** | JFrog Platform URL | Required |
+| **Sync Builds** | Index build history records | Enabled |
+| **Sync Violations** | Index Xray security violations | Enabled |
+
+## Instance URL
+
+Your instance URL is the base URL for your JFrog Platform deployment:
+
+| Deployment | Example URL |
+|------------|-------------|
+| SaaS | `https://mycompany.jfrog.io` |
+| Self-hosted | `https://artifactory.internal.company.com` |
+
+The connector uses two API bases under this URL:
+- **Artifactory**: `/artifactory/api/` for repositories, artifacts, and builds
+- **Xray**: `/xray/api/` for security violations
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Repositories and artifacts are always synced. Builds and violations can be individually disabled to reduce sync time or when Xray is not available.
+
+## Access Token Permissions
+
+The access token needs the following permissions:
+- **Artifactory**: Read access to repositories, artifacts, and builds
+- **Xray** (optional): Read access to violations and scan results

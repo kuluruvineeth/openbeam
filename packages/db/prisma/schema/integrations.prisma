@@ -167,6 +167,7 @@ enum AppType {
   INTERACT
   IRONCLAD
   JENKINS
+  JFROG
 }
 
 enum ConnectorStatus {

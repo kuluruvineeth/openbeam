@@ -1,0 +1,38 @@
+---
+title: JFrog
+description: Search repositories, artifacts, builds, and security violations from JFrog
+---
+
+# JFrog
+
+Index DevOps data from JFrog Platform including Artifactory repositories, artifacts, builds, and Xray security violations. Supports access token authentication with instance-specific URLs and AQL-powered artifact search.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Repositories** | Name, type, package type, layout, environments |
+| **Artifacts** | Path, size, checksums, MIME type, properties, creator |
+| **Builds** | Name, number, status, duration, modules, VCS info, agent |
+| **Violations** | Severity, CVEs, CVSS scores, impacted artifacts, fixed versions |
+
+## Authentication
+
+**Method:** Access Token (Bearer)
+
+Generate an access token from **Administration > Identity and Access > Access Tokens** in JFrog Platform. The token must have read access to Artifactory and Xray APIs.
+
+## Quick Start
+
+1. Generate an access token in JFrog Platform
+2. Add the JFrog connector in OpenBeam
+3. Enter your access token and instance URL
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/jfrog/setup" description="Access token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/jfrog/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/jfrog/configuration" description="Entity selection and instance settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/jfrog/sync" description="Full sync, incremental sync via AQL and timestamps" />
+  <Card title="Troubleshooting" href="/docs/connectors/jfrog/troubleshooting" description="Common issues and fixes" />
+</Cards>

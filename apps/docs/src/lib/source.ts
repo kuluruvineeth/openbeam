@@ -63,6 +63,7 @@ import {
   IntercomIcon,
   IroncladIcon,
   JenkinsIcon,
+  JFrogIcon,
   JiraIcon,
   LinearIcon,
   MarketoIcon,
@@ -198,6 +199,7 @@ const customIconMap: Record<
   Benchling: BenchlingIcon,
   Ironclad: IroncladIcon,
   Jenkins: JenkinsIcon,
+  JFrog: JFrogIcon,
 };
 
 export const source = loader({

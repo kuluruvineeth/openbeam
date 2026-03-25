@@ -1,0 +1,1 @@
+export { jfrogApp } from "./config";

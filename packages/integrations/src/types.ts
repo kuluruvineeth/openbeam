@@ -128,6 +128,7 @@ export enum AppType {
   INTERACT = "INTERACT",
   IRONCLAD = "IRONCLAD",
   JENKINS = "JENKINS",
+  JFROG = "JFROG",
 }
 
 export enum SyncMode {

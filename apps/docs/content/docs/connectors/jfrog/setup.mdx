@@ -1,0 +1,38 @@
+---
+title: Setup
+description: Connect JFrog to OpenBeam via access token
+---
+
+# JFrog Setup
+
+## Prerequisites
+
+- A JFrog Platform account with admin access
+- Access to JFrog identity and access management
+
+## Step 1: Generate an Access Token
+
+1. Log into your JFrog Platform instance (e.g., `https://mycompany.jfrog.io`)
+2. Go to **Administration > Identity and Access > Access Tokens**
+3. Click **Generate Token**
+4. Set the scope to include Artifactory and Xray read access
+5. Set an appropriate expiration (or no expiration for service accounts)
+6. Copy the generated access token
+
+## Step 2: Note Your Instance URL
+
+Your JFrog instance URL is the base URL you use to access JFrog Platform. It typically looks like:
+- `https://mycompany.jfrog.io` (SaaS)
+- `https://artifactory.internal.company.com` (self-hosted)
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **JFrog**
+3. Enter your **Access Token**
+4. Enter your **Instance URL**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your JFrog data. The first sync fetches all repositories, artifacts (via AQL), builds, and Xray violations.

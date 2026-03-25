@@ -1,0 +1,37 @@
+---
+title: Features
+description: What JFrog data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Repositories
+Full-text search across repository names, descriptions, and package types. Metadata includes repository type (local, remote, virtual, federated), package type (docker, maven, npm, etc.), layout reference, and environment assignments.
+
+### Artifacts
+Search across artifact paths, file names, and properties. Includes file size, checksums (SHA1, SHA256, MD5), MIME types, creator information, and custom properties set on artifacts.
+
+### Builds
+Build history with name, number, status, and duration. Includes build agent details, VCS information (repository URL, branch, revision), module lists with published artifact counts and dependency counts.
+
+### Security Violations
+Xray security violation tracking with severity levels, CVE references, CVSS scores (v2 and v3), impacted artifact details, fixed version recommendations, and watch/policy associations.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Copy Artifact** | Copy an artifact between repositories with optional dry run |
+| **Delete Artifact** | Remove an artifact from a repository |
+| **Set Properties** | Set custom properties on an artifact |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Build-to-artifact relationships** from module publish records
+- **Vulnerability-to-artifact mappings** from Xray violation data
+- **Repository hierarchy** from artifact path structures
