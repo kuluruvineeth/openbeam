@@ -78,6 +78,7 @@ import { opsgenieApp } from "./opsgenie/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { pagerdutyApp } from "./pagerduty/config";
+import { panoptoApp } from "./panopto/config";
 import { pipedriveApp } from "./pipedrive/config";
 import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
@@ -119,6 +120,7 @@ export {
   niceCxoneApp,
   onenoteApp,
   opsgenieApp,
+  panoptoApp,
   asanaApp,
   awsIotApp,
   azureDevOpsApp,
@@ -745,6 +747,22 @@ export {
   refreshOutlookToken,
 } from "./outlook/oauth";
 export type {
+  ExchangePanoptoCodeParams,
+  GeneratePanoptoAuthUrlParams,
+  PanoptoOAuthResult,
+  PanoptoTokenResponse,
+  PanoptoUserInfo,
+  RefreshPanoptoTokenParams,
+  RefreshPanoptoTokenResult,
+} from "./panopto";
+export {
+  exchangePanoptoCode,
+  generatePanoptoAuthUrl,
+  PANOPTO_TOKEN_LIFETIME_SECONDS,
+  PanoptoOAuthError,
+  refreshPanoptoToken,
+} from "./panopto";
+export type {
   ExchangePipedriveCodeParams,
   GeneratePipedriveAuthUrlParams,
   PipedriveOAuthResult,
@@ -952,4 +970,5 @@ export const appStore: UnifiedApp[] = [
   mindtouchApp,
   netsuiteApp,
   niceCxoneApp,
+  panoptoApp,
 ];

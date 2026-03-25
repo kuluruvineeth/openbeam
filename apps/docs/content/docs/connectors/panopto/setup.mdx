@@ -1,0 +1,42 @@
+---
+title: Setup
+description: Connect Panopto to OpenBeam via OAuth 2.0
+---
+
+# Panopto Setup
+
+## Prerequisites
+
+- A Panopto instance with admin access
+- Access to Panopto Identity Provider settings
+
+## Step 1: Create an API Client
+
+1. Log into your Panopto admin panel
+2. Navigate to **System > Identity Providers**
+3. Click **Add Identity Provider** and select **OAuth2 Client**
+4. Set the **Client Type** to "Server-side Web Application"
+5. Add the redirect URI: `https://your-openbeam-domain.com/connectors/setup/panopto/oauth/callback`
+6. Grant the scopes: `api`, `openid`
+7. Copy the **Client ID** and **Client Secret**
+
+## Step 2: Identify Your Instance URL
+
+Your Panopto instance URL is the base URL you use to access Panopto, typically:
+- `https://yourorg.hosted.panopto.com` (cloud-hosted)
+- `https://panopto.yourdomain.edu` (self-hosted)
+
+Do not include a trailing slash or any path after the domain.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Panopto**
+3. Enter your **Instance URL**
+4. Enter your **Client ID** and **Client Secret**
+5. Click **Connect** to start the OAuth flow
+6. Authorize OpenBeam in the Panopto consent screen
+
+## Step 4: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Panopto data. The first sync fetches all video sessions (sorted by creation date), folders, and playlists.

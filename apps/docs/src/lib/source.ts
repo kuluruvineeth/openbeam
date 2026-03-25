@@ -90,6 +90,7 @@ import {
   OpsGenieIcon,
   OutlookIcon,
   PagerDutyIcon,
+  PanoptoIcon,
   PipedriveIcon,
   S3Icon,
   SalesforceIcon,
@@ -220,6 +221,7 @@ const customIconMap: Record<
   Mindtickle: MindtickleIcon,
   NetSuite: NetSuiteIcon,
   NiceCxone: NiceCxoneIcon,
+  Panopto: PanoptoIcon,
 };
 
 export const source = loader({

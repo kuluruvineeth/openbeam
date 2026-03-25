@@ -1,0 +1,34 @@
+---
+title: Features
+description: What Panopto data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Sessions (Videos)
+Full-text search across video titles, descriptions, and tags. Metadata includes duration, view count, creator, folder assignment, broadcast status, and state.
+
+### Folders
+Search across folder names and descriptions. Includes parent folder hierarchy, session count, subfolder count, and public visibility status.
+
+### Playlists
+Search across playlist names and descriptions. Includes session count and linked session references.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Folder** | Create a new folder in Panopto |
+| **Update Session** | Update metadata on an existing video session |
+| **Move Session** | Move a video session to a different folder |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Creator attribution** from video session ownership
+- **Folder hierarchy** relationships between folders and subfolders
+- **Content organization** from playlist-to-session associations

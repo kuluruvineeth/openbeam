@@ -1,0 +1,38 @@
+---
+title: Panopto
+description: Search videos, folders, and playlists from Panopto
+---
+
+# Panopto
+
+Index video content from Panopto including sessions (videos/recordings), folders, and playlists. Supports OAuth 2.0 with instance-specific URLs and incremental sync via creation date ordering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Sessions** | Title, description, duration, views, creator, folder, tags, broadcast status |
+| **Folders** | Name, description, parent folder, session count, subfolder count, visibility |
+| **Playlists** | Name, description, session count, linked session IDs |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Requires a Panopto API client configured in your instance's Identity Provider settings. The OAuth flow uses instance-specific URLs based on your Panopto deployment.
+
+## Quick Start
+
+1. Create an API client in your Panopto instance
+2. Add the Panopto connector in OpenBeam
+3. Enter your instance URL, Client ID, and Client Secret
+4. Authorize via OAuth
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/panopto/setup" description="OAuth client creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/panopto/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/panopto/configuration" description="Instance URL, playlist sync, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/panopto/sync" description="Full sync, incremental sync via CreatedDate ordering" />
+  <Card title="Troubleshooting" href="/docs/connectors/panopto/troubleshooting" description="Common issues and fixes" />
+</Cards>

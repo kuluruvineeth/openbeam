@@ -1,0 +1,30 @@
+---
+title: Configuration
+description: Configure which Panopto data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Instance URL** | Your Panopto instance base URL | Required |
+| **Client ID** | OAuth client ID from Identity Provider | Required |
+| **Client Secret** | OAuth client secret from Identity Provider | Required |
+| **Sync Playlists** | Index playlists alongside videos and folders | Enabled |
+
+## Instance URL
+
+The instance URL must match your Panopto deployment exactly:
+
+| Deployment | URL Format |
+|-----------|------------|
+| Cloud-hosted | `https://yourorg.hosted.panopto.com` |
+| Self-hosted | `https://panopto.yourdomain.edu` |
+
+Do not include trailing slashes or path segments.
+
+## Entity Toggles
+
+Videos and folders are always synced. Playlists can be disabled to reduce sync time on large instances.

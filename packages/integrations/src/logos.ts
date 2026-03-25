@@ -82,6 +82,7 @@ import { Logo as OpsGenieLogo } from "./opsgenie/assets/logo";
 import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
+import { Logo as PanoptoLogo } from "./panopto/assets/logo";
 import { Logo as PipedriveLogo } from "./pipedrive/assets/logo";
 import { Logo as S3Logo } from "./s3/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
@@ -195,6 +196,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MINDTOUCH]: MindtouchLogo,
   [AppType.NETSUITE]: NetsuiteLogo,
   [AppType.NICE_CXONE]: NiceCxoneLogo,
+  [AppType.PANOPTO]: PanoptoLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

@@ -45,7 +45,8 @@ type IntegrationName =
   | "google-sites"
   | "harvest"
   | "looker-studio"
-  | "lucid";
+  | "lucid"
+  | "panopto";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -254,6 +255,11 @@ const INTEGRATION_HANDLERS: Record<
     ),
   lucid: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/lucid/callback", {
+      code,
+      state,
+    }),
+  panopto: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/panopto/callback", {
       code,
       state,
     }),

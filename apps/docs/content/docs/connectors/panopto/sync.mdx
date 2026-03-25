@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Panopto data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Panopto:
+
+1. **Sessions** sorted by CreatedDate descending
+2. **Folders** sorted by name
+3. **Playlists** (if enabled) sorted by name
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the creation date from the last sync to filter new sessions. Only sessions created after the last sync time are fetched.
+
+Folders and playlists are fully re-synced during incremental runs since they change infrequently and the API does not support date-based filtering for these entities.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Sessions | Every 30 minutes |
+| Folders | Every 60 minutes |
+| Playlists | Every 60 minutes |
+
+## Rate Limits
+
+Panopto enforces rate limits that vary by instance. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.
+
+## Pagination
+
+The Panopto API uses offset-based pagination with `pageNumber` and `maxResults` parameters. The connector fetches 50 results per page by default.

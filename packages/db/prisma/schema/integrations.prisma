@@ -177,6 +177,7 @@ enum AppType {
   MINDTICKLE
   MINDTOUCH
   NICE_CXONE
+  PANOPTO
 }
 
 enum ConnectorStatus {

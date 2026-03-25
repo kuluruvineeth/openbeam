@@ -1782,6 +1782,32 @@ export {
   transformService as transformPagerDutyService,
   updateIncidentStatus as pagerdutyUpdateIncidentStatus,
 } from "./pagerduty";
+export type {
+  PanoptoClient,
+  PanoptoFolder,
+  PanoptoPlaylist,
+  PanoptoRecordActionResult,
+  PanoptoSession,
+} from "./panopto";
+export {
+  createPanoptoClient,
+  createPanoptoFolder,
+  getFolder as getPanoptoFolder,
+  getPlaylist as getPanoptoPlaylist,
+  getSession as getPanoptoSession,
+  listAllFolders as listAllPanoptoFolders,
+  listAllPlaylists as listAllPanoptoPlaylists,
+  listAllSessions as listAllPanoptoSessions,
+  movePanoptoSession,
+  PanoptoApiError,
+  PanoptoAuth,
+  panoptoFullSync,
+  panoptoIncrementalSync,
+  transformPanoptoFolder,
+  transformPanoptoPlaylist,
+  transformPanoptoSession,
+  updatePanoptoSession,
+} from "./panopto";
 export {
   activateWallet,
   failPayment,

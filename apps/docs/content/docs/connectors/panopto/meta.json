@@ -1,0 +1,12 @@
+{
+  "title": "Panopto",
+  "icon": "Panopto",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}
