@@ -1,0 +1,64 @@
+---
+title: NetSuite Setup
+description: How to configure OAuth 1.0 Token-Based Authentication for NetSuite
+---
+
+# NetSuite Setup
+
+## Prerequisites
+
+- NetSuite administrator access
+- A role with permissions for REST Web Services and the record types you want to index
+
+## Step 1: Enable Token-Based Authentication
+
+1. Navigate to **Setup > Company > Enable Features**
+2. Go to the **SuiteCloud** tab
+3. Enable **Token-Based Authentication** under Manage Authentication
+4. Save
+
+## Step 2: Create an Integration Record
+
+1. Navigate to **Setup > Integration > Manage Integrations > New**
+2. Enter a name (e.g., "OpenBeam Integration")
+3. Under **Authentication**, check **Token-Based Authentication**
+4. Uncheck **TBA: Authorization Flow** (not needed)
+5. Under **Token-Based Authentication**, select **HMAC-SHA256** as the signature method
+6. Save the integration
+7. Copy the **Consumer Key** and **Consumer Secret** (shown only once)
+
+## Step 3: Create an Access Token
+
+1. Navigate to **Setup > Users/Roles > Access Tokens > New**
+2. Select the application (integration) you created
+3. Select a user and role with appropriate permissions
+4. Save
+5. Copy the **Token ID** and **Token Secret** (shown only once)
+
+## Step 4: Find Your Account ID
+
+1. Navigate to **Setup > Company > Company Information**
+2. Find **Account ID** (e.g., `1234567` or `TSTDRV1234567`)
+
+## Step 5: Configure in OpenBeam
+
+1. Add the NetSuite connector in OpenBeam
+2. Enter your **Account ID**
+3. Enter the **Consumer Key** and **Consumer Secret**
+4. Enter the **Token ID** and **Token Secret**
+5. Select which entity types to sync
+6. Click **Connect**
+
+## Required Permissions
+
+The role used for token generation needs these permissions:
+
+| Permission | Level | Purpose |
+|-----------|-------|---------|
+| REST Web Services | Full | API access |
+| Customer | View | Index customers |
+| Vendor | View | Index vendors |
+| Invoice | View | Index invoices |
+| Sales Order | View | Index sales orders |
+| Purchase Order | View | Index purchase orders |
+| Employee Record | View | Index employees |

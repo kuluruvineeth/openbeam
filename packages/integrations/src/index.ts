@@ -66,6 +66,7 @@ import { miroApp } from "./miro/config";
 import { mitreAttackApp } from "./mitre-attack/config";
 import { mondayApp } from "./monday/config";
 import { mqttApp } from "./mqtt/config";
+import { netsuiteApp } from "./netsuite/config";
 import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
 import { nvdApp } from "./nvd/config";
@@ -113,6 +114,7 @@ export {
   haystackApp,
   fifteenFiveApp,
   miroApp,
+  netsuiteApp,
   onenoteApp,
   opsgenieApp,
   asanaApp,
@@ -694,6 +696,16 @@ export type {
   MondayMe,
   MondayTokenResponse,
 } from "./monday/types";
+export type {
+  NetsuiteAuthResult,
+  NetsuiteValidationResponse,
+  ValidateNetsuiteCredentialsParams,
+} from "./netsuite";
+export {
+  buildOAuth1Header,
+  NetsuiteAuthError,
+  validateNetsuiteCredentials,
+} from "./netsuite";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
 export type {
@@ -925,4 +937,5 @@ export const appStore: UnifiedApp[] = [
   lumappsApp,
   mindtickleApp,
   mindtouchApp,
+  netsuiteApp,
 ];

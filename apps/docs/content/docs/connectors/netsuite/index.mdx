@@ -1,0 +1,41 @@
+---
+title: NetSuite
+description: Search customers, vendors, invoices, sales orders, purchase orders, and employees from Oracle NetSuite
+---
+
+# NetSuite
+
+Index ERP data from Oracle NetSuite including customers, vendors, invoices, sales orders, purchase orders, and employees. Supports OAuth 1.0 Token-Based Authentication (TBA) with offset-based pagination and lastModifiedDate incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Customers** | Company name, email, phone, status, balance, currency, subsidiary, sales rep |
+| **Vendors** | Company name, email, phone, status, payment terms, balance, address |
+| **Invoices** | Invoice number, status, total, customer, due date, balance, line items |
+| **Sales Orders** | Order number, status, total, customer, ship date, line items, memo |
+| **Purchase Orders** | PO number, status, total, vendor, expected receipt date, line items |
+| **Employees** | Name, email, title, department, subsidiary, supervisor, hire date |
+
+## Authentication
+
+**Method:** OAuth 1.0 Token-Based Authentication (TBA)
+
+NetSuite requires four credential values: consumer key, consumer secret, token ID, and token secret. These are generated through the NetSuite UI under integration and access token management.
+
+## Quick Start
+
+1. Create an integration record in NetSuite
+2. Generate access tokens for a user/role
+3. Add the NetSuite connector in OpenBeam
+4. Enter your account ID and four TBA credentials
+5. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/netsuite/setup" description="Integration record creation and token generation" />
+  <Card title="Features" href="/docs/connectors/netsuite/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/netsuite/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/netsuite/sync" description="Full sync, incremental sync via lastModifiedDate" />
+  <Card title="Troubleshooting" href="/docs/connectors/netsuite/troubleshooting" description="Common issues and fixes" />
+</Cards>

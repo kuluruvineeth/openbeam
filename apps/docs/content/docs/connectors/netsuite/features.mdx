@@ -1,0 +1,51 @@
+---
+title: NetSuite Features
+description: What data the NetSuite connector indexes and how it appears in search
+---
+
+# NetSuite Features
+
+## Indexed Entity Types
+
+### Customers
+
+Customer records are indexed with company name, contact information, financial data, and subsidiary assignment.
+
+**Searchable fields:** company name, email, entity ID, status, subsidiary, sales rep, comments
+
+### Vendors
+
+Vendor records include contact details, payment terms, balance information, and tax identification.
+
+**Searchable fields:** company name, email, entity ID, status, payment terms, subsidiary, address
+
+### Invoices
+
+Invoice records capture transaction details, line items, customer association, and payment status.
+
+**Searchable fields:** invoice number, status, customer name, memo, line item descriptions, sales rep
+
+### Sales Orders
+
+Sales order records include order details, customer association, fulfillment tracking, and line items.
+
+**Searchable fields:** order number, status, customer name, memo, ship date, line item descriptions
+
+### Purchase Orders
+
+Purchase order records cover vendor association, approval status, expected delivery, and line items.
+
+**Searchable fields:** PO number, status, vendor name, memo, expected receipt date, line item descriptions
+
+### Employees
+
+Employee directory records include personal info, organizational placement, and employment status.
+
+**Searchable fields:** name, email, title, department, subsidiary, supervisor
+
+## Search Capabilities
+
+- Full-text search across all indexed NetSuite entity types
+- Filter by document type (customer, vendor, invoice, sales_order, purchase_order, employee)
+- Filter by metadata fields (status, currency, department, subsidiary)
+- Sort by created date or last modified date

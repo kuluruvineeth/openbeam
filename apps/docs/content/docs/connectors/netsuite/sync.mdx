@@ -1,0 +1,40 @@
+---
+title: NetSuite Sync Behavior
+description: How full and incremental sync work for the NetSuite connector
+---
+
+# NetSuite Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all records across enabled entity types using the SuiteTalk REST API with offset-based pagination (50 records per page by default).
+
+**Entity sync order:**
+1. Customers
+2. Vendors
+3. Invoices
+4. Sales Orders
+5. Purchase Orders
+6. Employees
+
+Documents are yielded in batches of 100 for indexing efficiency.
+
+## Incremental Sync
+
+After the initial full sync, subsequent syncs use `lastModifiedDate` filters to fetch only records updated since the last sync. The connector tracks the latest modification timestamp across all entities.
+
+If incremental sync fails, the connector automatically falls back to a full sync.
+
+## Pagination
+
+NetSuite REST API uses offset-based pagination with `offset` and `limit` query parameters. The connector fetches pages of 50 records and continues until no more results are returned.
+
+## Cursor Management
+
+The sync cursor tracks:
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Timestamp of the most recently modified record |
+| `lastFullSync` | Timestamp of the last completed full sync |
+| `forceFullSync` | Flag to force a full sync on next run |

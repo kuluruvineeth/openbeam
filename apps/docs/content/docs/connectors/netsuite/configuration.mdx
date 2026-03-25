@@ -1,0 +1,42 @@
+---
+title: NetSuite Configuration
+description: Configure which NetSuite entities to sync and how
+---
+
+# NetSuite Configuration
+
+## Entity Selection
+
+Toggle which entity types to index. All are enabled by default.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Customers | On | Index customer records |
+| Sync Vendors | On | Index vendor records |
+| Sync Invoices | On | Index invoice transactions |
+| Sync Sales Orders | On | Index sales order transactions |
+| Sync Purchase Orders | On | Index purchase order transactions |
+| Sync Employees | On | Index employee directory |
+
+## Credential Configuration
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| Account ID | Yes | NetSuite account identifier |
+| Consumer Key | Yes | OAuth 1.0 consumer key from integration record |
+| Consumer Secret | Yes | OAuth 1.0 consumer secret |
+| Token ID | Yes | Access token ID |
+| Token Secret | Yes | Access token secret |
+
+## Sync Schedule
+
+The default sync interval is 30 minutes for transactional entities (customers, vendors, invoices, sales orders, purchase orders) and 60 minutes for employee records.
+
+## Rate Limits
+
+The connector respects NetSuite concurrency limits with built-in rate limiting:
+
+- 40 requests per minute
+- 1,500 requests per hour
+- Burst limit of 10 concurrent requests
+- Automatic retry with exponential backoff on 429 responses

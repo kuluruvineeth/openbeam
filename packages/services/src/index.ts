@@ -1590,6 +1590,40 @@ export {
   incrementalSync as mqttIncrementalSync,
   MqttConnectorError,
 } from "./mqtt";
+export type {
+  NetsuiteClient,
+  NetsuiteCustomer,
+  NetsuiteEmployee,
+  NetsuiteInvoice,
+  NetsuitePurchaseOrder,
+  NetsuiteRecordActionResult,
+  NetsuiteSalesOrder,
+  NetsuiteVendor,
+} from "./netsuite";
+export {
+  createNetsuiteClient,
+  createNetsuiteCustomer,
+  createNetsuiteSalesOrder,
+  createNetsuiteVendor,
+  listAllCustomers as listAllNetsuiteCustomers,
+  listAllEmployees as listAllNetsuiteEmployees,
+  listAllInvoices as listAllNetsuiteInvoices,
+  listAllPurchaseOrders as listAllNetsuitePurchaseOrders,
+  listAllSalesOrders as listAllNetsuiteSalesOrders,
+  listAllVendors as listAllNetsuiteVendors,
+  NetsuiteApiError,
+  NetsuiteAuth,
+  netsuiteFullSync,
+  netsuiteIncrementalSync,
+  transformNetsuiteCustomer,
+  transformNetsuiteEmployee,
+  transformNetsuiteInvoice,
+  transformNetsuitePurchaseOrder,
+  transformNetsuiteSalesOrder,
+  transformNetsuiteVendor,
+  updateNetsuiteCustomer,
+  updateNetsuiteSalesOrder,
+} from "./netsuite";
 export type { NodeRedClient } from "./nodered";
 export {
   createNodeRedClient,

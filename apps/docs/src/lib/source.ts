@@ -80,6 +80,7 @@ import {
   MiroIcon,
   MondayIcon,
   MQTTIcon,
+  NetSuiteIcon,
   NodeREDIcon,
   NotionIcon,
   OmniverseIcon,
@@ -216,6 +217,7 @@ const customIconMap: Record<
   LumApps: LumAppsIcon,
   Mindtouch: MindtouchIcon,
   Mindtickle: MindtickleIcon,
+  NetSuite: NetSuiteIcon,
 };
 
 export const source = loader({

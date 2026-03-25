@@ -70,6 +70,7 @@ import { Logo as MiroLogo } from "./miro/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
 import { Logo as MondayLogo } from "./monday/assets/logo";
 import { Logo as MQTTLogo } from "./mqtt/assets/logo";
+import { Logo as NetsuiteLogo } from "./netsuite/assets/logo";
 import { Logo as NodeREDLogo } from "./nodered/assets/logo";
 import { Logo as NotionLogo } from "./notion/assets/logo";
 import { Logo as NvdLogo } from "./nvd/assets/logo";
@@ -191,6 +192,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.LUMAPPS]: LumAppsLogo,
   [AppType.MINDTICKLE]: MindtickleLogo,
   [AppType.MINDTOUCH]: MindtouchLogo,
+  [AppType.NETSUITE]: NetsuiteLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =
