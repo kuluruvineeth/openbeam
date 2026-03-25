@@ -1,0 +1,34 @@
+---
+title: Sync Behavior
+description: How InSided data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from InSided:
+
+1. **Posts** from all community categories, sorted by updated_at
+2. **Articles** (if enabled) from the knowledge base
+3. **Ideas** (if enabled) from product ideation boards
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the `updated_after` parameter to fetch only content modified since the last sync. This applies to posts, articles, and ideas.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Posts | Every 15 minutes |
+| Articles | Every 60 minutes |
+| Ideas | Every 15 minutes |
+
+## Rate Limits
+
+InSided enforces rate limits of approximately 100 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

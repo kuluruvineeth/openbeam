@@ -1,0 +1,1 @@
+export { insidedApp } from "./config";

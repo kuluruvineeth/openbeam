@@ -1,0 +1,37 @@
+---
+title: InSided
+description: Search community posts, knowledge base articles, and product ideas from InSided
+---
+
+# InSided
+
+Index customer community data from InSided (Gainsight Customer Communities) including forum posts, knowledge base articles, and product ideation boards. Supports API key authentication with page-based pagination and updated_after incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Posts** | Title, content, author, category, replies, reactions, view count |
+| **Articles** | Title, content, author, category, status, helpful votes |
+| **Ideas** | Title, content, author, category, status, vote count, comments |
+
+## Authentication
+
+**Method:** API Key (Bearer token)
+
+Generate an API key from your InSided community admin panel under **Settings > API**. The key must have read access to posts, articles, and ideas.
+
+## Quick Start
+
+1. Generate an API key in your InSided admin panel
+2. Add the InSided connector in OpenBeam
+3. Enter your API key and community URL
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/insided/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/insided/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/insided/configuration" description="Entity selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/insided/sync" description="Full sync, incremental sync via updated_after" />
+  <Card title="Troubleshooting" href="/docs/connectors/insided/troubleshooting" description="Common issues and fixes" />
+</Cards>

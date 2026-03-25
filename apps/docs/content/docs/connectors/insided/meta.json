@@ -1,0 +1,12 @@
+{
+  "title": "InSided",
+  "icon": "InSided",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

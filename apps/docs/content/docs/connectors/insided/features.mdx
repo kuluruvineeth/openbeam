@@ -1,0 +1,35 @@
+---
+title: Features
+description: What InSided data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Posts
+Full-text search across community forum posts including titles, content, and category assignments. Metadata includes reply count, reaction count, view count, pinned status, and locked status.
+
+### Articles
+Knowledge base articles with full content extraction. Includes category, publication status, view counts, and helpful vote tracking.
+
+### Ideas
+Product ideation posts with vote counts and comment tracking. Includes status workflow (new, under review, planned, completed), category, and author information.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Post** | Create a new community forum post |
+| **Create Reply** | Add a reply to an existing post |
+| **Create Idea** | Submit a new product idea |
+| **Vote on Idea** | Add a vote to a product idea |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Author attribution** from post, article, and idea authorship
+- **Category relationships** connecting content to topic categories
+- **Community engagement** from reply and reaction patterns

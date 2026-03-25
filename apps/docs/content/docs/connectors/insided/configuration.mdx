@@ -1,0 +1,35 @@
+---
+title: Configuration
+description: Configure which InSided data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | InSided API key for authentication | Required |
+| **Community URL** | Base URL of your InSided community | Required |
+| **Sync Articles** | Index knowledge base articles | Enabled |
+| **Sync Ideas** | Index product ideation posts | Enabled |
+| **Lookback Days** | How far back to sync on first run | All time |
+
+## Community URL
+
+Your community URL is the base URL where your InSided community is hosted. Common formats:
+
+| Format | Example |
+|--------|---------|
+| Custom domain | `https://community.yourcompany.com` |
+| InSided subdomain | `https://yourcompany.insided.com` |
+
+Enter the full URL including `https://`.
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Posts are always synced. Articles and ideas can be individually disabled to reduce sync time and index size.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches content. Set to 0 (default) to sync all historical content. For large communities, consider starting with a shorter period (e.g., 90 or 180 days).

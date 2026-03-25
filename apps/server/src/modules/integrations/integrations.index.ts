@@ -42,6 +42,7 @@ import harvest from "./harvest/harvest.index";
 import haystack from "./haystack/haystack.index";
 import highspot from "./highspot/highspot.index";
 import hubspot from "./hubspot/hubspot.index";
+import insided from "./insided/insided.index";
 import intercom from "./intercom/intercom.index";
 import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
@@ -137,6 +138,7 @@ integrations.route("/fifteen-five", fifteenFive);
 integrations.route("/benchling", benchling);
 integrations.route("/coupa", coupa);
 integrations.route("/docebo", docebo);
+integrations.route("/insided", insided);
 
 integrations.get("/health", (c) =>
   c.json({

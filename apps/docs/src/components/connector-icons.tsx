@@ -1848,6 +1848,53 @@ export const BenchlingIcon = ({ size = 16 }: IconProps): ReactElement => (
   </svg>
 );
 
+export const InsidedIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 44 44"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      clipRule="evenodd"
+      d="M22 18.1C24.2 18.1 26 19.9 26 22.1C26 24.3 24.2 26.1 22 26.1C19.8 26.1 18 24.3 18 22.1C18 19.9 19.8 18.1 22 18.1Z"
+      fill="#131313"
+      fillRule="evenodd"
+    />
+    <path
+      clipRule="evenodd"
+      d="M22 16.1C18.7 16.1 16 18.8 16 22.1C16 25.4 18.7 28.1 22 28.1C25.3 28.1 28 25.4 28 22.1C28 18.8 25.3 16.1 22 16.1ZM22 29.1C18.1 29.1 15 26 15 22.1C15 18.2 18.1 15.1 22 15.1C25.9 15.1 29 18.2 29 22.1C29 26 25.9 29.1 22 29.1Z"
+      fill="#676767"
+      fillRule="evenodd"
+    />
+    <circle cx="21.5" cy="9.6" fill="#00933F" r="2.5" />
+    <circle cx="21.5" cy="2.6" fill="#D7E100" r="2.5" />
+    <circle cx="21.5" cy="33.6" fill="#FF3684" r="2.5" />
+    <circle cx="32.5" cy="15.6" fill="#00ACE5" r="2.5" />
+    <circle cx="11.5" cy="27.6" fill="#FF1E7D" r="2.5" />
+    <circle cx="32.5" cy="27.6" fill="#FF1E7D" r="2.5" />
+    <circle cx="11.5" cy="15.6" fill="#00ACE5" r="2.5" />
+    <circle cx="22" cy="40.6" fill="#FFD000" r="2.5" />
+    <circle cx="4.5" cy="12.6" fill="#00CEF4" r="2.5" />
+    <circle cx="38.5" cy="31.6" fill="#FF72AB" r="2.5" />
+    <circle cx="38.5" cy="12.6" fill="#00CEF4" r="2.5" />
+    <circle cx="4.5" cy="31.6" fill="#FF72AB" r="2.5" />
+    <circle cx="12.5" cy="4.6" fill="#6DC72E" r="2.5" />
+    <circle cx="30.5" cy="38.6" fill="#FF9500" r="2.5" />
+    <circle cx="30.5" cy="4.6" fill="#6DC72E" r="2.5" />
+    <circle cx="12.5" cy="38.6" fill="#FF9500" r="2.5" />
+    <circle cx="40.5" cy="21.6" fill="#AB2692" r="2.5" />
+    <circle cx="2.5" cy="21.7" fill="#AB2692" r="2.5" />
+    <circle cx="15.5" cy="11.6" fill="#00B73E" r="1.5" />
+    <circle cx="28.5" cy="32.6" fill="#FF7CAD" r="1.5" />
+    <circle cx="28.5" cy="11.6" fill="#00B73E" r="1.5" />
+    <circle cx="15.5" cy="32.6" fill="#FF7CAD" r="1.5" />
+    <circle cx="34.5" cy="22.6" fill="#B81961" r="1.5" />
+    <circle cx="9.5" cy="22.6" fill="#B81961" r="1.5" />
+  </svg>
+);
+
 export const AmplitudeIcon = ({ size = 16 }: IconProps): ReactElement => (
   // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
   <svg

@@ -1,0 +1,34 @@
+---
+title: Troubleshooting
+description: Common InSided connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from your InSided admin panel under Settings > API.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has read access to posts, articles, and ideas.
+
+**Wrong community URL:** If you get connection errors, verify the community URL matches your InSided instance. Include the full URL with `https://`.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Articles not appearing:** Verify that the Sync Articles toggle is enabled in the connector settings.
+
+**Ideas not appearing:** Verify that the Sync Ideas toggle is enabled in the connector settings.
+
+**Old content missing:** Check the lookback days setting. If set to a non-zero value, only content within that period is synced on the initial run.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** The InSided API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your InSided community has no content, the sync will complete with zero documents. Verify content exists in your community.

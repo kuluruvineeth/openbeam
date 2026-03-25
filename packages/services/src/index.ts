@@ -1039,6 +1039,29 @@ export {
   transformHubSpotTicket,
 } from "./hubspot";
 export type {
+  InsidedArticle,
+  InsidedClient,
+  InsidedIdea,
+  InsidedPost,
+  InsidedUser,
+} from "./insided";
+export {
+  createIdea as createInsidedIdea,
+  createInsidedClient,
+  createPost as createInsidedPost,
+  createReply as createInsidedReply,
+  InsidedApiError,
+  insidedFullSync,
+  insidedIncrementalSync,
+  listArticles as listInsidedArticles,
+  listIdeas as listInsidedIdeas,
+  listPosts as listInsidedPosts,
+  transformArticle as transformInsidedArticle,
+  transformIdea as transformInsidedIdea,
+  transformPost as transformInsidedPost,
+  voteIdea as voteInsidedIdea,
+} from "./insided";
+export type {
   IntercomArticle,
   IntercomArticleActionResult,
   IntercomClient,

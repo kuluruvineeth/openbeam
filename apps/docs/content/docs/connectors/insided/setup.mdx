@@ -1,0 +1,40 @@
+---
+title: Setup
+description: Connect InSided to OpenBeam via API key
+---
+
+# InSided Setup
+
+## Prerequisites
+
+- An InSided community with admin access
+- Access to the InSided API settings
+
+## Step 1: Generate an API Key
+
+1. Log into your InSided community admin panel
+2. Go to **Settings > API** (or **Settings > Integrations > API**)
+3. Click **Create API key**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access to posts, articles, and ideas
+6. Copy the generated API key
+
+## Step 2: Determine Your Community URL
+
+Your community URL is the base URL of your InSided community. It is typically one of:
+- `https://community.yourcompany.com`
+- `https://yourcompany.insided.com`
+
+Check your browser address bar when viewing your community.
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **InSided**
+3. Enter your **API Key**
+4. Enter your **Community URL**
+5. Click **Connect** to validate and activate
+
+## Step 4: Initial Sync
+
+After activation, OpenBeam runs a full sync of your InSided data. The first sync fetches all community posts, knowledge base articles (if enabled), and product ideas (if enabled).
