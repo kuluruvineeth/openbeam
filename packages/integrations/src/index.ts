@@ -54,6 +54,7 @@ import { klueApp } from "./klue/config";
 import { lessonlyApp } from "./lessonly/config";
 import { linearApp } from "./linear/config";
 import { lookerStudioApp } from "./looker-studio/config";
+import { loopioApp } from "./loopio/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
@@ -149,6 +150,7 @@ export {
   lessonlyApp,
   linearApp,
   lookerStudioApp,
+  loopioApp,
   marketoApp,
   microsoftCalendarApp,
   mondayApp,
@@ -894,4 +896,5 @@ export const appStore: UnifiedApp[] = [
   klueApp,
   lessonlyApp,
   lookerStudioApp,
+  loopioApp,
 ];

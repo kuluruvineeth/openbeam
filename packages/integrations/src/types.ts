@@ -132,6 +132,7 @@ export enum AppType {
   KLUE = "KLUE",
   LESSONLY = "LESSONLY",
   LOOKER_STUDIO = "LOOKER_STUDIO",
+  LOOPIO = "LOOPIO",
 }
 
 export enum SyncMode {

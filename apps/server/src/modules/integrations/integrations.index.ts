@@ -53,6 +53,7 @@ import klue from "./klue/klue.index";
 import lessonly from "./lessonly/lessonly.index";
 import linear from "./linear/linear.index";
 import lookerStudio from "./looker-studio/looker-studio.index";
+import loopio from "./loopio/loopio.index";
 import marketo from "./marketo/marketo.index";
 import microsoftCalendar from "./microsoft-calendar/microsoft-calendar.index";
 import miro from "./miro/miro.index";
@@ -153,6 +154,7 @@ integrations.route("/jfrog", jfrog);
 integrations.route("/klue", klue);
 integrations.route("/lessonly", lessonly);
 integrations.route("/looker-studio", lookerStudio);
+integrations.route("/loopio", loopio);
 
 integrations.get("/health", (c) =>
   c.json({

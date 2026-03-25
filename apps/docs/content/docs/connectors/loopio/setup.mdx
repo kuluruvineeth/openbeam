@@ -1,0 +1,31 @@
+---
+title: Setup
+description: Connect Loopio to OpenBeam via API key
+---
+
+# Loopio Setup
+
+## Prerequisites
+
+- A Loopio account with admin access
+- Access to Loopio API key management
+
+## Step 1: Generate an API Key
+
+1. Log into [Loopio](https://app.loopio.com)
+2. Go to **Settings > API**
+3. Click **Generate New API Key**
+4. Name it something like "OpenBeam Integration"
+5. Grant **Read** access to projects, library, and tags
+6. Copy the generated API key
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Loopio**
+3. Enter your **API Key**
+4. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Loopio data. The first sync fetches all projects, library entries, and tags. Depending on the size of your Loopio library, this may take several minutes.

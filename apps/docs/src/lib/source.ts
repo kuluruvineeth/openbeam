@@ -69,6 +69,7 @@ import {
   LessonlyIcon,
   LinearIcon,
   LookerStudioIcon,
+  LoopioIcon,
   MarketoIcon,
   MatterportIcon,
   MicrosoftCalendarIcon,
@@ -206,6 +207,7 @@ const customIconMap: Record<
   Klue: KlueIcon,
   Lessonly: LessonlyIcon,
   LookerStudio: LookerStudioIcon,
+  Loopio: LoopioIcon,
 };
 
 export const source = loader({

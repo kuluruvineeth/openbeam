@@ -1,0 +1,33 @@
+---
+title: Features
+description: What Loopio data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Projects
+Full-text search across RFP/RFI/DDQ project names and descriptions. Metadata includes status, deadline, owner, question count, and tags.
+
+### Library Entries
+Search across reusable Q&A pairs from the Loopio knowledge library. Each entry contains a question, answer, category, and tags. Enables quick lookup of approved responses for common RFP questions.
+
+### Tags
+Tag taxonomy entries with associated library entry counts. Useful for browsing the knowledge library by topic.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Library Entry** | Create a new Q&A pair with question, answer, category, and tags |
+| **Update Library Entry** | Update an existing library entry's question, answer, or tags |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Owner attribution** from project assignments
+- **Reviewer attribution** from library entry review history
+- **Tag relationships** between library entries and categories

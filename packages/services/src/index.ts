@@ -1336,6 +1336,26 @@ export {
   transformReport as transformLookerStudioReport,
 } from "./looker-studio";
 export type {
+  LoopioClient,
+  LoopioLibraryEntry,
+  LoopioProject,
+  LoopioTag,
+} from "./loopio";
+export {
+  createLibraryEntry as createLoopioLibraryEntry,
+  createLoopioClient,
+  LoopioApiError,
+  listLibraryEntries as listLoopioLibraryEntries,
+  listProjects as listLoopioProjects,
+  listTags as listLoopioTags,
+  loopioFullSync,
+  loopioIncrementalSync,
+  transformLibraryEntry as transformLoopioLibraryEntry,
+  transformProject as transformLoopioProject,
+  transformTag as transformLoopioTag,
+  updateLibraryEntry as updateLoopioLibraryEntry,
+} from "./loopio";
+export type {
   MarketoActivity,
   MarketoActivityType,
   MarketoCampaign,

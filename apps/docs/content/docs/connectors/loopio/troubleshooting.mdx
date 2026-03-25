@@ -1,0 +1,30 @@
+---
+title: Troubleshooting
+description: Common Loopio connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API key:** Verify your API key is correct and has not been revoked. Re-generate from Loopio Settings > API if needed.
+
+**403 Forbidden:** The API key lacks sufficient permissions. Ensure it has read access to projects, library, and tags.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider increasing the sync interval.
+
+## Missing Data
+
+**Old projects not appearing:** Check the lookback days setting. Only projects within the lookback period are synced on the initial run when a non-zero lookback is configured.
+
+**Library entries missing:** Verify the API key has read access to the library endpoint. Some Loopio plans may restrict API access to certain features.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Loopio API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Loopio account has no projects or library entries, the sync will complete with zero documents.

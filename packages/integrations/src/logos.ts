@@ -58,6 +58,7 @@ import { Logo as KlueLogo } from "./klue/assets/logo";
 import { Logo as LessonlyLogo } from "./lessonly/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as LookerStudioLogo } from "./looker-studio/assets/logo";
+import { Logo as LoopioLogo } from "./loopio/assets/logo";
 import { Logo as MarketoLogo } from "./marketo/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MicrosoftCalendarLogo } from "./microsoft-calendar/assets/logo";
@@ -181,6 +182,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.KLUE]: KlueLogo,
   [AppType.LESSONLY]: LessonlyLogo,
   [AppType.LOOKER_STUDIO]: LookerStudioLogo,
+  [AppType.LOOPIO]: LoopioLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

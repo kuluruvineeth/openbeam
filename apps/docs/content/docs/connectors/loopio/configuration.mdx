@@ -1,0 +1,19 @@
+---
+title: Configuration
+description: Configure which Loopio data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Key** | Loopio API key (Bearer token) | Required |
+| **Lookback Days** | How far back to sync projects on first run (0 = all time) | 0 |
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches projects. Set to 0 to sync all projects regardless of age. For large Loopio accounts with many historical projects, consider starting with a shorter period (e.g., 365 days).
+
+Library entries and tags are always fully synced regardless of the lookback setting.

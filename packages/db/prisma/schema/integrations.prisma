@@ -171,6 +171,7 @@ enum AppType {
   KLUE
   LESSONLY
   LOOKER_STUDIO
+  LOOPIO
 }
 
 enum ConnectorStatus {

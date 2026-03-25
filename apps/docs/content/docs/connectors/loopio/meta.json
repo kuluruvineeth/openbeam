@@ -1,0 +1,12 @@
+{
+  "title": "Loopio",
+  "icon": "Loopio",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}
