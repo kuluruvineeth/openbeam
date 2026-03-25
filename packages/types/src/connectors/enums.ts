@@ -110,6 +110,7 @@ export const AppTypeSchema = z.enum([
   "JFROG",
   "KLUE",
   "LESSONLY",
+  "LOOKER_STUDIO",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

@@ -1,0 +1,38 @@
+---
+title: Troubleshooting
+description: Common Looker Studio connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid credentials:** Verify your OAuth client ID and secret are correct. Re-download the credentials JSON from Google Cloud Console if needed.
+
+**403 Forbidden:** The authenticated account lacks access to Looker Studio files. Ensure the Google Drive API is enabled in your Google Cloud project.
+
+**Token expired:** OAuth tokens are automatically refreshed. If refresh fails, re-authenticate by disconnecting and reconnecting the connector.
+
+## Missing Reports
+
+**Reports not appearing:** The connector only indexes reports accessible to the authenticated user. Shared reports from other users appear only if they are shared with the connected account.
+
+**Shared Drive reports missing:** Ensure the `includeItemsFromAllDrives` flag is active (enabled by default). The authenticated account needs access to the shared drive.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited by Google Drive API. If syncs are consistently slow, consider increasing the sync interval.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Google Drive API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Zero results:** If no Looker Studio reports exist in the account, the sync completes with zero documents. Verify you have Looker Studio reports by visiting [lookerstudio.google.com](https://lookerstudio.google.com).
+
+## Service Account Issues
+
+**Domain-wide delegation not working:** Verify the service account has domain-wide delegation enabled and the required scopes are added in Google Workspace Admin Console under **Security > API controls > Domain-wide delegation**.
+
+**Wrong admin email:** The delegated email must be a Google Workspace admin account. Regular user accounts cannot be used for domain-wide delegation.

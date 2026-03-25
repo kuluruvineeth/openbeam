@@ -53,6 +53,7 @@ import { jiraApp } from "./jira/config";
 import { klueApp } from "./klue/config";
 import { lessonlyApp } from "./lessonly/config";
 import { linearApp } from "./linear/config";
+import { lookerStudioApp } from "./looker-studio/config";
 import { marketoApp } from "./marketo/config";
 import { matterportApp } from "./matterport/config";
 import { microsoftCalendarApp } from "./microsoft-calendar/config";
@@ -147,6 +148,7 @@ export {
   klueApp,
   lessonlyApp,
   linearApp,
+  lookerStudioApp,
   marketoApp,
   microsoftCalendarApp,
   mondayApp,
@@ -602,6 +604,20 @@ export type {
 } from "./linear/types";
 export { appLogos, connectorLogos } from "./logos";
 export type {
+  ExchangeLookerStudioCodeParams,
+  GenerateLookerStudioAuthUrlParams,
+  RefreshLookerStudioTokenParams,
+} from "./looker-studio/oauth";
+export {
+  exchangeLookerStudioCode,
+  generateLookerStudioAuthUrl,
+  refreshLookerStudioToken,
+} from "./looker-studio/oauth";
+export type {
+  LookerStudioAuthMethod,
+  LookerStudioConfig,
+} from "./looker-studio/types";
+export type {
   ExchangeMarketoCredentialsParams,
   MarketoAuthResult,
   MarketoTokenResponse,
@@ -877,4 +893,5 @@ export const appStore: UnifiedApp[] = [
   jfrogApp,
   klueApp,
   lessonlyApp,
+  lookerStudioApp,
 ];

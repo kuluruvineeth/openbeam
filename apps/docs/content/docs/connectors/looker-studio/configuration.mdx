@@ -1,0 +1,44 @@
+---
+title: Configuration
+description: Configure Looker Studio connector settings
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Authentication** | OAuth 2.0 or Service Account | OAuth 2.0 |
+| **Credentials** | Upload JSON or enter manually | Upload JSON |
+| **Admin Email** | Workspace admin for service account delegation | Required for SA |
+
+## Authentication Methods
+
+### OAuth 2.0 (Personal)
+
+Best for individual users or small teams. The connector accesses reports visible to the authenticated Google account.
+
+**Credentials options:**
+- **Upload JSON**: Upload the OAuth credentials JSON downloaded from Google Cloud Console
+- **Enter manually**: Enter the Client ID and Client Secret directly
+
+### Service Account (Workspace)
+
+Best for organizations using Google Workspace. Provides domain-wide access to all Looker Studio content through impersonation.
+
+**Required setup:**
+1. Service account with domain-wide delegation enabled
+2. Admin email for impersonation
+3. Required scopes added in Workspace Admin Console:
+   - `https://www.googleapis.com/auth/drive.readonly`
+   - `https://www.googleapis.com/auth/userinfo.email`
+   - `https://www.googleapis.com/auth/userinfo.profile`
+
+## Scope of Access
+
+The connector discovers Looker Studio files via the Google Drive API using MIME type filtering. It indexes:
+- Reports: `application/vnd.google-apps.data-studio-report`
+- Data Sources: `application/vnd.google-apps.data-studio-data-source`
+
+Only files accessible to the authenticated user (or delegated account) are indexed.

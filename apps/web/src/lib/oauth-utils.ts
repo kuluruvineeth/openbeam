@@ -43,7 +43,8 @@ type IntegrationName =
   | "bynder"
   | "highspot"
   | "google-sites"
-  | "harvest";
+  | "harvest"
+  | "looker-studio";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -242,6 +243,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  "looker-studio": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/looker-studio/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

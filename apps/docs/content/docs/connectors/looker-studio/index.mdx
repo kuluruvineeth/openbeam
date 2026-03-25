@@ -1,0 +1,37 @@
+---
+title: Looker Studio
+description: Search across dashboards, reports, and data sources from Looker Studio
+---
+
+# Looker Studio
+
+Index business intelligence content from Looker Studio (formerly Google Data Studio) including interactive dashboards, reports, and connected data sources. Uses Google Drive API to discover Looker Studio assets by MIME type with OAuth 2.0 or domain-wide delegation.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Reports** | Name, description, owner, created/modified dates, URL |
+| **Data Sources** | Name, description, owner, created/modified dates, connection type |
+
+## Authentication
+
+**Method:** Google OAuth 2.0
+
+Uses the same Google OAuth flow as Gmail, Google Drive, and Google Sites. Requires `drive.readonly` scope to discover Looker Studio files.
+
+## Quick Start
+
+1. Create OAuth credentials in Google Cloud Console
+2. Add the Looker Studio connector in OpenBeam
+3. Upload credentials JSON or enter client ID/secret manually
+4. Authorize via Google OAuth
+5. Initial sync begins automatically
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/looker-studio/setup" description="OAuth credentials and connector configuration" />
+  <Card title="Features" href="/docs/connectors/looker-studio/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/looker-studio/configuration" description="Authentication methods and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/looker-studio/sync" description="Full sync, incremental sync via modifiedTime" />
+  <Card title="Troubleshooting" href="/docs/connectors/looker-studio/troubleshooting" description="Common issues and fixes" />
+</Cards>

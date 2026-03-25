@@ -68,6 +68,7 @@ import {
   KlueIcon,
   LessonlyIcon,
   LinearIcon,
+  LookerStudioIcon,
   MarketoIcon,
   MatterportIcon,
   MicrosoftCalendarIcon,
@@ -204,6 +205,7 @@ const customIconMap: Record<
   JFrog: JFrogIcon,
   Klue: KlueIcon,
   Lessonly: LessonlyIcon,
+  LookerStudio: LookerStudioIcon,
 };
 
 export const source = loader({

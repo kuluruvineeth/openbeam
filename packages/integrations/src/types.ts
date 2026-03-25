@@ -131,6 +131,7 @@ export enum AppType {
   JFROG = "JFROG",
   KLUE = "KLUE",
   LESSONLY = "LESSONLY",
+  LOOKER_STUDIO = "LOOKER_STUDIO",
 }
 
 export enum SyncMode {

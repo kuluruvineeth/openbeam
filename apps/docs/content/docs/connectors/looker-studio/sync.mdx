@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Looker Studio data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all Looker Studio entities:
+
+1. **Reports** discovered via Google Drive API with MIME type filter
+2. **Data Sources** discovered via Google Drive API with MIME type filter
+
+Results are streamed in batches of 50 to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Google Drive's `modifiedTime` filter to fetch only reports and data sources modified since the last sync. This reduces API calls and sync duration.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Reports | Every 60 minutes |
+| Data Sources | Every 60 minutes |
+
+## Rate Limits
+
+Google Drive API enforces rate limits of approximately 12,000 requests per minute. The connector handles rate limiting with exponential backoff and automatic retry.
+
+## Discovery Method
+
+Looker Studio files are stored as Google Drive files with specific MIME types:
+- Reports: `application/vnd.google-apps.data-studio-report`
+- Data Sources: `application/vnd.google-apps.data-studio-data-source`
+
+The connector queries the Drive API with these MIME type filters, including items from shared drives.

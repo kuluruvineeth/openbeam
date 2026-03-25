@@ -1,0 +1,12 @@
+{
+  "title": "Looker Studio",
+  "icon": "LookerStudio",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -170,6 +170,7 @@ enum AppType {
   JFROG
   KLUE
   LESSONLY
+  LOOKER_STUDIO
 }
 
 enum ConnectorStatus {

@@ -1318,6 +1318,24 @@ export {
   verifyWebhookSignature as verifyLinearWebhookSignature,
 } from "./linear";
 export type {
+  LookerStudioClient,
+  LookerStudioDataSource,
+  LookerStudioReport,
+  ReportActionResult as LookerStudioReportActionResult,
+} from "./looker-studio";
+export {
+  createLookerStudioClient,
+  getReportMetadata as getLookerStudioReportMetadata,
+  LookerStudioApiError,
+  LookerStudioAuth,
+  listAllDataSources as listAllLookerStudioDataSources,
+  listAllReports as listAllLookerStudioReports,
+  lookerStudioFullSync,
+  lookerStudioIncrementalSync,
+  transformDataSource as transformLookerStudioDataSource,
+  transformReport as transformLookerStudioReport,
+} from "./looker-studio";
+export type {
   MarketoActivity,
   MarketoActivityType,
   MarketoCampaign,
