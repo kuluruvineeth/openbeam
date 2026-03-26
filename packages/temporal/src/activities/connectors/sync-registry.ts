@@ -100,6 +100,7 @@ import {
   dynamics365IncrementalSync,
   egnyteFullSync,
   egnyteIncrementalSync,
+  executePullSync,
   fhirFullSync,
   fhirIncrementalSync,
   figmaFullSync,
@@ -195,6 +196,10 @@ import {
   zoomIncrementalSync,
 } from "@openbeam/services";
 import { logger } from "@openbeam/services/lib/logger";
+import {
+  type CustomPullSyncCursor,
+  PullConnectorDefinitionSchema,
+} from "@openbeam/types/services/connectors/custom-pull";
 import type { ZoomSyncCursor } from "@openbeam/types/services/connectors/zoom";
 import type { GenericDocument } from "@openbeam/vespa";
 import { ApplicationFailure } from "@temporalio/common";
@@ -4972,6 +4977,62 @@ export function registerAllSyncFactories(): void {
           });
 
       for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "CUSTOM",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const pullConfigRaw = config?.pullConfig;
+
+      if (!pullConfigRaw) {
+        throw ApplicationFailure.nonRetryable(
+          `No pull config found for custom connector ${connectorId}`,
+          "ConfigError"
+        );
+      }
+
+      const parsed = PullConnectorDefinitionSchema.safeParse(pullConfigRaw);
+      if (!parsed.success) {
+        throw ApplicationFailure.nonRetryable(
+          `Invalid pull config for custom connector ${connectorId}: ${parsed.error.message}`,
+          "ConfigError"
+        );
+      }
+
+      const pullDefinition = parsed.data;
+      const slug = (config?.slug as string) ?? connectorId;
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        slug,
+      };
+
+      const pullCursor: CustomPullSyncCursor = {
+        lastSyncTime: parseNumericConfig(cursor?.lastSyncTime),
+        lastFullSync: parseNumericConfig(cursor?.lastFullSync),
+        endpointCursors:
+          (cursor?.endpointCursors as Record<
+            string,
+            Record<string, unknown>
+          >) ?? {},
+      };
+
+      for await (const batch of executePullSync(
+        pullDefinition,
+        context,
+        pullCursor
+      )) {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor as SyncCursor,

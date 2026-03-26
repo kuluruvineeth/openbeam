@@ -16,6 +16,11 @@ model CustomConnectorDefinition {
   totalPushes    Int @default(0)
   lastPushAt     DateTime?
 
+  pullConfig             Json?
+  pullEnabled            Boolean  @default(false)
+  pullScheduleCron       String?
+  lastPullSyncAt         DateTime?
+
   webhookConfig          Json?
   webhookEnabled         Boolean  @default(false)
   webhookSigningSecret   String?

@@ -178,6 +178,35 @@ export function updateWebhookConfig(
   });
 }
 
+export interface UpdatePullConfigInput {
+  pullConfig: Record<string, unknown>;
+  pullEnabled: boolean;
+  pullScheduleCron?: string;
+}
+
+export function updatePullConfig(
+  db: Database,
+  id: string,
+  input: UpdatePullConfigInput
+) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: {
+      pullConfig: input.pullConfig as Prisma.InputJsonValue,
+      pullEnabled: input.pullEnabled,
+      pullScheduleCron: input.pullScheduleCron ?? null,
+    },
+    include: { connector: true },
+  });
+}
+
+export function updateLastPullSyncAt(db: Database, id: string) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: { lastPullSyncAt: new Date() },
+  });
+}
+
 export interface CreateCustomConnectorApiKeyInput {
   definitionId: string;
   name: string;

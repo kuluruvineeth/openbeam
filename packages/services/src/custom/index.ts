@@ -4,6 +4,17 @@ export {
   isCustomConnectorKey,
   verifyCustomConnectorApiKey,
 } from "./api-key-manager";
+export {
+  CustomPullApiError,
+  createPaginator,
+  executePullSync,
+  FieldMappingError,
+  mapItemToDocument,
+  PaginationError,
+  type ResolvedAuth,
+  resolveAuth,
+  resolveJsonPathArray,
+} from "./pull";
 export { type PushSingleResult, pushSingleDocument } from "./push/api";
 export { pushBatch } from "./push/batch";
 export {
