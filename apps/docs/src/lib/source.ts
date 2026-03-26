@@ -15,6 +15,7 @@ import { type InferPageType, loader } from "fumadocs-core/source";
 import { createElement, type ReactElement } from "react";
 import { docs } from "@/.source";
 import {
+  AhaIcon,
   AirtableIcon,
   AmplitudeIcon,
   AsanaIcon,
@@ -136,6 +137,7 @@ const customIconMap: Record<
   string,
   (props: { size?: number }) => ReactElement
 > = {
+  Aha: AhaIcon,
   Airtable: AirtableIcon,
   Asana: AsanaIcon,
   Slack: SlackIcon,
