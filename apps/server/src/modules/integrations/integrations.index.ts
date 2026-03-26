@@ -80,6 +80,7 @@ import seismic from "./seismic/seismic.index";
 import servicenow from "./servicenow/servicenow.index";
 import sharepoint from "./sharepoint/sharepoint.index";
 import showpad from "./showpad/showpad.index";
+import simpplr from "./simpplr/simpplr.index";
 import slack from "./slack/slack.index";
 import smartsheet from "./smartsheet/smartsheet.index";
 import smartthings from "./smartthings/smartthings.index";
@@ -178,6 +179,7 @@ integrations.route("/panopto", panopto);
 integrations.route("/phabricator", phabricator);
 integrations.route("/seismic", seismic);
 integrations.route("/showpad", showpad);
+integrations.route("/simpplr", simpplr);
 integrations.route("/smartsheet", smartsheet);
 
 integrations.get("/health", (c) =>

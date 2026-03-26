@@ -144,6 +144,7 @@ export enum AppType {
   PROCORE = "PROCORE",
   SEISMIC = "SEISMIC",
   SHOWPAD = "SHOWPAD",
+  SIMPPLR = "SIMPPLR",
   SMARTSHEET = "SMARTSHEET",
 }
 

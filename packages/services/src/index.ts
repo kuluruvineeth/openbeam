@@ -2099,6 +2099,32 @@ export {
   updateShowpadAssetMetadata,
 } from "./showpad";
 export type {
+  SimpplrClient,
+  SimpplrFile,
+  SimpplrNewsArticle,
+  SimpplrPage,
+  SimpplrPerson,
+  SimpplrSite,
+} from "./simpplr";
+export {
+  createPage as createSimpplrPage,
+  createSimpplrClient,
+  listFiles as listSimpplrFiles,
+  listNews as listSimpplrNews,
+  listPages as listSimpplrPages,
+  listPeople as listSimpplrPeople,
+  listSites as listSimpplrSites,
+  SimpplrApiError,
+  simpplrFullSync,
+  simpplrIncrementalSync,
+  transformFile as transformSimpplrFile,
+  transformNews as transformSimpplrNews,
+  transformPage as transformSimpplrPage,
+  transformPerson as transformSimpplrPerson,
+  transformSite as transformSimpplrSite,
+  updatePage as updateSimpplrPage,
+} from "./simpplr";
+export type {
   AppMentionEvent,
   BlockActionPayload,
   ChannelConfigSettings,

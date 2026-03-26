@@ -1,0 +1,56 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Simpplr connector
+---
+
+# Simpplr Troubleshooting
+
+## Authentication Errors
+
+### "Cannot access Simpplr. Check your API key and instance name."
+
+- Verify the API key is correct and has not been revoked
+- Confirm the instance name matches your Simpplr URL (e.g., `company` for `company.simpplr.com`)
+- Ensure the API key has read permissions for the required endpoints
+
+### 401 Unauthorized
+
+- The API key may have expired or been rotated
+- Regenerate a new API key from **Admin Settings > API**
+
+### 403 Forbidden
+
+- The API key lacks the required permissions
+- Contact your Simpplr admin to grant read access to sites, pages, news, files, and people
+
+## Sync Issues
+
+### Missing Content
+
+- Check that the relevant entity types are enabled in connector settings
+- Verify the API key has permissions for the missing content type
+- Check the Simpplr admin panel for content visibility settings
+
+### Slow Sync
+
+- Large instances may take time on the initial full sync
+- Subsequent incremental syncs will be faster
+- Consider reducing the lookback period for the initial sync
+
+### Rate Limiting
+
+- The connector automatically handles rate limits with exponential backoff
+- If persistent, check if other integrations are consuming API quota
+- Contact Simpplr support to request higher rate limits if needed
+
+## Data Quality
+
+### HTML in Search Results
+
+- Content is automatically stripped of HTML tags during transformation
+- If HTML fragments appear, report the issue for investigation
+
+### Missing People Fields
+
+- Some profile fields may be empty if not populated in Simpplr
+- Manager relationships require the manager to exist in the directory

@@ -1,0 +1,1 @@
+export { simpplrApp } from "./config";

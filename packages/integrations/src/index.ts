@@ -89,6 +89,7 @@ import { seismicApp } from "./seismic/config";
 import { servicenowApp } from "./servicenow/config";
 import { sharePointApp } from "./sharepoint/config";
 import { showpadApp } from "./showpad/config";
+import { simpplrApp } from "./simpplr/config";
 import { slackApp } from "./slack/config";
 import { smartsheetApp } from "./smartsheet/config";
 import { smartThingsApp } from "./smartthings/config";
@@ -134,6 +135,7 @@ export {
   s3App,
   seismicApp,
   showpadApp,
+  simpplrApp,
   smartsheetApp,
   azureIotApp,
   bacnetApp,
@@ -1032,5 +1034,6 @@ export const appStore: UnifiedApp[] = [
   procoreApp,
   seismicApp,
   showpadApp,
+  simpplrApp,
   smartsheetApp,
 ];

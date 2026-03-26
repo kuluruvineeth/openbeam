@@ -93,6 +93,7 @@ import { Logo as SeismicLogo } from "./seismic/assets/logo";
 import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
 import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as ShowpadLogo } from "./showpad/assets/logo";
+import { Logo as SimpplrLogo } from "./simpplr/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
 import { Logo as SmartsheetLogo } from "./smartsheet/assets/logo";
 import { Logo as SmartThingsLogo } from "./smartthings/assets/logo";
@@ -206,6 +207,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.PHABRICATOR]: PhabricatorLogo,
   [AppType.SEISMIC]: SeismicLogo,
   [AppType.SHOWPAD]: ShowpadLogo,
+  [AppType.SIMPPLR]: SimpplrLogo,
   [AppType.SMARTSHEET]: SmartsheetLogo,
 };
 

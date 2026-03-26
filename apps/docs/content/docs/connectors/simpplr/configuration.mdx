@@ -1,0 +1,24 @@
+---
+title: Configuration
+description: Configure the Simpplr connector entity selection and sync settings
+---
+
+# Simpplr Configuration
+
+## Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| API Key | Password | Required | Simpplr API key (Bearer token) |
+| Instance | Text | Required | Instance name (e.g., `company` for `company.simpplr.com`) |
+| Sync Files | Toggle | On | Include uploaded files in search results |
+| Sync People | Toggle | On | Include employee profiles in search results |
+| Lookback Days | Number | 0 | Days of history to sync on first run (0 = all time) |
+
+## Entity Selection
+
+Sites, pages, and news are always synced. Files and people can be toggled independently.
+
+## Rate Limits
+
+The connector respects Simpplr's API rate limits of 100 requests per minute. Automatic backoff and retry logic handles rate-limited responses.

@@ -1,0 +1,12 @@
+{
+  "title": "Simpplr",
+  "icon": "Simpplr",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

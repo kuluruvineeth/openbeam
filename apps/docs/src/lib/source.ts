@@ -102,6 +102,7 @@ import {
   ServiceNowIcon,
   SharePointIcon,
   ShowpadIcon,
+  SimpplrIcon,
   SlackIcon,
   SmartsheetIcon,
   SmartThingsIcon,
@@ -231,6 +232,7 @@ const customIconMap: Record<
   NiceCxone: NiceCxoneIcon,
   Panopto: PanoptoIcon,
   Phabricator: PhabricatorIcon,
+  Simpplr: SimpplrIcon,
   Smartsheet: SmartsheetIcon,
 };
 

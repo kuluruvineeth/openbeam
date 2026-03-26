@@ -1,0 +1,39 @@
+---
+title: Simpplr
+description: Search sites, pages, news, files, and people from your Simpplr intranet
+---
+
+# Simpplr
+
+Index intranet content from Simpplr including sites, wiki pages, news announcements, uploaded files, and the employee directory. Supports API key authentication with offset-based pagination and modifiedAfter incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Sites** | Name, description, type, status, member count, owner |
+| **Pages** | Title, body content, author, site, status |
+| **News** | Title, content, category, tags, published date, author |
+| **Files** | Title, description, file name, type, size, author |
+| **People** | Name, email, title, department, location, phone, bio, manager |
+
+## Authentication
+
+**Method:** API Key (Bearer Token)
+
+Generate an API key from **Admin Settings > API** in your Simpplr instance. The key must have read access to sites, pages, news, files, and people.
+
+## Quick Start
+
+1. Generate an API key in Simpplr
+2. Add the Simpplr connector in OpenBeam
+3. Enter your API key and instance name
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/simpplr/setup" description="API key generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/simpplr/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/simpplr/configuration" description="Entity selection, instance settings, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/simpplr/sync" description="Full sync, incremental sync via modifiedAfter queries" />
+  <Card title="Troubleshooting" href="/docs/connectors/simpplr/troubleshooting" description="Common issues and fixes" />
+</Cards>

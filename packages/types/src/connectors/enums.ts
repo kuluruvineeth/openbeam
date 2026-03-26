@@ -123,6 +123,7 @@ export const AppTypeSchema = z.enum([
   "PROCORE",
   "SEISMIC",
   "SHOWPAD",
+  "SIMPPLR",
   "SMARTSHEET",
 ]);
 

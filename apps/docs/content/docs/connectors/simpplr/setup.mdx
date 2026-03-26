@@ -1,0 +1,41 @@
+---
+title: Setup
+description: Set up the Simpplr connector with API key authentication
+---
+
+# Simpplr Setup
+
+## Prerequisites
+
+- A Simpplr instance with admin access
+- API key with read permissions for sites, pages, news, files, and people
+
+## Step 1: Generate an API Key
+
+1. Log in to your Simpplr instance as an admin
+2. Navigate to **Admin Settings > API**
+3. Click **Generate API Key**
+4. Copy the generated API key (it will not be shown again)
+
+## Step 2: Add the Connector
+
+1. In OpenBeam, go to **Settings > Connectors**
+2. Click **Add Connector** and select **Simpplr**
+3. Enter your **API Key** and **Instance Name** (e.g., `company` for `company.simpplr.com`)
+4. Click **Connect**
+
+## Step 3: Configure Sync Options
+
+1. Choose which entity types to sync (sites, pages, news, files, people)
+2. Set the lookback period for historical data
+3. Click **Save** to begin the initial sync
+
+## Permissions Required
+
+| Permission | Required For |
+|-----------|-------------|
+| Read Sites | Indexing site metadata and structure |
+| Read Pages | Indexing page content and metadata |
+| Read News | Indexing news articles and announcements |
+| Read Files | Indexing uploaded files and documents |
+| Read People | Indexing employee directory profiles |

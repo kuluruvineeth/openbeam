@@ -1,0 +1,38 @@
+---
+title: Sync Behavior
+description: How Simpplr full and incremental sync works
+---
+
+# Simpplr Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all content from your Simpplr instance:
+
+1. **Sites** - All content hubs and communities
+2. **Pages** - All wiki pages and content articles
+3. **News** - All news articles and announcements
+4. **Files** - All uploaded documents (if enabled)
+5. **People** - All employee profiles (if enabled)
+
+Documents are fetched in pages of 100 and yielded in batches of 50 for indexing.
+
+## Incremental Sync
+
+Subsequent syncs use the `modifiedAfter` filter to fetch only content updated since the last sync. This reduces API calls and processing time.
+
+If incremental sync encounters an error, it automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Sites | Every 60 minutes |
+| Pages | Every 15 minutes |
+| News | Every 15 minutes |
+| Files | Every 30 minutes |
+| People | Every 60 minutes |
+
+## Checksum Deduplication
+
+Each document is checksummed during transformation. Unchanged documents are skipped during indexing to reduce write operations.
