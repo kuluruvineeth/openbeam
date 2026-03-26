@@ -88,6 +88,7 @@ import { samsaraApp } from "./samsara/config";
 import { seismicApp } from "./seismic/config";
 import { servicenowApp } from "./servicenow/config";
 import { sharePointApp } from "./sharepoint/config";
+import { showpadApp } from "./showpad/config";
 import { slackApp } from "./slack/config";
 import { smartThingsApp } from "./smartthings/config";
 import { teamsApp } from "./teams/config";
@@ -131,6 +132,7 @@ export {
   bitbucketApp,
   s3App,
   seismicApp,
+  showpadApp,
   azureIotApp,
   bacnetApp,
   boxApp,
@@ -861,6 +863,20 @@ export {
   generateSharePointAuthUrl,
   refreshSharePointToken,
 } from "./sharepoint/oauth";
+export type {
+  ExchangeShowpadCodeParams,
+  GenerateShowpadAuthUrlParams,
+  RefreshShowpadTokenParams,
+  ShowpadCurrentUser,
+  ShowpadOAuthResult,
+  ShowpadTokenResponse,
+} from "./showpad";
+export {
+  exchangeShowpadCode,
+  generateShowpadAuthUrl,
+  refreshShowpadToken,
+  ShowpadOAuthError,
+} from "./showpad";
 export * from "./slack/oauth";
 export * from "./slack/types";
 export type {
@@ -1013,4 +1029,5 @@ export const appStore: UnifiedApp[] = [
   phabricatorApp,
   procoreApp,
   seismicApp,
+  showpadApp,
 ];

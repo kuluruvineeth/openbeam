@@ -1,0 +1,25 @@
+---
+title: Configuration
+description: Configure which Showpad data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Subdomain** | Your Showpad subdomain (e.g., `acme`) | Required |
+| **Client ID** | OAuth app client ID | Required |
+| **Client Secret** | OAuth app client secret | Required |
+| **Sync Channels** | Index content channels | Enabled |
+| **Sync Experiences** | Index shared experiences | Enabled |
+| **Sync Tags** | Index content tags | Enabled |
+
+## Subdomain Configuration
+
+Showpad uses subdomain-specific API endpoints. All API calls are routed to `https://{subdomain}.showpad.biz/api/v3/`. Ensure your subdomain matches your Showpad instance exactly.
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Assets are always synced. Channels, experiences, and tags can be individually disabled to reduce sync time.

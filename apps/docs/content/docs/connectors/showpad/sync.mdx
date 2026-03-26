@@ -1,0 +1,36 @@
+---
+title: Sync Behavior
+description: How Showpad data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Showpad:
+
+1. **Assets** via offset-based pagination (100 per page)
+2. **Channels** (if enabled) via offset-based pagination
+3. **Experiences** (if enabled) via offset-based pagination
+4. **Tags** (if enabled) via offset-based pagination
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use the `updatedSince` parameter on the assets endpoint to fetch only content modified since the last sync. Channels, experiences, and tags are filtered client-side by updatedAt comparison.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Assets | Every 15 minutes |
+| Channels | Every 30 minutes |
+| Experiences | Every 30 minutes |
+| Tags | Every 60 minutes |
+
+## Rate Limits
+
+Showpad enforces rate limits of 600 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

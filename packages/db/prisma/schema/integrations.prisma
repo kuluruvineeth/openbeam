@@ -181,6 +181,7 @@ enum AppType {
   PHABRICATOR
   PROCORE
   SEISMIC
+  SHOWPAD
 }
 
 enum ConnectorStatus {

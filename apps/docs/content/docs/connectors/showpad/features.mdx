@@ -1,0 +1,36 @@
+---
+title: Features
+description: What Showpad data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Assets
+Full-text search across asset names, descriptions, tags, and channel assignments. Metadata includes resource type, slug, expiration date, sensitivity flag, and shareability status.
+
+### Channels
+Content channels with names, descriptions, and asset counts. Useful for browsing content by organizational category.
+
+### Experiences
+Shared content packages and microsites with creator information, status, and timestamps. Supports searching by creator name or experience status.
+
+### Tags
+Content categorization tags used across the Showpad platform. Enables tag-based content discovery.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Channel** | Create a new content channel with name and description |
+| **Update Asset Metadata** | Update metadata fields on an existing asset |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Tag relationships** linking assets to their categorization
+- **Channel membership** connecting assets to content channels
+- **Creator attribution** from shared experiences

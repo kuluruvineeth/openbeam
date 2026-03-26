@@ -79,6 +79,7 @@ import samsara from "./samsara/samsara.index";
 import seismic from "./seismic/seismic.index";
 import servicenow from "./servicenow/servicenow.index";
 import sharepoint from "./sharepoint/sharepoint.index";
+import showpad from "./showpad/showpad.index";
 import slack from "./slack/slack.index";
 import smartthings from "./smartthings/smartthings.index";
 import teams from "./teams/teams.index";
@@ -175,6 +176,7 @@ integrations.route("/nice-cxone", niceCxone);
 integrations.route("/panopto", panopto);
 integrations.route("/phabricator", phabricator);
 integrations.route("/seismic", seismic);
+integrations.route("/showpad", showpad);
 
 integrations.get("/health", (c) =>
   c.json({

@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common Showpad connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid credentials:** Verify your client ID and client secret are correct. Re-check the OAuth app configuration in Showpad Admin > Integrations > OAuth Apps.
+
+**403 Forbidden:** The OAuth token lacks sufficient permissions. Re-authorize the connector to ensure all required scopes are granted.
+
+**Wrong subdomain:** If you get connection errors, verify your subdomain matches your Showpad instance. The subdomain is the part before `.showpad.biz` in your URL.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Assets not appearing:** Ensure the assets are published and accessible to the authenticated user. Draft or restricted assets may not be returned by the API.
+
+**Channels/Experiences missing:** Verify these entity types are enabled in the connector settings.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Showpad API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Showpad account has no published content, the sync will complete with zero documents. Verify content exists in your Showpad instance.

@@ -2072,6 +2072,33 @@ export {
   transformDriveItem,
 } from "./sharepoint";
 export type {
+  ShowpadAsset,
+  ShowpadAssetMetadataActionResult,
+  ShowpadChannel,
+  ShowpadChannelActionResult,
+  ShowpadClient,
+  ShowpadClientConfig,
+  ShowpadExperience,
+  ShowpadTag,
+} from "./showpad";
+export {
+  createShowpadChannel,
+  createShowpadClient,
+  listAllShowpadAssets,
+  listAllShowpadChannels,
+  listAllShowpadExperiences,
+  listAllShowpadTags,
+  ShowpadApiError,
+  ShowpadAuth,
+  showpadFullSync,
+  showpadIncrementalSync,
+  transformShowpadAsset,
+  transformShowpadChannel,
+  transformShowpadExperience,
+  transformShowpadTag,
+  updateShowpadAssetMetadata,
+} from "./showpad";
+export type {
   AppMentionEvent,
   BlockActionPayload,
   ChannelConfigSettings,

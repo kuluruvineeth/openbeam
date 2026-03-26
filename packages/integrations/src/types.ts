@@ -143,6 +143,7 @@ export enum AppType {
   PHABRICATOR = "PHABRICATOR",
   PROCORE = "PROCORE",
   SEISMIC = "SEISMIC",
+  SHOWPAD = "SHOWPAD",
 }
 
 export enum SyncMode {

@@ -48,7 +48,8 @@ type IntegrationName =
   | "lucid"
   | "panopto"
   | "procore"
-  | "seismic";
+  | "seismic"
+  | "showpad";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -272,6 +273,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   seismic: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/seismic/callback", {
+      code,
+      state,
+    }),
+  showpad: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/showpad/callback", {
       code,
       state,
     }),

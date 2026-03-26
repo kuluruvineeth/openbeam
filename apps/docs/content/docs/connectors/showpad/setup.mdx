@@ -1,0 +1,38 @@
+---
+title: Setup
+description: Connect Showpad to OpenBeam via OAuth 2.0
+---
+
+# Showpad Setup
+
+## Prerequisites
+
+- A Showpad account with admin access
+- Access to Showpad Admin portal for OAuth app registration
+
+## Step 1: Determine Your Subdomain
+
+Your Showpad subdomain is the part before `.showpad.biz` in your Showpad URL. For example, if your URL is `https://acme.showpad.biz`, your subdomain is `acme`.
+
+## Step 2: Register an OAuth App
+
+1. Log into the [Showpad Admin](https://admin.showpad.biz)
+2. Navigate to **Integrations > OAuth Apps**
+3. Click **Add OAuth App**
+4. Enter:
+   - **App Name:** OpenBeam Integration
+   - **Redirect URI:** `https://your-openbeam-domain.com/connectors/setup/showpad/oauth/callback`
+5. Copy the generated **Client ID** and **Client Secret**
+
+## Step 3: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Showpad**
+3. Enter your **Subdomain** (e.g., `acme`)
+4. Enter your **Client ID** and **Client Secret**
+5. Click **Connect** to start the OAuth flow
+6. Authorize access in the Showpad consent screen
+
+## Step 4: Initial Sync
+
+After authorization, OpenBeam runs a full sync of your Showpad content. The first sync indexes all assets, channels, experiences, and tags.

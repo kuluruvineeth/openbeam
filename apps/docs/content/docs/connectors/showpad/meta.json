@@ -1,0 +1,12 @@
+{
+  "title": "Showpad",
+  "icon": "Showpad",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}
