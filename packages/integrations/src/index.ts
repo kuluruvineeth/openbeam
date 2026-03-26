@@ -81,6 +81,7 @@ import { pagerdutyApp } from "./pagerduty/config";
 import { panoptoApp } from "./panopto/config";
 import { phabricatorApp } from "./phabricator/config";
 import { pipedriveApp } from "./pipedrive/config";
+import { procoreApp } from "./procore/config";
 import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
@@ -181,6 +182,7 @@ export {
   owaspApp,
   pagerdutyApp,
   pipedriveApp,
+  procoreApp,
   salesforceApp,
   samsaraApp,
   servicenowApp,
@@ -781,6 +783,23 @@ export {
   refreshPipedriveToken,
 } from "./pipedrive";
 export type {
+  ExchangeProcoreCodeParams,
+  GenerateProcoreAuthUrlParams,
+  ProcoreCompany,
+  ProcoreOAuthResult,
+  ProcoreTokenResponse,
+  ProcoreUserInfo,
+  RefreshProcoreTokenParams,
+  RefreshProcoreTokenResult,
+} from "./procore";
+export {
+  exchangeProcoreCode,
+  generateProcoreAuthUrl,
+  PROCORE_TOKEN_LIFETIME_SECONDS,
+  ProcoreOAuthError,
+  refreshProcoreToken,
+} from "./procore";
+export type {
   ExchangeSalesforceCodeParams,
   GenerateSalesforceAuthUrlParams,
   RefreshSalesforceTokenParams,
@@ -974,4 +993,5 @@ export const appStore: UnifiedApp[] = [
   niceCxoneApp,
   panoptoApp,
   phabricatorApp,
+  procoreApp,
 ];

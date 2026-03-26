@@ -1,0 +1,38 @@
+---
+title: Troubleshooting
+description: Common Procore connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid credentials:** Verify your Client ID and Client Secret match the values in your Procore Developer App. Re-generate the secret if needed.
+
+**403 Forbidden:** The OAuth token lacks sufficient permissions. Ensure your Procore app has been approved for the company and the authorizing user has access to the projects being synced.
+
+**Token expired:** The connector automatically refreshes expired tokens. If refresh fails, re-authorize the connector from Settings.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider enabling project filtering to reduce the number of API calls.
+
+## Missing Data
+
+**Projects not appearing:** Only active projects are synced by default. Inactive or archived projects are excluded.
+
+**Documents/Drawings missing:** Verify these entity types are enabled in the connector settings. Large projects with thousands of files may take longer to sync.
+
+**RFIs from specific projects missing:** Check the project filter setting. If project IDs are specified, only those projects are synced.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Procore API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Procore account has no active projects, the sync will complete with zero documents.
+
+## Company ID Issues
+
+**Multiple companies:** If your Procore account has access to multiple companies, the connector uses the first company returned by the API. Contact support if you need to switch to a different company.

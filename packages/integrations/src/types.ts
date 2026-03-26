@@ -141,6 +141,7 @@ export enum AppType {
   NICE_CXONE = "NICE_CXONE",
   PANOPTO = "PANOPTO",
   PHABRICATOR = "PHABRICATOR",
+  PROCORE = "PROCORE",
 }
 
 export enum SyncMode {

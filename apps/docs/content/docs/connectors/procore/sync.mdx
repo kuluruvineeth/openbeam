@@ -1,0 +1,39 @@
+---
+title: Sync Behavior
+description: How Procore data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Procore in a project-scoped pattern:
+
+1. **Projects** are listed first to discover active project IDs
+2. For each active project:
+   - **RFIs** are fetched via `/projects/{id}/rfis`
+   - **Submittals** are fetched via `/projects/{id}/submittals`
+   - **Documents** (if enabled) are fetched via `/projects/{id}/documents`
+   - **Drawings** (if enabled) are fetched via `/projects/{id}/drawings`
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Procore's `filters[updated_at]` query parameter to fetch only entities modified since the last sync. The same project-scoped pattern applies — each project is queried individually for updated RFIs, submittals, documents, and drawings.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Projects | Every 30 minutes |
+| RFIs | Every 15 minutes |
+| Submittals | Every 15 minutes |
+| Documents | Every 30 minutes |
+| Drawings | Every 30 minutes |
+
+## Rate Limits
+
+Procore enforces a rate limit of 3,600 requests per hour per OAuth token. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.

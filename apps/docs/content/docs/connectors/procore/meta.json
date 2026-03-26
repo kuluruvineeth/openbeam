@@ -1,0 +1,12 @@
+{
+  "title": "Procore",
+  "icon": "Procore",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

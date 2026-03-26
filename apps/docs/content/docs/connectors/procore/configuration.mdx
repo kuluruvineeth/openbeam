@@ -1,0 +1,30 @@
+---
+title: Configuration
+description: Configure which Procore data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Client ID** | Procore OAuth app Client ID | Required |
+| **Client Secret** | Procore OAuth app Client Secret | Required |
+| **Sync Documents** | Index project documents | Enabled |
+| **Sync Drawings** | Index construction drawings | Enabled |
+| **Project Filter** | Comma-separated project IDs to sync | All projects |
+
+## Project Filtering
+
+By default, OpenBeam syncs all active projects in your Procore company. To limit syncing to specific projects, enter their Procore project IDs as a comma-separated list in the Project Filter setting.
+
+Find project IDs in the Procore URL when viewing a project: `https://app.procore.com/projects/{projectId}`.
+
+## Entity Toggles
+
+Projects, RFIs, and submittals are always synced. Documents and drawings can be individually disabled to reduce sync time for large Procore accounts with extensive file libraries.
+
+## Company Scope
+
+All API requests include the `Procore-Company-Id` header detected during OAuth. If your Procore account has access to multiple companies, the first company returned by the API is used.

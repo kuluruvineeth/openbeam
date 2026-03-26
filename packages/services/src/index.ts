@@ -1897,6 +1897,35 @@ export {
   transformPipedrivePerson,
   updatePipedriveDeal,
 } from "./pipedrive";
+export type {
+  ProcoreClient,
+  ProcoreDocument,
+  ProcoreDrawing,
+  ProcoreProject,
+  ProcoreRecordActionResult,
+  ProcoreRfi,
+  ProcoreSubmittal,
+} from "./procore";
+export {
+  createProcoreClient,
+  createProcoreRfi,
+  createProcoreSubmittal,
+  listAllProjects as listAllProcoreProjects,
+  listProjectDocuments as listProcoreProjectDocuments,
+  listProjectDrawings as listProcoreProjectDrawings,
+  listProjectRfis as listProcoreProjectRfis,
+  listProjectSubmittals as listProcoreProjectSubmittals,
+  ProcoreApiError,
+  ProcoreAuth,
+  procoreFullSync,
+  procoreIncrementalSync,
+  transformProcoreDocument,
+  transformProcoreDrawing,
+  transformProcoreProject,
+  transformProcoreRfi,
+  transformProcoreSubmittal,
+  updateProcoreRfi,
+} from "./procore";
 export type { S3Client } from "./s3";
 export {
   createS3Client,

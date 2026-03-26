@@ -46,7 +46,8 @@ type IntegrationName =
   | "harvest"
   | "looker-studio"
   | "lucid"
-  | "panopto";
+  | "panopto"
+  | "procore";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -260,6 +261,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   panopto: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/panopto/callback", {
+      code,
+      state,
+    }),
+  procore: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/procore/callback", {
       code,
       state,
     }),

@@ -1,0 +1,39 @@
+---
+title: Procore
+description: Search across construction projects, RFIs, submittals, documents, and drawings from Procore
+---
+
+# Procore
+
+Index construction management data from Procore including projects, RFIs (Requests for Information), submittals, documents, and drawings. Supports OAuth 2.0 authentication with project-scoped incremental sync via updated_at filtering.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Projects** | Name, status, address, start/completion dates, total value |
+| **RFIs** | Subject, question, official response, status, priority, assignee |
+| **Submittals** | Title, description, status, spec section, type, received from |
+| **Documents** | Name, document type, size, folder location |
+| **Drawings** | Number, title, discipline, set, revision, current status |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code Grant)
+
+Register a Procore Developer App at [developers.procore.com](https://developers.procore.com/) to obtain client credentials.
+
+## Quick Start
+
+1. Create a Procore Developer App and note the Client ID and Secret
+2. Add the Procore connector in OpenBeam
+3. Enter your OAuth credentials and authorize access
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/procore/setup" description="OAuth app creation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/procore/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/procore/configuration" description="Project filtering, entity selection, and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/procore/sync" description="Full sync, incremental sync via updated_at filtering" />
+  <Card title="Troubleshooting" href="/docs/connectors/procore/troubleshooting" description="Common issues and fixes" />
+</Cards>

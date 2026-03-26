@@ -1396,6 +1396,21 @@ export const PipedriveIcon = ({ size = 16 }: IconProps): ReactElement => (
   </svg>
 );
 
+export const ProcoreIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 78 67"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M38.7 0h38.7l19.3 33.3-19.3 33.3H38.7L19.4 33.3 38.7 0z"
+      fill="#FF5200"
+    />
+  </svg>
+);
+
 export const GreenhouseIcon = ({ size = 16 }: IconProps): ReactElement => (
   // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
   <svg

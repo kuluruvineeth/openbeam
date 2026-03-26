@@ -1,0 +1,40 @@
+---
+title: Features
+description: What Procore data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Projects
+Full-text search across project names, descriptions, addresses, and status. Metadata includes stage, total value, start date, estimated completion date, and company association.
+
+### RFIs (Requests for Information)
+Search across RFI subjects, questions, and official responses. Includes status, priority, assignee, responsible contractor, spec section, and cost code references.
+
+### Submittals
+Search across submittal titles, descriptions, and spec sections. Includes status, type, revision number, received from, responsible contractor, and due dates.
+
+### Documents
+Project documents indexed by name, type, and folder hierarchy. Metadata includes file size, document type, and creator information.
+
+### Drawings
+Construction drawings indexed by number, title, and discipline. Includes set information, revision numbers, current/superseded status, and received dates.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create RFI** | Create a new RFI with subject, question, and assignee |
+| **Update RFI** | Update an existing RFI with response or status change |
+| **Create Submittal** | Create a new submittal with title and spec section |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Project associations** linking RFIs, submittals, documents, and drawings to their parent projects
+- **Assignee attribution** from RFI and submittal assignments
+- **Contractor relationships** between submittals and responsible contractors

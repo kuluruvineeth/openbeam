@@ -179,6 +179,7 @@ enum AppType {
   NICE_CXONE
   PANOPTO
   PHABRICATOR
+  PROCORE
 }
 
 enum ConnectorStatus {

@@ -85,6 +85,7 @@ import { Logo as PagerDutyLogo } from "./pagerduty/assets/logo";
 import { Logo as PanoptoLogo } from "./panopto/assets/logo";
 import { Logo as PhabricatorLogo } from "./phabricator/assets/logo";
 import { Logo as PipedriveLogo } from "./pipedrive/assets/logo";
+import { Logo as ProcoreLogo } from "./procore/assets/logo";
 import { Logo as S3Logo } from "./s3/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
@@ -157,6 +158,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.MONDAY]: MondayLogo,
   [AppType.PAGERDUTY]: PagerDutyLogo,
   [AppType.PIPEDRIVE]: PipedriveLogo,
+  [AppType.PROCORE]: ProcoreLogo,
   [AppType.CLICKUP]: ClickUpLogo,
   [AppType.CODA]: CodaLogo,
   [AppType.AZURE_DEVOPS]: AzureDevOpsLogo,
