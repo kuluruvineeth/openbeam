@@ -1,0 +1,30 @@
+---
+title: Configuration
+description: Configure the Seismic connector
+---
+
+# Seismic Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Client ID** | OAuth application Client ID from Seismic developer portal | Required |
+| **Client Secret** | OAuth application Client Secret | Required |
+| **Sync LiveDocs** | Whether to index LiveDoc templates | Enabled |
+| **History (days)** | How far back to sync content. Leave empty for unlimited | Unlimited |
+
+## Entity Selection
+
+By default, all entity types are synced:
+- **Contents** - Always synced
+- **Workspaces** - Always synced
+- **LiveDocs** - Toggle via the Sync LiveDocs setting
+
+## Sync Intervals
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Contents | 15 minutes |
+| Workspaces | 60 minutes |
+| LiveDocs | 30 minutes |

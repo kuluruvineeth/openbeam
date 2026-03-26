@@ -85,6 +85,7 @@ import { procoreApp } from "./procore/config";
 import { s3App } from "./s3/config";
 import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
+import { seismicApp } from "./seismic/config";
 import { servicenowApp } from "./servicenow/config";
 import { sharePointApp } from "./sharepoint/config";
 import { slackApp } from "./slack/config";
@@ -129,6 +130,7 @@ export {
   bamboohrApp,
   bitbucketApp,
   s3App,
+  seismicApp,
   azureIotApp,
   bacnetApp,
   boxApp,
@@ -820,6 +822,22 @@ export {
   SecretResolutionError,
 } from "./secrets";
 export type {
+  ExchangeSeismicCodeParams,
+  GenerateSeismicAuthUrlParams,
+  RefreshSeismicTokenParams,
+  RefreshSeismicTokenResult,
+  SeismicOAuthResult,
+  SeismicTokenResponse,
+  SeismicUserInfo,
+} from "./seismic";
+export {
+  exchangeSeismicCode,
+  generateSeismicAuthUrl,
+  refreshSeismicToken,
+  SEISMIC_TOKEN_LIFETIME_SECONDS,
+  SeismicOAuthError,
+} from "./seismic";
+export type {
   ExchangeServiceNowCodeParams,
   GenerateServiceNowAuthUrlParams,
   RefreshServiceNowTokenParams,
@@ -994,4 +1012,5 @@ export const appStore: UnifiedApp[] = [
   panoptoApp,
   phabricatorApp,
   procoreApp,
+  seismicApp,
 ];

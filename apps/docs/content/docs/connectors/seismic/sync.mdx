@@ -1,0 +1,32 @@
+---
+title: Sync Behavior
+description: How the Seismic connector syncs data
+---
+
+# Seismic Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all content from Seismic:
+
+1. **Workspaces** - All teamsites are fetched first
+2. **Contents** - All content items across all workspaces
+3. **LiveDocs** - All LiveDoc templates (if enabled)
+
+Content is fetched using cursor-based pagination with a default page size of 100 items.
+
+## Incremental Sync
+
+After the initial full sync, incremental syncs use the `modifiedSince` parameter to fetch only content that has changed since the last sync.
+
+If incremental sync fails (e.g., due to API changes), it automatically falls back to a full sync.
+
+## Rate Limits
+
+Seismic allows up to 1,000 API requests per minute. The connector respects rate limits with automatic retry and exponential backoff.
+
+## Sync Cursor
+
+The sync cursor tracks:
+- `lastSyncTime` - Timestamp of the most recently modified item
+- `lastFullSync` - Timestamp of the last full sync

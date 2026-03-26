@@ -1,0 +1,35 @@
+---
+title: Setup
+description: How to set up the Seismic connector
+---
+
+# Seismic Setup
+
+## Prerequisites
+
+- A Seismic account with API access
+- Permission to register OAuth applications in the Seismic developer portal
+
+## Step 1: Register an OAuth Application
+
+1. Go to the [Seismic developer portal](https://developer.seismic.com/)
+2. Create a new application
+3. Set the redirect URI to `https://your-openbeam-domain.com/connectors/setup/seismic/oauth/callback`
+4. Note the **Client ID** and **Client Secret**
+
+## Step 2: Add the Connector
+
+1. In OpenBeam, navigate to **Settings > Connectors**
+2. Find **Seismic** and click **Add**
+3. Enter your **Client ID** and **Client Secret**
+4. Click **Connect** to start the OAuth flow
+
+## Step 3: Authorize
+
+1. You will be redirected to Seismic to authorize the application
+2. Review the requested permissions and approve
+3. You will be redirected back to OpenBeam
+
+## Step 4: Initial Sync
+
+Once connected, OpenBeam will automatically start a full sync of your Seismic content. Depending on the amount of content, this may take several minutes.

@@ -2019,6 +2019,31 @@ export {
 } from "./search/public";
 export { buildPermissionFilter } from "./search/retrieval/query-builder";
 export type {
+  SeismicClient,
+  SeismicClientConfig,
+  SeismicContent,
+  SeismicContentActionResult,
+  SeismicLiveDoc,
+  SeismicWorkspace,
+} from "./seismic";
+export {
+  createSeismicClient,
+  getContent as getSeismicContent,
+  getLiveDoc as getSeismicLiveDoc,
+  getWorkspace as getSeismicWorkspace,
+  listAllContents as listAllSeismicContents,
+  listAllLiveDocs as listAllSeismicLiveDocs,
+  listAllWorkspaces as listAllSeismicWorkspaces,
+  SeismicApiError,
+  SeismicAuth,
+  seismicFullSync,
+  seismicIncrementalSync,
+  transformSeismicContent,
+  transformSeismicLiveDoc,
+  transformSeismicWorkspace,
+  updateSeismicContentMetadata,
+} from "./seismic";
+export type {
   ServiceNowChangeRequest,
   ServiceNowClient,
   ServiceNowClientConfig,

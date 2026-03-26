@@ -1,0 +1,37 @@
+---
+title: Seismic
+description: Search across sales content, workspaces, and LiveDocs from Seismic
+---
+
+# Seismic
+
+Index sales enablement data from Seismic including content assets, workspaces, and LiveDoc templates. Supports OAuth 2.0 authentication with cursor-based pagination and modifiedSince incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Contents** | Name, type, format, version, workspace, tags, description |
+| **Workspaces** | Name, description, default status |
+| **LiveDocs** | Name, template, format, tags, description |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Authorization Code)
+
+Register an application in the Seismic developer portal to obtain a Client ID and Client Secret.
+
+## Quick Start
+
+1. Register an OAuth app in the Seismic developer portal
+2. Add the Seismic connector in OpenBeam
+3. Enter your Client ID and Client Secret
+4. Authorize via OAuth and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/seismic/setup" description="OAuth app registration and connector configuration" />
+  <Card title="Features" href="/docs/connectors/seismic/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/seismic/configuration" description="Entity selection, LiveDoc sync toggle, and lookback" />
+  <Card title="Sync Behavior" href="/docs/connectors/seismic/sync" description="Full sync, incremental sync via modifiedSince" />
+  <Card title="Troubleshooting" href="/docs/connectors/seismic/troubleshooting" description="Common issues and fixes" />
+</Cards>

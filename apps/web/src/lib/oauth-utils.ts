@@ -47,7 +47,8 @@ type IntegrationName =
   | "looker-studio"
   | "lucid"
   | "panopto"
-  | "procore";
+  | "procore"
+  | "seismic";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -266,6 +267,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   procore: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/procore/callback", {
+      code,
+      state,
+    }),
+  seismic: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/seismic/callback", {
       code,
       state,
     }),

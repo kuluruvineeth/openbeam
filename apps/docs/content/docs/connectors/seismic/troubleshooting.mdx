@@ -1,0 +1,39 @@
+---
+title: Troubleshooting
+description: Common issues and fixes for the Seismic connector
+---
+
+# Seismic Troubleshooting
+
+## Authentication Errors
+
+### "Token exchange failed"
+- Verify your Client ID and Client Secret are correct
+- Ensure the redirect URI in your Seismic OAuth app matches exactly
+- Check that the OAuth app has the required scopes
+
+### "Token refresh failed"
+- The refresh token may have expired. Re-authenticate by disconnecting and reconnecting the connector
+- Verify the OAuth app has not been deleted or revoked in Seismic
+
+## Sync Issues
+
+### No content appearing after sync
+- Verify your Seismic account has content in at least one workspace
+- Check that the OAuth app has the `seismic.library.view` scope
+- Review the connector logs for API errors
+
+### Slow sync performance
+- Large content libraries may take time on the initial full sync
+- Subsequent incremental syncs will be faster
+- Consider setting a lookback period to limit initial sync scope
+
+### Rate limit errors
+- The connector automatically handles rate limits with retry logic
+- If persistent, reduce the sync frequency in connector settings
+
+## Connection Issues
+
+### "Connector configuration not found"
+- Re-enter your Client ID and Client Secret in the connector settings
+- Ensure the connector was properly created before attempting OAuth

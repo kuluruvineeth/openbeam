@@ -1,0 +1,12 @@
+{
+  "title": "Seismic",
+  "icon": "Seismic",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -89,6 +89,7 @@ import { Logo as ProcoreLogo } from "./procore/assets/logo";
 import { Logo as S3Logo } from "./s3/assets/logo";
 import { Logo as SalesforceLogo } from "./salesforce/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
+import { Logo as SeismicLogo } from "./seismic/assets/logo";
 import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
 import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
@@ -201,6 +202,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.NICE_CXONE]: NiceCxoneLogo,
   [AppType.PANOPTO]: PanoptoLogo,
   [AppType.PHABRICATOR]: PhabricatorLogo,
+  [AppType.SEISMIC]: SeismicLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

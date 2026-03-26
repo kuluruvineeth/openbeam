@@ -142,6 +142,7 @@ export enum AppType {
   PANOPTO = "PANOPTO",
   PHABRICATOR = "PHABRICATOR",
   PROCORE = "PROCORE",
+  SEISMIC = "SEISMIC",
 }
 
 export enum SyncMode {

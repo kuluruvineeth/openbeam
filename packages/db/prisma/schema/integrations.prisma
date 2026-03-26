@@ -180,6 +180,7 @@ enum AppType {
   PANOPTO
   PHABRICATOR
   PROCORE
+  SEISMIC
 }
 
 enum ConnectorStatus {

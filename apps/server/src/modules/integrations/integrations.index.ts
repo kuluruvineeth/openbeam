@@ -76,6 +76,7 @@ import procore from "./procore/procore.index";
 import s3 from "./s3/s3.index";
 import salesforce from "./salesforce/salesforce.index";
 import samsara from "./samsara/samsara.index";
+import seismic from "./seismic/seismic.index";
 import servicenow from "./servicenow/servicenow.index";
 import sharepoint from "./sharepoint/sharepoint.index";
 import slack from "./slack/slack.index";
@@ -173,6 +174,7 @@ integrations.route("/netsuite", netsuite);
 integrations.route("/nice-cxone", niceCxone);
 integrations.route("/panopto", panopto);
 integrations.route("/phabricator", phabricator);
+integrations.route("/seismic", seismic);
 
 integrations.get("/health", (c) =>
   c.json({
