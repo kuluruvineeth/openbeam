@@ -72,19 +72,24 @@ describe("SQLiteKVStore", () => {
   });
 
   test("TTL expires keys", () => {
-    store.set("ephemeral", "data", 1);
+    const frozen = Date.now();
+    const originalNow = Date.now;
+    Date.now = () => frozen;
+    store.set("ephemeral", "data", 100);
     expect(store.get("ephemeral")).toBe("data");
 
-    const originalNow = Date.now;
-    Date.now = () => originalNow() + 10;
+    Date.now = () => frozen + 200;
     expect(store.get("ephemeral")).toBeUndefined();
     Date.now = originalNow;
   });
 
   test("has returns false for expired key", () => {
-    store.set("temp", "val", 1);
+    const frozen = Date.now();
     const originalNow = Date.now;
-    Date.now = () => originalNow() + 10;
+    Date.now = () => frozen;
+    store.set("temp", "val", 100);
+
+    Date.now = () => frozen + 200;
     expect(store.has("temp")).toBe(false);
     Date.now = originalNow;
   });

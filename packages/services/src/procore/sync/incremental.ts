@@ -209,17 +209,20 @@ function getEntityFetcher(
   projectId: number,
   params?: Record<string, string>
 ) => AsyncGenerator<unknown[], void, undefined> {
-  const fetchers: Record<EntityType, typeof listProjectRfis> = {
+  const fetchers = {
     rfis: listProjectRfis,
     submittals: listProjectSubmittals,
     documents: listProjectDocuments,
     drawings: listProjectDrawings,
-  };
-  return fetchers[entityType] as (
-    client: ProcoreClient,
-    projectId: number,
-    params?: Record<string, string>
-  ) => AsyncGenerator<unknown[], void, undefined>;
+  } satisfies Record<
+    EntityType,
+    (
+      client: ProcoreClient,
+      projectId: number,
+      params?: Record<string, string>
+    ) => AsyncGenerator<unknown[], void, undefined>
+  >;
+  return fetchers[entityType];
 }
 
 function getEntityTransformer(
