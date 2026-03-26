@@ -11,3 +11,13 @@ export {
   mapBatchToGeneric,
   mapPushDocumentToGeneric,
 } from "./push/field-mapper";
+export {
+  applyContentTemplate,
+  extractEventId,
+  extractEventType,
+  getDedupTtl,
+  resolveJsonPath,
+  routeEvent,
+  transformWebhookPayload,
+  verifyCustomWebhookSignature,
+} from "./webhook";

@@ -1,3 +1,4 @@
+import type { Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
 export interface CreateCustomConnectorInput {
@@ -84,6 +85,96 @@ export function decrementCustomConnectorDocuments(
     data: {
       totalDocuments: { decrement: count },
     },
+  });
+}
+
+export interface CreateWebhookEventInput {
+  definitionId: string;
+  eventId: string;
+  eventType?: string;
+  action: string;
+  status?: string;
+  rawPayloadHash?: string;
+  payloadSize?: number;
+}
+
+export function createWebhookEvent(
+  db: Database,
+  input: CreateWebhookEventInput
+) {
+  return db.webhookEvent.create({
+    data: {
+      definitionId: input.definitionId,
+      eventId: input.eventId,
+      eventType: input.eventType,
+      action: input.action,
+      status: input.status ?? "received",
+      rawPayloadHash: input.rawPayloadHash,
+      payloadSize: input.payloadSize,
+    },
+  });
+}
+
+export function markWebhookEventCompleted(
+  db: Database,
+  id: string,
+  documentIds: string[],
+  processingMs: number
+) {
+  return db.webhookEvent.update({
+    where: { id },
+    data: {
+      status: "completed",
+      documentIds,
+      processingMs,
+      processedAt: new Date(),
+    },
+  });
+}
+
+export function markWebhookEventFailed(
+  db: Database,
+  id: string,
+  statusMessage: string
+) {
+  return db.webhookEvent.update({
+    where: { id },
+    data: {
+      status: "failed",
+      statusMessage,
+      processedAt: new Date(),
+    },
+  });
+}
+
+export function incrementWebhookStats(
+  db: Database,
+  definitionId: string,
+  success: boolean
+) {
+  return db.customConnectorDefinition.update({
+    where: { id: definitionId },
+    data: {
+      totalWebhookEvents: { increment: 1 },
+      lastWebhookReceivedAt: new Date(),
+      consecutiveErrors: success ? 0 : { increment: 1 },
+    },
+  });
+}
+
+export function updateWebhookConfig(
+  db: Database,
+  id: string,
+  webhookConfig: Record<string, unknown>,
+  webhookEnabled: boolean
+) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: {
+      webhookConfig: webhookConfig as Prisma.InputJsonValue,
+      webhookEnabled,
+    },
+    include: { connector: true },
   });
 }
 

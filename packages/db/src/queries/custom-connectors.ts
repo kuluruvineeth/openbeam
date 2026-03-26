@@ -47,6 +47,29 @@ export function getCustomConnectorApiKeyByPrefix(db: Database, prefix: string) {
   });
 }
 
+export function getCustomConnectorBySlugGlobal(db: Database, slug: string) {
+  return db.customConnectorDefinition.findFirst({
+    where: { slug },
+    include: { connector: true },
+  });
+}
+
+export function listWebhookEvents(
+  db: Database,
+  definitionId: string,
+  options?: { status?: string; limit?: number; cursor?: string }
+) {
+  return db.webhookEvent.findMany({
+    where: {
+      definitionId,
+      ...(options?.status ? { status: options.status } : {}),
+    },
+    orderBy: { receivedAt: "desc" },
+    take: options?.limit ?? 50,
+    ...(options?.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
+  });
+}
+
 export function listCustomConnectorApiKeys(db: Database, definitionId: string) {
   return db.customConnectorApiKey.findMany({
     where: { definitionId },

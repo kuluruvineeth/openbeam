@@ -456,16 +456,24 @@ export {
   updateCoupaRequisition,
 } from "./coupa";
 export {
+  applyContentTemplate,
   extractCustomConnectorKeyPrefix,
+  extractEventId,
+  extractEventType,
   type FieldMapperContext,
   generateCustomConnectorApiKey,
+  getDedupTtl,
   isCustomConnectorKey,
   mapBatchToGeneric,
   mapPushDocumentToGeneric,
   type PushSingleResult,
   pushBatch,
   pushSingleDocument,
+  resolveJsonPath,
+  routeEvent,
+  transformWebhookPayload,
   verifyCustomConnectorApiKey,
+  verifyCustomWebhookSignature,
 } from "./custom";
 export type { DatadogClient } from "./datadog";
 export {

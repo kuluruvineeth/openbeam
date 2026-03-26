@@ -8,13 +8,21 @@ model CustomConnectorDefinition {
   description String?
   iconUrl     String?
 
-  fieldMappings Json @default("{}") // { externalField: genericDocField }
-  defaultDocumentType String @default("custom_document")
+  fieldMappings       Json    @default("{}")
+  defaultDocumentType String  @default("custom_document")
   defaultIsPublic     Boolean @default(false)
 
   totalDocuments Int @default(0)
   totalPushes    Int @default(0)
   lastPushAt     DateTime?
+
+  webhookConfig          Json?
+  webhookEnabled         Boolean  @default(false)
+  webhookSigningSecret   String?
+  webhookSigningSecretIv String?
+  totalWebhookEvents     Int      @default(0)
+  lastWebhookReceivedAt  DateTime?
+  consecutiveErrors      Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -22,11 +30,39 @@ model CustomConnectorDefinition {
   team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   apiKeys   CustomConnectorApiKey[]
+  webhookEvents WebhookEvent[]
 
   @@unique([teamId, slug])
   @@index([teamId])
   @@index([slug])
   @@map("custom_connector_definition")
+}
+
+model WebhookEvent {
+  id           String @id @default(cuid()) @map("_id")
+  definitionId String
+
+  eventId       String
+  eventType     String?
+  action        String
+  status        String  @default("received")
+  statusMessage String?
+
+  documentIds    String[] @default([])
+  rawPayloadHash String?
+  payloadSize    Int?
+  processingMs   Int?
+
+  receivedAt  DateTime @default(now())
+  processedAt DateTime?
+
+  definition CustomConnectorDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@unique([definitionId, eventId])
+  @@index([definitionId, receivedAt])
+  @@index([status])
+  @@index([receivedAt])
+  @@map("webhook_event")
 }
 
 model CustomConnectorApiKey {
