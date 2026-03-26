@@ -1,0 +1,40 @@
+---
+title: Features
+description: What Smartsheet data gets indexed and searchable
+---
+
+# Features
+
+## Indexed Entities
+
+### Sheets
+Full-text search across sheet names and column definitions. Metadata includes owner, row count, access level, workspace association, and version number.
+
+### Rows
+Individual rows are indexed with all cell values mapped to column names. The primary column value is used as the row title. Metadata includes row number, parent row hierarchy, and lock status.
+
+### Workspaces
+Workspace entries with names and contained items (sheets, reports, dashboards, folders). Useful for understanding organizational structure.
+
+### Reports
+Cross-sheet reports with source sheet references, owner, and row count information.
+
+### Dashboards
+Visual dashboards (called Sights in the API) with widget listings and ownership.
+
+## Actions
+
+The connector supports write operations for agent workflows:
+
+| Action | Description |
+|--------|-------------|
+| **Create Sheet** | Create a new sheet with column definitions |
+| **Add Row** | Add a row to an existing sheet with cell values |
+| **Update Row** | Update cell values in an existing row |
+
+## Knowledge Graph
+
+The connector feeds the knowledge graph with:
+- **Owner attribution** from sheet and report ownership
+- **Workspace hierarchy** connecting sheets to organizational units
+- **Cross-sheet relationships** from report source sheet references

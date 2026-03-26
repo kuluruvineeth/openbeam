@@ -1,0 +1,12 @@
+{
+  "title": "Smartsheet",
+  "icon": "Smartsheet",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

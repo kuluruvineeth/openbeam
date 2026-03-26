@@ -94,6 +94,7 @@ import { Logo as ServiceNowLogo } from "./servicenow/assets/logo";
 import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as ShowpadLogo } from "./showpad/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
+import { Logo as SmartsheetLogo } from "./smartsheet/assets/logo";
 import { Logo as SmartThingsLogo } from "./smartthings/assets/logo";
 import { Logo as TeamsLogo } from "./teams/assets/logo";
 import { Logo as ThingsBoardLogo } from "./thingsboard/assets/logo";
@@ -205,6 +206,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.PHABRICATOR]: PhabricatorLogo,
   [AppType.SEISMIC]: SeismicLogo,
   [AppType.SHOWPAD]: ShowpadLogo,
+  [AppType.SMARTSHEET]: SmartsheetLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

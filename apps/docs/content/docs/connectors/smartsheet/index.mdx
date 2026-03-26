@@ -1,0 +1,39 @@
+---
+title: Smartsheet
+description: Search sheets, rows, workspaces, reports, and dashboards from Smartsheet
+---
+
+# Smartsheet
+
+Index work management data from Smartsheet including sheets with row-level content, workspaces, reports, and dashboards. Supports API key authentication with page-based pagination and modifiedSince incremental sync.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Sheets** | Name, columns, row count, owner, workspace, version |
+| **Rows** | Cell values across all columns, row number, parent hierarchy, lock status |
+| **Workspaces** | Name, contained sheets, reports, dashboards, folders |
+| **Reports** | Name, source sheets, owner, row count |
+| **Dashboards** | Name, widgets, owner |
+
+## Authentication
+
+**Method:** API Key (Bearer Token)
+
+Generate an API access token from **Account > Personal Settings > API Access** in Smartsheet.
+
+## Quick Start
+
+1. Generate an API access token in Smartsheet
+2. Add the Smartsheet connector in OpenBeam
+3. Enter your API access token
+4. Start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/smartsheet/setup" description="API token generation and connector configuration" />
+  <Card title="Features" href="/docs/connectors/smartsheet/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/smartsheet/configuration" description="Entity selection and lookback settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/smartsheet/sync" description="Full sync, incremental sync via modifiedSince" />
+  <Card title="Troubleshooting" href="/docs/connectors/smartsheet/troubleshooting" description="Common issues and fixes" />
+</Cards>

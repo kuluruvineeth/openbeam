@@ -101,6 +101,7 @@
     "phabricator",
     "procore",
     "seismic",
-    "showpad"
+    "showpad",
+    "smartsheet"
   ]
 }

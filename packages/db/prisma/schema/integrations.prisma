@@ -182,6 +182,7 @@ enum AppType {
   PROCORE
   SEISMIC
   SHOWPAD
+  SMARTSHEET
 }
 
 enum ConnectorStatus {

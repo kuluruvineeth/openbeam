@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Common Smartsheet connector issues and fixes
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+**Invalid API token:** Verify your access token is correct and has not been revoked. Re-generate from Smartsheet Account > Personal Settings > API Access if needed.
+
+**403 Forbidden:** The API token lacks sufficient permissions. Ensure you have at least read access to the sheets, workspaces, reports, and dashboards you want to index.
+
+## Rate Limiting
+
+**429 Too Many Requests:** The connector automatically backs off when rate limited. If syncs are consistently slow, consider reducing the number of enabled entity types or increasing the sync interval.
+
+## Missing Data
+
+**Sheets not appearing:** Check the lookback days setting. Only sheets modified within the lookback period are synced on the initial run when lookback is configured.
+
+**Reports/Dashboards missing:** Verify these entity types are enabled in the connector settings.
+
+**Rows not indexed:** Rows are fetched as part of each sheet sync. If a sheet appears but rows do not, the sheet may have zero rows or the API may be returning empty row data.
+
+## Sync Failures
+
+**Incremental sync falling back to full:** This happens when the cursor state is stale or the API returns errors. The connector automatically recovers by running a full sync.
+
+**Connection timeout:** Smartsheet API may be temporarily unavailable. The connector retries with exponential backoff up to 3 times.
+
+**Empty sync results:** If your Smartsheet account has no sheets matching the lookback filter, the sync will complete with zero documents. Try setting lookback days to 0 for all time.

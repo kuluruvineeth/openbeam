@@ -1,0 +1,31 @@
+---
+title: Setup
+description: Connect Smartsheet to OpenBeam via API token
+---
+
+# Smartsheet Setup
+
+## Prerequisites
+
+- A Smartsheet account with access to sheets you want to index
+- Ability to generate API access tokens
+
+## Step 1: Generate an API Access Token
+
+1. Log into [Smartsheet](https://app.smartsheet.com)
+2. Click your **Account** icon in the lower left
+3. Go to **Personal Settings > API Access**
+4. Click **Generate new access token**
+5. Name it something like "OpenBeam Integration"
+6. Copy the generated token
+
+## Step 2: Add Connector in OpenBeam
+
+1. Navigate to **Settings > Connectors**
+2. Click **Add Connector** and select **Smartsheet**
+3. Enter your **API Access Token**
+4. Click **Connect** to validate and activate
+
+## Step 3: Initial Sync
+
+After activation, OpenBeam runs a full sync of your Smartsheet data. The first sync fetches all sheets with their rows, plus workspaces, reports, and dashboards.

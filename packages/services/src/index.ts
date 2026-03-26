@@ -2349,6 +2349,39 @@ export {
   updateStats,
   verifySlackSignature,
 } from "./slack";
+export type {
+  SmartsheetCell,
+  SmartsheetClient,
+  SmartsheetColumn,
+  SmartsheetDashboard,
+  SmartsheetDashboardWidget,
+  SmartsheetReport,
+  SmartsheetRow,
+  SmartsheetSheet,
+  SmartsheetWorkspace,
+} from "./smartsheet";
+export {
+  addRow as addSmartsheetRow,
+  createSheet as createSmartsheetSheet,
+  createSmartsheetClient,
+  getDashboard as getSmartsheetDashboard,
+  getSheet as getSmartsheetSheet,
+  getSheetWithRows as getSmartsheetSheetWithRows,
+  getWorkspace as getSmartsheetWorkspace,
+  listDashboards as listSmartsheetDashboards,
+  listReports as listSmartsheetReports,
+  listSheets as listSmartsheetSheets,
+  listWorkspaces as listSmartsheetWorkspaces,
+  SmartsheetApiError,
+  smartsheetFullSync,
+  smartsheetIncrementalSync,
+  transformDashboard as transformSmartsheetDashboard,
+  transformReport as transformSmartsheetReport,
+  transformRow as transformSmartsheetRow,
+  transformSheet as transformSmartsheetSheet,
+  transformWorkspace as transformSmartsheetWorkspace,
+  updateRow as updateSmartsheetRow,
+} from "./smartsheet";
 export type { SmartThingsClient } from "./smartthings";
 export {
   createSmartThingsClient,

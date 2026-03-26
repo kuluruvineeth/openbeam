@@ -1,0 +1,24 @@
+---
+title: Configuration
+description: Configure which Smartsheet data to sync
+---
+
+# Configuration
+
+## Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **API Token** | Smartsheet API access token for authentication | Required |
+| **Sync Reports** | Index cross-sheet reports | Enabled |
+| **Sync Dashboards** | Index visual dashboards | Enabled |
+| **Sync Workspaces** | Index workspace hierarchy | Enabled |
+| **Lookback Days** | How far back to filter sheets by modification date | All time |
+
+## Entity Toggles
+
+Use the entity toggles to control which data types are indexed. Sheets and rows are always synced. Reports, dashboards, and workspaces can be individually disabled to reduce sync time.
+
+## Lookback Period
+
+The lookback setting controls how far back the initial full sync fetches sheets by modification date. Set to 0 to sync all sheets regardless of when they were last modified.

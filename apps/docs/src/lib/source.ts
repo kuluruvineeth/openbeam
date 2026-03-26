@@ -103,6 +103,7 @@ import {
   SharePointIcon,
   ShowpadIcon,
   SlackIcon,
+  SmartsheetIcon,
   SmartThingsIcon,
   TeamsIcon,
   ThingsBoardIcon,
@@ -230,6 +231,7 @@ const customIconMap: Record<
   NiceCxone: NiceCxoneIcon,
   Panopto: PanoptoIcon,
   Phabricator: PhabricatorIcon,
+  Smartsheet: SmartsheetIcon,
 };
 
 export const source = loader({

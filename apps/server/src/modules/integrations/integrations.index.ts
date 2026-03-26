@@ -81,6 +81,7 @@ import servicenow from "./servicenow/servicenow.index";
 import sharepoint from "./sharepoint/sharepoint.index";
 import showpad from "./showpad/showpad.index";
 import slack from "./slack/slack.index";
+import smartsheet from "./smartsheet/smartsheet.index";
 import smartthings from "./smartthings/smartthings.index";
 import teams from "./teams/teams.index";
 import verkada from "./verkada/verkada.index";
@@ -177,6 +178,7 @@ integrations.route("/panopto", panopto);
 integrations.route("/phabricator", phabricator);
 integrations.route("/seismic", seismic);
 integrations.route("/showpad", showpad);
+integrations.route("/smartsheet", smartsheet);
 
 integrations.get("/health", (c) =>
   c.json({

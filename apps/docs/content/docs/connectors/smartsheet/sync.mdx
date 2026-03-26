@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Smartsheet data is synced
+---
+
+# Sync Behavior
+
+## Full Sync
+
+The initial sync fetches all entities from Smartsheet:
+
+1. **Sheets** with full row and column data via the get-sheet endpoint
+2. **Rows** extracted from each sheet with cell values mapped to column names
+3. **Workspaces** (if enabled) with contained items
+4. **Reports** (if enabled) with source sheet references
+5. **Dashboards** (if enabled) with widget listings
+
+Results are streamed in batches to minimize memory usage.
+
+## Incremental Sync
+
+Subsequent syncs use Smartsheet's `modifiedSince` parameter to fetch only sheets modified since the last sync. Updated sheets are re-fetched with all rows, ensuring row-level changes are captured.
+
+Workspaces are always fully re-synced during incremental runs since they change infrequently.
+
+If the incremental sync fails, OpenBeam automatically falls back to a full sync.
+
+## Sync Schedule
+
+| Entity | Default Interval |
+|--------|-----------------|
+| Sheets | Every 15 minutes |
+| Rows | Every 15 minutes |
+| Workspaces | Every 60 minutes |
+| Reports | Every 60 minutes |
+| Dashboards | Every 60 minutes |
+
+## Rate Limits
+
+Smartsheet enforces rate limits of 300 requests per minute. The connector handles rate limiting with exponential backoff and respects the `Retry-After` header.
