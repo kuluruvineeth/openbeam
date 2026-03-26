@@ -455,6 +455,18 @@ export {
   transformCoupaSupplier,
   updateCoupaRequisition,
 } from "./coupa";
+export {
+  extractCustomConnectorKeyPrefix,
+  type FieldMapperContext,
+  generateCustomConnectorApiKey,
+  isCustomConnectorKey,
+  mapBatchToGeneric,
+  mapPushDocumentToGeneric,
+  type PushSingleResult,
+  pushBatch,
+  pushSingleDocument,
+  verifyCustomConnectorApiKey,
+} from "./custom";
 export type { DatadogClient } from "./datadog";
 export {
   createDatadogClient,

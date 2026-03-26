@@ -1,0 +1,53 @@
+model CustomConnectorDefinition {
+  id          String @id @default(cuid()) @map("_id")
+  teamId      String
+  connectorId String @unique
+  slug        String
+
+  name        String
+  description String?
+  iconUrl     String?
+
+  fieldMappings Json @default("{}") // { externalField: genericDocField }
+  defaultDocumentType String @default("custom_document")
+  defaultIsPublic     Boolean @default(false)
+
+  totalDocuments Int @default(0)
+  totalPushes    Int @default(0)
+  lastPushAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  apiKeys   CustomConnectorApiKey[]
+
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@index([slug])
+  @@map("custom_connector_definition")
+}
+
+model CustomConnectorApiKey {
+  id           String @id @default(cuid()) @map("_id")
+  definitionId String
+  name         String
+  keyHash      String @unique
+  prefix       String
+
+  scopes     String[] @default(["push", "delete", "status"])
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revoked    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  definition CustomConnectorDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@index([definitionId])
+  @@index([keyHash])
+  @@index([prefix])
+  @@map("custom_connector_api_key")
+}

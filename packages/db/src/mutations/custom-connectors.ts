@@ -1,0 +1,134 @@
+import type { Database } from "../index";
+
+export interface CreateCustomConnectorInput {
+  teamId: string;
+  connectorId: string;
+  slug: string;
+  name: string;
+  description?: string;
+  iconUrl?: string;
+  fieldMappings?: Record<string, string>;
+  defaultDocumentType?: string;
+  defaultIsPublic?: boolean;
+}
+
+export function createCustomConnectorDefinition(
+  db: Database,
+  input: CreateCustomConnectorInput
+) {
+  return db.customConnectorDefinition.create({
+    data: {
+      teamId: input.teamId,
+      connectorId: input.connectorId,
+      slug: input.slug,
+      name: input.name,
+      description: input.description,
+      iconUrl: input.iconUrl,
+      fieldMappings: input.fieldMappings ?? {},
+      defaultDocumentType: input.defaultDocumentType ?? "custom_document",
+      defaultIsPublic: input.defaultIsPublic ?? false,
+    },
+    include: { connector: true },
+  });
+}
+
+export interface UpdateCustomConnectorInput {
+  name?: string;
+  description?: string;
+  iconUrl?: string;
+  fieldMappings?: Record<string, string>;
+  defaultDocumentType?: string;
+  defaultIsPublic?: boolean;
+}
+
+export function updateCustomConnectorDefinition(
+  db: Database,
+  id: string,
+  input: UpdateCustomConnectorInput
+) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: input,
+    include: { connector: true },
+  });
+}
+
+export function deleteCustomConnectorDefinition(db: Database, id: string) {
+  return db.customConnectorDefinition.delete({
+    where: { id },
+  });
+}
+
+export function incrementCustomConnectorStats(
+  db: Database,
+  id: string,
+  documentsDelta: number
+) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: {
+      totalDocuments: { increment: documentsDelta },
+      totalPushes: { increment: 1 },
+      lastPushAt: new Date(),
+    },
+  });
+}
+
+export function decrementCustomConnectorDocuments(
+  db: Database,
+  id: string,
+  count: number
+) {
+  return db.customConnectorDefinition.update({
+    where: { id },
+    data: {
+      totalDocuments: { decrement: count },
+    },
+  });
+}
+
+export interface CreateCustomConnectorApiKeyInput {
+  definitionId: string;
+  name: string;
+  keyHash: string;
+  prefix: string;
+  scopes?: string[];
+  expiresAt?: Date;
+}
+
+export function createCustomConnectorApiKey(
+  db: Database,
+  input: CreateCustomConnectorApiKeyInput
+) {
+  return db.customConnectorApiKey.create({
+    data: {
+      definitionId: input.definitionId,
+      name: input.name,
+      keyHash: input.keyHash,
+      prefix: input.prefix,
+      scopes:
+        input.scopes && input.scopes.length > 0
+          ? input.scopes
+          : ["push", "delete", "status"],
+      expiresAt: input.expiresAt,
+    },
+  });
+}
+
+export function revokeCustomConnectorApiKey(
+  db: Database,
+  id: string,
+  definitionId: string
+) {
+  return db.customConnectorApiKey.updateMany({
+    where: { id, definitionId, revoked: false },
+    data: { revoked: true },
+  });
+}
+
+export function touchCustomConnectorApiKey(db: Database, id: string) {
+  return db.customConnectorApiKey.update({
+    where: { id },
+    data: { lastUsedAt: new Date() },
+  });
+}

@@ -310,10 +310,11 @@ model Connector {
   indexedMedia         IndexedMedia[]
   slackChannelConfigs  SlackChannelConfig[]
   slackDigestSubs      SlackDigestSubscription[]
-  slackFeedback        SlackAssistantFeedback[]
-  documentPermissions  DocumentPermission[]
-  connectorScopes      ConnectorScope[]
-  permissionSyncStatus PermissionSyncStatus?
+  slackFeedback                SlackAssistantFeedback[]
+  documentPermissions          DocumentPermission[]
+  connectorScopes              ConnectorScope[]
+  permissionSyncStatus         PermissionSyncStatus?
+  customConnectorDefinition    CustomConnectorDefinition?
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])
