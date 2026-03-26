@@ -44,8 +44,8 @@ export const syncHistoryItemSchema = z.object({
   dataDeleted: z.number(),
   errorMessage: z.string().nullable(),
   summary: z.record(z.string(), z.unknown()).nullable(),
-  startedAt: z.string().datetime(),
-  finishedAt: z.string().datetime().nullable(),
+  startedAt: z.iso.datetime(),
+  finishedAt: z.iso.datetime().nullable(),
   durationMs: z.number().nullable(),
 });
 
@@ -64,18 +64,18 @@ export const getSyncStatusResponseSchema = z.object({
   connector: z.object({
     id: z.string(),
     status: z.string(),
-    lastSyncedAt: z.string().datetime().nullable(),
+    lastSyncedAt: z.iso.datetime().nullable(),
     lastSyncStatus: z.string().nullable(),
     lastError: z.string().nullable(),
-    lastErrorAt: z.string().datetime().nullable(),
+    lastErrorAt: z.iso.datetime().nullable(),
   }),
   latestSync: z
     .object({
       id: z.string(),
       status: z.string(),
       dataAdded: z.number(),
-      startedAt: z.string().datetime(),
-      finishedAt: z.string().datetime().nullable(),
+      startedAt: z.iso.datetime(),
+      finishedAt: z.iso.datetime().nullable(),
       errorMessage: z.string().nullable(),
     })
     .nullable(),

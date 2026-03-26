@@ -7,8 +7,8 @@ export const PushDocumentSchema = z.object({
   url: z.string().url().optional(),
   document_type: z.string().min(1).max(100).optional(),
   is_public: z.boolean().optional(),
-  created_at: z.string().datetime().or(z.number()).optional(),
-  updated_at: z.string().datetime().or(z.number()).optional(),
+  created_at: z.iso.datetime().or(z.number()).optional(),
+  updated_at: z.iso.datetime().or(z.number()).optional(),
   author_name: z.string().max(256).optional(),
   author_email: z.string().email().max(256).optional(),
   labels: z.array(z.string().max(100)).max(50).optional(),
@@ -102,7 +102,7 @@ export const CreateCustomConnectorApiKeySchema = z.object({
     .array(z.enum(["push", "delete", "status"]))
     .min(1)
     .optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.iso.datetime().optional(),
 });
 
 export type CreateCustomConnectorApiKey = z.infer<

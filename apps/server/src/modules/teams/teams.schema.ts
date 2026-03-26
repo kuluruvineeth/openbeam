@@ -63,7 +63,7 @@ export const teamRoleResponseSchema = z.object({
 export const createTeamApiKeyBodySchema = z.object({
   name: z.string().min(1).max(120),
   scopes: z.array(z.string().min(1)).max(64).optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.iso.datetime().optional(),
 });
 
 export const teamApiKeySchema = z.object({
@@ -71,10 +71,10 @@ export const teamApiKeySchema = z.object({
   name: z.string(),
   prefix: z.string(),
   scopes: z.array(z.string()),
-  lastUsedAt: z.string().datetime().nullable(),
-  expiresAt: z.string().datetime().nullable(),
+  lastUsedAt: z.iso.datetime().nullable(),
+  expiresAt: z.iso.datetime().nullable(),
   revoked: z.boolean(),
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 });
 
 export const listTeamApiKeysResponseSchema = z.object({
@@ -85,7 +85,7 @@ export const createTeamApiKeyResponseSchema = z.object({
   id: z.string(),
   key: z.string(),
   prefix: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 });
 
 export const revokeTeamApiKeyResponseSchema = z.object({

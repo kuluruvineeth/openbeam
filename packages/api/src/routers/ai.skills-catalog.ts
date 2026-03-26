@@ -57,7 +57,7 @@ const EXTERNAL_SKILL_PROVIDER_STATUS_SCHEMA = z.object({
 });
 
 const EXTERNAL_SKILLS_CATALOG_SCHEMA = z.object({
-  fetchedAt: z.string().datetime(),
+  fetchedAt: z.iso.datetime(),
   skills: z.array(EXTERNAL_SKILL_CATALOG_ITEM_SCHEMA),
   providers: z.array(EXTERNAL_SKILL_PROVIDER_STATUS_SCHEMA),
 });

@@ -29,7 +29,7 @@ export const CreateApiKeyBodySchema = z.object({
     .array(z.enum(["push", "delete", "status"]))
     .min(1)
     .optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.iso.datetime().optional(),
 });
 
 export const DefinitionIdParamSchema = z.object({

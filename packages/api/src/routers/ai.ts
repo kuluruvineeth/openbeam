@@ -40,8 +40,8 @@ const loadSkillsByCategorySchema = z.object({
 });
 
 const usagePeriodSchema = z.object({
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: z.iso.datetime(),
+  endDate: z.iso.datetime(),
 });
 
 const listToolsSchema = z.object({

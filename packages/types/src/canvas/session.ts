@@ -12,9 +12,9 @@ export const CanvasSessionSchema = z.object({
   title: z.string().optional(),
   status: SessionStatusSchema,
   lastEventSequence: z.number().int().nonnegative(),
-  lastActivityAt: z.string().datetime().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  lastActivityAt: z.iso.datetime().optional(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 export type CanvasSession = z.infer<typeof CanvasSessionSchema>;

@@ -18,7 +18,7 @@ const ListReceiptsInputSchema = z.object({
 });
 
 const SummarySinceSchema = z.object({
-  since: z.string().datetime().optional(),
+  since: z.iso.datetime().optional(),
 });
 
 export const paymentsRouter = createTRPCRouter({

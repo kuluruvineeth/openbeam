@@ -62,8 +62,8 @@ export const WorkspaceObjectDefinitionSchema = z.object({
   immutable: z.boolean().optional().default(false),
   fields: z.array(WorkspaceFieldDefinitionSchema),
   teamId: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 export type WorkspaceObjectDefinition = z.infer<
@@ -117,8 +117,8 @@ export const WorkspaceEntrySchema = z.object({
   id: z.string(),
   objectId: z.string(),
   values: z.record(z.string(), z.unknown()),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 export type WorkspaceEntry = z.infer<typeof WorkspaceEntrySchema>;
