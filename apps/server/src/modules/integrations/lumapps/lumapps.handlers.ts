@@ -26,7 +26,7 @@ export const apiKeyAuthHandler: RouteHandler<
     const client = createLumAppsClient({
       connectorId,
       apiToken,
-      ...(baseUrl && { baseUrl }),
+      baseUrl: baseUrl ?? "https://api.lumapps.com/v2",
     });
 
     const healthy = await client.healthCheck();
