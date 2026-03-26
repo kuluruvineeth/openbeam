@@ -1,16 +1,20 @@
 import { createHash, randomBytes } from "node:crypto";
 import {
+  countSyncRuns,
   createCustomConnectorApiKey,
   createCustomConnectorDefinition,
   deleteCustomConnectorDefinition,
   getCustomConnectorByConnectorId,
   getCustomConnectorBySlug,
+  getMetricsBetween,
   listCustomConnectorApiKeys,
   listCustomConnectors,
+  listSyncRuns,
   revokeCustomConnectorApiKey,
   updateCustomConnectorDefinition,
   upsertConnector,
 } from "@openbeam/db";
+import { getHealthScore } from "@openbeam/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
@@ -251,5 +255,70 @@ export const customConnectorsRouter = createTRPCRouter({
         });
       }
       return listCustomConnectorApiKeys(ctx.prisma, definition.id);
+    }),
+
+  getHealthScore: withActiveTeam
+    .input(byConnectorSchema)
+    .query(async ({ ctx, input }) => {
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
+      return getHealthScore(ctx.prisma, input.connectorId);
+    }),
+
+  listSyncRuns: withActiveTeam
+    .input(
+      z.object({
+        connectorId: z.string().min(1),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
+      const definition = await getCustomConnectorByConnectorId(
+        ctx.prisma,
+        input.connectorId
+      );
+      if (!definition) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Custom connector definition not found",
+        });
+      }
+      const [items, total] = await Promise.all([
+        listSyncRuns(ctx.prisma, definition.id, {
+          limit: input.limit,
+          offset: input.offset,
+        }),
+        countSyncRuns(ctx.prisma, definition.id),
+      ]);
+      return { items, total };
+    }),
+
+  getMetrics: withActiveTeam
+    .input(
+      z.object({
+        connectorId: z.string().min(1),
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
+      const definition = await getCustomConnectorByConnectorId(
+        ctx.prisma,
+        input.connectorId
+      );
+      if (!definition) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Custom connector definition not found",
+        });
+      }
+      return getMetricsBetween(
+        ctx.prisma,
+        definition.id,
+        new Date(input.startDate),
+        new Date(input.endDate)
+      );
     }),
 });

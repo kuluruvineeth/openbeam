@@ -252,3 +252,112 @@ export function touchCustomConnectorApiKey(db: Database, id: string) {
     data: { lastUsedAt: new Date() },
   });
 }
+
+export function createSyncRun(
+  db: Database,
+  input: { definitionId: string; syncType: string }
+) {
+  return db.customConnectorSyncRun.create({
+    data: {
+      definitionId: input.definitionId,
+      syncType: input.syncType,
+      status: "running",
+    },
+  });
+}
+
+export function completeSyncRun(
+  db: Database,
+  id: string,
+  input: {
+    documentsProcessed: number;
+    documentsFailed: number;
+    documentsDeleted: number;
+  }
+) {
+  const now = new Date();
+  return db.customConnectorSyncRun.update({
+    where: { id },
+    data: {
+      status: "completed",
+      documentsProcessed: input.documentsProcessed,
+      documentsFailed: input.documentsFailed,
+      documentsDeleted: input.documentsDeleted,
+      completedAt: now,
+    },
+  });
+}
+
+export function failSyncRun(db: Database, id: string, errorMessage: string) {
+  return db.customConnectorSyncRun.update({
+    where: { id },
+    data: {
+      status: "failed",
+      errorMessage,
+      completedAt: new Date(),
+    },
+  });
+}
+
+export function upsertHourlyMetrics(
+  db: Database,
+  input: {
+    definitionId: string;
+    periodStart: Date;
+    periodEnd: Date;
+    success: boolean;
+    documentsProcessed: number;
+    errorCount: number;
+    durationMs: number;
+  }
+) {
+  return db.customConnectorMetrics.upsert({
+    where: {
+      definitionId_periodStart: {
+        definitionId: input.definitionId,
+        periodStart: input.periodStart,
+      },
+    },
+    create: {
+      definitionId: input.definitionId,
+      periodStart: input.periodStart,
+      periodEnd: input.periodEnd,
+      totalSyncs: 1,
+      successfulSyncs: input.success ? 1 : 0,
+      failedSyncs: input.success ? 0 : 1,
+      totalDocuments: input.documentsProcessed,
+      totalErrors: input.errorCount,
+      avgDurationMs: input.durationMs,
+    },
+    update: {
+      totalSyncs: { increment: 1 },
+      successfulSyncs: { increment: input.success ? 1 : 0 },
+      failedSyncs: { increment: input.success ? 0 : 1 },
+      totalDocuments: { increment: input.documentsProcessed },
+      totalErrors: { increment: input.errorCount },
+    },
+  });
+}
+
+export function createHealthSnapshot(
+  db: Database,
+  input: {
+    definitionId: string;
+    score: number;
+    successRate: number;
+    errorRate: number;
+    avgLatencyMs: number;
+    factors: Record<string, unknown>;
+  }
+) {
+  return db.customConnectorHealthSnapshot.create({
+    data: {
+      definitionId: input.definitionId,
+      score: input.score,
+      successRate: input.successRate,
+      errorRate: input.errorRate,
+      avgLatencyMs: input.avgLatencyMs,
+      factors: input.factors as Prisma.InputJsonValue,
+    },
+  });
+}

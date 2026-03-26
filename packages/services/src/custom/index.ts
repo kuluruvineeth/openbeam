@@ -5,6 +5,17 @@ export {
   verifyCustomConnectorApiKey,
 } from "./api-key-manager";
 export {
+  computeHealthScore,
+  getHealthScore,
+  type HealthFactor,
+  type HealthScore,
+  invalidateHealthCache,
+  recordSyncFailure,
+  recordSyncSuccess,
+  type SyncRunHandle,
+  startSyncRun,
+} from "./health";
+export {
   CustomPullApiError,
   createPaginator,
   executePullSync,

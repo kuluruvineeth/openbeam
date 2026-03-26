@@ -9,6 +9,7 @@ import { AppLogo } from "@/components/integrations/app-logo";
 import { useConnector } from "@/features/connectors/hooks";
 import { isSyncing, SyncStatusCard, useSyncStatus } from "@/features/sync";
 import { useTRPC } from "@/trpc/client";
+import { CustomConnectorHealth } from "./custom-connector-health";
 
 function OverviewSkeleton() {
   return (
@@ -101,6 +102,10 @@ export function ConnectorOverviewTab({ connectorId }: { connectorId: string }) {
       )}
 
       <SyncStatusCard connectorId={connectorId} syncStatus={syncStatus} />
+
+      {connector?.app === "CUSTOM" && (
+        <CustomConnectorHealth connectorId={connectorId} />
+      )}
     </div>
   );
 }

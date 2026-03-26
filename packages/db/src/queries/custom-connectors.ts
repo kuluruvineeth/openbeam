@@ -86,3 +86,56 @@ export function listCustomConnectorApiKeys(db: Database, definitionId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export function listSyncRuns(
+  db: Database,
+  definitionId: string,
+  options?: { limit?: number; offset?: number }
+) {
+  return db.customConnectorSyncRun.findMany({
+    where: { definitionId },
+    orderBy: { startedAt: "desc" },
+    take: options?.limit ?? 50,
+    skip: options?.offset ?? 0,
+  });
+}
+
+export function countSyncRuns(db: Database, definitionId: string) {
+  return db.customConnectorSyncRun.count({
+    where: { definitionId },
+  });
+}
+
+export function getRecentSyncRuns(
+  db: Database,
+  definitionId: string,
+  since: Date
+) {
+  return db.customConnectorSyncRun.findMany({
+    where: { definitionId, startedAt: { gte: since } },
+    orderBy: { startedAt: "desc" },
+  });
+}
+
+export function getMetricsBetween(
+  db: Database,
+  definitionId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  return db.customConnectorMetrics.findMany({
+    where: {
+      definitionId,
+      periodStart: { gte: startDate },
+      periodEnd: { lte: endDate },
+    },
+    orderBy: { periodStart: "asc" },
+  });
+}
+
+export function getLatestHealthSnapshot(db: Database, definitionId: string) {
+  return db.customConnectorHealthSnapshot.findFirst({
+    where: { definitionId },
+    orderBy: { capturedAt: "desc" },
+  });
+}

@@ -34,8 +34,11 @@ model CustomConnectorDefinition {
 
   team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  apiKeys   CustomConnectorApiKey[]
-  webhookEvents WebhookEvent[]
+  apiKeys         CustomConnectorApiKey[]
+  webhookEvents   WebhookEvent[]
+  syncRuns        CustomConnectorSyncRun[]
+  metrics         CustomConnectorMetrics[]
+  healthSnapshots CustomConnectorHealthSnapshot[]
 
   @@unique([teamId, slug])
   @@index([teamId])
@@ -91,4 +94,67 @@ model CustomConnectorApiKey {
   @@index([keyHash])
   @@index([prefix])
   @@map("custom_connector_api_key")
+}
+
+model CustomConnectorSyncRun {
+  id           String @id @default(cuid()) @map("_id")
+  definitionId String
+
+  syncType     String
+  status       String  @default("running")
+  errorMessage String?
+
+  documentsProcessed Int @default(0)
+  documentsFailed    Int @default(0)
+  documentsDeleted   Int @default(0)
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  durationMs  Int?
+
+  definition CustomConnectorDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@index([definitionId, startedAt])
+  @@index([status])
+  @@map("custom_connector_sync_run")
+}
+
+model CustomConnectorMetrics {
+  id           String @id @default(cuid()) @map("_id")
+  definitionId String
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  totalSyncs       Int @default(0)
+  successfulSyncs  Int @default(0)
+  failedSyncs      Int @default(0)
+  totalDocuments   Int @default(0)
+  totalErrors      Int @default(0)
+  avgDurationMs    Int @default(0)
+
+  definition CustomConnectorDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@unique([definitionId, periodStart])
+  @@index([definitionId, periodStart])
+  @@map("custom_connector_metrics")
+}
+
+model CustomConnectorHealthSnapshot {
+  id           String @id @default(cuid()) @map("_id")
+  definitionId String
+
+  score        Int
+  successRate  Float
+  errorRate    Float
+  avgLatencyMs Int
+
+  factors Json
+
+  capturedAt DateTime @default(now())
+
+  definition CustomConnectorDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@index([definitionId, capturedAt])
+  @@map("custom_connector_health_snapshot")
 }
