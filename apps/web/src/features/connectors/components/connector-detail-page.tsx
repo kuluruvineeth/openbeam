@@ -221,7 +221,11 @@ function ConnectorDetailContent({
         </Button>
       </div>
 
-      <ConnectorDetailTabs connectorId={connectorId} syncStatus={syncStatus} />
+      <ConnectorDetailTabs
+        appType={connector.app}
+        connectorId={connectorId}
+        syncStatus={syncStatus}
+      />
     </div>
   );
 }

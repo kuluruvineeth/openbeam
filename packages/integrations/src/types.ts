@@ -146,6 +146,7 @@ export enum AppType {
   SHOWPAD = "SHOWPAD",
   SIMPPLR = "SIMPPLR",
   SMARTSHEET = "SMARTSHEET",
+  CUSTOM = "CUSTOM",
 }
 
 export enum SyncMode {

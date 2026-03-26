@@ -1,5 +1,7 @@
 export * from "./bulk-actions-toolbar";
 export * from "./connector-actions";
+export * from "./connector-api-docs-tab";
+export * from "./connector-api-keys-tab";
 export * from "./connector-detail-page";
 export * from "./connector-detail-tabs";
 export * from "./connector-overview-tab";

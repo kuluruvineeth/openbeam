@@ -17,6 +17,7 @@ import { clickUpApp } from "./clickup/config";
 import { codaApp } from "./coda/config";
 import { confluenceApp } from "./confluence/config";
 import { coupaApp } from "./coupa/config";
+import { customApp } from "./custom/config";
 import { datadogApp } from "./datadog/config";
 import { doceboApp } from "./docebo/config";
 import { docuSignApp } from "./docusign/config";
@@ -103,6 +104,7 @@ import { zendeskApp } from "./zendesk/config";
 import { zoomApp } from "./zoom/config";
 
 export {
+  customApp,
   ahaApp,
   benchlingApp,
   bynderApp,
@@ -1036,4 +1038,5 @@ export const appStore: UnifiedApp[] = [
   showpadApp,
   simpplrApp,
   smartsheetApp,
+  customApp,
 ];

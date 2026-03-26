@@ -125,6 +125,7 @@ export const AppTypeSchema = z.enum([
   "SHOWPAD",
   "SIMPPLR",
   "SMARTSHEET",
+  "CUSTOM",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

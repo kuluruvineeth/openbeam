@@ -21,7 +21,9 @@ import {
   useForm,
   zodResolver,
 } from "@openbeam/ui";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -37,6 +39,7 @@ import {
 } from "@/hooks/use-apps";
 import { apiClient } from "@/lib/api-client";
 import { generateFormSchema, getAppDefaultValues } from "@/lib/integrations";
+import { useTRPC } from "@/trpc/client";
 
 type UnifiedAppProps = {
   app: UnifiedApp;
@@ -49,6 +52,28 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   const [params, setParams] = useQueryStates({
     app: parseAsString,
     settings: parseAsBoolean,
+  });
+  const router = useRouter();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const isCustomApp = app.id === "CUSTOM";
+
+  const createCustomMutation = useMutation({
+    ...trpc.customConnectors.create.mutationOptions(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.apps.list.queryOptions().queryKey,
+      });
+      toast.success("Custom connector created");
+      setLoading(false);
+      setParams(null);
+      router.push(`/connectors/${data.connectorId}?tab=api-keys`);
+    },
+    onError: (error) => {
+      setLoading(false);
+      toast.error(error.message || "Failed to create custom connector");
+    },
   });
 
   const formSchema = useMemo(
@@ -161,7 +186,28 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
     }
   };
 
+  const handleCustomApp = (configValues: Record<string, unknown>) => {
+    const connectorName = (configValues.connector_name as string) || "";
+    const slug = (configValues.connector_slug as string) || "";
+    const description =
+      (configValues.connector_description as string) || undefined;
+    const mode = (configValues.mode as "push" | "pull" | "webhook") || "push";
+
+    createCustomMutation.mutate({
+      name: connectorName,
+      slug,
+      description,
+      mode,
+      config: configValues,
+    });
+  };
+
   const handleOfficialApp = async (configValues: Record<string, unknown>) => {
+    if (isCustomApp) {
+      handleCustomApp(configValues);
+      return;
+    }
+
     if (app.onInitialize) {
       await app.onInitialize();
       return;
@@ -309,7 +355,8 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
             isLoading={
               isLoading ||
               connectMutation.isPending ||
-              updateSettingsMutation.isPending
+              updateSettingsMutation.isPending ||
+              createCustomMutation.isPending
             }
             isNextDisabled={isButtonDisabled}
             revokeExternalAppMutation={revokeExternalAppMutation}

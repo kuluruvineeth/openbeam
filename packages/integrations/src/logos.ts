@@ -21,6 +21,7 @@ import { Logo as ClickUpLogo } from "./clickup/assets/logo";
 import { Logo as CodaLogo } from "./coda/assets/logo";
 import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as CoupaLogo } from "./coupa/assets/logo";
+import { Logo as CustomLogo } from "./custom/assets/logo";
 import { Logo as DatadogLogo } from "./datadog/assets/logo";
 import { Logo as DoceboLogo } from "./docebo/assets/logo";
 import { Logo as DocuSignLogo } from "./docusign/assets/logo";
@@ -209,6 +210,7 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.SHOWPAD]: ShowpadLogo,
   [AppType.SIMPPLR]: SimpplrLogo,
   [AppType.SMARTSHEET]: SmartsheetLogo,
+  [AppType.CUSTOM]: CustomLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

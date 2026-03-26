@@ -2,9 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openbeam/ui";
 import { parseAsString, useQueryStates } from "nuqs";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { ConnectorApiDocsTab } from "./connector-api-docs-tab";
+import { ConnectorApiKeysTab } from "./connector-api-keys-tab";
 import { ConnectorOverviewTab } from "./connector-overview-tab";
 import { ConnectorResourcesTab } from "./connector-resources-tab";
 import { ConnectorSettingsTab } from "./connector-settings-tab";
@@ -27,6 +29,7 @@ type SyncStatus = {
 type ConnectorDetailTabsProps = {
   connectorId: string;
   syncStatus?: SyncStatus;
+  appType?: string;
 };
 
 type TabConfig = {
@@ -39,6 +42,7 @@ type TabConfig = {
 export function ConnectorDetailTabs({
   connectorId,
   syncStatus,
+  appType,
 }: ConnectorDetailTabsProps) {
   const [params, setParams] = useQueryStates({
     tab: parseAsString.withDefault("overview"),
@@ -52,32 +56,52 @@ export function ConnectorDetailTabs({
     [setParams]
   );
 
+  const isCustom = appType === "CUSTOM";
   const resourceCount = syncStatus?.resources?.total;
 
-  const tabs: TabConfig[] = [
-    {
-      value: "overview",
-      label: "Overview",
-      icon: <Icons.Info size={14} />,
-    },
-    {
-      value: "resources",
-      label: "Resources",
-      icon: <Icons.Folder size={14} />,
-      count: resourceCount,
-    },
-    {
-      value: "history",
-      label: "History",
-      icon: <Icons.History size={14} />,
-      count: syncStatus?.syncHistory?.total,
-    },
-    {
-      value: "settings",
-      label: "Settings",
-      icon: <Icons.Settings size={14} />,
-    },
-  ];
+  const tabs: TabConfig[] = useMemo(() => {
+    const base: TabConfig[] = [
+      {
+        value: "overview",
+        label: "Overview",
+        icon: <Icons.Info size={14} />,
+      },
+      {
+        value: "resources",
+        label: "Resources",
+        icon: <Icons.Folder size={14} />,
+        count: resourceCount,
+      },
+      {
+        value: "history",
+        label: "History",
+        icon: <Icons.History size={14} />,
+        count: syncStatus?.syncHistory?.total,
+      },
+      {
+        value: "settings",
+        label: "Settings",
+        icon: <Icons.Settings size={14} />,
+      },
+    ];
+
+    if (isCustom) {
+      base.push(
+        {
+          value: "api-keys",
+          label: "API Keys",
+          icon: <Icons.LockIcon size={14} />,
+        },
+        {
+          value: "api-docs",
+          label: "API Docs",
+          icon: <Icons.FileIcon size={14} />,
+        }
+      );
+    }
+
+    return base;
+  }, [isCustom, resourceCount, syncStatus?.syncHistory?.total]);
 
   return (
     <Tabs className="w-full" onValueChange={handleTabChange} value={params.tab}>
@@ -121,6 +145,18 @@ export function ConnectorDetailTabs({
         <TabsContent className="mt-0 h-full" value="resources">
           <ConnectorResourcesTab connectorId={connectorId} />
         </TabsContent>
+
+        {isCustom && (
+          <>
+            <TabsContent className="mt-0 h-full overflow-auto" value="api-keys">
+              <ConnectorApiKeysTab connectorId={connectorId} />
+            </TabsContent>
+
+            <TabsContent className="mt-0 h-full overflow-auto" value="api-docs">
+              <ConnectorApiDocsTab connectorId={connectorId} />
+            </TabsContent>
+          </>
+        )}
       </div>
     </Tabs>
   );
