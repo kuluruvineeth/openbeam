@@ -298,8 +298,8 @@ export const customConnectorsRouter = createTRPCRouter({
     .input(
       z.object({
         connectorId: z.string().min(1),
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
+        startDate: z.iso.datetime(),
+        endDate: z.iso.datetime(),
       })
     )
     .query(async ({ ctx, input }) => {
