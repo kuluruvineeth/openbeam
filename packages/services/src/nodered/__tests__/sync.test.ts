@@ -3,8 +3,10 @@ import type {
   NodeRedFlow,
   NodeRedNode,
   NodeRedNodeType,
+  NodeRedSyncBatch,
   NodeRedTransformContext,
 } from "@openbeam/types/services/connectors/nodered";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { NodeRedClient } from "../client";
 import { fullSync } from "../sync/full";
 
@@ -62,7 +64,7 @@ function createMockClient(options?: {
       paletteCategories: [],
     }),
     healthCheck: async () => true,
-  } as NodeRedClient;
+  } as unknown as NodeRedClient;
 }
 
 const baseContext: NodeRedTransformContext = {
@@ -77,7 +79,7 @@ describe("nodered sync", () => {
   describe("fullSync", () => {
     it("yields flow batch from tab entries", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: NodeRedSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -89,7 +91,7 @@ describe("nodered sync", () => {
 
     it("yields node type batch when syncNodes is true", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: NodeRedSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         syncNodes: true,
       })) {
@@ -103,7 +105,7 @@ describe("nodered sync", () => {
 
     it("skips node types when syncNodes is false", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: NodeRedSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         syncNodes: false,
       })) {
@@ -124,7 +126,7 @@ describe("nodered sync", () => {
         ],
       });
 
-      const batches: unknown[] = [];
+      const batches: NodeRedSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -144,7 +146,7 @@ describe("nodered sync", () => {
         ],
       });
 
-      const batches: unknown[] = [];
+      const batches: NodeRedSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import type {
   OpcUaNode,
+  OpcUaSyncBatch,
   OpcUaTransformContext,
 } from "@openbeam/types/services/connectors/opcua";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { OpcUaClient } from "../client";
 import { fullSync } from "../sync/full";
 
@@ -58,7 +60,7 @@ describe("opcua sync", () => {
         ],
       });
 
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -74,7 +76,7 @@ describe("opcua sync", () => {
       );
 
       const client = createMockClient({ nodes });
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         batchSize: 2,
       })) {
@@ -93,7 +95,7 @@ describe("opcua sync", () => {
       );
 
       const client = createMockClient({ nodes });
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         batchSize: 2,
       })) {
@@ -112,7 +114,7 @@ describe("opcua sync", () => {
       ];
 
       const client = createMockClient({ nodes });
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         batchSize: 2,
       })) {
@@ -140,7 +142,7 @@ describe("opcua sync", () => {
         },
       });
 
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         callOrder.push("yield");
         batches.push(batch);
@@ -160,7 +162,7 @@ describe("opcua sync", () => {
         },
       });
 
-      const batches: unknown[] = [];
+      const batches: OpcUaSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }

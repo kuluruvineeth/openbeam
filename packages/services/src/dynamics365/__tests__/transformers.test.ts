@@ -51,9 +51,9 @@ describe("transformDynamics365Account", () => {
     expect(doc.external_id).toBe("acc-001");
     expect(doc.content).toContain("Enterprise technology company");
     expect(doc.content).toContain("Phone: +1-555-0100");
-    expect(doc.metadata.email).toBe("info@contoso.com");
-    expect(doc.metadata.revenue).toBe("5000000");
-    expect(doc.metadata.active).toBe("true");
+    expect(doc.metadata?.email).toBe("info@contoso.com");
+    expect(doc.metadata?.revenue).toBe("5000000");
+    expect(doc.metadata?.active).toBe("true");
     expect(doc.url).toContain("testorg.crm.dynamics.com");
   });
 
@@ -80,7 +80,7 @@ describe("transformDynamics365Account", () => {
 
     const doc = transformDynamics365Account(account, context);
 
-    expect(doc.metadata.active).toBe("false");
+    expect(doc.metadata?.active).toBe("false");
     expect(doc.title).toBe("Inactive Corp");
   });
 });
@@ -115,8 +115,8 @@ describe("transformDynamics365Contact", () => {
     expect(doc.title).toBe("Jane Doe");
     expect(doc.content).toContain("Title: VP Sales");
     expect(doc.content).toContain("Email: jane@contoso.com");
-    expect(doc.metadata.jobTitle).toBe("VP Sales");
-    expect(doc.metadata.department).toBe("Sales");
+    expect(doc.metadata?.jobTitle).toBe("VP Sales");
+    expect(doc.metadata?.department).toBe("Sales");
     expect(doc.author_email).toBe("jane@contoso.com");
   });
 });
@@ -152,8 +152,8 @@ describe("transformDynamics365Lead", () => {
     expect(doc.title).toBe("John Smith");
     expect(doc.content).toContain("Topic: Enterprise License Interest");
     expect(doc.content).toContain("Company: Prospect Inc");
-    expect(doc.metadata.status).toBe("Open");
-    expect(doc.metadata.estimatedValue).toBe("50000");
+    expect(doc.metadata?.status).toBe("Open");
+    expect(doc.metadata?.estimatedValue).toBe("50000");
   });
 });
 
@@ -187,9 +187,9 @@ describe("transformDynamics365Opportunity", () => {
     expect(doc.content).toContain("Value: 250000");
     expect(doc.content).toContain("Stage: Proposal");
     expect(doc.content).toContain("Probability: 75%");
-    expect(doc.metadata.estimatedValue).toBe("250000");
-    expect(doc.metadata.stage).toBe("Proposal");
-    expect(doc.metadata.probability).toBe("75");
+    expect(doc.metadata?.estimatedValue).toBe("250000");
+    expect(doc.metadata?.stage).toBe("Proposal");
+    expect(doc.metadata?.probability).toBe("75");
   });
 });
 
@@ -221,9 +221,9 @@ describe("transformDynamics365Case", () => {
     expect(doc.title).toBe("Login issues with SSO");
     expect(doc.content).toContain("Case #CAS-2024-0001");
     expect(doc.content).toContain("Priority: High");
-    expect(doc.metadata.ticketNumber).toBe("CAS-2024-0001");
-    expect(doc.metadata.priority).toBe("High");
-    expect(doc.metadata.status).toBe("Active");
+    expect(doc.metadata?.ticketNumber).toBe("CAS-2024-0001");
+    expect(doc.metadata?.priority).toBe("High");
+    expect(doc.metadata?.status).toBe("Active");
   });
 });
 
@@ -254,7 +254,7 @@ describe("transformDynamics365Activity", () => {
     expect(doc.title).toBe("Follow-up call with Contoso");
     expect(doc.content).toContain("Type: phonecall");
     expect(doc.content).toContain("Status: Scheduled");
-    expect(doc.metadata.activityType).toBe("phonecall");
-    expect(doc.metadata.status).toBe("Scheduled");
+    expect(doc.metadata?.activityType).toBe("phonecall");
+    expect(doc.metadata?.status).toBe("Scheduled");
   });
 });

@@ -2,8 +2,10 @@ import { describe, expect, it } from "bun:test";
 import type {
   BacnetDevice,
   BacnetObject,
+  BacnetSyncBatch,
   BacnetTransformContext,
 } from "@openbeam/types/services/connectors/bacnet";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { BacnetClient } from "../client";
 import { fullSync } from "../sync/full";
 
@@ -68,7 +70,7 @@ describe("bacnet sync", () => {
   describe("fullSync", () => {
     it("yields device batch followed by object batch", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -80,7 +82,7 @@ describe("bacnet sync", () => {
 
     it("yields empty batch when no devices discovered", async () => {
       const client = createMockClient({ devices: [] });
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -103,7 +105,7 @@ describe("bacnet sync", () => {
         ]),
       });
 
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -118,7 +120,7 @@ describe("bacnet sync", () => {
         objectsByDevice: new Map([[1001, [createMockObject()]]]),
       });
 
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -139,7 +141,7 @@ describe("bacnet sync", () => {
         ]),
       });
 
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -170,7 +172,7 @@ describe("bacnet sync", () => {
         },
       } as BacnetClient;
 
-      const batches: unknown[] = [];
+      const batches: BacnetSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }

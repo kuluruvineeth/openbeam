@@ -4,8 +4,10 @@ import type {
   ThingsboardDashboard,
   ThingsboardDevice,
   ThingsboardPageData,
+  ThingsboardSyncBatch,
   ThingsboardTransformContext,
 } from "@openbeam/types/services/connectors/thingsboard";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ThingsboardClient } from "../client";
 import { fullSync } from "../sync/full";
 
@@ -123,7 +125,7 @@ describe("thingsboard sync", () => {
   describe("fullSync", () => {
     it("yields devices, alarms, and dashboards in order", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -136,7 +138,7 @@ describe("thingsboard sync", () => {
 
     it("sets hasMore true while stages remain", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -148,7 +150,7 @@ describe("thingsboard sync", () => {
 
     it("skips alarms when syncAlarms is false", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         syncAlarms: false,
       })) {
@@ -162,7 +164,7 @@ describe("thingsboard sync", () => {
 
     it("skips dashboards when syncDashboards is false", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext, {
         syncDashboards: false,
       })) {
@@ -176,7 +178,7 @@ describe("thingsboard sync", () => {
 
     it("handles paginated device responses", async () => {
       const client = createMockClient({ devicePages: 2 });
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -198,7 +200,7 @@ describe("thingsboard sync", () => {
         dashboards: [createMockDashboard()],
       });
 
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
@@ -210,7 +212,7 @@ describe("thingsboard sync", () => {
 
     it("includes cursor with lastSyncTime", async () => {
       const client = createMockClient();
-      const batches: unknown[] = [];
+      const batches: ThingsboardSyncBatch<GenericDocument>[] = [];
       for await (const batch of fullSync(client, baseContext)) {
         batches.push(batch);
       }
