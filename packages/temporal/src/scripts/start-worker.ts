@@ -23,6 +23,7 @@ import {
   createUnifiedSyncActivities,
   registerAllSyncFactories,
 } from "../activities/connectors";
+import { createContextEnrichmentActivities } from "../activities/context";
 import {
   createCleanupActivities,
   createDatabaseActivities,
@@ -114,6 +115,7 @@ export function getTaskQueuesForWorkerType(workerType: WorkerType): string[] {
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
+    context: TASK_QUEUES.CONTEXT_ENRICHMENT,
   };
 
   return [mapping[workerType] ?? TASK_QUEUES.DEFAULT];
@@ -130,6 +132,7 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
+    context: TASK_QUEUES.CONTEXT_ENRICHMENT,
   };
 
   return mapping[workerType] ?? TASK_QUEUES.DEFAULT;
@@ -276,6 +279,12 @@ async function loadActivitiesForWorkerType(
         }),
         ...createKnowledgeInferenceActivities({ db: deps.db }),
         ...createKnowledgeCleanupActivities({ db: deps.db }),
+      };
+
+    case "context":
+      return {
+        ...baseActivities,
+        ...createContextEnrichmentActivities({ db: deps.db }),
       };
 
     default:

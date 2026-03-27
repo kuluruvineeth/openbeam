@@ -14,6 +14,7 @@ const activities = proxyActivities<ContextEnrichmentActivities>({
     backoffCoefficient: 2,
     maximumAttempts: 3,
     maximumInterval: "1m",
+    nonRetryableErrorTypes: ["AuthorizationError", "ConfigError"],
   },
 });
 
