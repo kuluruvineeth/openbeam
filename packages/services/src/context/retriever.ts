@@ -3,6 +3,7 @@ import type {
   ContextSearchResult,
   ContextType,
   HierarchicalSearchResult,
+  RetrievalStep,
 } from "@openbeam/types/context";
 import { searchContext, searchContextChildren } from "@openbeam/vespa";
 import { finalScore, hotnessScore, propagateScore } from "./hotness";
@@ -46,6 +47,7 @@ export class HierarchicalRetriever {
   async search(params: RetrieverParams): Promise<HierarchicalSearchResult> {
     const limit = params.limit ?? 20;
     const retrievalPath: string[] = [];
+    const trajectory: RetrievalStep[] = [];
 
     const globalResults = await searchContext({
       teamId: params.teamId,
@@ -76,14 +78,19 @@ export class HierarchicalRetriever {
       }
       visited.add(current.uri);
 
+      const stepStart = performance.now();
       const children = await searchContextChildren(params.teamId, current.uri, {
         contextType: params.contextType,
         embedding: params.embedding,
         limit: 50,
       });
 
+      let topChildScore = 0;
       for (const child of children.hits) {
         const propagated = propagateScore(child.relevance, current.score);
+        if (propagated > topChildScore) {
+          topChildScore = propagated;
+        }
 
         if (child.document.is_leaf) {
           results.push({
@@ -117,12 +124,22 @@ export class HierarchicalRetriever {
           .slice(0, TOP_K)
           .map((r) => r.uri)
       );
-      if (setsEqual(currentTopK, previousTopK)) {
+      const converged = setsEqual(currentTopK, previousTopK);
+      if (converged) {
         convergenceCount += 1;
       } else {
         convergenceCount = 0;
       }
       previousTopK = currentTopK;
+
+      trajectory.push({
+        directory: current.uri,
+        childrenSearched: children.hits.length,
+        topScore: topChildScore,
+        converged,
+        depth: current.depth,
+        durationMs: performance.now() - stepStart,
+      });
     }
 
     const cache = getContextCache();
@@ -150,6 +167,7 @@ export class HierarchicalRetriever {
       tools: limited.filter((r) => r.contextType === "tool"),
       total: limited.length,
       retrievalPath,
+      trajectory,
     };
   }
 

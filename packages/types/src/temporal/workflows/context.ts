@@ -54,3 +54,31 @@ export const ExtractMemoriesInputSchema = z.object({
 });
 
 export type ExtractMemoriesInput = z.infer<typeof ExtractMemoriesInputSchema>;
+
+export const IngestSyncBatchInputSchema = z.object({
+  teamId: z.string(),
+  connectorId: z.string(),
+  connectorType: z.string(),
+  documentIds: z.array(z.string()),
+});
+export type IngestSyncBatchInput = z.infer<typeof IngestSyncBatchInputSchema>;
+
+export const BatchEnrichmentInputSchema = z.object({
+  teamId: z.string(),
+  uris: z.array(z.string()),
+});
+export type BatchEnrichmentInput = z.infer<typeof BatchEnrichmentInputSchema>;
+
+export const TeamKnowledgeSyncInputSchema = z.object({
+  teamId: z.string(),
+});
+export type TeamKnowledgeSyncInput = z.infer<
+  typeof TeamKnowledgeSyncInputSchema
+>;
+
+export const ExtractRelationsInputSchema = z.object({
+  teamId: z.string(),
+  connectorId: z.string(),
+  documentIds: z.array(z.string()),
+});
+export type ExtractRelationsInput = z.infer<typeof ExtractRelationsInputSchema>;

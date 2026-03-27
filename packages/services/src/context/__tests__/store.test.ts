@@ -36,14 +36,14 @@ const entry = (mockDb as MockDb).contextEntry;
 const relation = (mockDb as MockDb).contextRelation;
 
 mock.module("@openbeam/db", () => ({
-  findContextEntry: (...args: unknown[]) => entry.findUnique(...args),
-  listContextChildren: (...args: unknown[]) => entry.findMany(...args),
-  findContextRelations: (...args: unknown[]) => relation.findMany(...args),
-  upsertContextEntry: (...args: unknown[]) => entry.upsert(...args),
-  deleteContextEntry: (...args: unknown[]) => entry.deleteMany(...args),
-  incrementActiveCount: (...args: unknown[]) => entry.updateMany(...args),
-  createContextRelation: (...args: unknown[]) => relation.create(...args),
-  deleteContextRelation: (...args: unknown[]) => relation.deleteMany(...args),
+  findContextEntry: () => entry.findUnique(),
+  listContextChildren: () => entry.findMany(),
+  findContextRelations: () => relation.findMany(),
+  upsertContextEntry: () => entry.upsert(),
+  deleteContextEntry: () => entry.deleteMany(),
+  incrementActiveCount: () => entry.updateMany(),
+  createContextRelation: () => relation.create(),
+  deleteContextRelation: () => relation.deleteMany(),
 }));
 
 mock.module("@openbeam/redis", () => ({

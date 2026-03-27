@@ -58,6 +58,7 @@ export class ContextSearchService {
       tools: [],
       total: 0,
       retrievalPath: [],
+      trajectory: [],
     };
 
     for (const result of queryResults) {

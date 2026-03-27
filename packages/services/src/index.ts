@@ -424,7 +424,9 @@ export {
 export {
   buildUri,
   ContextStore,
+  DirectoryBuilder,
   generateEntryId,
+  getContextAnalytics,
   getParentUri,
   getScopeFromUri,
   isDescendant,

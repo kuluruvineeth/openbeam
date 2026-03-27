@@ -14,6 +14,7 @@ import {
   updateContextSessionTokens,
   upsertContextEntry,
 } from "@openbeam/db";
+import { getContextAnalytics } from "@openbeam/services";
 import {
   CreateContextEntrySchema,
   UpdateContextEntrySchema,
@@ -341,4 +342,8 @@ export const contextRouter = createTRPCRouter({
 
       return relations.slice(0, input.limit);
     }),
+
+  analytics: withActiveTeam.query(async ({ ctx }) =>
+    getContextAnalytics(ctx.prisma, ctx.teamId)
+  ),
 });

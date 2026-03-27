@@ -38,8 +38,10 @@ export {
   extendTimeoutSignal,
 } from "./agents/signals";
 export { agentCanvasExecutionWorkflow } from "./canvas/canvas-execution";
+export { batchContextEnrichmentWorkflow } from "./context/batch-enrichment";
 export { contextEnrichmentWorkflow } from "./context/context-enrichment";
 export { memoryExtractionWorkflow } from "./context/memory-extraction";
+export { teamKnowledgeSyncWorkflow } from "./context/team-knowledge-sync";
 export { entityExtractionWorkflow } from "./processing/entity-extraction";
 export { fileProcessingWorkflow } from "./processing/file-processing";
 export { indexDocumentsWorkflow } from "./processing/index-documents";

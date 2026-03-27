@@ -26,6 +26,17 @@ export const ContextSearchResultSchema = z.object({
 
 export type ContextSearchResult = z.infer<typeof ContextSearchResultSchema>;
 
+export const RetrievalStepSchema = z.object({
+  directory: z.string(),
+  childrenSearched: z.number().int().nonnegative(),
+  topScore: z.number(),
+  converged: z.boolean(),
+  depth: z.number().int().nonnegative(),
+  durationMs: z.number().nonnegative().optional(),
+});
+
+export type RetrievalStep = z.infer<typeof RetrievalStepSchema>;
+
 export const HierarchicalSearchResultSchema = z.object({
   resources: z.array(ContextSearchResultSchema),
   memories: z.array(ContextSearchResultSchema),
@@ -33,6 +44,7 @@ export const HierarchicalSearchResultSchema = z.object({
   tools: z.array(ContextSearchResultSchema),
   total: z.number().int().nonnegative(),
   retrievalPath: z.array(z.string()),
+  trajectory: z.array(RetrievalStepSchema).default([]),
 });
 
 export type HierarchicalSearchResult = z.infer<

@@ -304,6 +304,45 @@ class ToolRegistry {
       }));
   }
 
+  getToolsL0(): Array<{ name: string; description: string }> {
+    return Array.from(this.tools.values()).map((t) => ({
+      name: t.metadata.name,
+      description:
+        t.metadata.description.split("\n")[0] ?? t.metadata.description,
+    }));
+  }
+
+  getToolsL1(
+    names: string[]
+  ): Array<{ name: string; description: string; parameterSummary: string }> {
+    const results: Array<{
+      name: string;
+      description: string;
+      parameterSummary: string;
+    }> = [];
+
+    for (const name of names) {
+      const registered = this.tools.get(name);
+      if (!registered) {
+        continue;
+      }
+
+      const coreTool = registered.coreTool as {
+        parameters?: { shape?: Record<string, unknown> };
+      };
+      const shape = coreTool.parameters?.shape;
+      const parameterSummary = shape ? Object.keys(shape).join(", ") : "none";
+
+      results.push({
+        name: registered.metadata.name,
+        description: registered.metadata.description,
+        parameterSummary,
+      });
+    }
+
+    return results;
+  }
+
   getToolInfo(name: string): {
     name: string;
     description: string;

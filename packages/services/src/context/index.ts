@@ -1,3 +1,5 @@
+export { getContextAnalytics } from "./analytics";
+export { DirectoryBuilder } from "./directory-builder";
 export { finalScore, hotnessScore, propagateScore } from "./hotness";
 export {
   INTENT_ANALYSIS_SYSTEM_PROMPT,

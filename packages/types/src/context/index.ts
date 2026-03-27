@@ -1,4 +1,8 @@
 export {
+  type ContextAnalytics,
+  ContextAnalyticsSchema,
+} from "./analytics";
+export {
   type ContextEntry,
   ContextEntrySchema,
   type CreateContextEntry,
@@ -30,7 +34,6 @@ export {
   type CreateContextRelation,
   CreateContextRelationSchema,
 } from "./relation";
-
 export {
   type ContextSearchInput,
   ContextSearchInputSchema,
@@ -38,6 +41,8 @@ export {
   ContextSearchResultSchema,
   type HierarchicalSearchResult,
   HierarchicalSearchResultSchema,
+  type RetrievalStep,
+  RetrievalStepSchema,
   type TypedQuery,
   TypedQuerySchema,
 } from "./search";
@@ -49,5 +54,4 @@ export {
   type SessionStatus,
   SessionStatusSchema,
 } from "./session";
-
 export { type ContextUri, ContextUriSchema } from "./uri";
