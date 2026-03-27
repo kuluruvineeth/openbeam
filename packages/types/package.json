@@ -168,6 +168,10 @@
       "types": "./dist/temporal/workflows/knowledge-inference.d.ts",
       "default": "./src/temporal/workflows/knowledge-inference.ts"
     },
+    "./temporal/workflows/context": {
+      "types": "./dist/temporal/workflows/context.d.ts",
+      "default": "./src/temporal/workflows/context.ts"
+    },
     "./services/eval": {
       "types": "./dist/services/eval.d.ts",
       "default": "./src/services/eval.ts"

@@ -38,3 +38,11 @@ export const HierarchicalSearchResultSchema = z.object({
 export type HierarchicalSearchResult = z.infer<
   typeof HierarchicalSearchResultSchema
 >;
+
+export const TypedQuerySchema = z.object({
+  query: z.string(),
+  contextType: ContextTypeSchema.nullable().optional(),
+  priority: z.number().int().min(1).max(5),
+});
+
+export type TypedQuery = z.infer<typeof TypedQuerySchema>;

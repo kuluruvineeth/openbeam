@@ -79,6 +79,17 @@ export type {
   FetchBatchInput,
   FetchBatchOutput,
 } from "./connectors/types";
+export type {
+  EmbedContextOutput,
+  GenerateL0Output,
+  GenerateL1Output,
+  MemoryExtractionResult,
+} from "./context";
+export {
+  type ContextActivityDependencies,
+  type ContextEnrichmentActivities,
+  createContextEnrichmentActivities,
+} from "./context";
 export {
   type CleanupActivities,
   createCleanupActivities,

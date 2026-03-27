@@ -15,7 +15,9 @@ const mockDb = {
     findMany: mock(() => []),
     deleteMany: mock(() => ({ count: 1 })),
   },
-} as unknown;
+};
+
+type MockDb = typeof mockDb;
 
 const mockCache = {
   getL0: mock(() => Promise.resolve(null as string | null)),
@@ -30,8 +32,8 @@ const mockVespaClient = {
 
 type MockFn = ReturnType<typeof mock>;
 
-const entry = mockDb.contextEntry;
-const relation = mockDb.contextRelation;
+const entry = (mockDb as MockDb).contextEntry;
+const relation = (mockDb as MockDb).contextRelation;
 
 mock.module("@openbeam/db", () => ({
   findContextEntry: (...args: unknown[]) => entry.findUnique(...args),

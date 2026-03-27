@@ -38,6 +38,8 @@ export {
   ContextSearchResultSchema,
   type HierarchicalSearchResult,
   HierarchicalSearchResultSchema,
+  type TypedQuery,
+  TypedQuerySchema,
 } from "./search";
 export {
   type ContextSession,
