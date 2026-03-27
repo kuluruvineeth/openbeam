@@ -7,6 +7,7 @@ import { analyticsRouter } from "./analytics";
 import { appsRouter } from "./apps";
 import { backgroundAgentsRouter } from "./background-agents";
 import { connectorResourcesRouter } from "./connector-resources";
+import { contextRouter } from "./context";
 import { controlRouter } from "./control";
 import { customConnectorsRouter } from "./custom-connectors";
 import { filesRouter } from "./files";
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   apps: appsRouter,
   backgroundAgents: backgroundAgentsRouter,
   connectorResources: connectorResourcesRouter,
+  context: contextRouter,
   control: controlRouter,
   customConnectors: customConnectorsRouter,
   files: filesRouter,

@@ -15,6 +15,7 @@ import (
 	configcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/config"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/control"
 	daemoncmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/daemon"
+	contextcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/context"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/connectors"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/integrations"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/knowledge"
@@ -133,6 +134,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	mediaCommand := media.NewCommand(buildRuntime)
 	mcpCommand := mcp.NewCommand(buildRuntime)
 	controlCommand := control.NewCommand(buildRuntime)
+	contextCommand := contextcmd.NewCommand(buildRuntime)
 
 	pluginCommand := plugin.NewCommand(buildRuntime)
 
@@ -158,6 +160,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	mediaCommand.GroupID = "agent"
 	mcpCommand.GroupID = "agent"
 	controlCommand.GroupID = "agent"
+	contextCommand.GroupID = "agent"
 
 	pluginCommand.GroupID = "ext"
 
@@ -181,6 +184,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	root.AddCommand(mediaCommand)
 	root.AddCommand(mcpCommand)
 	root.AddCommand(controlCommand)
+	root.AddCommand(contextCommand)
 	root.AddCommand(pluginCommand)
 
 	return root, nil

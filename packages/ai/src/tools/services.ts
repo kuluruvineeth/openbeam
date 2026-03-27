@@ -480,6 +480,52 @@ export interface SandboxProcessResult {
   durationMs: number;
 }
 
+export interface ContextDbEntry {
+  uri: string;
+  parentUri: string | null;
+  contextType: string;
+  category: string | null;
+  isLeaf: boolean;
+  abstract: string;
+  overview: string | null;
+  content: string | null;
+  activeCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContextDbSearchResult {
+  entries: Array<{
+    uri: string;
+    abstract: string;
+    contextType: string;
+    category: string | null;
+    relevanceScore: number;
+    activeCount: number;
+  }>;
+  total: number;
+  queryTime: number;
+}
+
+export interface ContextDbStoreResult {
+  id: string;
+  uri: string;
+  abstract: string;
+  stored: boolean;
+}
+
+export interface ContextDbBrowseResult {
+  uri: string;
+  children: Array<{
+    uri: string;
+    abstract: string;
+    contextType: string;
+    isLeaf: boolean;
+    activeCount: number;
+  }>;
+  total: number;
+}
+
 export interface ToolServices {
   search: {
     hybrid: (params: SearchParams) => Promise<SearchResponse>;
@@ -859,6 +905,40 @@ export interface ToolServices {
     }) => Promise<unknown>;
   };
 
+  contextDb?: {
+    search: (params: {
+      query: string;
+      teamId: string;
+      scope?: string;
+      contextType?: string;
+      limit?: number;
+    }) => Promise<ContextDbSearchResult>;
+    read: (params: {
+      uri: string;
+      teamId: string;
+      level: "L0" | "L1" | "L2";
+    }) => Promise<ContextDbEntry | null>;
+    store: (params: {
+      teamId: string;
+      ownerId: string;
+      ownerType: "user" | "agent" | "team";
+      content: string;
+      contextType: string;
+      category?: string;
+      uri?: string;
+    }) => Promise<ContextDbStoreResult>;
+    browse: (params: {
+      uri: string;
+      teamId: string;
+    }) => Promise<ContextDbBrowseResult>;
+    relate: (params: {
+      teamId: string;
+      sourceUri: string;
+      targetUri: string;
+      reason?: string;
+    }) => Promise<{ id: string; created: boolean }>;
+  };
+
   voice?: {
     startDictation: (params: {
       userId: string;
@@ -983,6 +1063,13 @@ export function createUnimplementedServices(): ToolServices {
     workspace: {
       getSchema: notImplemented("workspace.getSchema"),
       generateSql: notImplemented("workspace.generateSql"),
+    },
+    contextDb: {
+      search: notImplemented("contextDb.search"),
+      read: notImplemented("contextDb.read"),
+      store: notImplemented("contextDb.store"),
+      browse: notImplemented("contextDb.browse"),
+      relate: notImplemented("contextDb.relate"),
     },
   } satisfies ToolServices;
 }

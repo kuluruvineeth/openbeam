@@ -26,6 +26,8 @@ export const API_SCOPES = {
   CONTROL_READ: "control:read",
   CONTROL_WRITE: "control:write",
   CONTROL_EXECUTE: "control:execute",
+  CONTEXT_READ: "context:read",
+  CONTEXT_WRITE: "context:write",
   ADMIN_ALL: "admin:*",
 } as const;
 
@@ -149,6 +151,8 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.CONTROL_READ]: ["GET"],
   [API_SCOPES.CONTROL_WRITE]: ["POST", "PUT", "PATCH", "DELETE"],
   [API_SCOPES.CONTROL_EXECUTE]: ["POST"],
+  [API_SCOPES.CONTEXT_READ]: ["GET"],
+  [API_SCOPES.CONTEXT_WRITE]: ["POST", "PUT", "PATCH", "DELETE"],
   [API_SCOPES.ADMIN_ALL]: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
 
@@ -240,6 +244,12 @@ export function getScopesForRoute(
       return [API_SCOPES.CONTROL_READ];
     }
     return [API_SCOPES.CONTROL_WRITE];
+  }
+  if (path.startsWith("/api/v1/context")) {
+    if (method === "GET") {
+      return [API_SCOPES.CONTEXT_READ];
+    }
+    return [API_SCOPES.CONTEXT_WRITE];
   }
   if (path.startsWith("/api/v1/agent-control")) {
     if (method === "GET") {
