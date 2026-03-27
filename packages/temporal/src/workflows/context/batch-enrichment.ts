@@ -7,7 +7,10 @@ import {
 import type { ContextEnrichmentActivities } from "../../activities/context/types";
 
 const activities = proxyActivities<
-  Pick<ContextEnrichmentActivities, "generateL0Abstract">
+  Pick<
+    ContextEnrichmentActivities,
+    "generateL0Abstract" | "generateL1Overview" | "embedContextEntry"
+  >
 >({
   startToCloseTimeout: "10 minutes",
   heartbeatTimeout: "120s",
@@ -33,10 +36,21 @@ export async function batchContextEnrichmentWorkflow(
     const batch = input.uris.slice(i, i + BATCH_SIZE);
 
     for (const uri of batch) {
-      await activities.generateL0Abstract({
+      const { abstract } = await activities.generateL0Abstract({
         uri,
         content: "",
         contextType: "resource",
+      });
+      const { overview } = await activities.generateL1Overview({
+        uri,
+        content: "",
+        contextType: "resource",
+      });
+      await activities.embedContextEntry({
+        uri,
+        teamId: input.teamId,
+        abstractText: abstract,
+        overview,
       });
       enriched += 1;
     }

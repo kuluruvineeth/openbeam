@@ -11,7 +11,7 @@ import type {
 export interface ContextSearchParams {
   teamId: string;
   query?: string;
-  parentUriPrefix?: string;
+  parentUri?: string;
   contextType?: string;
   category?: string;
   ownerType?: string;
@@ -46,8 +46,8 @@ function createVectorTensor(embedding: number[]): VectorTensor {
 function buildContextYql(params: ContextSearchParams): string {
   const clauses: string[] = [`team_id = "${escapeYqlString(params.teamId)}"`];
 
-  if (params.parentUriPrefix) {
-    clauses.push(`parent_uri = "${escapeYqlString(params.parentUriPrefix)}"`);
+  if (params.parentUri) {
+    clauses.push(`parent_uri = "${escapeYqlString(params.parentUri)}"`);
   }
 
   if (params.contextType) {
@@ -146,7 +146,7 @@ export function searchContextChildren(
 ): Promise<ContextSearchResult> {
   return searchContext({
     teamId,
-    parentUriPrefix: parentUri,
+    parentUri,
     contextType: options?.contextType,
     embedding: options?.embedding,
     rankingProfile: options?.rankingProfile ?? "hybrid_with_hotness",

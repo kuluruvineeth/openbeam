@@ -6,9 +6,9 @@ const HISTORY_LIMIT = 500;
 export async function teamKnowledgeSyncWorkflow(
   rawInput: unknown
 ): Promise<void> {
-  TeamKnowledgeSyncInputSchema.parse(rawInput);
+  const input = TeamKnowledgeSyncInputSchema.parse(rawInput);
 
   if (workflowInfo().historyLength > HISTORY_LIMIT) {
-    await continueAsNew<typeof teamKnowledgeSyncWorkflow>(rawInput);
+    await continueAsNew<typeof teamKnowledgeSyncWorkflow>(input);
   }
 }

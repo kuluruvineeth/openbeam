@@ -76,6 +76,7 @@ export class ContextSearchService {
         }
       }
       merged.retrievalPath.push(...result.retrievalPath);
+      merged.trajectory.push(...result.trajectory);
     }
 
     for (const category of [

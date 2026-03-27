@@ -1,9 +1,5 @@
 import { MemoryExtractionInputSchema } from "@openbeam/types/temporal/workflows/context";
-import {
-  continueAsNew,
-  proxyActivities,
-  workflowInfo,
-} from "@temporalio/workflow";
+import { proxyActivities } from "@temporalio/workflow";
 import type { ContextEnrichmentActivities } from "../../activities/context/types";
 
 const activities = proxyActivities<
@@ -20,8 +16,6 @@ const activities = proxyActivities<
   },
 });
 
-const HISTORY_LIMIT = 500;
-
 export async function memoryExtractionWorkflow(
   rawInput: unknown
 ): Promise<void> {
@@ -33,8 +27,4 @@ export async function memoryExtractionWorkflow(
     userId: input.userId,
     agentId: input.agentId,
   });
-
-  if (workflowInfo().historyLength > HISTORY_LIMIT) {
-    await continueAsNew<typeof memoryExtractionWorkflow>(rawInput);
-  }
 }

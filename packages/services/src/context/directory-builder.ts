@@ -1,5 +1,9 @@
 import type { Database } from "@openbeam/db";
-import { findContextEntry, upsertContextEntry } from "@openbeam/db";
+import {
+  findContextEntry,
+  listContextChildren,
+  upsertContextEntry,
+} from "@openbeam/db";
 import { generateEntryId, getParentUri } from "./uri";
 
 export class DirectoryBuilder {
@@ -32,10 +36,7 @@ export class DirectoryBuilder {
   }
 
   async refreshDirectory(teamId: string, directoryUri: string): Promise<void> {
-    const children = await this.db.contextEntry.findMany({
-      where: { teamId, parentUri: directoryUri },
-      select: { abstractText: true },
-    });
+    const children = await listContextChildren(this.db, teamId, directoryUri);
     const summary = `Contains ${children.length} entries`;
     const id = generateEntryId(teamId, directoryUri);
     await upsertContextEntry(this.db, {

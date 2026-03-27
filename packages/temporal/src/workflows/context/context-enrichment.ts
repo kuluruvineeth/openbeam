@@ -1,9 +1,5 @@
 import { ContextEnrichmentInputSchema } from "@openbeam/types/temporal/workflows/context";
-import {
-  continueAsNew,
-  proxyActivities,
-  workflowInfo,
-} from "@temporalio/workflow";
+import { proxyActivities } from "@temporalio/workflow";
 import type { ContextEnrichmentActivities } from "../../activities/context/types";
 
 const activities = proxyActivities<ContextEnrichmentActivities>({
@@ -17,8 +13,6 @@ const activities = proxyActivities<ContextEnrichmentActivities>({
     nonRetryableErrorTypes: ["AuthorizationError", "ConfigError"],
   },
 });
-
-const HISTORY_LIMIT = 500;
 
 export async function contextEnrichmentWorkflow(
   rawInput: unknown
@@ -43,8 +37,4 @@ export async function contextEnrichmentWorkflow(
     abstractText: abstract,
     overview,
   });
-
-  if (workflowInfo().historyLength > HISTORY_LIMIT) {
-    await continueAsNew<typeof contextEnrichmentWorkflow>(rawInput);
-  }
 }
