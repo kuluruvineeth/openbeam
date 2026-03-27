@@ -889,7 +889,6 @@
         "@openbeam/observability": "workspace:*",
         "@openbeam/redis": "workspace:*",
         "@openbeam/storage": "workspace:*",
-        "@openbeam/temporal": "workspace:*",
         "@openbeam/types": "workspace:*",
         "@openbeam/vespa": "workspace:*",
         "@slack/web-api": "^7.8.0",
