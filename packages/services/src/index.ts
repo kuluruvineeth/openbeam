@@ -423,14 +423,18 @@ export {
 } from "./confluence";
 export {
   buildUri,
+  ContextSearchService,
+  ContextSessionManager,
   ContextStore,
   DirectoryBuilder,
+  type FindOptions,
   generateEntryId,
   getContextAnalytics,
   getParentUri,
   getScopeFromUri,
   isDescendant,
   parseUri,
+  RelationService,
   type TreeNode,
 } from "./context";
 export * from "./control";

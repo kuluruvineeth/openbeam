@@ -15,15 +15,24 @@ import type {
 const AUTO_COMMIT_THRESHOLD = 8000;
 const TOKENS_PER_CHAR = 0.25;
 
+export type MemoryExtractionTrigger = (params: {
+  sessionId: string;
+  teamId: string;
+  userId: string;
+  agentId?: string | null;
+}) => Promise<{ workflowId: string }>;
+
 function estimateTokens(content: string): number {
   return Math.ceil(content.length * TOKENS_PER_CHAR);
 }
 
 export class ContextSessionManager {
   private readonly db: Database;
+  private readonly triggerMemoryExtraction?: MemoryExtractionTrigger;
 
-  constructor(db: Database) {
+  constructor(db: Database, triggerMemoryExtraction?: MemoryExtractionTrigger) {
     this.db = db;
+    this.triggerMemoryExtraction = triggerMemoryExtraction;
   }
 
   async create(
@@ -98,8 +107,18 @@ export class ContextSessionManager {
 
     const workflowId = `memory-extraction:${sessionId}`;
 
-    await updateContextSessionStatus(this.db, sessionId, "committed");
+    if (this.triggerMemoryExtraction) {
+      const result = await this.triggerMemoryExtraction({
+        sessionId,
+        teamId: session.teamId,
+        userId: session.userId,
+        agentId: session.agentId,
+      });
+      await updateContextSessionStatus(this.db, sessionId, "committed");
+      return { workflowId: result.workflowId };
+    }
 
+    await updateContextSessionStatus(this.db, sessionId, "committed");
     return { workflowId };
   }
 

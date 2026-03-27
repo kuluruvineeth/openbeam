@@ -14,7 +14,7 @@ import {
   updateContextSessionTokens,
   upsertContextEntry,
 } from "@openbeam/db";
-import { getContextAnalytics } from "@openbeam/services";
+import { ContextSearchService, getContextAnalytics } from "@openbeam/services";
 import {
   CreateContextEntrySchema,
   UpdateContextEntrySchema,
@@ -145,22 +145,17 @@ export const contextRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(20),
       })
     )
-    .query(async ({ ctx, input }) => {
-      const entries = await ctx.prisma.contextEntry.findMany({
-        where: {
-          teamId: ctx.teamId,
-          ...(input.contextType ? { contextType: input.contextType } : {}),
-          OR: [
-            { abstractText: { contains: input.query, mode: "insensitive" } },
-            { overview: { contains: input.query, mode: "insensitive" } },
-            { uri: { contains: input.query, mode: "insensitive" } },
-          ],
-        },
-        orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
-        take: input.limit,
+    .query(({ ctx, input }) => {
+      const searchService = new ContextSearchService();
+      return searchService.find(input.query, ctx.teamId, {
+        contextType: input.contextType as
+          | "resource"
+          | "memory"
+          | "skill"
+          | "tool"
+          | undefined,
+        limit: input.limit,
       });
-
-      return entries;
     }),
 
   find: withActiveTeam
@@ -172,23 +167,17 @@ export const contextRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(20),
       })
     )
-    .query(async ({ ctx, input }) => {
-      const entries = await ctx.prisma.contextEntry.findMany({
-        where: {
-          teamId: ctx.teamId,
-          ...(input.contextType ? { contextType: input.contextType } : {}),
-          ...(input.scope ? { uri: { startsWith: input.scope } } : {}),
-          OR: [
-            { abstractText: { contains: input.query, mode: "insensitive" } },
-            { overview: { contains: input.query, mode: "insensitive" } },
-            { uri: { contains: input.query, mode: "insensitive" } },
-          ],
-        },
-        orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
-        take: input.limit,
+    .query(({ ctx, input }) => {
+      const searchService = new ContextSearchService();
+      return searchService.find(input.query, ctx.teamId, {
+        contextType: input.contextType as
+          | "resource"
+          | "memory"
+          | "skill"
+          | "tool"
+          | undefined,
+        limit: input.limit,
       });
-
-      return entries;
     }),
 
   createSession: withActiveTeam

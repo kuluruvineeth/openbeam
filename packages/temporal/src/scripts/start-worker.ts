@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { completionService, embeddingService } from "@openbeam/ai";
 import { toolRegistry } from "@openbeam/ai/tools";
 import prisma, { type Database } from "@openbeam/db";
 import { createToolServices } from "@openbeam/services";
@@ -284,7 +285,12 @@ async function loadActivitiesForWorkerType(
     case "context":
       return {
         ...baseActivities,
-        ...createContextEnrichmentActivities({ db: deps.db }),
+        ...createContextEnrichmentActivities({
+          db: deps.db,
+          completionService,
+          embeddingService,
+          vespaClient: deps.vespa,
+        }),
       };
 
     default:

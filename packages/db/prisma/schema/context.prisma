@@ -90,6 +90,7 @@ model ContextMemoryExtraction {
   completedAt DateTime? @map("completed_at")
 
   session ContextSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  team    Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId, status])
   @@map("context_memory_extraction")

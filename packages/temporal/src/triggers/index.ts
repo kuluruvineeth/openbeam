@@ -35,6 +35,11 @@ export {
   runDailyCleanup,
 } from "./cleanup";
 export {
+  type MemoryExtractionHandle,
+  type StartMemoryExtractionOptions,
+  startMemoryExtraction,
+} from "./context";
+export {
   getReaperStatus,
   getSchedulerStatus,
   getTimerStatus,

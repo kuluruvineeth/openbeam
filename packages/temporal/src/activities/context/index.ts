@@ -1,21 +1,38 @@
 import type { Database } from "@openbeam/db";
-import { createEmbedContextActivity } from "./embed-context";
+import {
+  createEmbedContextActivity,
+  type EmbedContextDependencies,
+} from "./embed-context";
 import { createExtractMemoriesActivity } from "./extract-memories";
 import { createExtractRelationsActivity } from "./extract-relations";
-import { createGenerateAbstractsActivity } from "./generate-abstracts";
+import {
+  createGenerateAbstractsActivity,
+  type GenerateAbstractsDependencies,
+} from "./generate-abstracts";
 import { createIngestFromSyncActivity } from "./ingest-from-sync";
 import type { ContextEnrichmentActivities } from "./types";
 
 export interface ContextActivityDependencies {
   db: Database;
+  completionService: GenerateAbstractsDependencies["completionService"];
+  embeddingService: EmbedContextDependencies["embeddingService"];
+  vespaClient: EmbedContextDependencies["vespaClient"];
 }
 
 export function createContextEnrichmentActivities(
   deps: ContextActivityDependencies
 ): ContextEnrichmentActivities {
-  const abstracts = createGenerateAbstractsActivity({ db: deps.db });
-  const embed = createEmbedContextActivity({ db: deps.db });
-  const memories = createExtractMemoriesActivity({ db: deps.db });
+  const abstracts = createGenerateAbstractsActivity({
+    completionService: deps.completionService,
+  });
+  const embed = createEmbedContextActivity({
+    embeddingService: deps.embeddingService,
+    vespaClient: deps.vespaClient,
+  });
+  const memories = createExtractMemoriesActivity({
+    db: deps.db,
+    completionService: deps.completionService,
+  });
   const ingest = createIngestFromSyncActivity({ db: deps.db });
   const relations = createExtractRelationsActivity({ db: deps.db });
 

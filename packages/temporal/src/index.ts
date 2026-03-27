@@ -135,6 +135,11 @@ export {
   runDailyCleanup,
 } from "./triggers/cleanup";
 export {
+  type MemoryExtractionHandle,
+  type StartMemoryExtractionOptions,
+  startMemoryExtraction,
+} from "./triggers/context";
+export {
   awaitFileProcessingResult,
   type FileHandle,
   getActiveFileProcessingJobs,

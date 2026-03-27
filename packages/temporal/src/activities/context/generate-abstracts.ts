@@ -5,46 +5,72 @@ import {
 import { Context } from "@temporalio/activity";
 import type { GenerateL0Output, GenerateL1Output } from "./types";
 
-const MAX_ABSTRACT_LENGTH = 200;
-const MAX_OVERVIEW_LENGTH = 2000;
+const SHORT_CONTENT_THRESHOLD = 200;
+const CONTENT_TRUNCATION_LIMIT = 4000;
+const L0_MAX_TOKENS = 100;
+const L1_MAX_TOKENS = 2000;
 
 export interface GenerateAbstractsDependencies {
-  db: unknown;
+  completionService: {
+    complete(
+      messages: Array<{ role: string; content: string }>,
+      options?: { maxTokens?: number }
+    ): Promise<{ content: string }>;
+  };
 }
 
 export function createGenerateAbstractsActivity(
-  _deps: GenerateAbstractsDependencies
+  deps: GenerateAbstractsDependencies
 ) {
   return {
-    // biome-ignore lint/suspicious/useAwait: Temporal activities must be async per interface contract
     async generateL0Abstract(rawInput: unknown): Promise<GenerateL0Output> {
       const input = GenerateL0InputSchema.parse(rawInput);
 
       Context.current().heartbeat({ stage: "generating-l0", uri: input.uri });
 
-      const abstract =
-        input.content.length <= MAX_ABSTRACT_LENGTH
-          ? input.content
-          : `${input.content.slice(0, MAX_ABSTRACT_LENGTH - 3)}...`;
+      if (input.content.length <= SHORT_CONTENT_THRESHOLD) {
+        return { abstract: input.content };
+      }
 
-      return { abstract };
+      const result = await deps.completionService.complete(
+        [
+          {
+            role: "system",
+            content:
+              "Summarize the following content in one concise sentence. Return only the summary, nothing else.",
+          },
+          {
+            role: "user",
+            content: input.content.slice(0, CONTENT_TRUNCATION_LIMIT),
+          },
+        ],
+        { maxTokens: L0_MAX_TOKENS }
+      );
+
+      return { abstract: result.content.trim() };
     },
 
-    // biome-ignore lint/suspicious/useAwait: Temporal activities must be async per interface contract
     async generateL1Overview(rawInput: unknown): Promise<GenerateL1Output> {
       const input = GenerateL1InputSchema.parse(rawInput);
 
       Context.current().heartbeat({ stage: "generating-l1", uri: input.uri });
 
-      const lines = input.content
-        .split("\n")
-        .filter((l) => l.trim().length > 0);
-      const overview = lines
-        .slice(0, 20)
-        .join("\n")
-        .slice(0, MAX_OVERVIEW_LENGTH);
+      const result = await deps.completionService.complete(
+        [
+          {
+            role: "system",
+            content:
+              "Create a detailed overview of the following content in 500-2000 tokens. Include key concepts, structure, and important details. Return only the overview, nothing else.",
+          },
+          {
+            role: "user",
+            content: input.content.slice(0, CONTENT_TRUNCATION_LIMIT * 4),
+          },
+        ],
+        { maxTokens: L1_MAX_TOKENS }
+      );
 
-      return { overview };
+      return { overview: result.content.trim() };
     },
   };
 }

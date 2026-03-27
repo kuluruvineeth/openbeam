@@ -3,6 +3,7 @@ import type {
   ContextType,
   HierarchicalSearchResult,
 } from "@openbeam/types/context";
+import type { CompletionClient } from "./intent-analyzer";
 import { IntentAnalyzer } from "./intent-analyzer";
 import { HierarchicalRetriever } from "./retriever";
 
@@ -15,7 +16,11 @@ export interface FindOptions {
 
 export class ContextSearchService {
   private readonly retriever = new HierarchicalRetriever();
-  private readonly intentAnalyzer = new IntentAnalyzer();
+  private readonly intentAnalyzer: IntentAnalyzer;
+
+  constructor(completionService?: CompletionClient) {
+    this.intentAnalyzer = new IntentAnalyzer(completionService);
+  }
 
   find(
     query: string,
