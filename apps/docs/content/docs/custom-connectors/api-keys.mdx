@@ -1,0 +1,163 @@
+---
+title: API Keys
+description: Generate, manage, and secure API keys for custom connectors
+---
+
+# API Key Management
+
+Every custom connector is authenticated via API keys. Keys are scoped to a single connector and carry granular permissions.
+
+## Key Format
+
+All custom connector API keys use the `obc_` prefix:
+
+```
+obc_a1b2c3d4e5f6...
+```
+
+The full key is shown exactly once at creation time. OpenBeam stores only a hash of the key. If you lose the key, revoke it and generate a new one.
+
+The key prefix (first 8 characters after `obc_`) is stored in plaintext for lookup. This allows OpenBeam to identify the key quickly without hashing every request against every key in the database.
+
+## Scopes
+
+Keys are issued with one or more scopes that control which endpoints they can access.
+
+| Scope | Endpoints |
+|-------|-----------|
+| `push` | `POST /{slug}/documents` (single), `POST /{slug}/documents/batch` (batch) |
+| `delete` | `DELETE /{slug}/documents/{id}` (single), `POST /{slug}/documents/delete` (batch) |
+| `status` | `GET /{slug}/status` |
+
+A key with all three scopes has full access. If scopes are omitted during creation, the key defaults to all scopes.
+
+Requests to an endpoint without the required scope receive `403 Forbidden`:
+
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Required scope: push"
+  }
+}
+```
+
+## Generating Keys
+
+### Via the Web UI
+
+1. Open the custom connector detail page
+2. Navigate to the **API Keys** tab
+3. Click **Generate Key**
+4. Enter a descriptive name (e.g., `ci-pipeline`, `etl-job-prod`)
+5. Select the scopes you need
+6. Optionally set an expiration date
+7. Click **Create**
+8. Copy the key immediately -- it will not be shown again
+
+### Via the Management API
+
+```
+POST /api/v1/custom/connectors/{definitionId}/keys
+```
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Display name (1-200 chars) |
+| `scopes` | string[] | No | Array of scopes: `push`, `delete`, `status` |
+| `expiresAt` | string | No | ISO 8601 expiration datetime |
+
+#### Response (201)
+
+```json
+{
+  "id": "key_abc123",
+  "key": "obc_a1b2c3d4e5f6g7h8i9j0...",
+  "prefix": "obc_a1b2",
+  "name": "ci-pipeline",
+  "createdAt": "2026-03-26T10:00:00.000Z"
+}
+```
+
+The `key` field contains the full API key. This is the only time it is returned.
+
+## Listing Keys
+
+```
+GET /api/v1/custom/connectors/{definitionId}/keys
+```
+
+Returns all keys for the connector. The full key is never included; only the prefix is shown.
+
+```json
+[
+  {
+    "id": "key_abc123",
+    "name": "ci-pipeline",
+    "prefix": "obc_a1b2",
+    "scopes": ["push", "delete", "status"],
+    "lastUsedAt": "2026-03-26T09:45:00.000Z",
+    "expiresAt": null,
+    "revoked": false,
+    "createdAt": "2026-03-01T08:00:00.000Z"
+  }
+]
+```
+
+## Revoking Keys
+
+```
+DELETE /api/v1/custom/connectors/{definitionId}/keys/{keyId}
+```
+
+Revoked keys are rejected immediately on all subsequent requests. Revocation is permanent.
+
+```json
+{
+  "id": "key_abc123",
+  "revoked": true
+}
+```
+
+## Expiration
+
+Keys can have an optional expiration date. After the expiration time, the key is rejected with:
+
+```json
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "API key expired"
+  }
+}
+```
+
+Set expiration during key creation. To extend an expired key, revoke it and create a new one.
+
+## Rate Limits
+
+Rate limits are applied per connector, not per key. All keys for the same connector share the same rate limit budget.
+
+| Limit | Value |
+|-------|-------|
+| Burst | 20 requests per 10 seconds |
+| Per minute | 120 requests |
+| Per hour | 5,000 requests |
+
+See [Push API](/docs/custom-connectors/push-api) for details on rate limit responses.
+
+## Security Best Practices
+
+**Store keys as secrets.** Use environment variables, secret managers (AWS Secrets Manager, HashiCorp Vault, etc.), or CI/CD secret stores. Never commit keys to source control.
+
+**Use minimal scopes.** A read-only monitoring script needs only `status`. A data pipeline that only writes needs only `push`. Grant `delete` only to systems that manage document lifecycle.
+
+**Rotate keys regularly.** Generate a new key, update your systems, then revoke the old key. OpenBeam supports multiple active keys per connector to enable zero-downtime rotation.
+
+**Set expiration for temporary access.** Short-lived keys for one-off imports or testing reduce risk if the key is leaked.
+
+**Monitor usage.** The `lastUsedAt` field on each key shows when it was last used. Revoke keys that have not been used recently.
+
+**One key per system.** Issue separate keys to separate systems (CI pipeline, ETL job, monitoring script). If one system is compromised, revoke only that key without disrupting others.

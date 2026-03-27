@@ -1,0 +1,112 @@
+---
+title: Setup
+description: Create a custom connector and start indexing data
+---
+
+# Getting Started
+
+## Prerequisites
+
+- An OpenBeam account with admin or editor access to your team
+- For Push API: a system capable of making HTTP requests
+- For Webhooks: an external system that supports outbound webhooks
+- For Pull: a REST API accessible from your OpenBeam server
+
+## Step 1: Create a Custom Connector
+
+1. Navigate to **Settings > Connectors**
+2. Click the **Available** tab to browse connector types
+3. Select **Custom Connector**
+4. Fill in the required fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **Name** | Yes | Display name (max 200 characters) |
+| **Slug** | Yes | URL-safe identifier, lowercase alphanumeric with hyphens (e.g., `my-crm`) |
+| **Description** | No | Brief description of the data source (max 1000 characters) |
+| **Icon URL** | No | URL to a square icon for display in the connector list |
+| **Default Document Type** | No | Default type applied to documents without an explicit type (e.g., `article`, `ticket`) |
+| **Default Visibility** | No | Whether documents are public by default |
+
+The slug must match the pattern `^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$` -- lowercase letters, numbers, and hyphens, not starting or ending with a hyphen.
+
+## Step 2: Choose Your Mode
+
+### Push API
+
+No additional configuration required. Generate an API key (see Step 3) and start pushing documents to the Push API endpoints.
+
+### Webhook
+
+1. Enable webhooks in the connector settings
+2. Configure signature verification (recommended):
+   - **Algorithm**: `hmac-sha256`, `hmac-sha1`, or `none`
+   - **Header**: the header name containing the signature (e.g., `X-Hub-Signature-256`)
+   - **Prefix**: optional prefix to strip from the signature value (e.g., `sha256=`)
+3. Set up event routing:
+   - **Event type field**: JSONPath to the event type in the payload (e.g., `$.action`)
+   - **Event type header**: alternatively, the header containing the event type
+   - **Event mappings**: map event types to upsert/delete actions with field mappings
+4. Copy the webhook URL: `POST https://your-domain.com/api/v1/webhooks/custom/{slug}`
+5. Register this URL in your external system
+
+### Pull Connector
+
+1. Configure the connection:
+   - **Base URL**: the API root (e.g., `https://api.example.com/v2`)
+   - **Authentication**: API key, Bearer token, Basic auth, OAuth2, or custom headers
+2. Define one or more endpoints with pagination and field mappings
+3. Set a sync schedule
+
+## Step 3: Generate an API Key
+
+1. Open the connector detail page
+2. Navigate to the **API Keys** tab
+3. Click **Generate Key**
+4. Enter a name for the key (e.g., `production-pipeline`)
+5. Select scopes: `push`, `delete`, `status` (or all)
+6. Optionally set an expiration date
+7. Copy the key immediately -- it is shown only once
+
+The key starts with the `obc_` prefix. Store it securely as an environment variable or secret.
+
+## Step 4: Send Your First Document
+
+### Push API
+
+```bash
+curl -X POST https://your-domain.com/api/v1/custom/push/my-crm/documents \
+  -H "Authorization: Bearer obc_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "contact-001",
+    "title": "Jane Smith",
+    "content": "VP of Engineering at Acme Corp. Based in San Francisco.",
+    "document_type": "contact",
+    "url": "https://my-crm.example.com/contacts/001",
+    "labels": ["engineering", "vp"],
+    "author_name": "CRM System"
+  }'
+```
+
+### Webhook
+
+Configure your external system to POST to:
+
+```
+POST https://your-domain.com/api/v1/webhooks/custom/{slug}
+```
+
+OpenBeam will process incoming events according to your event mappings.
+
+### Pull Connector
+
+After configuring endpoints, trigger an initial sync from the connector detail page. OpenBeam will fetch data according to your endpoint definitions and sync schedule.
+
+## Verify Indexing
+
+After pushing or receiving data, verify it was indexed:
+
+1. Use the **Search** bar to search for your document by title or content
+2. Check the connector status via the Push API status endpoint
+3. View sync history in the connector detail page

@@ -1,0 +1,403 @@
+---
+title: Push API
+description: REST endpoints for pushing documents into OpenBeam
+---
+
+# Push API Reference
+
+The Push API lets you send documents to OpenBeam via authenticated REST endpoints. All endpoints are scoped to a connector by its slug.
+
+**Base URL:** `https://your-domain.com/api/v1/custom/push`
+
+## Authentication
+
+Every request must include a valid API key in the `Authorization` header.
+
+```
+Authorization: Bearer obc_your_api_key_here
+```
+
+Keys use the `obc_` prefix and are scoped to a specific connector with granular permissions. See [API Keys](/docs/custom-connectors/api-keys) for details on key management.
+
+The middleware validates the key, checks expiration, verifies the required scope for the endpoint, and attaches the connector context for the request.
+
+## Rate Limits
+
+| Limit | Value |
+|-------|-------|
+| Burst | 20 requests per 10 seconds |
+| Per minute | 120 requests |
+| Per hour | 5,000 requests |
+
+When a limit is exceeded, the API returns `429 Too Many Requests` with an error body:
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "Rate limit exceeded"
+  }
+}
+```
+
+---
+
+## Endpoints
+
+### Push Single Document
+
+Upsert a single document. If a document with the same `id` already exists, it is replaced.
+
+**Scope required:** `push`
+
+```
+POST /api/v1/custom/push/{slug}/documents
+```
+
+#### Request Body
+
+| Field | Type | Required | Constraints | Description |
+|-------|------|----------|-------------|-------------|
+| `id` | string | Yes | 1-512 chars | Unique document identifier within this connector |
+| `title` | string | Yes | 1-1000 chars | Document title |
+| `content` | string | Yes | 1-1,000,000 chars | Full document content (plain text or markdown) |
+| `url` | string | No | Valid URL | Source URL for linking back to the original |
+| `document_type` | string | No | 1-100 chars | Document type (e.g., `article`, `ticket`, `contact`) |
+| `is_public` | boolean | No | | Visibility flag; defaults to connector setting |
+| `created_at` | string or number | No | ISO 8601 or Unix timestamp | Original creation time |
+| `updated_at` | string or number | No | ISO 8601 or Unix timestamp | Last modification time |
+| `author_name` | string | No | Max 256 chars | Author display name |
+| `author_email` | string | No | Valid email, max 256 chars | Author email address |
+| `labels` | string[] | No | Max 50 items, each max 100 chars | Tags or labels for filtering |
+| `status` | string | No | Max 100 chars | Document status (e.g., `active`, `archived`) |
+| `priority` | string | No | Max 100 chars | Priority level (e.g., `high`, `low`) |
+| `parent_id` | string | No | Max 512 chars | ID of a parent document for hierarchy |
+| `source_name` | string | No | Max 256 chars | Name of the originating system |
+| `source_path` | string | No | Max 1024 chars | Path within the originating system |
+| `metadata` | object | No | String keys, any values | Arbitrary key-value pairs stored as metadata |
+| `access_control` | string[] | No | Max 100 items, each max 256 chars | Access control identifiers |
+
+#### Success Response (200)
+
+```json
+{
+  "success": true,
+  "documentId": "contact-001"
+}
+```
+
+#### Error Response (400 / 401 / 429 / 500)
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input",
+    "details": { ... }
+  }
+}
+```
+
+#### Example
+
+```bash
+curl -X POST https://your-domain.com/api/v1/custom/push/my-crm/documents \
+  -H "Authorization: Bearer obc_abc123..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "ticket-42",
+    "title": "Login page returns 500 on Firefox",
+    "content": "Users on Firefox 120+ see a 500 error when submitting the login form. Caused by a missing CSRF token in the session cookie.",
+    "document_type": "bug",
+    "url": "https://tracker.example.com/tickets/42",
+    "status": "open",
+    "priority": "high",
+    "labels": ["firefox", "auth", "production"],
+    "author_name": "Alice Chen",
+    "author_email": "alice@example.com",
+    "created_at": "2026-03-20T14:30:00Z"
+  }'
+```
+
+---
+
+### Batch Push Documents
+
+Upsert up to 100 documents in a single request. Each document is processed independently; partial failures are reported per document.
+
+**Scope required:** `push`
+
+```
+POST /api/v1/custom/push/{slug}/documents/batch
+```
+
+#### Request Body
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `documents` | array | Yes | 1-100 items, each matching the single push schema |
+
+#### Success Response (200)
+
+```json
+{
+  "total": 3,
+  "succeeded": 2,
+  "failed": 1,
+  "results": [
+    { "id": "doc-1", "success": true },
+    { "id": "doc-2", "success": true },
+    { "id": "doc-3", "success": false, "error": "Content exceeds maximum length" }
+  ]
+}
+```
+
+The response always returns 200 even if some documents fail. Check the `failed` count and individual `results` entries for per-document status.
+
+#### Example
+
+```bash
+curl -X POST https://your-domain.com/api/v1/custom/push/my-crm/documents/batch \
+  -H "Authorization: Bearer obc_abc123..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "documents": [
+      {
+        "id": "contact-001",
+        "title": "Jane Smith",
+        "content": "VP of Engineering at Acme Corp."
+      },
+      {
+        "id": "contact-002",
+        "title": "Bob Johnson",
+        "content": "Director of Sales at Globex."
+      }
+    ]
+  }'
+```
+
+---
+
+### Delete Single Document
+
+Remove a document by its ID.
+
+**Scope required:** `delete`
+
+```
+DELETE /api/v1/custom/push/{slug}/documents/{documentId}
+```
+
+#### Path Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `slug` | Connector slug |
+| `documentId` | The document ID (as provided during push) |
+
+#### Success Response (200)
+
+```json
+{
+  "success": true,
+  "documentId": "contact-001"
+}
+```
+
+#### Example
+
+```bash
+curl -X DELETE https://your-domain.com/api/v1/custom/push/my-crm/documents/contact-001 \
+  -H "Authorization: Bearer obc_abc123..."
+```
+
+---
+
+### Batch Delete Documents
+
+Delete up to 100 documents in a single request.
+
+**Scope required:** `delete`
+
+```
+POST /api/v1/custom/push/{slug}/documents/delete
+```
+
+#### Request Body
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `ids` | string[] | Yes | 1-100 items, each 1-512 chars |
+
+#### Success Response (200)
+
+```json
+{
+  "total": 3,
+  "succeeded": 2,
+  "failed": 1,
+  "results": [
+    { "id": "doc-1", "success": true },
+    { "id": "doc-2", "success": true },
+    { "id": "doc-3", "success": false, "error": "Document not found" }
+  ]
+}
+```
+
+#### Example
+
+```bash
+curl -X POST https://your-domain.com/api/v1/custom/push/my-crm/documents/delete \
+  -H "Authorization: Bearer obc_abc123..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ids": ["contact-001", "contact-002", "contact-003"]
+  }'
+```
+
+---
+
+### Get Connector Status
+
+Retrieve stats and status for a custom connector. No specific scope required beyond a valid API key for this connector.
+
+```
+GET /api/v1/custom/push/{slug}/status
+```
+
+#### Success Response (200)
+
+```json
+{
+  "slug": "my-crm",
+  "name": "My CRM",
+  "status": "ACTIVE",
+  "totalDocuments": 1542,
+  "totalPushes": 3271,
+  "lastPushAt": "2026-03-26T10:15:30.000Z",
+  "createdAt": "2026-03-01T08:00:00.000Z"
+}
+```
+
+#### Example
+
+```bash
+curl https://your-domain.com/api/v1/custom/push/my-crm/status \
+  -H "Authorization: Bearer obc_abc123..."
+```
+
+---
+
+## Code Examples
+
+### Python
+
+```python
+import requests
+
+BASE = "https://your-domain.com/api/v1/custom/push/my-crm"
+HEADERS = {
+    "Authorization": "Bearer obc_your_key_here",
+    "Content-Type": "application/json",
+}
+
+# Push a single document
+resp = requests.post(f"{BASE}/documents", headers=HEADERS, json={
+    "id": "kb-101",
+    "title": "Deployment Runbook",
+    "content": "Step 1: Pull latest from main. Step 2: Run migrations...",
+    "document_type": "runbook",
+    "labels": ["devops", "deployment"],
+})
+print(resp.json())
+
+# Batch push
+resp = requests.post(f"{BASE}/documents/batch", headers=HEADERS, json={
+    "documents": [
+        {"id": "kb-102", "title": "Incident Response", "content": "..."},
+        {"id": "kb-103", "title": "On-Call Rotation", "content": "..."},
+    ]
+})
+print(resp.json())
+
+# Delete
+resp = requests.delete(f"{BASE}/documents/kb-101", headers=HEADERS)
+print(resp.json())
+
+# Check status
+resp = requests.get(f"{BASE}/status", headers=HEADERS)
+print(resp.json())
+```
+
+### Node.js
+
+```typescript
+const BASE = "https://your-domain.com/api/v1/custom/push/my-crm";
+const headers = {
+  Authorization: "Bearer obc_your_key_here",
+  "Content-Type": "application/json",
+};
+
+// Push a single document
+const pushResp = await fetch(`${BASE}/documents`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    id: "kb-101",
+    title: "Deployment Runbook",
+    content: "Step 1: Pull latest from main. Step 2: Run migrations...",
+    document_type: "runbook",
+    labels: ["devops", "deployment"],
+  }),
+});
+console.log(await pushResp.json());
+
+// Batch push
+const batchResp = await fetch(`${BASE}/documents/batch`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    documents: [
+      { id: "kb-102", title: "Incident Response", content: "..." },
+      { id: "kb-103", title: "On-Call Rotation", content: "..." },
+    ],
+  }),
+});
+console.log(await batchResp.json());
+
+// Delete
+const deleteResp = await fetch(`${BASE}/documents/kb-101`, {
+  method: "DELETE",
+  headers,
+});
+console.log(await deleteResp.json());
+
+// Check status
+const statusResp = await fetch(`${BASE}/status`, { headers });
+console.log(await statusResp.json());
+```
+
+---
+
+## Document ID Mapping
+
+Internally, OpenBeam prefixes your document ID with the connector ID:
+
+```
+{connectorId}_custom_{yourDocumentId}
+```
+
+This ensures uniqueness across connectors. When searching, OpenBeam resolves this transparently. When deleting via the API, use your original ID -- the prefix is applied automatically.
+
+## Field Mapping
+
+Custom connectors support optional field mappings configured during setup. These mappings let you rename fields from your source format to the OpenBeam document schema without changing your push payload. Mappings are defined as key-value pairs where the key is the source field name and the value is the target field name.
+
+## Timestamps
+
+The `created_at` and `updated_at` fields accept either:
+
+- ISO 8601 datetime strings (e.g., `2026-03-20T14:30:00Z`)
+- Unix timestamps as numbers (seconds since epoch)
+
+If omitted, both default to the current time.

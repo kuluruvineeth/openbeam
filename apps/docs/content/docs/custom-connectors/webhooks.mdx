@@ -1,0 +1,304 @@
+---
+title: Webhooks
+description: Receive events from external systems and index documents automatically
+---
+
+# Webhook Connectors
+
+Webhook connectors let external systems push events to OpenBeam in real time. When an event arrives, OpenBeam verifies the signature, routes the event to the correct action, transforms the payload into a document, and indexes it.
+
+**Webhook URL:**
+
+```
+POST https://your-domain.com/api/v1/webhooks/custom/{slug}
+```
+
+Replace `{slug}` with your custom connector's slug.
+
+## How It Works
+
+1. External system sends a POST request to the webhook URL
+2. OpenBeam rate-limits by slug (200/min) and by IP (100/min)
+3. Signature is verified against the configured algorithm and secret
+4. Payload is parsed and deduplicated
+5. Event is routed: matched against event mappings to determine the action
+6. Payload is transformed into a `GenericDocument` using field mappings
+7. Document is indexed (upsert) or removed (delete)
+8. Result is returned synchronously
+
+## Signature Verification
+
+OpenBeam supports three signature algorithms for validating that incoming webhooks are authentic.
+
+| Algorithm | Description |
+|-----------|-------------|
+| `hmac-sha256` | HMAC using SHA-256 (recommended) |
+| `hmac-sha1` | HMAC using SHA-1 (for legacy systems) |
+| `none` | No verification (development only) |
+
+### Configuration
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `header` | string | Yes | HTTP header containing the signature (e.g., `X-Hub-Signature-256`) |
+| `algorithm` | string | Yes | One of `hmac-sha256`, `hmac-sha1`, `none` |
+| `prefix` | string | No | Prefix to strip from the header value before comparing (e.g., `sha256=`) |
+
+### How Verification Works
+
+1. OpenBeam reads the signature from the configured header
+2. If a prefix is configured, it is stripped from the header value
+3. The raw request body is signed with HMAC using the stored secret and the configured algorithm
+4. The computed signature is compared to the received signature using a timing-safe comparison
+5. If the signatures do not match, the request is rejected with `403 Forbidden`
+
+### Example: GitHub Webhooks
+
+GitHub sends signatures in the `X-Hub-Signature-256` header with a `sha256=` prefix:
+
+```json
+{
+  "signature": {
+    "header": "X-Hub-Signature-256",
+    "algorithm": "hmac-sha256",
+    "prefix": "sha256="
+  }
+}
+```
+
+### Example: Stripe Webhooks
+
+Stripe uses `Stripe-Signature` with a different format. Parse the `v1` component:
+
+```json
+{
+  "signature": {
+    "header": "Stripe-Signature",
+    "algorithm": "hmac-sha256",
+    "prefix": "v1="
+  }
+}
+```
+
+## Event Routing
+
+OpenBeam determines the event type from either a header or a field in the payload, then matches it against configured event mappings.
+
+### Configuration
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `eventTypeField` | string | JSONPath to the event type in the payload body (e.g., `$.action` or `$.event.type`) |
+| `eventTypeHeader` | string | HTTP header containing the event type (e.g., `X-GitHub-Event`) |
+| `eventFilter` | string[] | Allowlist of event types to process; all others are ignored |
+| `eventMappings` | object | Map of event type string to an `EventMapping` configuration |
+| `defaultMapping` | object | Fallback mapping used when no event-specific mapping matches |
+
+If both `eventTypeField` and `eventTypeHeader` are set, the header takes precedence.
+
+### Event Mapping
+
+Each event mapping defines how to handle a specific event type:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `action` | string | Yes | `upsert` or `delete` |
+| `idPath` | string | Yes | JSONPath to the document ID in the payload |
+| `fieldMapping` | object | Yes | Map of target field name to JSONPath in the payload |
+| `documentType` | string | No | Document type (default: `custom_document`) |
+| `documentSubtype` | string | No | Document subtype |
+| `staticFields` | object | No | Static key-value pairs added to every document |
+
+### Example: GitHub Issue Webhooks
+
+```json
+{
+  "eventTypeHeader": "X-GitHub-Event",
+  "eventFilter": ["issues"],
+  "eventMappings": {
+    "issues": {
+      "action": "upsert",
+      "idPath": "$.issue.id",
+      "fieldMapping": {
+        "title": "$.issue.title",
+        "content": "$.issue.body",
+        "url": "$.issue.html_url",
+        "author_name": "$.issue.user.login",
+        "status": "$.issue.state",
+        "labels": "$.issue.labels[*].name"
+      },
+      "documentType": "issue",
+      "staticFields": {
+        "source_name": "GitHub"
+      }
+    }
+  }
+}
+```
+
+When GitHub posts an `issues` event, OpenBeam extracts the issue ID, maps the fields, and indexes the document.
+
+## Deduplication
+
+OpenBeam deduplicates webhook events to prevent processing the same event twice. Three strategies are available, evaluated in order of priority.
+
+### Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `idHeader` | string | | HTTP header containing a unique event ID (e.g., `X-Request-Id`) |
+| `idPath` | string | | JSONPath to a unique ID in the payload body |
+| `ttlSeconds` | number | 86400 | How long to remember event IDs (60 to 604,800 seconds) |
+
+### Dedup Strategy Priority
+
+1. **Header**: If `idHeader` is set, the value of that header is used as the event ID
+2. **Payload path**: If `idPath` is set, the value at that JSONPath is used
+3. **Body hash**: If neither is set, a SHA-256 hash of the entire request body is used
+
+When a duplicate is detected, the webhook returns immediately:
+
+```json
+{
+  "ok": true,
+  "eventId": "evt_abc123",
+  "deduplicated": true
+}
+```
+
+## Payload Size Limit
+
+The maximum payload size is configurable per connector, with a default of 1 MB and an absolute maximum of 5 MB.
+
+| Field | Type | Default | Range |
+|-------|------|---------|-------|
+| `maxPayloadBytes` | number | 1,048,576 (1 MB) | 1,024 to 5,242,880 |
+
+Payloads exceeding the limit receive a `413 Payload Too Large` response.
+
+## Content and URL Templates
+
+For advanced use cases, you can define templates that assemble document content or URLs from multiple payload fields.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `contentTemplate` | string | Template string with `{{jsonpath}}` placeholders for assembling content |
+| `urlTemplate` | string | Template string for constructing the document URL |
+
+## Response Format
+
+### Successful Processing
+
+```json
+{
+  "ok": true,
+  "eventId": "evt_abc123",
+  "action": "upsert",
+  "documentId": "issue-42"
+}
+```
+
+Upsert actions return `202 Accepted`.
+
+### Event Ignored (Filtered Out)
+
+```json
+{
+  "ok": true,
+  "eventId": "evt_abc123",
+  "action": "ignored",
+  "reason": "Event type not in filter"
+}
+```
+
+### Transform Error
+
+```json
+{
+  "ok": false,
+  "eventId": "evt_abc123",
+  "error": "Missing required field: title"
+}
+```
+
+Returns `422 Unprocessable Entity`.
+
+### Signature Failure
+
+```json
+{
+  "error": "Invalid signature"
+}
+```
+
+Returns `403 Forbidden`.
+
+## Rate Limits
+
+| Scope | Limit | Window |
+|-------|-------|--------|
+| Per slug | 200 requests | 60 seconds |
+| Per IP | 100 requests | 60 seconds |
+
+Exceeding either limit returns `429 Too Many Requests`.
+
+## Full Configuration Example
+
+```json
+{
+  "signature": {
+    "header": "X-Webhook-Signature",
+    "algorithm": "hmac-sha256",
+    "prefix": "sha256="
+  },
+  "eventTypeField": "$.event",
+  "eventFilter": ["issue.created", "issue.updated", "issue.deleted"],
+  "eventMappings": {
+    "issue.created": {
+      "action": "upsert",
+      "idPath": "$.data.id",
+      "fieldMapping": {
+        "title": "$.data.title",
+        "content": "$.data.description",
+        "url": "$.data.url",
+        "status": "$.data.status"
+      },
+      "documentType": "issue"
+    },
+    "issue.updated": {
+      "action": "upsert",
+      "idPath": "$.data.id",
+      "fieldMapping": {
+        "title": "$.data.title",
+        "content": "$.data.description",
+        "url": "$.data.url",
+        "status": "$.data.status"
+      },
+      "documentType": "issue"
+    },
+    "issue.deleted": {
+      "action": "delete",
+      "idPath": "$.data.id",
+      "fieldMapping": {}
+    }
+  },
+  "dedup": {
+    "idHeader": "X-Request-Id",
+    "ttlSeconds": 86400
+  },
+  "maxPayloadBytes": 2097152
+}
+```
+
+## Testing Webhooks
+
+To test your webhook configuration locally, use a tool like `curl`:
+
+```bash
+curl -X POST https://your-domain.com/api/v1/webhooks/custom/my-tracker \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Signature: sha256=$(echo -n '{"event":"issue.created","data":{"id":"1","title":"Test","description":"Hello"}}' | openssl dgst -sha256 -hmac 'your-signing-secret' | awk '{print $2}')" \
+  -d '{"event":"issue.created","data":{"id":"1","title":"Test","description":"Hello"}}'
+```
+
+For development without signature verification, set the algorithm to `none` temporarily.

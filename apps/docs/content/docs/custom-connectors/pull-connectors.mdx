@@ -1,0 +1,406 @@
+---
+title: Pull Connectors
+description: Config-driven data fetching from REST APIs
+---
+
+# Pull Connectors
+
+Pull connectors let OpenBeam fetch data from a REST API on a schedule, without writing code. You define the connection, endpoints, pagination, and field mappings in a configuration object. OpenBeam handles the rest: authentication, rate limiting, pagination, incremental sync, and document indexing.
+
+## How It Works
+
+1. You define a `PullConnectorDefinition` with a base URL, auth config, and one or more endpoints
+2. Each endpoint specifies a path, HTTP method, pagination strategy, and field mappings
+3. On each sync cycle, OpenBeam fetches data from each endpoint, paginates through all results, maps fields to the document schema, and indexes the documents
+4. Incremental syncs use a configured timestamp field to fetch only changed records
+
+## Connection Configuration
+
+### Top-Level Settings
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `baseUrl` | string | Yes | | API root URL (e.g., `https://api.example.com/v2`) |
+| `auth` | object | Yes | | Authentication configuration |
+| `endpoints` | array | Yes | | 1-50 endpoint definitions |
+| `globalHeaders` | object | No | | Headers applied to every request |
+| `defaultBatchSize` | number | No | 100 | Default page size (1-10,000) |
+| `requestTimeoutMs` | number | No | 30,000 | Request timeout in milliseconds (1,000-300,000) |
+| `maxRetries` | number | No | 3 | Maximum retry attempts (0-10) |
+| `retryBaseDelayMs` | number | No | 1,000 | Base delay between retries in ms (100-30,000) |
+
+## Authentication
+
+Five authentication types are supported. The `type` field is a discriminator.
+
+### API Key
+
+Send an API key as a header or query parameter.
+
+```json
+{
+  "type": "api_key",
+  "headerName": "X-API-Key",
+  "value": "your-api-key"
+}
+```
+
+Or as a query parameter:
+
+```json
+{
+  "type": "api_key",
+  "queryParamName": "api_key",
+  "value": "your-api-key"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `headerName` | No | Header name to place the key in |
+| `queryParamName` | No | Query parameter name |
+| `value` | Yes | The API key value (max 4096 chars) |
+
+At least one of `headerName` or `queryParamName` should be set.
+
+### Bearer Token
+
+```json
+{
+  "type": "bearer",
+  "token": "your-token"
+}
+```
+
+Sends `Authorization: Bearer your-token` on every request.
+
+### Basic Auth
+
+```json
+{
+  "type": "basic",
+  "username": "user",
+  "password": "pass"
+}
+```
+
+Sends `Authorization: Basic <base64(username:password)>`.
+
+### OAuth2
+
+Delegates authentication to an existing OAuth connector.
+
+```json
+{
+  "type": "oauth2",
+  "connectorId": "existing-connector-id"
+}
+```
+
+OpenBeam manages token refresh automatically using the referenced connector's OAuth credentials.
+
+### Custom Headers
+
+Send arbitrary headers with every request.
+
+```json
+{
+  "type": "custom_headers",
+  "headers": {
+    "X-Custom-Auth": "token-value",
+    "X-Tenant-Id": "acme-corp"
+  }
+}
+```
+
+## Endpoint Definitions
+
+Each endpoint represents one data source to fetch from. A pull connector can have up to 50 endpoints.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `id` | string | Yes | | Unique identifier for this endpoint (max 128 chars) |
+| `path` | string | Yes | | URL path appended to `baseUrl` (max 2048 chars) |
+| `method` | string | No | `GET` | HTTP method (`GET` or `POST`) |
+| `headers` | object | No | | Endpoint-specific headers (merged with global) |
+| `queryParams` | object | No | | Static query parameters |
+| `bodyTemplate` | string | No | | Request body template for POST endpoints (max 65,536 chars) |
+| `itemsPath` | string | Yes | | JSONPath to the array of items in the response |
+| `documentType` | string | Yes | | Document type assigned to fetched items |
+| `documentSubtype` | string | No | | Optional subtype |
+| `pagination` | object | Yes | | Pagination configuration |
+| `fieldMappings` | array | Yes | | At least one field mapping entry |
+| `contentFields` | string[] | No | | JSONPath expressions for fields to concatenate as content |
+| `contentTemplate` | string | No | | Template for assembling content (max 10,000 chars) |
+| `urlTemplate` | string | No | | Template for constructing document URLs (max 2048 chars) |
+| `incrementalField` | string | No | | JSONPath to the timestamp field for incremental sync |
+| `incrementalParam` | string | No | | Query parameter name for passing the last sync timestamp |
+| `rateLimitRequestsPerSecond` | number | No | | Per-endpoint rate limit (0.1-1000) |
+
+### Example Endpoint
+
+```json
+{
+  "id": "articles",
+  "path": "/articles",
+  "method": "GET",
+  "itemsPath": "$.data.articles",
+  "documentType": "article",
+  "queryParams": {
+    "status": "published"
+  },
+  "pagination": {
+    "strategy": "cursor",
+    "cursorParam": "after",
+    "cursorPath": "$.data.pagination.next_cursor",
+    "limitParam": "limit",
+    "limitValue": 100
+  },
+  "fieldMappings": [
+    { "sourcePath": "$.id", "targetField": "id" },
+    { "sourcePath": "$.title", "targetField": "title" },
+    { "sourcePath": "$.body", "targetField": "content" },
+    { "sourcePath": "$.permalink", "targetField": "url" },
+    { "sourcePath": "$.author.name", "targetField": "author_name" },
+    { "sourcePath": "$.updated_at", "targetField": "updated_at", "transform": "timestamp" }
+  ],
+  "incrementalField": "$.updated_at",
+  "incrementalParam": "updated_since"
+}
+```
+
+## Pagination Strategies
+
+### Cursor-Based
+
+The API returns a cursor token pointing to the next page. OpenBeam passes it as a query parameter on the next request.
+
+```json
+{
+  "strategy": "cursor",
+  "cursorParam": "after",
+  "cursorPath": "$.meta.next_cursor",
+  "limitParam": "per_page",
+  "limitValue": 50
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `cursorParam` | Yes | Query parameter name for the cursor |
+| `cursorPath` | Yes | JSONPath to the next cursor in the response |
+| `limitParam` | No | Query parameter for page size |
+| `limitValue` | No | Page size value (1-10,000) |
+
+Pagination stops when `cursorPath` resolves to `null`, `undefined`, or an empty string.
+
+### Offset-Based
+
+Classic skip/take pagination.
+
+```json
+{
+  "strategy": "offset",
+  "offsetParam": "offset",
+  "limitParam": "limit",
+  "limitValue": 100,
+  "totalPath": "$.meta.total"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `offsetParam` | Yes | Query parameter for the offset |
+| `limitParam` | Yes | Query parameter for the limit |
+| `limitValue` | Yes | Items per page (1-10,000) |
+| `totalPath` | No | JSONPath to total item count (stops when offset exceeds total) |
+
+### Page Number
+
+Paginate by page number.
+
+```json
+{
+  "strategy": "page_number",
+  "pageParam": "page",
+  "perPageParam": "per_page",
+  "perPageValue": 25,
+  "totalPagesPath": "$.meta.total_pages",
+  "startPage": 1
+}
+```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `pageParam` | Yes | | Query parameter for page number |
+| `perPageParam` | No | | Query parameter for items per page |
+| `perPageValue` | No | | Items per page (1-10,000) |
+| `totalPagesPath` | No | | JSONPath to total pages |
+| `totalItemsPath` | No | | JSONPath to total items (alternative to totalPagesPath) |
+| `startPage` | No | 1 | First page number (0 or 1) |
+
+### Link Header
+
+Follows RFC 5988 `Link` header with `rel="next"`.
+
+```json
+{
+  "strategy": "link_header",
+  "limitParam": "per_page",
+  "limitValue": 100
+}
+```
+
+Pagination stops when no `Link` header with `rel="next"` is present.
+
+### None
+
+Fetch a single request with no pagination.
+
+```json
+{
+  "strategy": "none"
+}
+```
+
+## Field Mappings
+
+Field mappings extract values from API response items and map them to the OpenBeam document schema.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `sourcePath` | string | Yes | JSONPath to the value in the response item |
+| `targetField` | string | Yes | Target field name in the document schema |
+| `defaultValue` | string, number, or boolean | No | Fallback if the source path resolves to nothing |
+| `transform` | string | No | Transform to apply: `string`, `number`, `boolean`, `timestamp`, `strip_html`, `join` |
+
+### Target Fields
+
+Map to any field in the Push API document schema:
+
+`id`, `title`, `content`, `url`, `document_type`, `is_public`, `created_at`, `updated_at`, `author_name`, `author_email`, `labels`, `status`, `priority`, `parent_id`, `source_name`, `source_path`
+
+The `id` and `title` mappings are required. If `content` is not mapped, use `contentFields` or `contentTemplate` to assemble it.
+
+### Transforms
+
+| Transform | Description |
+|-----------|-------------|
+| `string` | Convert value to string |
+| `number` | Parse as number |
+| `boolean` | Parse as boolean |
+| `timestamp` | Parse as Unix timestamp (handles ISO 8601 and epoch) |
+| `strip_html` | Remove HTML tags, return plain text |
+| `join` | Join array values with newlines |
+
+## Content Assembly
+
+If a single field does not represent the full document content, use one of these approaches.
+
+### contentFields
+
+List JSONPath expressions to concatenate:
+
+```json
+{
+  "contentFields": ["$.summary", "$.description", "$.notes"]
+}
+```
+
+Values are joined with double newlines.
+
+### contentTemplate
+
+A template string with `{{jsonpath}}` placeholders:
+
+```json
+{
+  "contentTemplate": "## Summary\n{{$.summary}}\n\n## Description\n{{$.description}}"
+}
+```
+
+## Incremental Sync
+
+To sync only changed records after the initial full sync, configure these fields on an endpoint:
+
+| Field | Description |
+|-------|-------------|
+| `incrementalField` | JSONPath to the item's last-modified timestamp |
+| `incrementalParam` | Query parameter name for the "changed since" filter |
+
+On incremental runs, OpenBeam passes the last sync timestamp as the `incrementalParam` query parameter. The API should return only items modified after that timestamp.
+
+## Full Example
+
+```json
+{
+  "baseUrl": "https://api.helpdesk.example.com/v1",
+  "auth": {
+    "type": "bearer",
+    "token": "hd_live_abc123"
+  },
+  "globalHeaders": {
+    "Accept": "application/json"
+  },
+  "defaultBatchSize": 50,
+  "requestTimeoutMs": 15000,
+  "maxRetries": 3,
+  "endpoints": [
+    {
+      "id": "tickets",
+      "path": "/tickets",
+      "method": "GET",
+      "itemsPath": "$.tickets",
+      "documentType": "ticket",
+      "queryParams": {
+        "status": "all"
+      },
+      "pagination": {
+        "strategy": "cursor",
+        "cursorParam": "cursor",
+        "cursorPath": "$.meta.next",
+        "limitParam": "limit",
+        "limitValue": 50
+      },
+      "fieldMappings": [
+        { "sourcePath": "$.id", "targetField": "id" },
+        { "sourcePath": "$.subject", "targetField": "title" },
+        { "sourcePath": "$.description", "targetField": "content" },
+        { "sourcePath": "$.url", "targetField": "url" },
+        { "sourcePath": "$.assignee.name", "targetField": "author_name" },
+        { "sourcePath": "$.status", "targetField": "status" },
+        { "sourcePath": "$.priority", "targetField": "priority" },
+        { "sourcePath": "$.tags", "targetField": "labels" },
+        { "sourcePath": "$.updated_at", "targetField": "updated_at", "transform": "timestamp" }
+      ],
+      "incrementalField": "$.updated_at",
+      "incrementalParam": "updated_since",
+      "rateLimitRequestsPerSecond": 5
+    },
+    {
+      "id": "articles",
+      "path": "/knowledge-base/articles",
+      "method": "GET",
+      "itemsPath": "$.articles",
+      "documentType": "article",
+      "pagination": {
+        "strategy": "page_number",
+        "pageParam": "page",
+        "perPageParam": "per_page",
+        "perPageValue": 25,
+        "totalPagesPath": "$.meta.total_pages",
+        "startPage": 1
+      },
+      "fieldMappings": [
+        { "sourcePath": "$.id", "targetField": "id" },
+        { "sourcePath": "$.title", "targetField": "title" },
+        { "sourcePath": "$.body_html", "targetField": "content", "transform": "strip_html" },
+        { "sourcePath": "$.url", "targetField": "url" },
+        { "sourcePath": "$.author.email", "targetField": "author_email" }
+      ],
+      "incrementalField": "$.updated_at",
+      "incrementalParam": "modified_after"
+    }
+  ]
+}
+```

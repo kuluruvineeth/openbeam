@@ -1,0 +1,12 @@
+{
+  "title": "Custom Connectors",
+  "icon": "Plug",
+  "pages": [
+    "index",
+    "setup",
+    "push-api",
+    "webhooks",
+    "pull-connectors",
+    "api-keys"
+  ]
+}

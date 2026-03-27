@@ -1,0 +1,48 @@
+---
+title: Custom Connectors
+description: Index data from any source using the Push API, webhooks, or config-driven pull
+---
+
+# Custom Connectors
+
+Custom connectors let you index data from any source into OpenBeam, even when a pre-built connector does not exist. Three modes cover different integration patterns.
+
+## Modes
+
+| Mode | Direction | Best For |
+|------|-----------|----------|
+| **Push API** | Your system pushes documents to OpenBeam | Internal tools, CI/CD pipelines, scripts, ETL jobs |
+| **Webhook** | External system sends events to OpenBeam | SaaS apps with outbound webhooks (GitHub, Stripe, etc.) |
+| **Pull** | OpenBeam fetches documents from your API | REST APIs where you control the schema but not the push cadence |
+
+## How It Works
+
+Every custom connector creates a standard OpenBeam connector under the hood. Documents pushed, received via webhook, or pulled from an API are transformed into the same `GenericDocument` format used by all built-in connectors. This means custom connector data is fully searchable, appears in AI answers, and works with all OpenBeam features.
+
+### Push API
+
+You send documents directly via authenticated REST endpoints. Supports single and batch operations for both upsert and delete. Best when you control the data source and can trigger pushes on change.
+
+### Webhooks
+
+You configure an external system to POST events to a unique OpenBeam webhook URL. OpenBeam verifies the signature, routes the event, maps fields from the payload, and indexes the resulting document. Best for SaaS integrations that support outbound webhooks.
+
+### Pull Connectors
+
+You define a configuration that tells OpenBeam how to fetch data from a REST API: base URL, authentication, endpoints, pagination strategy, and field mappings. OpenBeam handles the sync schedule, pagination, incremental updates, and rate limiting. Best for APIs you want to sync on a schedule without writing code.
+
+## Quick Start
+
+1. Navigate to **Settings > Connectors** in the OpenBeam web app
+2. Click **Add Connector** and select **Custom**
+3. Choose your mode (Push, Webhook, or Pull)
+4. Configure your connector and generate an API key
+5. Start sending data
+
+<Cards>
+  <Card title="Setup" href="/docs/custom-connectors/setup" description="Create a custom connector and configure your first integration" />
+  <Card title="Push API" href="/docs/custom-connectors/push-api" description="REST endpoints for pushing documents into OpenBeam" />
+  <Card title="Webhooks" href="/docs/custom-connectors/webhooks" description="Receive events from external systems via webhook" />
+  <Card title="Pull Connectors" href="/docs/custom-connectors/pull-connectors" description="Config-driven data fetching from REST APIs" />
+  <Card title="API Keys" href="/docs/custom-connectors/api-keys" description="Key management, scopes, and security" />
+</Cards>
