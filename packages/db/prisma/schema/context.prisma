@@ -1,0 +1,96 @@
+model ContextEntry {
+  id          String   @id @map("_id")
+  uri         String
+  parentUri   String?  @map("parent_uri")
+  teamId      String   @map("team_id")
+  ownerId     String   @map("owner_id")
+  ownerType   String   @map("owner_type")
+
+  contextType String   @map("context_type")
+  category    String?
+  isLeaf      Boolean  @default(true) @map("is_leaf")
+
+  abstractText String  @map("abstract_text") @db.Text
+  overview     String? @db.Text
+  content      String? @db.Text
+
+  activeCount Int      @default(0) @map("active_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, uri])
+  @@index([teamId, contextType])
+  @@index([teamId, parentUri])
+  @@index([teamId, ownerId, ownerType])
+  @@index([teamId, activeCount(sort: Desc)])
+  @@map("context_entry")
+}
+
+model ContextRelation {
+  id           String   @id @default(cuid()) @map("_id")
+  sourceUri    String   @map("source_uri")
+  targetUri    String   @map("target_uri")
+  teamId       String   @map("team_id")
+  reason       String?
+  relationType String?  @map("relation_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, sourceUri, targetUri])
+  @@index([teamId, sourceUri])
+  @@index([teamId, targetUri])
+  @@map("context_relation")
+}
+
+model ContextSession {
+  id           String   @id @default(cuid()) @map("_id")
+  teamId       String   @map("team_id")
+  userId       String   @map("user_id")
+  agentId      String?  @map("agent_id")
+  totalTokens  Int      @default(0) @map("total_tokens")
+  archiveCount Int      @default(0) @map("archive_count")
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  messages    ContextSessionMessage[]
+  extractions ContextMemoryExtraction[]
+  team        Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, userId])
+  @@index([teamId, status])
+  @@map("context_session")
+}
+
+model ContextSessionMessage {
+  id         String   @id @default(cuid()) @map("_id")
+  sessionId  String   @map("session_id")
+  role       String
+  content    String   @db.Text
+  parts      Json?    @db.JsonB
+  tokenCount Int      @default(0) @map("token_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  session ContextSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("context_session_message")
+}
+
+model ContextMemoryExtraction {
+  id          String    @id @default(cuid()) @map("_id")
+  sessionId   String    @map("session_id")
+  teamId      String    @map("team_id")
+  status      String    @default("pending")
+  categories  Json?     @db.JsonB
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+
+  session ContextSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, status])
+  @@map("context_memory_extraction")
+}

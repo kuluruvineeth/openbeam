@@ -415,6 +415,10 @@
     "./spatial/collections": {
       "types": "./dist/spatial/collections.d.ts",
       "default": "./src/spatial/collections.ts"
+    },
+    "./context": {
+      "types": "./dist/context/index.d.ts",
+      "default": "./src/context/index.ts"
     }
   },
   "scripts": {

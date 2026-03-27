@@ -22,6 +22,7 @@
       <document type="entity" mode="index"/>
       <document type="media_document" mode="index"/>
       <document type="spreadsheet_document" mode="index"/>
+      <document type="context_entry" mode="index"/>
     </documents>
 
     <nodes>

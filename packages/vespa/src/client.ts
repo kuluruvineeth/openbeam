@@ -23,6 +23,7 @@ import type {
   SearchResult,
   SpreadsheetDocument,
   SpreadsheetQueryParams,
+  VespaContextEntryForFeed,
   VespaEmbeddingCell,
   VespaError,
   VespaGenericDocumentForFeed,
@@ -442,7 +443,8 @@ export class VespaClient {
       | "openbeam_document"
       | "media_document"
       | "entity"
-      | "spreadsheet_document";
+      | "spreadsheet_document"
+      | "context_entry";
     selection?: string;
     fieldSet?: string;
     wantedDocumentCount?: number;
@@ -1323,6 +1325,46 @@ export class VespaClient {
     }
 
     return { updated };
+  }
+
+  async feedContextEntry(doc: VespaContextEntryForFeed): Promise<FeedResponse> {
+    const documentPath = `${this.documentApiUrl}/default/context_entry/docid/${doc.id}`;
+
+    const response = await fetch(documentPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: doc }),
+      signal: AbortSignal.timeout(60_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa context entry feed error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as FeedResponse;
+  }
+
+  async deleteContextEntry(id: string): Promise<void> {
+    const documentPath = `${this.documentApiUrl}/default/context_entry/docid/${id}`;
+
+    const response = await fetch(documentPath, {
+      method: "DELETE",
+      signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa context entry delete error: ${error.message || response.statusText}`
+      );
+    }
   }
 }
 

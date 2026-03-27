@@ -6,6 +6,12 @@ export {
 } from "./assistant-response-cache";
 export { Cache, cache } from "./cache";
 export {
+  ContextCache,
+  getContextCache,
+  hashUri,
+  resetContextCache,
+} from "./cache/context-cache";
+export {
   type CachedPermissionSet,
   type CachedSearchResult,
   type CachedUserEmbeddings,

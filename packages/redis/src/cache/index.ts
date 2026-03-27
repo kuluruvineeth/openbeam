@@ -1,4 +1,10 @@
 export {
+  ContextCache,
+  getContextCache,
+  hashUri,
+  resetContextCache,
+} from "./context-cache";
+export {
   EmbeddingCache,
   getEmbeddingCache,
   resetEmbeddingCache,

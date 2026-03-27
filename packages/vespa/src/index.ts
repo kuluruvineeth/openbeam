@@ -8,6 +8,14 @@ export { VespaBatcher, vespaBatcher } from "./batcher";
 export { BulkIndexer, bulkIndexDocuments, bulkIndexer } from "./bulk-indexer";
 export { VespaClient, type VespaClientOptions, vespaClient } from "./client";
 export {
+  type ContextSearchHit,
+  type ContextSearchParams,
+  type ContextSearchResult,
+  searchContext,
+  searchContextByUri,
+  searchContextChildren,
+} from "./context-search";
+export {
   type BulkUpdateParams,
   type BulkUpdateResult,
   bulkUpdateDocuments,

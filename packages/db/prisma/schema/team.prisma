@@ -85,6 +85,10 @@ model Team {
 
   customConnectorDefinitions CustomConnectorDefinition[]
 
+  contextEntries   ContextEntry[]
+  contextRelations ContextRelation[]
+  contextSessions  ContextSession[]
+
   @@map("team")
 }
 

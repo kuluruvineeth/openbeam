@@ -1,0 +1,40 @@
+import { z } from "zod";
+import { ContextTypeSchema } from "./enums";
+import { ContextRelationSchema } from "./relation";
+
+export const ContextSearchInputSchema = z.object({
+  query: z.string(),
+  teamId: z.string(),
+  scope: z.string().nullable().optional(),
+  contextType: ContextTypeSchema.nullable().optional(),
+  limit: z.number().int().positive().default(20),
+  scoreThreshold: z.number().nullable().optional(),
+});
+
+export type ContextSearchInput = z.infer<typeof ContextSearchInputSchema>;
+
+export const ContextSearchResultSchema = z.object({
+  uri: z.string(),
+  abstractText: z.string(),
+  score: z.number(),
+  contextType: ContextTypeSchema,
+  category: z.string().nullable(),
+  activeCount: z.number().int().nonnegative(),
+  updatedAt: z.coerce.date(),
+  relations: z.array(ContextRelationSchema).max(5).default([]),
+});
+
+export type ContextSearchResult = z.infer<typeof ContextSearchResultSchema>;
+
+export const HierarchicalSearchResultSchema = z.object({
+  resources: z.array(ContextSearchResultSchema),
+  memories: z.array(ContextSearchResultSchema),
+  skills: z.array(ContextSearchResultSchema),
+  tools: z.array(ContextSearchResultSchema),
+  total: z.number().int().nonnegative(),
+  retrievalPath: z.array(z.string()),
+});
+
+export type HierarchicalSearchResult = z.infer<
+  typeof HierarchicalSearchResultSchema
+>;

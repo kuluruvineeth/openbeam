@@ -421,6 +421,16 @@ export {
   confluenceIncrementalSync,
   transformConfluencePage,
 } from "./confluence";
+export {
+  buildUri,
+  ContextStore,
+  generateEntryId,
+  getParentUri,
+  getScopeFromUri,
+  isDescendant,
+  parseUri,
+  type TreeNode,
+} from "./context";
 export * from "./control";
 export type {
   CoupaClient,

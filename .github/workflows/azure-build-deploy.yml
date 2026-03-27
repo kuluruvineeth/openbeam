@@ -322,7 +322,7 @@ jobs:
         run: |
           echo "Running Prisma migrations..."
           kubectl exec deployment/openbeam-server -n openbeam -- \
-            sh -c "cd /app/packages/db && bunx prisma migrate deploy" || true
+            sh -c "cd /app/packages/db && bunx prisma migrate deploy"
 
       - name: Deploy OpenBeam Helm chart
         run: |

@@ -518,6 +518,60 @@ export interface VespaMediaDocumentForFeed {
   language?: string;
 }
 
+export interface ContextEntryDocument {
+  id: string;
+  uri: string;
+  parent_uri?: string;
+  team_id: string;
+  owner_id: string;
+  owner_type: string;
+  context_type: string;
+  category?: string;
+  is_leaf: boolean;
+  abstract_text: string;
+  overview_text?: string;
+  active_count: number;
+  updated_at: number;
+  created_at: number;
+  embedding?: number[];
+  sparse_embedding?: Record<string, number>;
+}
+
+export type ContextRankingProfile =
+  | "default"
+  | "bm25"
+  | "semantic"
+  | "hybrid"
+  | "hybrid_with_hotness";
+
+export interface ContextQueryParams {
+  yql: string;
+  ranking?: ContextRankingProfile;
+  hits?: number;
+  offset?: number;
+  timeout?: string;
+  query_embedding?: VectorTensor;
+}
+
+export interface VespaContextEntryForFeed {
+  id: string;
+  uri: string;
+  parent_uri?: string;
+  team_id: string;
+  owner_id: string;
+  owner_type: string;
+  context_type: string;
+  category?: string;
+  is_leaf: boolean;
+  abstract_text: string;
+  overview_text?: string;
+  active_count: number;
+  updated_at: number;
+  created_at: number;
+  embedding?: number[];
+  sparse_embedding?: Record<string, number>;
+}
+
 export interface VespaUpdateField<T> {
   assign: T;
 }

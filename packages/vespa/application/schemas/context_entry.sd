@@ -1,0 +1,109 @@
+schema context_entry {
+  document context_entry {
+    field uri type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    field parent_uri type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    field owner_id type string {
+      indexing: attribute
+      attribute: fast-search
+    }
+    field owner_type type string {
+      indexing: attribute
+      attribute: fast-search
+    }
+    field context_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    field category type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    field is_leaf type bool {
+      indexing: attribute
+    }
+    field abstract_text type string {
+      indexing: index | summary
+      index: enable-bm25
+    }
+    field overview_text type string {
+      indexing: index | summary
+      index: enable-bm25
+    }
+    field active_count type int {
+      indexing: summary | attribute
+    }
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    field embedding type tensor<float>(x[1536]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+    field sparse_embedding type tensor<float>(token{}) {
+      indexing: attribute
+    }
+  }
+
+  rank-profile default {
+    first-phase {
+      expression: bm25(abstract_text)
+    }
+  }
+
+  rank-profile bm25 inherits default {
+    first-phase {
+      expression: bm25(abstract_text) + 0.5 * bm25(overview_text)
+    }
+  }
+
+  rank-profile semantic inherits default {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression: closeness(field, embedding)
+    }
+  }
+
+  rank-profile hybrid inherits default {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression: 0.4 * bm25(abstract_text) + 0.6 * closeness(field, embedding)
+    }
+  }
+
+  rank-profile hybrid_with_hotness inherits default {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    function hotness() {
+      expression: if(attribute(active_count) > 0, 1 / (1 + exp(0 - log1p(attribute(active_count)))), 0.01)
+    }
+    first-phase {
+      expression: 0.35 * bm25(abstract_text) + 0.45 * closeness(field, embedding) + 0.2 * hotness
+    }
+  }
+}
