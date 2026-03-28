@@ -133,11 +133,11 @@ async function createSessionEntry(
 const mcpStreamableHttp = new Hono<AuthEnv>();
 
 mcpStreamableHttp.options(
-  "/",
+  "*",
   (_c) => new Response(null, { status: 204, headers: CORS_HEADERS })
 );
 
-mcpStreamableHttp.all("/", async (c) => {
+mcpStreamableHttp.all("*", async (c) => {
   const req = c.req.raw;
   const method = req.method;
 
