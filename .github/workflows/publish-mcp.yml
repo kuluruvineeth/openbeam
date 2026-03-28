@@ -59,11 +59,12 @@ jobs:
       - name: Prepare package for publish
         run: |
           cd packages/mcp
-          node -e "
-            const pkg = require('./package.json');
+          node --input-type=module -e "
+            import { readFileSync, writeFileSync } from 'node:fs';
+            const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
             pkg.version = '${{ inputs.version }}';
             delete pkg.devDependencies;
-            require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+            writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
           "
 
       - name: Publish to npm

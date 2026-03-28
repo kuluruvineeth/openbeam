@@ -1,5 +1,5 @@
-import { build } from "esbuild";
 import { chmod } from "node:fs/promises";
+import { build } from "esbuild";
 
 await build({
   entryPoints: ["src/index.ts"],
