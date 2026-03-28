@@ -5,57 +5,44 @@ description: Connect OpenBeam to Claude, Cursor, Windsurf, Codex, and any MCP-co
 
 # MCP Server
 
-OpenBeam ships an MCP (Model Context Protocol) server that gives AI assistants access to your enterprise knowledge — 103+ connectors, hybrid search, RAG answers, and agent execution.
+OpenBeam ships an MCP server that gives AI assistants access to your enterprise knowledge — 103+ connectors, hybrid search, RAG answers, and agent execution.
 
-<Callout type="info">
-  The MCP server runs locally on your machine and connects to your OpenBeam instance. No additional server deployment needed.
-</Callout>
+## Quick Setup
 
-## Setup
+### Claude Desktop (Recommended)
 
-### Claude Desktop
+Open **Settings > Connectors** in Claude Desktop, then add OpenBeam as a remote MCP server:
 
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+```
+URL: https://mcp.openbeam.work/mcp
+```
+
+Claude will prompt you to authenticate with your OpenBeam account via OAuth.
+
+Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "openbeam": {
       "command": "npx",
-      "args": ["-y", "@openbeam/mcp-server"],
-      "env": {
-        "MCP_API_KEY": "your-api-key",
-        "DATABASE_URL": "postgresql://...",
-        "VESPA_URL": "http://localhost:8080"
-      }
+      "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
     }
   }
 }
 ```
 
-Restart Claude Desktop after saving.
+<Callout type="info">
+  This connects to the hosted OpenBeam API. You only need an OpenBeam account — no database URLs, no infrastructure setup.
+</Callout>
 
 ### Claude Code
 
 ```bash
-claude mcp add openbeam -- npx -y @openbeam/mcp-server
+claude mcp add --transport http openbeam https://mcp.openbeam.work/mcp
 ```
 
-Or add to `.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "openbeam": {
-      "command": "npx",
-      "args": ["-y", "@openbeam/mcp-server"],
-      "env": {
-        "MCP_API_KEY": "your-api-key"
-      }
-    }
-  }
-}
-```
+Then run `/mcp` in a Claude Code session to authenticate.
 
 ### Cursor
 
@@ -66,10 +53,7 @@ Add to `.cursor/mcp.json` in your project root:
   "mcpServers": {
     "openbeam": {
       "command": "npx",
-      "args": ["-y", "@openbeam/mcp-server"],
-      "env": {
-        "MCP_API_KEY": "your-api-key"
-      }
+      "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
     }
   }
 }
@@ -77,24 +61,41 @@ Add to `.cursor/mcp.json` in your project root:
 
 ### Windsurf / Codex / Any MCP Host
 
-Run the stdio transport directly:
+Use the remote MCP URL directly if the host supports HTTP transport:
 
-```bash
-MCP_API_KEY=your-api-key npx -y @openbeam/mcp-server
+```
+https://mcp.openbeam.work/mcp
 ```
 
-## Environment Variables
+Or use `mcp-remote` for stdio-based hosts:
+
+```bash
+npx -y mcp-remote https://mcp.openbeam.work/mcp
+```
+
+## Self-Hosted Setup
+
+If you run your own OpenBeam instance, use the local MCP server with an API key:
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "command": "npx",
+      "args": ["-y", "@openbeam/mcp-server"],
+      "env": {
+        "MCP_API_KEY": "your-api-key",
+        "OPENBEAM_URL": "https://your-instance.example.com"
+      }
+    }
+  }
+}
+```
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MCP_API_KEY` | Yes | API key from OpenBeam Settings > API Keys |
-| `DATABASE_URL` | Self-hosted only | PostgreSQL connection string |
-| `VESPA_URL` | Self-hosted only | Vespa search endpoint |
-| `REDIS_URL` | No | Redis for rate limiting and caching |
-
-<Callout type="warn">
-  For OpenBeam Cloud users, only `MCP_API_KEY` is needed. The server connects to the hosted API automatically.
-</Callout>
+| `MCP_API_KEY` | Yes | API key from your OpenBeam Settings |
+| `OPENBEAM_URL` | Yes | Your self-hosted OpenBeam URL |
 
 ## Available Tools
 
@@ -133,16 +134,8 @@ The server exposes enterprise data as browsable MCP resources:
 |-------------|-------------|
 | `openbeam://resources/{teamId}/` | Synced enterprise documents |
 | `openbeam://user/{teamId}/{userId}/memories/` | User knowledge and preferences |
-| `openbeam://agent/{teamId}/{agentId}/skills/` | Agent learned capabilities |
-| `openbeam://tools/{teamId}/` | Available tool definitions |
-
-## Authentication
-
-The server supports three authentication modes, checked in order:
-
-1. **API Key** (recommended) — Set `MCP_API_KEY`
-2. **Bearer Token** — Set `MCP_TOKEN` for session-based auth
-3. **Environment** — Set `MCP_TEAM_ID` + `MCP_USER_ID` for local development
+| `openbeam://agent/{teamId}/{agentId}/skills/` | Agent capabilities |
+| `openbeam://tools/{teamId}/` | Tool definitions and stats |
 
 ## Verify It Works
 
@@ -150,17 +143,17 @@ After setup, ask your AI assistant:
 
 > "What connectors are connected to OpenBeam?"
 
-If configured correctly, the assistant will call `list_connectors` and show your connected data sources.
+The assistant will call `list_connectors` and show your connected data sources.
 
 > "Search for our authentication architecture docs"
 
-The assistant will call `search_documents` and return results from Confluence, Notion, Google Drive, or wherever your architecture docs live.
+The assistant will call `search_documents` and return results from Confluence, Notion, Google Drive, or wherever your docs live.
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | "Server not found" | Ensure Node.js 18+ is installed: `node --version` |
-| "Authentication failed" | Verify `MCP_API_KEY` is correct in Settings > API Keys |
-| "No results" | Check that connectors are synced: `list_connectors` tool |
-| Server doesn't start | Check Claude Desktop logs: `~/Library/Logs/Claude/mcp*.log` |
+| "Authentication failed" | Re-authenticate via OAuth or check your API key |
+| "No results" | Check that connectors are synced in the OpenBeam dashboard |
+| Connection timeout | Verify `https://mcp.openbeam.work` is reachable |
