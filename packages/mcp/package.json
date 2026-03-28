@@ -4,6 +4,12 @@
   "description": "MCP server for OpenBeam database access via Claude Code",
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "bin": {
     "openbeam-mcp": "./dist/index.js"
   },
