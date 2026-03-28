@@ -70,6 +70,7 @@ jobs:
       - name: Publish to npm
         run: |
           cd packages/mcp
+          cp README.md dist/README.md
           npm publish --access public --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
