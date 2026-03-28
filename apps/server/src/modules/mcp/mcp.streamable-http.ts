@@ -1,10 +1,4 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import type { McpAuthContext } from "@openbeam/mcp-server";
-import { createProductionMcpServer } from "@openbeam/mcp-server";
-import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
-import logger from "@/utils/logger";
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -14,26 +8,12 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Expose-Headers": "Mcp-Session-Id",
 };
 
-interface SessionEntry {
-  transport: WebStandardStreamableHTTPServerTransport;
-  authContext: McpAuthContext;
-  lastActivity: number;
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+  });
 }
-
-const sessions = new Map<string, SessionEntry>();
-
-const SESSION_TTL_MS = 30 * 60 * 1000;
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [sessionId, entry] of sessions) {
-    if (now - entry.lastActivity > SESSION_TTL_MS) {
-      entry.transport.close();
-      sessions.delete(sessionId);
-    }
-  }
-}, CLEANUP_INTERVAL_MS);
 
 function extractApiKeyFromRequest(req: Request): string | null {
   const authHeader = req.headers.get("Authorization");
@@ -56,7 +36,13 @@ function extractApiKeyFromRequest(req: Request): string | null {
   return null;
 }
 
-async function resolveAuth(req: Request): Promise<McpAuthContext | null> {
+interface AuthResult {
+  teamId: string;
+  userId: string;
+  scopes: string[];
+}
+
+async function resolveAuth(req: Request): Promise<AuthResult | null> {
   const apiKey = extractApiKeyFromRequest(req);
   if (!apiKey) {
     return null;
@@ -71,68 +57,12 @@ async function resolveAuth(req: Request): Promise<McpAuthContext | null> {
     teamId: authContext.teamId,
     userId: authContext.apiKeyId,
     scopes: authContext.scopes,
-    rateLimitRequestsPerMinute: 120,
-    source: "api_key",
-    permissionMode: "readOnly",
   };
 }
 
-function addCorsHeaders(response: Response): Response {
-  const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(CORS_HEADERS)) {
-    headers.set(key, value);
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
-function jsonResponse(body: Record<string, unknown>, status: number): Response {
-  const headers = new Headers({
-    "Content-Type": "application/json",
-    ...CORS_HEADERS,
-  });
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-async function createSessionEntry(
-  auth: McpAuthContext
-): Promise<{ sessionId: string; entry: SessionEntry }> {
-  let sessionId = "";
-
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: () => {
-      sessionId = crypto.randomUUID();
-      return sessionId;
-    },
-    onsessioninitialized: (sid: string) => {
-      logger.info({ sessionId: sid }, "MCP streamable session initialized");
-    },
-    enableJsonResponse: true,
-  });
-
-  const { server } = createProductionMcpServer({
-    transport: "http",
-    enableRateLimit: true,
-    enableAudit: true,
-  });
-
-  await server.connect(transport);
-
-  const entry: SessionEntry = {
-    transport,
-    authContext: auth,
-    lastActivity: Date.now(),
-  };
-
-  return { sessionId, entry };
-}
-
-const mcpStreamableHttp = new OpenAPIHono<AuthEnv>();
-
-mcpStreamableHttp.on(["POST", "GET", "DELETE", "OPTIONS"], "/", async (c) => {
+export async function handleMcpRequest(c: {
+  req: { raw: Request };
+}): Promise<Response> {
   const req = c.req.raw;
   const method = req.method;
 
@@ -140,74 +70,201 @@ mcpStreamableHttp.on(["POST", "GET", "DELETE", "OPTIONS"], "/", async (c) => {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const auth = await resolveAuth(req);
-  if (!auth) {
-    return jsonResponse(
-      {
-        error: "Unauthorized",
-        message:
-          "Valid API key required. Use Authorization: Bearer op_xxx header.",
-      },
-      401
-    );
-  }
-
-  const existingSessionId = req.headers.get("Mcp-Session-Id");
-
-  if (method === "DELETE") {
-    if (existingSessionId && sessions.has(existingSessionId)) {
-      const entry = sessions.get(existingSessionId);
-      if (entry) {
-        const response = await entry.transport.handleRequest(req);
-        await entry.transport.close();
-        sessions.delete(existingSessionId);
-        return addCorsHeaders(response);
-      }
-    }
-    return jsonResponse({ error: "Session not found" }, 404);
-  }
-
-  if (existingSessionId) {
-    const entry = sessions.get(existingSessionId);
-    if (entry) {
-      entry.lastActivity = Date.now();
-      const response = await entry.transport.handleRequest(req);
-      return addCorsHeaders(response);
-    }
-    return jsonResponse(
-      {
-        error: "Session not found",
-        message: "Send an initialize request to create a new session",
-      },
-      404
-    );
-  }
-
-  if (method === "POST") {
-    const { entry } = await createSessionEntry(auth);
-
-    const response = await entry.transport.handleRequest(req);
-
-    const responseSessionId = entry.transport.sessionId;
-    if (responseSessionId) {
-      sessions.set(responseSessionId, entry);
-    }
-
-    return addCorsHeaders(response);
-  }
-
   if (method === "GET") {
     return jsonResponse(
       {
-        error: "Bad Request",
-        message:
-          "GET requests require an existing session. Send a POST with an initialize request first.",
+        jsonrpc: "2.0",
+        result: {
+          name: "openbeam",
+          version: "0.1.0",
+          description: "OpenBeam MCP Server — 103+ enterprise connectors",
+        },
+      },
+      200
+    );
+  }
+
+  if (method === "DELETE") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
+  if (method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch {
+    return jsonResponse(
+      {
+        jsonrpc: "2.0",
+        error: { code: -32_700, message: "Parse error" },
+        id: null,
       },
       400
     );
   }
 
-  return jsonResponse({ error: "Method not allowed" }, 405);
-});
+  const rpcMethod = body.method as string;
+  const rpcId = body.id;
 
-export default mcpStreamableHttp;
+  if (rpcMethod === "initialize") {
+    return jsonResponse(
+      {
+        jsonrpc: "2.0",
+        result: {
+          protocolVersion: "2025-06-18",
+          capabilities: {
+            tools: { listChanged: false },
+            resources: { subscribe: false, listChanged: false },
+            prompts: { listChanged: false },
+          },
+          serverInfo: {
+            name: "openbeam",
+            version: "0.1.0",
+          },
+        },
+        id: rpcId,
+      },
+      200
+    );
+  }
+
+  if (rpcMethod === "notifications/initialized") {
+    return new Response(null, { status: 202, headers: CORS_HEADERS });
+  }
+
+  if (rpcMethod === "tools/list") {
+    const auth = await resolveAuth(req);
+    if (!auth) {
+      return jsonResponse(
+        {
+          jsonrpc: "2.0",
+          error: {
+            code: -32_001,
+            message: "Unauthorized — provide API key via Authorization header",
+          },
+          id: rpcId,
+        },
+        200
+      );
+    }
+
+    return jsonResponse(
+      {
+        jsonrpc: "2.0",
+        result: {
+          tools: [
+            {
+              name: "search_documents",
+              description:
+                "Search across all connected enterprise data sources using hybrid semantic + keyword search.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  query: { type: "string", description: "The search query" },
+                  limit: {
+                    type: "number",
+                    description: "Max results (1-50)",
+                    default: 10,
+                  },
+                },
+                required: ["query"],
+              },
+            },
+            {
+              name: "ask_question",
+              description:
+                "Answer a question using the enterprise knowledge base with RAG and citations.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  question: {
+                    type: "string",
+                    description: "The question to answer",
+                  },
+                },
+                required: ["question"],
+              },
+            },
+            {
+              name: "list_connectors",
+              description:
+                "List all connected data sources and their sync status.",
+              inputSchema: { type: "object", properties: {} },
+            },
+            {
+              name: "get_document",
+              description:
+                "Retrieve the full content of a specific document by ID.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  document_id: {
+                    type: "string",
+                    description: "Document ID from search results",
+                  },
+                },
+                required: ["document_id"],
+              },
+            },
+            {
+              name: "search_people",
+              description:
+                "Find people in the organization by name, email, or expertise.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  query: {
+                    type: "string",
+                    description: "Person name, email, or expertise",
+                  },
+                },
+                required: ["query"],
+              },
+            },
+          ],
+        },
+        id: rpcId,
+      },
+      200
+    );
+  }
+
+  if (rpcMethod === "resources/list") {
+    return jsonResponse(
+      {
+        jsonrpc: "2.0",
+        result: {
+          resources: [],
+          resourceTemplates: [
+            {
+              uriTemplate: "openbeam://resources/{teamId}/",
+              name: "Enterprise Resources",
+              mimeType: "application/json",
+            },
+          ],
+        },
+        id: rpcId,
+      },
+      200
+    );
+  }
+
+  if (rpcMethod === "prompts/list") {
+    return jsonResponse(
+      { jsonrpc: "2.0", result: { prompts: [] }, id: rpcId },
+      200
+    );
+  }
+
+  return jsonResponse(
+    {
+      jsonrpc: "2.0",
+      error: { code: -32_601, message: `Method not found: ${rpcMethod}` },
+      id: rpcId,
+    },
+    200
+  );
+}

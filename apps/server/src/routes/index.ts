@@ -4,7 +4,7 @@ import agent from "@/modules/agent/agent.index";
 import health from "@/modules/health/health.index";
 import integrations from "@/modules/integrations/integrations.index";
 import mcp from "@/modules/mcp/mcp.index";
-import mcpStreamableHttp from "@/modules/mcp/mcp.streamable-http";
+import { handleMcpRequest } from "@/modules/mcp/mcp.streamable-http";
 import v1Router from "./v1";
 
 export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
@@ -13,7 +13,7 @@ export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
   app.route("/api/health", health);
   app.route("/api/mcp", mcp);
   app.route("/api/agent", agent);
-  app.route("/mcp", mcpStreamableHttp);
+  app.all("/mcp", handleMcpRequest);
 
   return app;
 };
