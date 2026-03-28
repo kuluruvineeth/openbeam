@@ -1,7 +1,7 @@
 {
-  "name": "@openbeam/mcp",
-  "version": "1.0.0",
-  "description": "MCP server for OpenBeam database access via Claude Code",
+  "name": "@openbeam/mcp-server",
+  "version": "0.1.0",
+  "description": "Enterprise knowledge MCP server for Claude, Cursor, Windsurf, and any MCP host. 103+ connectors.",
   "type": "module",
   "main": "dist/index.js",
   "exports": {
@@ -11,33 +11,45 @@
     }
   },
   "bin": {
-    "openbeam-mcp": "./dist/index.js"
+    "openbeam-mcp-server": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsdown",
+    "build": "node build.mjs",
     "dev": "node --import tsx src/index.ts",
     "start": "node dist/index.js"
   },
   "keywords": [
     "mcp",
     "claude",
-    "database",
-    "openbeam"
+    "cursor",
+    "windsurf",
+    "codex",
+    "enterprise-search",
+    "openbeam",
+    "model-context-protocol"
   ],
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@prisma/client": "^6.9.0",
+    "@temporalio/client": "^1.11.7",
+    "@temporalio/common": "^1.11.7"
+  },
+  "devDependencies": {
+    "@openbeam/config": "workspace:*",
     "@openbeam/db": "workspace:*",
     "@openbeam/redis": "workspace:*",
     "@openbeam/temporal": "workspace:*",
     "@openbeam/types": "workspace:*",
     "@openbeam/vespa": "workspace:*",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@openbeam/config": "workspace:*",
+    "esbuild": "^0.27.4",
     "tsdown": "catalog:",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "zod": "catalog:"
   }
 }

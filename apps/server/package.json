@@ -12,7 +12,7 @@
   "dependencies": {
     "@hono/trpc-server": "^0.4.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "@openbeam/mcp": "workspace:*",
+    "@openbeam/mcp-server": "workspace:*",
     "@hono/zod-openapi": "^1.1.5",
     "@hono/zod-validator": "^0.4.3",
     "@openbeam/ai": "workspace:*",

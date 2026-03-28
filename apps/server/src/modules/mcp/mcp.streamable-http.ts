@@ -1,6 +1,6 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import type { McpAuthContext } from "@openbeam/mcp";
-import { createProductionMcpServer } from "@openbeam/mcp";
+import type { McpAuthContext } from "@openbeam/mcp-server";
+import { createProductionMcpServer } from "@openbeam/mcp-server";
 import { Hono } from "hono";
 import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
