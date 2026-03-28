@@ -1,15 +1,92 @@
 import type { PermissionMode } from "@openbeam/types/ai";
+import { z } from "zod";
 
-export interface McpAuthContext {
-  teamId: string;
-  userId: string;
-  permissionMode: PermissionMode;
-  approvedTools?: string[];
+const DEFAULT_RATE_LIMIT_RPM = 60;
+
+const McpAuthContextSchema = z.object({
+  teamId: z.string().min(1),
+  userId: z.string().min(1),
+  scopes: z.array(z.string()),
+  rateLimitRequestsPerMinute: z.number().int().positive(),
+  source: z.enum(["env", "api_key", "token"]),
+  permissionMode: z.custom<PermissionMode>(),
+  approvedTools: z.array(z.string()).optional(),
+});
+
+export type McpAuthContext = z.infer<typeof McpAuthContextSchema>;
+
+function resolveFromApiKey(): McpAuthContext | null {
+  const apiKey = process.env.MCP_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+
+  const teamId = process.env.MCP_API_KEY_TEAM_ID;
+  const userId = process.env.MCP_API_KEY_USER_ID;
+  if (!(teamId && userId)) {
+    return null;
+  }
+
+  const scopes = process.env.MCP_API_KEY_SCOPES
+    ? process.env.MCP_API_KEY_SCOPES.split(",").map((s) => s.trim())
+    : ["read"];
+
+  const rpm = process.env.MCP_API_KEY_RPM
+    ? Number.parseInt(process.env.MCP_API_KEY_RPM, 10)
+    : DEFAULT_RATE_LIMIT_RPM;
+
+  const permissionMode = (process.env.MCP_PERMISSION_MODE ??
+    "readOnly") as PermissionMode;
+
+  return McpAuthContextSchema.parse({
+    teamId,
+    userId,
+    scopes,
+    rateLimitRequestsPerMinute: rpm,
+    source: "api_key" as const,
+    permissionMode,
+  });
 }
 
-const REQUIRED_ENV_VARS = ["MCP_TEAM_ID", "MCP_USER_ID"] as const;
+function resolveFromToken(): McpAuthContext | null {
+  const token = process.env.MCP_TOKEN;
+  if (!token) {
+    return null;
+  }
 
-export function extractAuthContext(): McpAuthContext | null {
+  const teamId = process.env.MCP_TOKEN_TEAM_ID;
+  const userId = process.env.MCP_TOKEN_USER_ID;
+  if (!(teamId && userId)) {
+    return null;
+  }
+
+  const scopes = process.env.MCP_TOKEN_SCOPES
+    ? process.env.MCP_TOKEN_SCOPES.split(",").map((s) => s.trim())
+    : ["read", "write"];
+
+  const rpm = process.env.MCP_TOKEN_RPM
+    ? Number.parseInt(process.env.MCP_TOKEN_RPM, 10)
+    : DEFAULT_RATE_LIMIT_RPM * 2;
+
+  const permissionMode = (process.env.MCP_PERMISSION_MODE ??
+    "elevated") as PermissionMode;
+
+  const approvedTools = process.env.MCP_APPROVED_TOOLS
+    ? process.env.MCP_APPROVED_TOOLS.split(",").map((t) => t.trim())
+    : undefined;
+
+  return McpAuthContextSchema.parse({
+    teamId,
+    userId,
+    scopes,
+    rateLimitRequestsPerMinute: rpm,
+    source: "token" as const,
+    permissionMode,
+    approvedTools,
+  });
+}
+
+function resolveFromEnv(): McpAuthContext | null {
   const teamId = process.env.MCP_TEAM_ID;
   const userId = process.env.MCP_USER_ID;
 
@@ -24,17 +101,36 @@ export function extractAuthContext(): McpAuthContext | null {
     ? process.env.MCP_APPROVED_TOOLS.split(",").map((t) => t.trim())
     : undefined;
 
-  return { teamId, userId, permissionMode, approvedTools };
+  return McpAuthContextSchema.parse({
+    teamId,
+    userId,
+    scopes: ["read"],
+    rateLimitRequestsPerMinute: DEFAULT_RATE_LIMIT_RPM,
+    source: "env" as const,
+    permissionMode,
+    approvedTools,
+  });
 }
 
-export function requireAuth(): McpAuthContext {
-  const ctx = extractAuthContext();
-  if (!ctx) {
-    throw new Error(
-      `MCP authentication required. Set environment variables: ${REQUIRED_ENV_VARS.join(", ")}`
-    );
+export function resolveAuthContext(): McpAuthContext {
+  const fromApiKey = resolveFromApiKey();
+  if (fromApiKey) {
+    return fromApiKey;
   }
-  return ctx;
+
+  const fromToken = resolveFromToken();
+  if (fromToken) {
+    return fromToken;
+  }
+
+  const fromEnv = resolveFromEnv();
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  throw new Error(
+    "MCP authentication required. Set MCP_API_KEY, MCP_TOKEN, or MCP_TEAM_ID + MCP_USER_ID"
+  );
 }
 
 export function isToolAllowedForContext(
@@ -43,6 +139,10 @@ export function isToolAllowedForContext(
 ): boolean {
   if (ctx.permissionMode === "elevated") {
     return true;
+  }
+
+  if (ctx.approvedTools && !ctx.approvedTools.includes(toolName)) {
+    return false;
   }
 
   if (ctx.permissionMode === "readOnly") {

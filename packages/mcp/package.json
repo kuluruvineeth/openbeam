@@ -22,6 +22,10 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@openbeam/db": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/temporal": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "@openbeam/vespa": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

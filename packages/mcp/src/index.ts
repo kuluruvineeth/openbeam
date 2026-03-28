@@ -1,89 +1,37 @@
 #!/usr/bin/env node
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import prisma from "@openbeam/db";
-import { getPrismaSchema } from "./resources/schema";
-import { connectorTools, handleConnectorTool } from "./tools/connectors";
-import { handleStatsTool, statsTools } from "./tools/stats";
+import { createProductionMcpServer } from "./server";
 
-const server = new Server(
-  {
-    name: "openbeam-mcp",
-    version: "1.0.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-      resources: {},
-    },
-  }
-);
-
-server.setRequestHandler(ListToolsRequestSchema, () => ({
-  tools: [...connectorTools, ...statsTools],
-}));
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
-  const connectorToolNames = connectorTools.map((t) => t.name);
-  if (connectorToolNames.includes(name)) {
-    return await handleConnectorTool(prisma, name, args);
-  }
-
-  const statsToolNames = statsTools.map((t) => t.name);
-  if (statsToolNames.includes(name)) {
-    return await handleStatsTool(prisma, name, args);
-  }
-
-  return {
-    content: [{ type: "text", text: `Unknown tool: ${name}` }],
-    isError: true,
-  };
-});
-
-server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-  resources: [
-    {
-      uri: "openbeam://schema/prisma",
-      name: "Prisma Schema",
-      description: "OpenBeam database schema definition",
-      mimeType: "text/plain",
-    },
-  ],
-}));
-
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const { uri } = request.params;
-
-  if (uri === "openbeam://schema/prisma") {
-    const schema = await getPrismaSchema();
-    return {
-      contents: [
-        {
-          uri,
-          mimeType: "text/plain",
-          text: schema,
-        },
-      ],
-    };
-  }
-
-  throw new Error(`Unknown resource: ${uri}`);
-});
+export type { AuditSink, McpAuditEntry } from "./middleware/audit";
+export {
+  auditToolCall,
+  clearAuditBuffer,
+  flushAudit,
+  getAuditBuffer,
+  setAuditSink,
+  stopAuditFlush,
+} from "./middleware/audit";
+export type { McpAuthContext } from "./middleware/auth";
+export { isToolAllowedForContext, resolveAuthContext } from "./middleware/auth";
+export type { RateLimitResult } from "./middleware/rate-limit";
+export { checkMcpRateLimit } from "./middleware/rate-limit";
+export type { ProductionMcpServerOptions } from "./server";
+export { createProductionMcpServer } from "./server";
 
 async function main() {
+  const { server } = createProductionMcpServer({
+    transport: "stdio",
+    enableRateLimit: true,
+    enableAudit: true,
+  });
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
 main().catch((error) => {
-  console.error("MCP server error:", error);
+  process.stderr.write(
+    `MCP server error: ${error instanceof Error ? error.message : String(error)}\n`
+  );
   process.exit(1);
 });

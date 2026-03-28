@@ -5,15 +5,15 @@ import {
   getAuditBuffer,
   type McpAuditEntry,
   setAuditSink,
+  stopAuditFlush,
 } from "../middleware/audit";
 import {
-  extractAuthContext,
   isToolAllowedForContext,
   type McpAuthContext,
-  requireAuth,
+  resolveAuthContext,
 } from "../middleware/auth";
 
-describe("extractAuthContext", () => {
+describe("resolveAuthContext", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -24,74 +24,85 @@ describe("extractAuthContext", () => {
     process.env = originalEnv;
   });
 
-  it("returns null when no env vars set", () => {
+  it("throws when no env vars set", () => {
     process.env.MCP_TEAM_ID = undefined;
     process.env.MCP_USER_ID = undefined;
-    expect(extractAuthContext()).toBeNull();
+    process.env.MCP_API_KEY = undefined;
+    process.env.MCP_TOKEN = undefined;
+    expect(() => resolveAuthContext()).toThrow("MCP authentication required");
   });
 
-  it("returns null when only teamId set", () => {
+  it("throws when only teamId set", () => {
     process.env.MCP_TEAM_ID = "team-1";
     process.env.MCP_USER_ID = undefined;
-    expect(extractAuthContext()).toBeNull();
+    process.env.MCP_API_KEY = undefined;
+    process.env.MCP_TOKEN = undefined;
+    expect(() => resolveAuthContext()).toThrow("MCP authentication required");
   });
 
-  it("returns context with defaults when both IDs set", () => {
+  it("returns env context with defaults when both IDs set", () => {
     process.env.MCP_TEAM_ID = "team-1";
     process.env.MCP_USER_ID = "user-1";
     process.env.MCP_PERMISSION_MODE = undefined;
     process.env.MCP_APPROVED_TOOLS = undefined;
+    process.env.MCP_API_KEY = undefined;
+    process.env.MCP_TOKEN = undefined;
 
-    const ctx = extractAuthContext();
-    expect(ctx).toEqual({
-      teamId: "team-1",
-      userId: "user-1",
-      permissionMode: "readOnly",
-      approvedTools: undefined,
-    });
+    const ctx = resolveAuthContext();
+    expect(ctx.teamId).toBe("team-1");
+    expect(ctx.userId).toBe("user-1");
+    expect(ctx.source).toBe("env");
+    expect(ctx.permissionMode).toBe("readOnly");
+    expect(ctx.scopes).toEqual(["read"]);
+    expect(ctx.rateLimitRequestsPerMinute).toBe(60);
   });
 
   it("reads permission mode from env", () => {
     process.env.MCP_TEAM_ID = "team-1";
     process.env.MCP_USER_ID = "user-1";
     process.env.MCP_PERMISSION_MODE = "elevated";
+    process.env.MCP_API_KEY = undefined;
+    process.env.MCP_TOKEN = undefined;
 
-    const ctx = extractAuthContext();
-    expect(ctx?.permissionMode).toBe("elevated");
+    const ctx = resolveAuthContext();
+    expect(ctx.permissionMode).toBe("elevated");
   });
 
   it("parses approved tools from comma-separated env", () => {
     process.env.MCP_TEAM_ID = "team-1";
     process.env.MCP_USER_ID = "user-1";
     process.env.MCP_APPROVED_TOOLS = "tool_a, tool_b , tool_c";
+    process.env.MCP_API_KEY = undefined;
+    process.env.MCP_TOKEN = undefined;
 
-    const ctx = extractAuthContext();
-    expect(ctx?.approvedTools).toEqual(["tool_a", "tool_b", "tool_c"]);
-  });
-});
-
-describe("requireAuth", () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    process.env = { ...originalEnv };
+    const ctx = resolveAuthContext();
+    expect(ctx.approvedTools).toEqual(["tool_a", "tool_b", "tool_c"]);
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
+  it("prefers API key over env vars", () => {
+    process.env.MCP_TEAM_ID = "team-env";
+    process.env.MCP_USER_ID = "user-env";
+    process.env.MCP_API_KEY = "key-123";
+    process.env.MCP_API_KEY_TEAM_ID = "team-api";
+    process.env.MCP_API_KEY_USER_ID = "user-api";
+    process.env.MCP_TOKEN = undefined;
+
+    const ctx = resolveAuthContext();
+    expect(ctx.source).toBe("api_key");
+    expect(ctx.teamId).toBe("team-api");
   });
 
-  it("throws when no auth context", () => {
-    process.env.MCP_TEAM_ID = undefined;
-    process.env.MCP_USER_ID = undefined;
-    expect(() => requireAuth()).toThrow("MCP authentication required");
-  });
+  it("prefers token over env vars", () => {
+    process.env.MCP_TEAM_ID = "team-env";
+    process.env.MCP_USER_ID = "user-env";
+    process.env.MCP_TOKEN = "tok-123";
+    process.env.MCP_TOKEN_TEAM_ID = "team-tok";
+    process.env.MCP_TOKEN_USER_ID = "user-tok";
+    process.env.MCP_API_KEY = undefined;
 
-  it("returns context when env vars set", () => {
-    process.env.MCP_TEAM_ID = "team-1";
-    process.env.MCP_USER_ID = "user-1";
-    const ctx = requireAuth();
-    expect(ctx.teamId).toBe("team-1");
+    const ctx = resolveAuthContext();
+    expect(ctx.source).toBe("token");
+    expect(ctx.teamId).toBe("team-tok");
   });
 });
 
@@ -99,6 +110,9 @@ describe("isToolAllowedForContext", () => {
   const baseCtx: McpAuthContext = {
     teamId: "team-1",
     userId: "user-1",
+    scopes: ["read"],
+    rateLimitRequestsPerMinute: 60,
+    source: "env",
     permissionMode: "readOnly",
   };
 
@@ -132,16 +146,30 @@ describe("isToolAllowedForContext", () => {
     expect(isToolAllowedForContext("create_connector", defaultCtx)).toBe(true);
     expect(isToolAllowedForContext("list_connectors", defaultCtx)).toBe(true);
   });
+
+  it("blocks unapproved tools when approvedTools is set", () => {
+    const restricted: McpAuthContext = {
+      ...baseCtx,
+      permissionMode: "default",
+      approvedTools: ["list_connectors"],
+    };
+    expect(isToolAllowedForContext("list_connectors", restricted)).toBe(true);
+    expect(isToolAllowedForContext("get_connector", restricted)).toBe(false);
+  });
 });
 
 describe("auditToolCall", () => {
   beforeEach(() => {
     clearAuditBuffer();
+    stopAuditFlush();
   });
 
   const authCtx: McpAuthContext = {
     teamId: "team-1",
     userId: "user-1",
+    scopes: ["read"],
+    rateLimitRequestsPerMinute: 60,
+    source: "env",
     permissionMode: "readOnly",
   };
 
@@ -161,6 +189,7 @@ describe("auditToolCall", () => {
     expect(entry.toolName).toBe("list_connectors");
     expect(entry.teamId).toBe("team-1");
     expect(entry.userId).toBe("user-1");
+    expect(entry.source).toBe("env");
     expect(entry.success).toBe(true);
     expect(entry.error).toBeUndefined();
     expect(entry.durationMs).toBeGreaterThanOrEqual(0);
@@ -221,26 +250,22 @@ describe("auditToolCall", () => {
   });
 
   it("supports custom audit sink", async () => {
-    const entries: McpAuditEntry[] = [];
-    setAuditSink((entry) => {
-      entries.push(entry);
+    const batches: McpAuditEntry[][] = [];
+    setAuditSink((entries) => {
+      batches.push([...entries]);
       return Promise.resolve();
     });
 
-    await auditToolCall("list_connectors", undefined, authCtx, async () => ({
-      content: [{ type: "text", text: "ok" }],
-    }));
+    for (let i = 0; i < 51; i++) {
+      await auditToolCall("list_connectors", undefined, authCtx, async () => ({
+        content: [{ type: "text", text: "ok" }],
+      }));
+    }
 
-    expect(entries).toHaveLength(1);
-    expect(entries[0]?.toolName).toBe("list_connectors");
+    expect(batches.length).toBeGreaterThanOrEqual(1);
+    const totalFlushed = batches.reduce((sum, b) => sum + b.length, 0);
+    expect(totalFlushed).toBeGreaterThanOrEqual(1);
 
-    setAuditSink((entry) => {
-      const buf = getAuditBuffer() as McpAuditEntry[];
-      buf.push(entry);
-      if (buf.length > 200) {
-        buf.shift();
-      }
-      return Promise.resolve();
-    });
+    stopAuditFlush();
   });
 });
