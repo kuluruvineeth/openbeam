@@ -1,7 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import type { McpAuthContext } from "@openbeam/mcp-server";
 import { createProductionMcpServer } from "@openbeam/mcp-server";
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
 import logger from "@/utils/logger";
@@ -130,7 +130,7 @@ async function createSessionEntry(
   return { sessionId, entry };
 }
 
-const mcpStreamableHttp = new Hono<AuthEnv>();
+const mcpStreamableHttp = new OpenAPIHono<AuthEnv>();
 
 mcpStreamableHttp.on(["POST", "GET", "DELETE", "OPTIONS"], "/", async (c) => {
   const req = c.req.raw;
