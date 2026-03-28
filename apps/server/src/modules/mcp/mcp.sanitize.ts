@@ -19,7 +19,7 @@ function pickKnownKeys(schema: z.ZodTypeAny, data: unknown): unknown {
   const unwrapped = unwrapSchema(schema);
 
   if (unwrapped instanceof z.ZodArray && Array.isArray(data)) {
-    const element = unwrapped._def.type as z.ZodTypeAny;
+    const element = unwrapped._def.type as unknown as z.ZodTypeAny;
     return data.map((item) => pickKnownKeys(element, item));
   }
 
@@ -32,8 +32,9 @@ function pickKnownKeys(schema: z.ZodTypeAny, data: unknown): unknown {
     const src = data as Record<string, unknown>;
     const out: Record<string, unknown> = {};
     for (const key of Object.keys(shape)) {
-      if (key in src) {
-        out[key] = pickKnownKeys(shape[key], src[key]);
+      const fieldSchema = shape[key];
+      if (key in src && fieldSchema) {
+        out[key] = pickKnownKeys(fieldSchema, src[key]);
       }
     }
     return out;
