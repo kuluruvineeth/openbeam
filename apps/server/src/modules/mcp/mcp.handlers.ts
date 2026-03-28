@@ -8,6 +8,9 @@ import type { Context } from "hono";
 import { paymentConfig } from "@/lib/payment-config";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
+import { registerPrompts } from "./mcp.prompts";
+import { registerResources } from "./mcp.resources";
+import type { McpContext } from "./mcp.types";
 
 const mcpServer = createMCPServer(toolRegistry, {
   name: "openbeam-mcp",
@@ -32,6 +35,46 @@ function buildMCPContext(c: Context<AuthEnv>): MCPServerContext {
     teamId: teamId ?? "",
     userId,
   };
+}
+
+function buildMcpContext(c: Context<AuthEnv>): McpContext {
+  const teamId = getTeamId(c);
+  const authContext = c.get("authContext");
+
+  let userId = "";
+  let userEmail: string | null = null;
+  let scopes: string[] = [];
+
+  if (authContext?.type === "session") {
+    userId = authContext.userId;
+    userEmail = authContext.email ?? null;
+    scopes = ["team.read", "connectors.read", "documents.read", "search.read"];
+  } else if (authContext?.type === "apiKey") {
+    userId = authContext.apiKeyId;
+    scopes = authContext.scopes;
+  }
+
+  return {
+    teamId: teamId ?? "",
+    userId,
+    userEmail,
+    scopes,
+    timezone: null,
+    locale: null,
+  };
+}
+
+const registeredContexts = new Set<string>();
+
+function ensureRegistered(ctx: McpContext): void {
+  const key = `${ctx.teamId}:${ctx.scopes.sort().join(",")}`;
+  if (registeredContexts.has(key)) {
+    return;
+  }
+
+  registerResources(mcpServer.getResourceRegistry(), ctx);
+  registerPrompts(mcpServer.getPromptRegistry(), ctx);
+  registeredContexts.add(key);
 }
 
 let initPromise: Promise<void> | null = null;
@@ -157,6 +200,7 @@ export async function listResourcesHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
+  ensureRegistered(buildMcpContext(c));
   const context = buildMCPContext(c);
   await ensureInitialized(context);
 
@@ -187,6 +231,7 @@ export async function readResourceHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
+  ensureRegistered(buildMcpContext(c));
   const uri = c.req.param("uri") ?? "";
   const decodedUri = decodeURIComponent(uri);
   const context = buildMCPContext(c);
@@ -218,6 +263,7 @@ export async function listPromptsHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
+  ensureRegistered(buildMcpContext(c));
   const context = buildMCPContext(c);
   await ensureInitialized(context);
 
@@ -242,6 +288,7 @@ export async function getPromptHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
+  ensureRegistered(buildMcpContext(c));
   const name = c.req.param("name");
   const argsParam = c.req.query("args");
   const context = buildMCPContext(c);

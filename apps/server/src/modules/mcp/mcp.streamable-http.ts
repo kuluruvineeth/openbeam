@@ -1,19 +1,11 @@
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import type { Context } from "hono";
+import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
+import { createOpenBeamMcpServer } from "./mcp.factory";
+import type { McpContext } from "./mcp.types";
 
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version, Mcp-Api-Key",
-  "Access-Control-Expose-Headers": "Mcp-Session-Id",
-};
-
-function jsonResponse(body: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-  });
-}
+const REQUIRED_ACCEPT = "application/json, text/event-stream";
 
 function extractApiKeyFromRequest(req: Request): string | null {
   const authHeader = req.headers.get("Authorization");
@@ -36,13 +28,7 @@ function extractApiKeyFromRequest(req: Request): string | null {
   return null;
 }
 
-interface AuthResult {
-  teamId: string;
-  userId: string;
-  scopes: string[];
-}
-
-async function resolveAuth(req: Request): Promise<AuthResult | null> {
+async function resolveAuth(req: Request): Promise<McpContext | null> {
   const apiKey = extractApiKeyFromRequest(req);
   if (!apiKey) {
     return null;
@@ -56,215 +42,66 @@ async function resolveAuth(req: Request): Promise<AuthResult | null> {
   return {
     teamId: authContext.teamId,
     userId: authContext.apiKeyId,
+    userEmail: null,
     scopes: authContext.scopes,
+    timezone: null,
+    locale: null,
   };
 }
 
-export async function handleMcpRequest(c: {
-  req: { raw: Request };
-}): Promise<Response> {
+export function handleMcpRequest(
+  c: Context<AuthEnv>
+): Response | Promise<Response> {
   const req = c.req.raw;
-  const method = req.method;
 
-  if (method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  const accept = req.headers.get("Accept") ?? "";
+  if (
+    !(
+      accept.includes("application/json") &&
+      accept.includes("text/event-stream")
+    )
+  ) {
+    const patched = new Request(req, {
+      headers: new Headers(req.headers),
+    });
+    patched.headers.set("Accept", REQUIRED_ACCEPT);
+    return handleTransport(patched);
   }
 
-  if (method === "GET") {
-    return jsonResponse(
+  return handleTransport(req);
+}
+
+async function handleTransport(req: Request): Promise<Response> {
+  const ctx = await resolveAuth(req);
+  if (!ctx) {
+    return new Response(
+      JSON.stringify({
+        error: "unauthorized",
+        error_description:
+          "Bearer token required. Provide an API key via the Authorization header.",
+      }),
       {
-        jsonrpc: "2.0",
-        result: {
-          name: "openbeam",
-          version: "0.1.0",
-          description: "OpenBeam MCP Server — 103+ enterprise connectors",
+        status: 401,
+        headers: {
+          "Content-Type": "application/json",
+          "WWW-Authenticate": "Bearer",
         },
-      },
-      200
+      }
     );
   }
 
-  if (method === "DELETE") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
 
-  if (method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
-  }
+  const server = createOpenBeamMcpServer(ctx);
+  await server.connect(transport);
 
-  let body: Record<string, unknown>;
-  try {
-    body = (await req.json()) as Record<string, unknown>;
-  } catch {
-    return jsonResponse(
-      {
-        jsonrpc: "2.0",
-        error: { code: -32_700, message: "Parse error" },
-        id: null,
-      },
-      400
-    );
-  }
+  const response = await transport.handleRequest(req);
 
-  const rpcMethod = body.method as string;
-  const rpcId = body.id;
+  await transport.close();
+  await server.close();
 
-  if (rpcMethod === "initialize") {
-    return jsonResponse(
-      {
-        jsonrpc: "2.0",
-        result: {
-          protocolVersion: "2025-06-18",
-          capabilities: {
-            tools: { listChanged: false },
-            resources: { subscribe: false, listChanged: false },
-            prompts: { listChanged: false },
-          },
-          serverInfo: {
-            name: "openbeam",
-            version: "0.1.0",
-          },
-        },
-        id: rpcId,
-      },
-      200
-    );
-  }
-
-  if (rpcMethod === "notifications/initialized") {
-    return new Response(null, { status: 202, headers: CORS_HEADERS });
-  }
-
-  if (rpcMethod === "tools/list") {
-    const auth = await resolveAuth(req);
-    if (!auth) {
-      return jsonResponse(
-        {
-          jsonrpc: "2.0",
-          error: {
-            code: -32_001,
-            message: "Unauthorized — provide API key via Authorization header",
-          },
-          id: rpcId,
-        },
-        200
-      );
-    }
-
-    return jsonResponse(
-      {
-        jsonrpc: "2.0",
-        result: {
-          tools: [
-            {
-              name: "search_documents",
-              description:
-                "Search across all connected enterprise data sources using hybrid semantic + keyword search.",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  query: { type: "string", description: "The search query" },
-                  limit: {
-                    type: "number",
-                    description: "Max results (1-50)",
-                    default: 10,
-                  },
-                },
-                required: ["query"],
-              },
-            },
-            {
-              name: "ask_question",
-              description:
-                "Answer a question using the enterprise knowledge base with RAG and citations.",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  question: {
-                    type: "string",
-                    description: "The question to answer",
-                  },
-                },
-                required: ["question"],
-              },
-            },
-            {
-              name: "list_connectors",
-              description:
-                "List all connected data sources and their sync status.",
-              inputSchema: { type: "object", properties: {} },
-            },
-            {
-              name: "get_document",
-              description:
-                "Retrieve the full content of a specific document by ID.",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  document_id: {
-                    type: "string",
-                    description: "Document ID from search results",
-                  },
-                },
-                required: ["document_id"],
-              },
-            },
-            {
-              name: "search_people",
-              description:
-                "Find people in the organization by name, email, or expertise.",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  query: {
-                    type: "string",
-                    description: "Person name, email, or expertise",
-                  },
-                },
-                required: ["query"],
-              },
-            },
-          ],
-        },
-        id: rpcId,
-      },
-      200
-    );
-  }
-
-  if (rpcMethod === "resources/list") {
-    return jsonResponse(
-      {
-        jsonrpc: "2.0",
-        result: {
-          resources: [],
-          resourceTemplates: [
-            {
-              uriTemplate: "openbeam://resources/{teamId}/",
-              name: "Enterprise Resources",
-              mimeType: "application/json",
-            },
-          ],
-        },
-        id: rpcId,
-      },
-      200
-    );
-  }
-
-  if (rpcMethod === "prompts/list") {
-    return jsonResponse(
-      { jsonrpc: "2.0", result: { prompts: [] }, id: rpcId },
-      200
-    );
-  }
-
-  return jsonResponse(
-    {
-      jsonrpc: "2.0",
-      error: { code: -32_601, message: `Method not found: ${rpcMethod}` },
-      id: rpcId,
-    },
-    200
-  );
+  return response;
 }
