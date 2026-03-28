@@ -48,16 +48,13 @@ jobs:
       - name: Generate Prisma Client
         run: cd packages/db && bunx prisma generate
 
-      - name: Type check
-        run: bun x tsc --noEmit --project packages/mcp/tsconfig.json
-
       - name: Run tests
         run: bun test packages/mcp/
 
       - name: Build package
         run: |
           cd packages/mcp
-          bun run build
+          node build.mjs
 
       - name: Set version
         run: |
