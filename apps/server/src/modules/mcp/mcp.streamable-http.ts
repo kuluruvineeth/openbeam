@@ -1,7 +1,7 @@
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import type { McpAuthContext } from "@openbeam/mcp-server";
 import { createProductionMcpServer } from "@openbeam/mcp-server";
-import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
 import logger from "@/utils/logger";
