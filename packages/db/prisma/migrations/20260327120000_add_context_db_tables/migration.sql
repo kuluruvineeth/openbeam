@@ -110,13 +110,13 @@ CREATE INDEX "context_session_message_session_id_created_at_idx" ON "context_ses
 CREATE INDEX "context_memory_extraction_team_id_status_idx" ON "context_memory_extraction"("team_id", "status");
 
 -- AddForeignKey
-ALTER TABLE "context_entry" ADD CONSTRAINT "context_entry_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "context_entry" ADD CONSTRAINT "context_entry_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "context_relation" ADD CONSTRAINT "context_relation_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "context_relation" ADD CONSTRAINT "context_relation_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "context_session" ADD CONSTRAINT "context_session_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "context_session" ADD CONSTRAINT "context_session_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "context_session_message" ADD CONSTRAINT "context_session_message_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "context_session"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
