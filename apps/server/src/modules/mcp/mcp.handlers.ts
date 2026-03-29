@@ -8,8 +8,6 @@ import type { Context } from "hono";
 import { paymentConfig } from "@/lib/payment-config";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
-import { registerPrompts } from "./mcp.prompts";
-import { registerResources } from "./mcp.resources";
 import type { McpContext } from "./mcp.types";
 
 const mcpServer = createMCPServer(toolRegistry, {
@@ -72,8 +70,6 @@ function ensureRegistered(ctx: McpContext): void {
     return;
   }
 
-  registerResources(mcpServer.getResourceRegistry(), ctx);
-  registerPrompts(mcpServer.getPromptRegistry(), ctx);
   registeredContexts.add(key);
 }
 

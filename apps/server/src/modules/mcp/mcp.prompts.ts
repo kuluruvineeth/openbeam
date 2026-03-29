@@ -12,19 +12,21 @@ function userMsg(text: string) {
 
 export function registerPrompts(server: McpServer, ctx: McpContext): void {
   if (hasScope(ctx, "connectors.read")) {
-    server.prompt(
+    server.registerPrompt(
       "connector_setup",
       {
         description: "Walk through setting up a new data source connector",
-        connectorType: z
-          .string()
-          .optional()
-          .describe(
-            "The type of connector to set up (e.g., slack, github, jira)"
-          ),
+        argsSchema: {
+          connectorType: z
+            .string()
+            .optional()
+            .describe(
+              "The type of connector to set up (e.g., slack, github, jira)"
+            ),
+        },
       },
-      ({ connectorType }) => {
-        const type = connectorType ?? "new";
+      (args) => {
+        const type = args.connectorType ?? "new";
         return userMsg(
           `Guide me through setting up a ${type} connector for my team.\n\n` +
             "Steps:\n1. Read openbeam://team to check the current team configuration\n" +
@@ -36,18 +38,20 @@ export function registerPrompts(server: McpServer, ctx: McpContext): void {
       }
     );
 
-    server.prompt(
+    server.registerPrompt(
       "troubleshoot_sync",
       {
         description: "Diagnose and fix connector sync problems",
-        connectorId: z
-          .string()
-          .optional()
-          .describe("The ID of the connector having sync issues"),
+        argsSchema: {
+          connectorId: z
+            .string()
+            .optional()
+            .describe("The ID of the connector having sync issues"),
+        },
       },
-      ({ connectorId }) => {
-        const clause = connectorId
-          ? `Focus on connector ID: ${connectorId}.`
+      (args) => {
+        const clause = args.connectorId
+          ? `Focus on connector ID: ${args.connectorId}.`
           : "Check all connectors.";
         return userMsg(
           `Help me troubleshoot connector sync problems. ${clause}\n\n` +
@@ -59,7 +63,7 @@ export function registerPrompts(server: McpServer, ctx: McpContext): void {
       }
     );
 
-    server.prompt(
+    server.registerPrompt(
       "data_overview",
       {
         description:
@@ -78,18 +82,20 @@ export function registerPrompts(server: McpServer, ctx: McpContext): void {
   }
 
   if (hasScope(ctx, "search.read")) {
-    server.prompt(
+    server.registerPrompt(
       "search_analysis",
       {
         description: "Search and analyze enterprise data on a topic",
-        topic: z.string().describe("The topic to research"),
-        depth: z
-          .enum(["quick", "standard", "deep"])
-          .optional()
-          .describe("Analysis depth"),
+        argsSchema: {
+          topic: z.string().describe("The topic to research"),
+          depth: z
+            .enum(["quick", "standard", "deep"])
+            .optional()
+            .describe("Analysis depth"),
+        },
       },
-      ({ topic, depth }) => {
-        const d = depth ?? "standard";
+      (args) => {
+        const d = args.depth ?? "standard";
         const instructions: Record<string, string> = {
           quick: "Brief summary from top 5 results.",
           standard:
@@ -97,39 +103,43 @@ export function registerPrompts(server: McpServer, ctx: McpContext): void {
           deep: "Multiple queries, comprehensive synthesis, identify patterns and gaps.",
         };
         return userMsg(
-          `Research and analyze: "${topic}"\n\nDepth: ${d}\n${instructions[d]}\n\n` +
+          `Research and analyze: "${args.topic}"\n\nDepth: ${d}\n${instructions[d]}\n\n` +
             "Steps:\n1. search_documents for relevant info\n2. Read full content of top results\n3. search_people for subject matter experts\n\n" +
             "Structure: executive summary, key findings with citations, gaps, next steps"
         );
       }
     );
 
-    server.prompt(
+    server.registerPrompt(
       "find_expert",
       {
         description: "Find team members with expertise in a topic",
-        topic: z.string().describe("The topic or skill"),
+        argsSchema: {
+          topic: z.string().describe("The topic or skill"),
+        },
       },
-      ({ topic }) =>
+      (args) =>
         userMsg(
-          `Find team members with expertise in "${topic}".\n\n` +
+          `Find team members with expertise in "${args.topic}".\n\n` +
             "Steps:\n1. search_documents for related content\n2. search_people for associated people\n3. Analyze authorship patterns\n\n" +
             "Provide: ranked experts, evidence, relevant documents, who to reach out to"
         )
     );
 
-    server.prompt(
+    server.registerPrompt(
       "weekly_digest",
       {
         description: "Generate a weekly digest of changes across all sources",
-        focusAreas: z
-          .string()
-          .optional()
-          .describe("Comma-separated topics to prioritize"),
+        argsSchema: {
+          focusAreas: z
+            .string()
+            .optional()
+            .describe("Comma-separated topics to prioritize"),
+        },
       },
-      ({ focusAreas }) => {
-        const focus = focusAreas
-          ? `Prioritize: ${focusAreas}.`
+      (args) => {
+        const focus = args.focusAreas
+          ? `Prioritize: ${args.focusAreas}.`
           : "Cover all major topics.";
         return userMsg(
           `Generate a weekly knowledge digest. ${focus}\n\n` +
@@ -140,9 +150,11 @@ export function registerPrompts(server: McpServer, ctx: McpContext): void {
     );
   }
 
-  server.prompt(
+  server.registerPrompt(
     "onboarding_guide",
-    { description: "Help a new user get started with OpenBeam" },
+    {
+      description: "Help a new user get started with OpenBeam",
+    },
     () =>
       userMsg(
         "Help me get started with OpenBeam.\n\n" +

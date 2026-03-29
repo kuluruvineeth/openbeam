@@ -33,12 +33,8 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
     server.resource(
       "team-info",
       "openbeam://team",
-      {
-        description:
-          "Current team metadata including ID, plan, and configuration",
-        mimeType: "application/json",
-      },
-      async (uri) => ({
+      { description: "Current team metadata including ID and configuration" },
+      (uri) => ({
         contents: [
           {
             uri: uri.href,
@@ -60,12 +56,8 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
     server.resource(
       "connectors-list",
       "openbeam://connectors",
-      {
-        description:
-          "List of all active data source connectors and their sync status",
-        mimeType: "application/json",
-      },
-      async (uri) => ({
+      { description: "Available data source connector types and hints" },
+      (uri) => ({
         contents: [
           {
             uri: uri.href,
@@ -73,51 +65,7 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
             text: jsonText({
               teamId: ctx.teamId,
               availableTypes: CONNECTOR_TYPES,
-              hint: "Use the connector_list tool for live data.",
-            }),
-          },
-        ],
-      })
-    );
-
-    server.resource(
-      "connector-detail",
-      "openbeam://connectors/{connectorId}",
-      {
-        description: "Detailed information about a specific connector",
-        mimeType: "application/json",
-      },
-      async (uri, { connectorId }) => ({
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: "application/json",
-            text: jsonText({
-              connectorId,
-              teamId: ctx.teamId,
-              hint: "Use the connector_get tool for live data.",
-            }),
-          },
-        ],
-      })
-    );
-
-    server.resource(
-      "connector-sync-history",
-      "openbeam://connectors/{connectorId}/sync-history",
-      {
-        description: "Recent sync history for a specific connector",
-        mimeType: "application/json",
-      },
-      async (uri, { connectorId }) => ({
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: "application/json",
-            text: jsonText({
-              connectorId,
-              teamId: ctx.teamId,
-              hint: "Use the connector_sync_history tool for live data.",
+              hint: "Use the connector_list tool for live connector data.",
             }),
           },
         ],
@@ -129,41 +77,15 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
     server.resource(
       "recent-docs",
       "openbeam://documents/recent",
-      {
-        description:
-          "Documents indexed in the last 24 hours across all sources",
-        mimeType: "application/json",
-      },
-      async (uri) => ({
+      { description: "Hint for recently indexed documents" },
+      (uri) => ({
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
             text: jsonText({
               teamId: ctx.teamId,
-              hint: "Use search_documents with a time filter for live data.",
-            }),
-          },
-        ],
-      })
-    );
-
-    server.resource(
-      "search-results",
-      "openbeam://search/{queryId}",
-      {
-        description: "Cached search results for a specific query ID",
-        mimeType: "application/json",
-      },
-      async (uri, { queryId }) => ({
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: "application/json",
-            text: jsonText({
-              queryId,
-              teamId: ctx.teamId,
-              hint: "Use search_documents for a new search.",
+              hint: "Use search_documents with a dateFrom filter for live recent documents.",
             }),
           },
         ],
@@ -174,12 +96,8 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
   server.resource(
     "user-context",
     "openbeam://user/context",
-    {
-      description:
-        "Current user context including permissions, timezone, and locale",
-      mimeType: "application/json",
-    },
-    async (uri) => ({
+    { description: "Current user permissions, timezone, and locale" },
+    (uri) => ({
       contents: [
         {
           uri: uri.href,
@@ -199,11 +117,8 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
   server.resource(
     "connector-types",
     "openbeam://connector-types",
-    {
-      description: "List of all supported connector types",
-      mimeType: "application/json",
-    },
-    async (uri) => ({
+    { description: "All supported connector types that can be configured" },
+    (uri) => ({
       contents: [
         {
           uri: uri.href,
