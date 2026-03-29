@@ -1,268 +1,154 @@
-import type { PromptHandler, PromptRegistry } from "@openbeam/ai";
-import type { MCPPromptDefinition } from "@openbeam/types/ai";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { hasScope, type McpContext } from "./mcp.types";
 
-function userMessage(text: string) {
+function userMsg(text: string) {
   return {
     messages: [
-      {
-        role: "user" as const,
-        content: { type: "text" as const, text },
-      },
+      { role: "user" as const, content: { type: "text" as const, text } },
     ],
   };
 }
 
-function prompt(
-  fn: (args: Record<string, string>) => ReturnType<typeof userMessage>
-): PromptHandler {
-  return (args) => Promise.resolve(fn(args));
-}
-
-export function registerPrompts(
-  registry: PromptRegistry,
-  ctx: McpContext
-): void {
+export function registerPrompts(server: McpServer, ctx: McpContext): void {
   if (hasScope(ctx, "connectors.read")) {
-    const connectorSetup: MCPPromptDefinition = {
-      name: "connector_setup",
-      description: "Walk through setting up a new data source connector",
-      arguments: [
-        {
-          name: "connectorType",
-          description:
-            "The type of connector to set up (e.g., slack, github, jira, notion)",
-          required: false,
-        },
-      ],
-    };
-
-    registry.register(
-      connectorSetup,
-      prompt((args) => {
-        const type = args.connectorType ?? "new";
-        return userMessage(
+    server.prompt(
+      "connector_setup",
+      {
+        description: "Walk through setting up a new data source connector",
+        connectorType: z
+          .string()
+          .optional()
+          .describe(
+            "The type of connector to set up (e.g., slack, github, jira)"
+          ),
+      },
+      ({ connectorType }) => {
+        const type = connectorType ?? "new";
+        return userMsg(
           `Guide me through setting up a ${type} connector for my team.\n\n` +
-            "Follow these steps:\n" +
-            "1. Read openbeam://team to check the current team configuration\n" +
-            "2. Read openbeam://connector-types to show available connector types\n" +
-            "3. Use list_connectors to check for existing connectors of this type\n" +
+            "Steps:\n1. Read openbeam://team to check the current team configuration\n" +
+            "2. Read openbeam://connector-types to show available types\n" +
+            "3. Use connector_list to check for existing connectors\n" +
             "4. Walk through the OAuth or API key setup process\n" +
-            "5. Verify the connection works and initial sync starts\n\n" +
-            "Explain each step clearly and handle any errors that come up."
+            "5. Verify the connection and initial sync"
         );
-      })
+      }
     );
-  }
 
-  if (hasScope(ctx, "connectors.read")) {
-    const troubleshootSync: MCPPromptDefinition = {
-      name: "troubleshoot_sync",
-      description:
-        "Diagnose and fix connector sync problems with step-by-step investigation",
-      arguments: [
-        {
-          name: "connectorId",
-          description: "The ID of the connector having sync issues",
-          required: false,
-        },
-      ],
-    };
-
-    registry.register(
-      troubleshootSync,
-      prompt((args) => {
-        const connectorClause = args.connectorId
-          ? `Focus on connector ID: ${args.connectorId}.`
-          : "Check all connectors for issues.";
-
-        return userMessage(
-          `Help me troubleshoot connector sync problems. ${connectorClause}\n\n` +
-            "Investigation steps:\n" +
-            "1. Use list_connectors to get all connectors and their current status\n" +
-            "2. For connectors in error state, check their sync history for failure patterns\n" +
-            "3. Identify common issues: expired OAuth tokens, rate limits, permission changes\n" +
-            "4. Suggest specific fixes for each problem found\n" +
-            "5. Verify fixes by checking if sync resumes successfully\n\n" +
-            "Provide a clear diagnosis with actionable remediation steps."
+    server.prompt(
+      "troubleshoot_sync",
+      {
+        description: "Diagnose and fix connector sync problems",
+        connectorId: z
+          .string()
+          .optional()
+          .describe("The ID of the connector having sync issues"),
+      },
+      ({ connectorId }) => {
+        const clause = connectorId
+          ? `Focus on connector ID: ${connectorId}.`
+          : "Check all connectors.";
+        return userMsg(
+          `Help me troubleshoot connector sync problems. ${clause}\n\n` +
+            "Steps:\n1. Use connector_list to get all connectors and status\n" +
+            "2. Check sync history for failure patterns\n" +
+            "3. Identify: expired tokens, rate limits, permission changes\n" +
+            "4. Suggest specific fixes\n5. Verify fixes by checking sync resumes"
         );
-      })
+      }
     );
-  }
 
-  if (hasScope(ctx, "search.read")) {
-    const searchAnalysis: MCPPromptDefinition = {
-      name: "search_analysis",
-      description:
-        "Search and analyze enterprise data across all connected sources on a specific topic",
-      arguments: [
-        {
-          name: "topic",
-          description: "The topic or question to research across all sources",
-          required: true,
-        },
-        {
-          name: "depth",
-          description:
-            "Analysis depth: quick (top results only), standard (cross-reference sources), deep (comprehensive synthesis)",
-          required: false,
-        },
-      ],
-    };
-
-    registry.register(
-      searchAnalysis,
-      prompt((args) => {
-        const depth = args.depth ?? "standard";
-        const depthInstructions =
-          {
-            quick: "Provide a brief summary from the top 5 search results.",
-            standard:
-              "Cross-reference multiple sources, identify agreements and contradictions, provide a balanced synthesis.",
-            deep: "Perform multiple searches with different query formulations, analyze all relevant documents, identify patterns and gaps, provide a comprehensive research report.",
-          }[depth] ??
-          "Cross-reference multiple sources and provide a balanced synthesis.";
-
-        return userMessage(
-          `Research and analyze: "${args.topic}"\n\n` +
-            "Approach:\n" +
-            `1. Use search_documents to find relevant information about "${args.topic}"\n` +
-            "2. Use get_document to read the full content of the most relevant results\n" +
-            "3. Use search_people to identify subject matter experts if relevant\n\n" +
-            `Analysis depth: ${depth}\n${depthInstructions}\n\n` +
-            "Structure your analysis with:\n" +
-            "- Executive summary\n" +
-            "- Key findings with citations\n" +
-            "- Source credibility assessment\n" +
-            "- Gaps in available information\n" +
-            "- Recommended next steps"
-        );
-      })
-    );
-  }
-
-  if (hasScope(ctx, "search.read")) {
-    const findExpert: MCPPromptDefinition = {
-      name: "find_expert",
-      description:
-        "Find team members with expertise in a specific topic based on their contributions and document interactions",
-      arguments: [
-        {
-          name: "topic",
-          description: "The topic or skill to find experts for",
-          required: true,
-        },
-      ],
-    };
-
-    registry.register(
-      findExpert,
-      prompt((args) =>
-        userMessage(
-          `Find team members with expertise in "${args.topic}".\n\n` +
-            "Steps:\n" +
-            `1. Use search_documents to find content related to "${args.topic}"\n` +
-            `2. Use search_people to find people associated with "${args.topic}"\n` +
-            "3. Analyze document authorship and contribution patterns\n\n" +
-            "Provide:\n" +
-            "- Ranked list of potential experts\n" +
-            "- Evidence supporting each person's expertise\n" +
-            "- Relevant documents they authored or contributed to\n" +
-            "- Suggested people to reach out to first"
-        )
-      )
-    );
-  }
-
-  if (hasScope(ctx, "connectors.read")) {
-    const dataOverview: MCPPromptDefinition = {
-      name: "data_overview",
-      description:
-        "Get a comprehensive overview of all connected data sources, document counts, and sync health",
-    };
-
-    registry.register(
-      dataOverview,
-      prompt(() =>
-        userMessage(
+    server.prompt(
+      "data_overview",
+      {
+        description:
+          "Comprehensive overview of all connected data sources and sync health",
+      },
+      () =>
+        userMsg(
           "Provide a comprehensive overview of my team's connected data.\n\n" +
-            "Steps:\n" +
-            "1. Read openbeam://team for team context\n" +
-            "2. Use list_connectors to get all connected sources with status\n" +
-            "3. For each active connector, summarize document counts and last sync time\n" +
-            "4. Identify any connectors with errors or stale sync times\n\n" +
-            "Present:\n" +
-            "- Summary table of all connectors (name, type, status, last sync, doc count)\n" +
-            "- Overall health assessment\n" +
-            "- Recommendations for improving data coverage\n" +
-            "- Suggested new connectors based on common enterprise setups"
+            "Steps:\n1. Read openbeam://team for team context\n" +
+            "2. Use connector_list to get all sources with status\n" +
+            "3. Summarize document counts and last sync per connector\n" +
+            "4. Identify connectors with errors or stale syncs\n\n" +
+            "Present as: summary table, health assessment, recommendations"
         )
-      )
     );
   }
 
   if (hasScope(ctx, "search.read")) {
-    const weeklyDigest: MCPPromptDefinition = {
-      name: "weekly_digest",
-      description:
-        "Generate a weekly digest of important changes and new information across all connected sources",
-      arguments: [
-        {
-          name: "focusAreas",
-          description:
-            "Comma-separated topics to prioritize (e.g., 'product launches, hiring, engineering')",
-          required: false,
-        },
-      ],
-    };
-
-    registry.register(
-      weeklyDigest,
-      prompt((args) => {
-        const focusClause = args.focusAreas
-          ? `Prioritize information related to: ${args.focusAreas}.`
-          : "Cover all major topics.";
-
-        return userMessage(
-          `Generate a weekly knowledge digest for my team. ${focusClause}\n\n` +
-            "Steps:\n" +
-            "1. Read openbeam://documents/recent for recently indexed content\n" +
-            "2. Use search_documents with broad queries to find notable updates\n" +
-            "3. Identify trending topics and significant changes\n\n" +
-            "Structure the digest as:\n" +
-            "- Top highlights (3-5 most important items)\n" +
-            "- New documents by source\n" +
-            "- Trending topics this week\n" +
-            "- Action items or decisions that need attention\n" +
-            "- Key people involved in recent activity"
+    server.prompt(
+      "search_analysis",
+      {
+        description: "Search and analyze enterprise data on a topic",
+        topic: z.string().describe("The topic to research"),
+        depth: z
+          .enum(["quick", "standard", "deep"])
+          .optional()
+          .describe("Analysis depth"),
+      },
+      ({ topic, depth }) => {
+        const d = depth ?? "standard";
+        const instructions: Record<string, string> = {
+          quick: "Brief summary from top 5 results.",
+          standard:
+            "Cross-reference sources, identify agreements and contradictions.",
+          deep: "Multiple queries, comprehensive synthesis, identify patterns and gaps.",
+        };
+        return userMsg(
+          `Research and analyze: "${topic}"\n\nDepth: ${d}\n${instructions[d]}\n\n` +
+            "Steps:\n1. search_documents for relevant info\n2. Read full content of top results\n3. search_people for subject matter experts\n\n" +
+            "Structure: executive summary, key findings with citations, gaps, next steps"
         );
-      })
+      }
+    );
+
+    server.prompt(
+      "find_expert",
+      {
+        description: "Find team members with expertise in a topic",
+        topic: z.string().describe("The topic or skill"),
+      },
+      ({ topic }) =>
+        userMsg(
+          `Find team members with expertise in "${topic}".\n\n` +
+            "Steps:\n1. search_documents for related content\n2. search_people for associated people\n3. Analyze authorship patterns\n\n" +
+            "Provide: ranked experts, evidence, relevant documents, who to reach out to"
+        )
+    );
+
+    server.prompt(
+      "weekly_digest",
+      {
+        description: "Generate a weekly digest of changes across all sources",
+        focusAreas: z
+          .string()
+          .optional()
+          .describe("Comma-separated topics to prioritize"),
+      },
+      ({ focusAreas }) => {
+        const focus = focusAreas
+          ? `Prioritize: ${focusAreas}.`
+          : "Cover all major topics.";
+        return userMsg(
+          `Generate a weekly knowledge digest. ${focus}\n\n` +
+            "Steps:\n1. Read openbeam://documents/recent\n2. Search for notable updates\n3. Identify trending topics\n\n" +
+            "Structure: top highlights, new docs by source, trending topics, action items"
+        );
+      }
     );
   }
 
-  const onboarding: MCPPromptDefinition = {
-    name: "onboarding_guide",
-    description:
-      "Help a new user get started with OpenBeam by exploring available data and capabilities",
-  };
-
-  registry.register(
-    onboarding,
-    prompt(() =>
-      userMessage(
-        "Help me get started with OpenBeam as a new user.\n\n" +
-          "Steps:\n" +
-          "1. Read openbeam://user/context to understand my current permissions\n" +
-          "2. Read openbeam://team for team information\n" +
-          "3. Read openbeam://connectors to see what data sources are connected\n" +
-          "4. Read openbeam://connector-types to show what else can be connected\n\n" +
-          "Then provide:\n" +
-          "- A welcome overview of what's available\n" +
-          "- Summary of connected data sources and what I can search\n" +
-          "- 3-5 example searches I can try right now\n" +
-          "- Tips for getting the most out of enterprise search\n" +
-          "- Suggested next steps based on my team's setup"
+  server.prompt(
+    "onboarding_guide",
+    { description: "Help a new user get started with OpenBeam" },
+    () =>
+      userMsg(
+        "Help me get started with OpenBeam.\n\n" +
+          "Steps:\n1. Read openbeam://user/context for permissions\n2. Read openbeam://team for team info\n" +
+          "3. Read openbeam://connectors for connected sources\n4. Read openbeam://connector-types for available connectors\n\n" +
+          "Provide: welcome overview, connected sources summary, example searches, tips, next steps"
       )
-    )
   );
 }
