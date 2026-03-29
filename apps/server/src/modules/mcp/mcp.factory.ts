@@ -1,6 +1,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { McpContext, RegisterTools } from "./mcp.types";
+import { registerPrompts } from "./mcp.prompts";
+import { registerResources } from "./mcp.resources";
+import type { McpContext } from "./mcp.types";
 import { getDateContext } from "./mcp.utils";
+import {
+  registerConnectorTools,
+  registerContextTools,
+  registerSearchTools,
+  registerSyncTools,
+  registerTeamTools,
+} from "./tools";
 
 const MCP_SERVER_VERSION = process.env.GIT_COMMIT_SHA?.slice(0, 7) || "0.1.0";
 
@@ -39,22 +48,6 @@ Tools are namespaced by domain — use the prefix to discover related tools:
 - Call team_get first when you need team settings or base configuration.
 `;
 }
-
-const noop = Function.prototype as RegisterTools;
-
-const registerSearchTools: RegisterTools = noop;
-
-const registerConnectorTools: RegisterTools = noop;
-
-const registerSyncTools: RegisterTools = noop;
-
-const registerContextTools: RegisterTools = noop;
-
-const registerTeamTools: RegisterTools = noop;
-
-const registerResources: RegisterTools = noop;
-
-const registerPrompts: RegisterTools = noop;
 
 export { MCP_SERVER_VERSION };
 
