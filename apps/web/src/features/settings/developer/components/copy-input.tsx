@@ -12,7 +12,7 @@ type CopyInputProps = {
 
 export function CopyInput({ value, className }: CopyInputProps) {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(value);
