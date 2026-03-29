@@ -31,7 +31,7 @@ app.all("/trpc/*", async (c) =>
 
 app.all("/mcp", async (c) => {
   const { handleMcpRequest } = await import(
-    "@/modules/mcp/mcp.streamable-http"
+    "./modules/mcp/mcp.streamable-http"
   );
   return handleMcpRequest(c);
 });
