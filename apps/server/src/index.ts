@@ -29,6 +29,13 @@ app.all("/trpc/*", async (c) =>
   })
 );
 
+app.all("/mcp", async (c) => {
+  const { handleMcpRequest } = await import(
+    "@/modules/mcp/mcp.streamable-http"
+  );
+  return handleMcpRequest(c);
+});
+
 app.get("/", (c) => c.text("OK"));
 
 const port = Number(process.env.PORT) || 3000;
