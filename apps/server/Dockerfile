@@ -19,6 +19,7 @@ RUN cd packages/db && bun run db:generate
 
 FROM prisma AS builder
 WORKDIR /app
+ARG CACHE_BUST=1
 RUN bun run --filter=server build
 
 FROM oven/bun:1.3.3 AS runner
