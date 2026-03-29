@@ -5,7 +5,10 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@openbeam\/(services|auth|integrations|vespa|media|ai|mcp-server)/, /@modelcontextprotocol/],
+  noExternal: [
+    /@openbeam\/(services|auth|integrations|vespa|media|ai|mcp-server)/,
+    /@modelcontextprotocol/,
+  ],
   external: [
     "@openbeam/db",
     "@openbeam/redis",
