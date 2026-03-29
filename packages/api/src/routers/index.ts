@@ -1,9 +1,9 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCRouter } from "../index";
-
 import { agentCanvasRouter } from "./agent-canvas";
 import { aiRouter } from "./ai";
 import { analyticsRouter } from "./analytics";
+import { apiKeysRouter } from "./api-keys";
 import { appsRouter } from "./apps";
 import { backgroundAgentsRouter } from "./background-agents";
 import { connectorResourcesRouter } from "./connector-resources";
@@ -28,6 +28,7 @@ import { voiceRouter } from "./voice";
 import { workspaceRouter } from "./workspace";
 
 export const appRouter = createTRPCRouter({
+  apiKeys: apiKeysRouter,
   agentCanvas: agentCanvasRouter,
   ai: aiRouter,
   analytics: analyticsRouter,

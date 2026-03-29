@@ -3,11 +3,14 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@openbeam/ui";
+import Link from "next/link";
 import { useState } from "react";
+import { Icons } from "@/components/icons";
 import { SignOut } from "@/components/sign-out";
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
@@ -75,6 +78,16 @@ export function UserMenu({ onlySignOut, onOpenChange }: Props) {
               </div>
             </DropdownMenuLabel>
 
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link
+                className="flex cursor-pointer items-center gap-2"
+                href="/settings/developer"
+              >
+                <Icons.Settings2 size={16} />
+                <span>Developer</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <div className="flex flex-row items-center justify-between p-2">
               <p className="text-sm">Theme</p>

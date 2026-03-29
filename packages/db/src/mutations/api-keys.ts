@@ -116,6 +116,46 @@ export function listApiKeys(db: Database, input: ListApiKeysInput) {
   });
 }
 
+export interface UpdateApiKeyInput {
+  id: string;
+  teamId: string;
+  name?: string;
+  scopes?: string[];
+}
+
+export async function updateApiKey(
+  db: Database,
+  input: UpdateApiKeyInput
+): Promise<{ id: string; name: string; scopes: string[] }> {
+  const data: Record<string, unknown> = {};
+  if (input.name !== undefined) {
+    data.name = input.name;
+  }
+  if (input.scopes !== undefined) {
+    data.scopes = input.scopes;
+  }
+
+  const apiKey = await db.apiKey.updateMany({
+    where: {
+      id: input.id,
+      teamId: input.teamId,
+      revoked: false,
+    },
+    data,
+  });
+
+  if (apiKey.count === 0) {
+    throw new Error("API key not found");
+  }
+
+  const updated = await db.apiKey.findUniqueOrThrow({
+    where: { id: input.id },
+    select: { id: true, name: true, scopes: true },
+  });
+
+  return updated;
+}
+
 export interface RevokeApiKeyInput {
   id: string;
   teamId: string;
