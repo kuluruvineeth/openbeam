@@ -1,15 +1,15 @@
 "use client";
 
 import type { ToolCategory } from "@openbeam/types/ai";
-import { type IconComponent, Icons } from "@openbeam/ui";
-import { Badge } from "@openbeam/ui/components/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@openbeam/ui/components/tooltip";
-import { cn } from "@openbeam/ui/utils";
+import { cn } from "../../utils/cn";
+import { type IconComponent, Icons } from "..";
+import { Badge } from "../badge";
 
 type CapabilityConfig = {
   icon: IconComponent;

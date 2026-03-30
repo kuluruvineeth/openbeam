@@ -1,13 +1,15 @@
 "use client";
 
 import type { AgentCanvasSettings } from "@openbeam/types/canvas";
+import {
+  AgentCapabilityBadges,
+  AgentItemTags,
+} from "@openbeam/ui/components/agents";
 import { Badge } from "@openbeam/ui/components/badge";
 import { cn } from "@openbeam/ui/utils";
 import Link from "next/link";
 import { useMemo } from "react";
-import { AgentCapabilityBadges } from "./agent-capability-badges";
 import { AgentItemActions } from "./agent-item-actions";
-import { AgentItemTags } from "./agent-item-tags";
 
 function parseIcon(icon: string | null): { emoji: string; color: string } {
   if (!icon) {

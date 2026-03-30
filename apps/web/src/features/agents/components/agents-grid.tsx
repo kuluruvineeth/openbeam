@@ -1,14 +1,17 @@
 "use client";
 
+import {
+  AgentsEmptyState,
+  AgentsGridSkeleton,
+  AgentsNoResults,
+  LoadMore,
+} from "@openbeam/ui/components/agents";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useTRPC } from "@/trpc/client";
 import type { AgentStatus } from "../hooks/use-agent-filters";
 import { AgentItem } from "./agent-item";
-import { AgentsEmptyState, AgentsNoResults } from "./agents-empty";
-import { AgentsGridSkeleton } from "./agents-skeleton";
-import { LoadMore } from "./load-more";
 
 type ApiStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 

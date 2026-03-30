@@ -1,7 +1,7 @@
 "use client";
 
-import { Spinner } from "@openbeam/ui/components/spinner";
 import { forwardRef } from "react";
+import { Spinner } from "../spinner";
 
 type LoadMoreProps = {
   hasNextPage?: boolean;

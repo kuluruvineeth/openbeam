@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  AgentsEmptyState,
+  AgentsNoResults,
+  AgentsTableSkeleton,
+  LoadMore,
+} from "@openbeam/ui/components/agents";
 import { Badge } from "@openbeam/ui/components/badge";
 import {
   Table,
@@ -17,9 +23,6 @@ import { useInView } from "react-intersection-observer";
 import { useTRPC } from "@/trpc/client";
 import type { AgentStatus } from "../hooks/use-agent-filters";
 import { AgentItemActions } from "./agent-item-actions";
-import { AgentsEmptyState, AgentsNoResults } from "./agents-empty";
-import { AgentsTableSkeleton } from "./agents-skeleton";
-import { LoadMore } from "./load-more";
 
 function parseIcon(icon: string | null): { emoji: string; color: string } {
   if (!icon) {

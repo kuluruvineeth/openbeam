@@ -12,9 +12,9 @@ import {
   Icons,
   Input,
 } from "@openbeam/ui";
+import { FilterList } from "@openbeam/ui/components/agents";
 import { cn } from "@openbeam/ui/utils";
 import { type AgentStatus, useAgentFilters } from "../hooks/use-agent-filters";
-import { FilterList } from "./filter-list";
 
 const STATUS_OPTIONS: { value: AgentStatus; label: string }[] = [
   { value: "active", label: "Active" },
