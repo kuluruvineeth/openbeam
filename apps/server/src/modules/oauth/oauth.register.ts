@@ -20,7 +20,7 @@ const RegisterBodySchema = z.object({
 
 const register = new OpenAPIHono<AuthEnv>();
 
-register.post("/register", async (c) => {
+register.post("/oauth/register", async (c) => {
   const body = await c.req.json();
   const parsed = RegisterBodySchema.safeParse(body);
 

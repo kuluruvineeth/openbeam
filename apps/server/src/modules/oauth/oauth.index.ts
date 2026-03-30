@@ -9,9 +9,9 @@ import oauthWellKnown from "./oauth.well-known";
 const oauth = new OpenAPIHono<AuthEnv>();
 
 oauth.route("/", oauthWellKnown);
-oauth.route("/oauth", oauthRegister);
-oauth.route("/oauth", oauthAuthorize);
-oauth.route("/oauth", oauthToken);
-oauth.route("/oauth", oauthRevoke);
+oauth.route("/", oauthRegister);
+oauth.route("/", oauthAuthorize);
+oauth.route("/", oauthToken);
+oauth.route("/", oauthRevoke);
 
 export default oauth;
