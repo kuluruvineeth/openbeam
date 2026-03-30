@@ -158,9 +158,9 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
                 startedAt: status.latestSync.startedAt?.toISOString() ?? null,
                 finishedAt: status.latestSync.finishedAt?.toISOString() ?? null,
                 durationMs: status.latestSync.durationMs,
-                documentsAdded: status.latestSync.documentsAdded,
-                documentsUpdated: status.latestSync.documentsUpdated,
-                documentsRemoved: status.latestSync.documentsRemoved,
+                dataAdded: status.latestSync.dataAdded,
+                dataUpdated: status.latestSync.dataUpdated,
+                dataDeleted: status.latestSync.dataDeleted,
                 errorMessage: status.latestSync.errorMessage,
               }
             : null,
@@ -232,8 +232,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
           type: entry.syncJob?.type ?? null,
           startedAt: entry.startedAt?.toISOString() ?? null,
           completedAt: entry.finishedAt?.toISOString() ?? null,
-          documentsProcessed:
-            (entry.documentsAdded ?? 0) + (entry.documentsUpdated ?? 0),
+          documentsProcessed: (entry.dataAdded ?? 0) + (entry.dataUpdated ?? 0),
           documentsErrored: null,
           errorMessage: entry.errorMessage,
         }));
