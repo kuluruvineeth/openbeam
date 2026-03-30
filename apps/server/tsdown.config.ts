@@ -8,6 +8,7 @@ export default defineConfig({
   noExternal: [
     /@openbeam\/(services|auth|integrations|vespa|media|ai|mcp-server)/,
     /@modelcontextprotocol/,
+    /@hono\/mcp/,
   ],
   external: [
     "@openbeam/db",

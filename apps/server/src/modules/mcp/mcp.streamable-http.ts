@@ -1,11 +1,11 @@
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { StreamableHTTPTransport } from "@hono/mcp";
 import type { Context } from "hono";
 import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
 import { createOpenBeamMcpServer } from "./mcp.factory";
 import type { McpContext } from "./mcp.types";
 
-const REQUIRED_ACCEPT = "application/json, text/event-stream";
+const API_URL = process.env.OPENBEAM_API_URL || "https://api.openbeam.work";
 
 function extractApiKeyFromRequest(req: Request): string | null {
   const authHeader = req.headers.get("Authorization");
@@ -61,47 +61,33 @@ export function handleMcpRequest(
       accept.includes("text/event-stream")
     )
   ) {
-    const patched = new Request(req, {
-      headers: new Headers(req.headers),
-    });
-    patched.headers.set("Accept", REQUIRED_ACCEPT);
-    return handleTransport(patched);
+    c.req.raw.headers.set("Accept", "application/json, text/event-stream");
   }
 
-  return handleTransport(req);
+  return handleTransport(c);
 }
 
-async function handleTransport(req: Request): Promise<Response> {
-  const ctx = await resolveAuth(req);
+async function handleTransport(c: Context<AuthEnv>): Promise<Response> {
+  const ctx = await resolveAuth(c.req.raw);
   if (!ctx) {
-    return new Response(
-      JSON.stringify({
+    const resourceMetadataUrl = `${API_URL}/.well-known/oauth-protected-resource`;
+    return c.json(
+      {
         error: "unauthorized",
         error_description:
           "Bearer token required. Provide an API key via the Authorization header.",
-      }),
+      },
+      401,
       {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-          "WWW-Authenticate": "Bearer",
-        },
+        "WWW-Authenticate": `Bearer resource_metadata="${resourceMetadataUrl}"`,
       }
     );
   }
 
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true,
-  });
-
+  const transport = new StreamableHTTPTransport();
   const server = createOpenBeamMcpServer(ctx);
   await server.connect(transport);
 
-  const response = await transport.handleRequest(req);
-
-  await transport.close();
-  await server.close();
-
-  return response;
+  const response = await transport.handleRequest(c);
+  return response ?? new Response("Not Found", { status: 404 });
 }
