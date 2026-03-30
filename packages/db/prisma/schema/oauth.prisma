@@ -1,0 +1,79 @@
+model OAuthApplication {
+  id            String   @id @default(cuid()) @map("_id")
+  name          String
+  slug          String   @unique
+  description   String?
+  overview      String?
+  developerName String?
+  logoUrl       String?
+  website       String?
+  installUrl    String?
+  screenshots   String[] @default([])
+  redirectUris  String[]
+  clientId      String   @unique
+  clientSecret  String?
+  scopes        String[] @default([])
+  teamId        String?
+  createdBy     String?
+  isPublic      Boolean  @default(false)
+  active        Boolean  @default(true)
+  status        String   @default("draft")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team         Team?                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  authCodes    OAuthAuthorizationCode[]
+  accessTokens OAuthAccessToken[]
+
+  @@index([teamId])
+  @@index([clientId])
+  @@index([slug])
+  @@map("oauth_application")
+}
+
+model OAuthAuthorizationCode {
+  id                  String   @id @default(cuid()) @map("_id")
+  code                String   @unique
+  applicationId       String
+  userId              String
+  teamId              String
+  scopes              String[]
+  redirectUri         String
+  expiresAt           DateTime
+  used                Boolean  @default(false)
+  codeChallenge       String?
+  codeChallengeMethod String?
+
+  createdAt DateTime @default(now())
+
+  application OAuthApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([applicationId])
+  @@map("oauth_authorization_code")
+}
+
+model OAuthAccessToken {
+  id                    String    @id @default(cuid()) @map("_id")
+  tokenHash             String    @unique
+  refreshTokenHash      String?   @unique
+  applicationId         String
+  userId                String
+  teamId                String
+  scopes                String[]
+  expiresAt             DateTime
+  refreshTokenExpiresAt DateTime?
+  lastUsedAt            DateTime?
+  revoked               Boolean   @default(false)
+  revokedAt             DateTime?
+
+  createdAt DateTime @default(now())
+
+  application OAuthApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([refreshTokenHash])
+  @@index([applicationId])
+  @@map("oauth_access_token")
+}

@@ -26,6 +26,7 @@ model Team {
   tools                  Tool[]
   workspaces             Workspace[]
   apiKeys                ApiKey[]
+  oauthApplications      OAuthApplication[]
   users                  User[]
   teamMediaIndex         TeamMediaIndex?
   searchExperiments      SearchExperiment[]

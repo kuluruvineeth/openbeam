@@ -4,6 +4,7 @@ import agent from "@/modules/agent/agent.index";
 import health from "@/modules/health/health.index";
 import integrations from "@/modules/integrations/integrations.index";
 import mcp from "@/modules/mcp/mcp.index";
+import oauth from "@/modules/oauth/oauth.index";
 
 import v1Router from "./v1";
 
@@ -13,5 +14,6 @@ export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
   app.route("/api/health", health);
   app.route("/api/mcp", mcp);
   app.route("/api/agent", agent);
+  app.route("/", oauth);
   return app;
 };
