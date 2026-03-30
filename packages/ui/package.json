@@ -9,12 +9,15 @@
     ".": "./src/index.ts",
     "./styles/globals.css": "./src/styles/globals.css",
     "./components/*": "./src/components/*.tsx",
+    "./components/agents": "./src/components/agents/index.ts",
+    "./components/document-card": "./src/components/document-card/index.ts",
     "./components/forms": "./src/components/forms/index.ts",
     "./components/modals": "./src/components/modals/index.ts",
     "./components/event-builder": "./src/components/canvas/event-builder/index.ts",
     "./hooks": "./src/hooks/index.ts",
     "./stores": "./src/stores/index.ts",
-    "./utils": "./src/utils/index.ts"
+    "./utils": "./src/utils/index.ts",
+    "./utils/*": "./src/utils/*.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

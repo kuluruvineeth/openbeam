@@ -16,7 +16,7 @@ if (views.length === 0) {
 
 for (const view of views) {
   console.log(`Building ${view}...`);
-  execSync(`INPUT=${view} vite build`, {
+  execSync(`INPUT=${view} bunx vite build`, {
     stdio: "inherit",
     cwd: join(import.meta.dir, ".."),
   });
