@@ -101,9 +101,9 @@ export interface UpdateOAuthAppInput {
   description?: string;
   overview?: string;
   developerName?: string;
-  logoUrl?: string;
-  website?: string;
-  installUrl?: string;
+  logoUrl?: string | null;
+  website?: string | null;
+  installUrl?: string | null;
   screenshots?: string[];
   redirectUris?: string[];
   scopes?: string[];
