@@ -1,0 +1,34 @@
+{
+  "name": "@openbeam/mcp-apps",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "rm -rf dist && bun scripts/build-views.ts",
+    "build:search": "INPUT=search vite build",
+    "build:connector-dashboard": "INPUT=connector-dashboard vite build",
+    "build:document-preview": "INPUT=document-preview vite build",
+    "test": "bun test --exit --timeout 10000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.3.1",
+    "@openbeam/ui": "workspace:*",
+    "clsx": "^2.1.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "autoprefixer": "^10.4.0",
+    "typescript": "^5.8.0",
+    "vite": "^8.0.0",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

@@ -16,5 +16,6 @@ export default defineConfig({
     "@openbeam/api",
     "@openbeam/storage",
     "@duckdb/node-bindings",
+    "@openbeam/mcp-apps",
   ],
 });

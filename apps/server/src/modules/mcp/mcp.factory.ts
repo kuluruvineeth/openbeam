@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerOpenBeamApps } from "./mcp.apps";
 import { registerPrompts } from "./mcp.prompts";
 import { registerResources } from "./mcp.resources";
 import type { McpContext } from "./mcp.types";
@@ -70,6 +71,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
 
   registerResources(server, ctx);
   registerPrompts(server, ctx);
+  registerOpenBeamApps(server);
 
   return server;
 }
