@@ -20,6 +20,7 @@ import {
   searchService,
 } from "./search.service";
 
+// @ts-expect-error — RouteHandler<mainSearch, AuthEnv> exceeds TS type instantiation depth
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
   AuthEnv
