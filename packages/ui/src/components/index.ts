@@ -575,7 +575,7 @@ export {
 export { Label } from "./label";
 export type { MarkdownComponents, MarkdownProps } from "./markdown";
 export { Markdown, markdownVariants } from "./markdown";
-export type { LogoProps } from "./mcp-client-logos";
+export type { McpClientLogoProps } from "./mcp-client-logos";
 export { MCP_CLIENT_LOGOS } from "./mcp-client-logos";
 export type {
   MessageAvatarProps,

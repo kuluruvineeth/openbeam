@@ -46,7 +46,7 @@
     "@openbeam/config": "workspace:*",
     "@temporalio/testing": "~1.15.0",
     "@types/bun": "latest",
-    "vitest": "^2.1.9",
+    "vitest": "catalog:",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {

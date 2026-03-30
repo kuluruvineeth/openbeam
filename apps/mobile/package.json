@@ -134,6 +134,6 @@
     "playwright": "^1.56.1",
     "react-test-renderer": "19.1.0",
     "typescript": "catalog:",
-    "vitest": "^3.2.4"
+    "vitest": "catalog:"
   }
 }

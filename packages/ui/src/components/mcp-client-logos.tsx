@@ -1,6 +1,6 @@
-type LogoProps = { size?: number };
+type McpClientLogoProps = { size?: number };
 
-function ClaudeLogo({ size = 36 }: LogoProps) {
+function ClaudeLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -21,7 +21,7 @@ function ClaudeLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function ClaudeCodeLogo({ size = 36 }: LogoProps) {
+function ClaudeCodeLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -42,7 +42,7 @@ function ClaudeCodeLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function CursorLogo({ size = 36 }: LogoProps) {
+function CursorLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -63,7 +63,7 @@ function CursorLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function WindsurfLogo({ size = 36 }: LogoProps) {
+function WindsurfLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -84,7 +84,7 @@ function WindsurfLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function VSCodeLogo({ size = 36 }: LogoProps) {
+function VSCodeLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -105,7 +105,7 @@ function VSCodeLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function ClineLogo({ size = 36 }: LogoProps) {
+function ClineLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -126,7 +126,7 @@ function ClineLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function ChatGPTLogo({ size = 36 }: LogoProps) {
+function ChatGPTLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -147,7 +147,7 @@ function ChatGPTLogo({ size = 36 }: LogoProps) {
   );
 }
 
-function CodexLogo({ size = 36 }: LogoProps) {
+function CodexLogo({ size = 36 }: McpClientLogoProps) {
   return (
     <svg
       aria-hidden="true"
@@ -170,7 +170,7 @@ function CodexLogo({ size = 36 }: LogoProps) {
 
 const MCP_CLIENT_LOGOS: Record<
   string,
-  (props: LogoProps) => React.ReactElement
+  (props: McpClientLogoProps) => React.ReactElement
 > = {
   "claude-desktop": ClaudeLogo,
   "claude-code": ClaudeCodeLogo,
@@ -182,4 +182,4 @@ const MCP_CLIENT_LOGOS: Record<
   codex: CodexLogo,
 };
 
-export { MCP_CLIENT_LOGOS, type LogoProps };
+export { MCP_CLIENT_LOGOS, type McpClientLogoProps };

@@ -69,11 +69,11 @@
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^9.0.7",
     "@types/ws": "^8.5.8",
-    "@vitest/ui": "^3.2.4",
+    "@vitest/ui": "catalog:",
     "playwright": "^1.56.1",
     "tsx": "^4.6.0",
     "tsdown": "catalog:",
     "typescript": "^5.2.2",
-    "vitest": "^3.2.4"
+    "vitest": "catalog:"
   }
 }
