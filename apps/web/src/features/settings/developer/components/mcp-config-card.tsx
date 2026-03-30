@@ -7,6 +7,7 @@ import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { McpClient } from "../lib/mcp-configs";
 import { MCP_SERVER_URL } from "../lib/mcp-configs";
+import { MCP_CLIENT_LOGOS } from "./mcp-client-logos";
 
 type McpConfigCardProps = {
   client: McpClient;
@@ -89,7 +90,10 @@ export function McpConfigCard({
         onClick={onToggle}
         type="button"
       >
-        <span className="font-medium text-sm">{client.name}</span>
+        <span className="flex items-center gap-3">
+          {MCP_CLIENT_LOGOS[client.id]?.({ size: 28 })}
+          <span className="font-medium text-sm">{client.name}</span>
+        </span>
         <Icons.ChevronDown
           className={cn(
             "text-muted-foreground transition-transform duration-200",
@@ -155,6 +159,39 @@ export function McpConfigCard({
                     </li>
                   ))}
                 </ol>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {client.deepLink && apiKey && (
+                  <Button
+                    asChild
+                    className="h-7 text-xs"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <a href={client.deepLink(apiKey, MCP_SERVER_URL)}>
+                      <Icons.Download size={12} />
+                      One-Click Install
+                    </a>
+                  </Button>
+                )}
+                {client.docsUrl && (
+                  <Button
+                    asChild
+                    className="h-7 text-xs"
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <a
+                      href={client.docsUrl}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <Icons.ExternalLink size={12} />
+                      Docs
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
