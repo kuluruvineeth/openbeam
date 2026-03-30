@@ -34,8 +34,6 @@ type OAuthConsentProps = {
   codeChallenge?: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
-
 import { MCP_CLIENT_LOGOS } from "@/features/settings/developer/components/mcp-client-logos";
 
 const APP_NAME_TO_LOGO_KEY: Record<string, string> = {
@@ -83,10 +81,9 @@ async function submitDecision(payload: {
   code_challenge?: string;
   teamId: string;
 }): Promise<{ redirect_url: string }> {
-  const response = await fetch(`${API_URL}/oauth/authorize`, {
+  const response = await fetch("/api/oauth/authorize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(payload),
   });
 
