@@ -124,6 +124,7 @@ export function OAuthConsentScreen({ app, codeChallenge }: OAuthConsentProps) {
   );
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,6 +141,7 @@ export function OAuthConsentScreen({ app, codeChallenge }: OAuthConsentProps) {
   const authorizeMutation = useMutation(
     trpc.oauthApplications.authorize.mutationOptions({
       onSuccess: (result) => {
+        setAuthorized(true);
         window.location.href = result.redirectUrl;
       },
       onError: (err) => {
@@ -191,6 +193,24 @@ export function OAuthConsentScreen({ app, codeChallenge }: OAuthConsentProps) {
   useHotkeys("escape", handleDeny, {
     enabled: Boolean(resolvedTeamId) && !submitting,
   });
+
+  if (authorized) {
+    return (
+      <div className="w-full max-w-md rounded-sm border border-border/50 bg-background p-6">
+        <div className="flex flex-col items-center gap-4 py-8">
+          <div className="flex size-12 items-center justify-center rounded-full bg-emerald-500/10">
+            <Icons.Check className="text-emerald-500" size={24} />
+          </div>
+          <div className="text-center">
+            <h1 className="font-semibold text-lg">Connected</h1>
+            <p className="mt-1 text-muted-foreground text-sm">
+              {app.name} has been authorized. You can close this window.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md rounded-sm border border-border/50 bg-background p-6">
