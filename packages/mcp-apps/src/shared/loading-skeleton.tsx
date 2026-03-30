@@ -1,4 +1,4 @@
-import { cn } from "./cn";
+import { cn } from "@openbeam/ui/utils";
 
 type Props = {
   className?: string;

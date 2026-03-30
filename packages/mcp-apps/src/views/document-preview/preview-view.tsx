@@ -1,13 +1,6 @@
+import { formatDate } from "@openbeam/ui/utils/format";
 import { SourceIcon } from "../../shared/source-icon";
 import type { DocumentRecord } from "./mock-data";
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function TypeBadge({ type }: { type: string }) {
   return (

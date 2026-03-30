@@ -1,29 +1,7 @@
+import { ScoreBadge } from "@openbeam/ui/components/score-badge";
+import { formatRelativeDate } from "@openbeam/ui/utils/format";
 import { SourceIcon } from "../../shared/source-icon";
 import type { SearchResult } from "./mock-data";
-
-function formatRelativeDate(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diff / 86_400_000);
-  if (days < 1) {
-    return "today";
-  }
-  if (days === 1) {
-    return "1d ago";
-  }
-  if (days < 30) {
-    return `${days}d ago`;
-  }
-  const months = Math.floor(days / 30);
-  return months === 1 ? "1mo ago" : `${months}mo ago`;
-}
-
-function ScoreBadge({ score }: { score: number }) {
-  return (
-    <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground tabular-nums">
-      {(score * 100).toFixed(0)}%
-    </span>
-  );
-}
 
 function SourceBadge({ source }: { source: string }) {
   return (
@@ -60,7 +38,7 @@ export function ResultCard({ result }: ResultCardProps) {
         </span>
         <div className="flex items-center gap-1.5 pt-0.5">
           <SourceBadge source={result.source} />
-          <ScoreBadge score={result.score} />
+          <ScoreBadge score={result.score * 100} />
           <span className="text-[10px] text-muted-foreground">
             {formatRelativeDate(result.updatedAt)}
           </span>
