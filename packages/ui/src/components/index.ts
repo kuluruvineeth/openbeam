@@ -394,6 +394,8 @@ export {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "./context-menu";
+export type { CopyInputProps } from "./copy-input";
+export { CopyInput } from "./copy-input";
 export { CronDisplay } from "./cron-display";
 export type {
   CompactDatePickerProps,
@@ -555,6 +557,8 @@ export {
 export { Label } from "./label";
 export type { MarkdownComponents, MarkdownProps } from "./markdown";
 export { Markdown, markdownVariants } from "./markdown";
+export type { LogoProps } from "./mcp-client-logos";
+export { MCP_CLIENT_LOGOS } from "./mcp-client-logos";
 export type {
   MessageAvatarProps,
   MessageContentProps,
@@ -696,6 +700,8 @@ export {
   ResizablePanelGroup,
 } from "./resizable";
 export { ScheduleBuilder } from "./schedule-builder";
+export type { ScoreBadgeProps } from "./score-badge";
+export { ScoreBadge, scoreBadgeVariants } from "./score-badge";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export {
   Select,
@@ -739,8 +745,12 @@ export {
 } from "./sheet";
 export { Skeleton } from "./skeleton";
 export { Slider } from "./slider";
+export type { SourceIconProps } from "./source-icon";
+export { SOURCE_CONFIG, SourceIcon } from "./source-icon";
 export type { SpinnerProps } from "./spinner";
 export { Spinner } from "./spinner";
+export type { StatusBadgeProps } from "./status-badge";
+export { StatusBadge, statusBadgeVariants } from "./status-badge";
 export { Switch } from "./switch";
 export {
   Table,
