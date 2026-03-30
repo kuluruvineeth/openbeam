@@ -1,4 +1,9 @@
+import { createHash } from "node:crypto";
 import { StreamableHTTPTransport } from "@hono/mcp";
+import db, {
+  updateOAuthTokenLastUsed,
+  validateOAuthAccessToken,
+} from "@openbeam/db";
 import type { Context } from "hono";
 import type { AuthEnv } from "@/middleware/auth";
 import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
@@ -7,8 +12,12 @@ import type { McpContext } from "./mcp.types";
 
 const API_URL = process.env.OPENBEAM_API_URL || "https://api.openbeam.work";
 
-function extractApiKeyFromRequest(req: Request): string | null {
+function extractBearerToken(req: Request): string | null {
   const authHeader = req.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+
   const fromAuth = extractApiKey(authHeader ?? undefined);
   if (fromAuth) {
     return fromAuth;
@@ -28,13 +37,8 @@ function extractApiKeyFromRequest(req: Request): string | null {
   return null;
 }
 
-async function resolveAuth(req: Request): Promise<McpContext | null> {
-  const apiKey = extractApiKeyFromRequest(req);
-  if (!apiKey) {
-    return null;
-  }
-
-  const authContext = await verifyApiKey(apiKey);
+async function resolveApiKeyAuth(token: string): Promise<McpContext | null> {
+  const authContext = await verifyApiKey(token);
   if (!authContext || authContext.type !== "apiKey") {
     return null;
   }
@@ -47,6 +51,42 @@ async function resolveAuth(req: Request): Promise<McpContext | null> {
     timezone: null,
     locale: null,
   };
+}
+
+async function resolveOAuthAuth(token: string): Promise<McpContext | null> {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const result = await validateOAuthAccessToken(db, tokenHash);
+  if (!result) {
+    return null;
+  }
+
+  updateOAuthTokenLastUsed(db, result.id);
+
+  return {
+    teamId: result.teamId,
+    userId: result.userId,
+    userEmail: null,
+    scopes: result.scopes,
+    timezone: null,
+    locale: null,
+  };
+}
+
+async function resolveAuth(req: Request): Promise<McpContext | null> {
+  const token = extractBearerToken(req);
+  if (!token) {
+    return null;
+  }
+
+  if (token.startsWith("op_live_")) {
+    return await resolveApiKeyAuth(token);
+  }
+
+  if (token.startsWith("op_access_")) {
+    return await resolveOAuthAuth(token);
+  }
+
+  return await resolveApiKeyAuth(token);
 }
 
 export function handleMcpRequest(
