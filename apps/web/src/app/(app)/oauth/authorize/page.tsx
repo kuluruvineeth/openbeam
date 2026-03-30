@@ -1,9 +1,10 @@
-"use client";
-
 import { Suspense } from "react";
 import { OAuthAuthorizeContent } from "@/features/oauth/components/oauth-authorize-content";
+import { ensureAccess } from "@/lib/auth/ensure-access";
 
-export default function OAuthAuthorizePage() {
+export default async function OAuthAuthorizePage() {
+  await ensureAccess();
+
   return (
     <Suspense fallback={<OAuthLoadingSkeleton />}>
       <OAuthAuthorizeContent />
