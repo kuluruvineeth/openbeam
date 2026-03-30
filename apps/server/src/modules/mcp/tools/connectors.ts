@@ -1,3 +1,9 @@
+import db, {
+  type ConnectorStatus,
+  findConnectorById,
+  getConnectorHealth,
+  getConnectorsWithStats,
+} from "@openbeam/db";
 import { z } from "zod";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
@@ -42,6 +48,13 @@ const mcpConnectorHealthSchema = z.object({
   lastError: z.string().nullable().optional(),
 });
 
+const STATUS_MAP: Record<string, ConnectorStatus[]> = {
+  active: ["ACTIVE", "SYNCING"],
+  error: ["ERROR", "AUTH_EXPIRED", "RATE_LIMITED"],
+  pending: ["CONNECTING"],
+  disabled: ["INACTIVE", "PAUSED", "DELETING"],
+};
+
 export const registerConnectorTools: RegisterTools = (server, ctx) => {
   if (!hasScope(ctx, "connectors.read")) {
     return;
@@ -67,24 +80,50 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
           .optional()
           .describe("Results per page (1-100, default 25)"),
       },
-      outputSchema: {
-        meta: z.looseObject({
-          cursor: z.string().nullable().optional(),
-          hasNextPage: z.boolean(),
-        }),
-        data: z.array(z.record(z.string(), z.any())),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async (_params) => {
-      const results = await Promise.resolve([] as unknown[]);
+    withErrorHandling(async (params) => {
+      const statusFilter = params.status
+        ? STATUS_MAP[params.status]
+        : undefined;
+
+      const connectors = await getConnectorsWithStats(
+        db,
+        ctx.teamId,
+        statusFilter
+      );
+
+      let filtered = connectors;
+      if (params.type) {
+        filtered = filtered.filter(
+          (c) => c.app.toLowerCase() === params.type?.toLowerCase()
+        );
+      }
+
+      const pageSize = params.pageSize ?? 25;
+      const cursorIndex = params.cursor
+        ? filtered.findIndex((c) => c.id === params.cursor)
+        : -1;
+      const startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
+      const page = filtered.slice(startIndex, startIndex + pageSize);
+      const hasNextPage = startIndex + pageSize < filtered.length;
+      const nextCursor = hasNextPage ? (page.at(-1)?.id ?? null) : null;
+
+      const results = page.map((c) => ({
+        id: c.id,
+        name: c.name,
+        type: c.app,
+        status: c.status,
+        lastSyncAt: c.lastSync?.completedAt?.toISOString() ?? null,
+        documentCount: c.documentCount ?? 0,
+      }));
 
       const data = sanitizeArray(mcpConnectorSchema, results);
 
       const response = {
         meta: {
-          cursor: null as string | null,
-          hasNextPage: false,
+          cursor: nextCursor,
+          hasNextPage,
         },
         data,
       };
@@ -107,20 +146,33 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
       inputSchema: {
         id: z.string().describe("Connector ID"),
       },
-      outputSchema: {
-        data: z.record(z.string(), z.any()),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ id: _id }) => {
-      const result = await Promise.resolve(null as unknown);
+    withErrorHandling(async ({ id }) => {
+      const connector = await findConnectorById(db, id, true);
 
-      if (!result) {
+      if (!connector || connector.teamId !== ctx.teamId) {
         return {
           content: [{ type: "text" as const, text: "Connector not found" }],
           isError: true,
         };
       }
+
+      const result = {
+        id: connector.id,
+        name: connector.name,
+        type: connector.app,
+        status: connector.status,
+        lastSyncAt: connector.lastSyncedAt?.toISOString() ?? null,
+        errorMessage: connector.lastError ?? null,
+        documentCount: connector.totalDocuments,
+        createdAt: connector.createdAt.toISOString(),
+        health: {
+          score: connector.healthScore,
+          status: connector.status,
+          lastCheckedAt: connector.lastHealthCheck?.toISOString() ?? null,
+        },
+      };
 
       const clean = sanitize(mcpConnectorDetailSchema, result);
 
@@ -140,15 +192,12 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
       inputSchema: {
         id: z.string().describe("Connector ID"),
       },
-      outputSchema: {
-        data: z.record(z.string(), z.any()),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ id: _id }) => {
-      const result = await Promise.resolve(null as unknown);
+    withErrorHandling(async ({ id }) => {
+      const connector = await findConnectorById(db, id);
 
-      if (!result) {
+      if (!connector || connector.teamId !== ctx.teamId) {
         return {
           content: [
             {
@@ -159,6 +208,29 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
           isError: true,
         };
       }
+
+      const health = await getConnectorHealth(db, id);
+
+      if (!health) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: "Connector not found or no health data available",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const result = {
+        connectorId: health.id,
+        status: health.status,
+        score: health.documentCount > 0 ? 100 - (health.lastError ? 25 : 0) : 0,
+        lastSyncAt: health.lastSyncAt?.toISOString() ?? null,
+        documentCount: health.documentCount,
+        lastError: health.lastError ?? null,
+      };
 
       const clean = sanitize(mcpConnectorHealthSchema, result);
 

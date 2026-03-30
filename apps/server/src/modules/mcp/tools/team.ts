@@ -1,3 +1,4 @@
+import db, { getTeamWithCounts, listTeamMembers } from "@openbeam/db";
 import { z } from "zod";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
@@ -38,13 +39,10 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       description:
         "Get current team details including name, plan, connector count, and member count. Call this first when you need team context for other operations.",
       inputSchema: {},
-      outputSchema: {
-        data: z.record(z.string(), z.any()),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async () => {
-      const result = await Promise.resolve(null as unknown);
+      const result = await getTeamWithCounts(db, ctx.teamId);
 
       if (!result) {
         return {
@@ -53,11 +51,18 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
         };
       }
 
-      const clean = sanitize(mcpTeamSchema, result);
+      const clean = sanitize(mcpTeamSchema, {
+        id: result.id,
+        name: result.name,
+        slug: result.slug,
+        plan: result.subscriptionTier,
+        connectorCount: result.connectorCount,
+        memberCount: result.memberCount,
+        createdAt: result.createdAt.toISOString(),
+      });
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(clean) }],
-        structuredContent: { data: clean },
       };
     }, "Failed to get team info")
   );
@@ -69,19 +74,25 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       description:
         "List all members of the current team with their name, email, role, and avatar. Use the member ID from the response when assigning tasks or filtering by user.",
       inputSchema: {},
-      outputSchema: {
-        data: z.array(z.record(z.string(), z.any())),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async () => {
-      const results = await Promise.resolve([] as unknown[]);
+      const results = await listTeamMembers(db, ctx.teamId);
 
-      const clean = sanitizeArray(mcpTeamMemberSchema, results);
+      const clean = sanitizeArray(
+        mcpTeamMemberSchema,
+        results.map((m) => ({
+          id: m.userId,
+          name: m.name,
+          email: m.email,
+          role: m.role,
+          avatarUrl: m.image,
+          joinedAt: m.createdAt.toISOString(),
+        }))
+      );
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(clean) }],
-        structuredContent: { data: clean },
       };
     }, "Failed to list team members")
   );

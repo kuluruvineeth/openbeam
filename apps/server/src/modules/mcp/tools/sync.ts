@@ -1,5 +1,15 @@
+import prisma, {
+  getSyncHistory,
+  getSyncStatus,
+  verifyConnectorOwnership,
+} from "@openbeam/db";
+import {
+  ConnectorServiceError,
+  createManualConnectorSyncForTeam,
+} from "@openbeam/services/connectors";
+import { startConnectorSync } from "@openbeam/temporal";
 import { z } from "zod";
-import { sanitize, sanitizeArray } from "../mcp.sanitize";
+import { sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
   READ_ONLY_ANNOTATIONS,
@@ -47,15 +57,28 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       },
       async (params) => {
         try {
-          const jobId = await Promise.resolve(
-            `sync_${params.connectorId}_${Date.now()}`
-          );
+          const syncType = params.type === "full" ? "FULL" : "INCREMENTAL";
+
+          const syncRequest = await createManualConnectorSyncForTeam(prisma, {
+            connectorId: params.connectorId,
+            teamId: ctx.teamId,
+            type: syncType,
+          });
+
+          const syncHandle = await startConnectorSync({
+            connectorId: params.connectorId,
+            connectorType: syncRequest.connectorType,
+            syncType: syncRequest.syncType,
+            trigger: "MANUAL",
+            requestId: syncRequest.syncHistoryId,
+            teamId: ctx.teamId,
+          });
 
           const response = {
-            message: `Sync triggered for connector ${params.connectorId}. Poll sync_status with the jobId to track progress.`,
-            jobId,
+            syncJobId: syncRequest.syncHistoryId,
+            workflowId: syncHandle.workflowId,
             connectorId: params.connectorId,
-            type: params.type ?? "incremental",
+            type: syncRequest.syncType,
           };
 
           return {
@@ -65,16 +88,16 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
             structuredContent: response,
           };
         } catch (error) {
+          let message = "Failed to trigger sync";
+          if (
+            error instanceof ConnectorServiceError ||
+            error instanceof Error
+          ) {
+            message = error.message;
+          }
+
           return {
-            content: [
-              {
-                type: "text" as const,
-                text:
-                  error instanceof Error
-                    ? error.message
-                    : "Failed to trigger sync",
-              },
-            ],
+            content: [{ type: "text" as const, text: message }],
             isError: true,
           };
         }
@@ -88,30 +111,68 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync Job Status",
         description:
-          "Check the status of a sync job. Returns progress, document counts, and any errors. Status progresses: pending -> running -> completed/failed.",
+          "Check the sync status of a connector. Returns connector status, latest sync details, document counts, processing state, and scheduled sync jobs.",
         inputSchema: {
-          jobId: z.string().describe("Sync job ID returned by sync_trigger"),
-        },
-        outputSchema: {
-          data: z.record(z.string(), z.any()),
+          connectorId: z
+            .string()
+            .describe("Connector ID to check sync status for"),
         },
         annotations: READ_ONLY_ANNOTATIONS,
       },
-      withErrorHandling(async ({ jobId: _jobId }) => {
-        const result = await Promise.resolve(null as unknown);
+      withErrorHandling(async ({ connectorId }) => {
+        const connector = await verifyConnectorOwnership(
+          prisma,
+          connectorId,
+          ctx.teamId
+        );
 
-        if (!result) {
+        if (!connector) {
           return {
-            content: [{ type: "text" as const, text: "Sync job not found" }],
+            content: [
+              {
+                type: "text" as const,
+                text: "Connector not found or access denied",
+              },
+            ],
             isError: true,
           };
         }
 
-        const clean = sanitize(mcpSyncJobSchema, result);
+        const status = await getSyncStatus(prisma, connectorId);
+
+        if (!status) {
+          return {
+            content: [
+              { type: "text" as const, text: "Sync status unavailable" },
+            ],
+            isError: true,
+          };
+        }
+
+        const result = {
+          connector: status.connector,
+          latestSync: status.latestSync
+            ? {
+                id: status.latestSync.id,
+                status: status.latestSync.status,
+                startedAt: status.latestSync.startedAt?.toISOString() ?? null,
+                finishedAt: status.latestSync.finishedAt?.toISOString() ?? null,
+                durationMs: status.latestSync.durationMs,
+                documentsAdded: status.latestSync.documentsAdded,
+                documentsUpdated: status.latestSync.documentsUpdated,
+                documentsRemoved: status.latestSync.documentsRemoved,
+                errorMessage: status.latestSync.errorMessage,
+              }
+            : null,
+          stats: status.stats,
+          processing: status.processing,
+          syncJobs: status.syncJobs,
+          webhookStatus: status.webhookStatus,
+        };
 
         return {
-          content: [{ type: "text" as const, text: JSON.stringify(clean) }],
-          structuredContent: { data: clean },
+          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          structuredContent: result,
         };
       }, "Failed to get sync status")
     );
@@ -121,44 +182,73 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync History",
         description:
-          "List past sync jobs for a connector or across all connectors. Shows status, duration, document counts, and errors for each job. Use to diagnose sync issues or verify sync health.",
+          "List past sync jobs for a connector. Shows status, duration, document counts, and errors for each job. Use to diagnose sync issues or verify sync health.",
         inputSchema: {
           connectorId: z
             .string()
-            .optional()
-            .describe("Filter by connector ID (omit for all connectors)"),
-          status: z
-            .enum(["pending", "running", "completed", "failed"])
-            .optional()
-            .describe("Filter by job status"),
+            .describe("Connector ID to get sync history for"),
           limit: z.coerce
             .number()
             .min(1)
             .max(100)
             .optional()
             .describe("Max results (1-100, default 25)"),
-          cursor: z.string().optional().describe("Pagination cursor"),
-        },
-        outputSchema: {
-          meta: z.looseObject({
-            cursor: z.string().nullable().optional(),
-            hasNextPage: z.boolean(),
-          }),
-          data: z.array(z.record(z.string(), z.any())),
+          offset: z.coerce
+            .number()
+            .min(0)
+            .optional()
+            .describe("Offset for pagination (default 0)"),
         },
         annotations: READ_ONLY_ANNOTATIONS,
       },
-      withErrorHandling(async (_params) => {
-        const results = await Promise.resolve([] as unknown[]);
+      withErrorHandling(async (params) => {
+        const connector = await verifyConnectorOwnership(
+          prisma,
+          params.connectorId,
+          ctx.teamId
+        );
 
-        const data = sanitizeArray(mcpSyncJobSchema, results);
+        if (!connector) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: "Connector not found or access denied",
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const result = await getSyncHistory(prisma, params.connectorId, {
+          limit: params.limit ?? 25,
+          offset: params.offset ?? 0,
+        });
+
+        const data = result.history.map((entry) => ({
+          id: entry.id,
+          connectorId: params.connectorId,
+          status: entry.status,
+          type: entry.syncJob?.type ?? null,
+          startedAt: entry.startedAt?.toISOString() ?? null,
+          completedAt: entry.finishedAt?.toISOString() ?? null,
+          documentsProcessed:
+            (entry.documentsAdded ?? 0) + (entry.documentsUpdated ?? 0),
+          documentsErrored: null,
+          errorMessage: entry.errorMessage,
+        }));
+
+        const sanitized = sanitizeArray(mcpSyncJobSchema, data);
 
         const response = {
           meta: {
-            cursor: null as string | null,
-            hasNextPage: false,
+            cursor: result.pagination.hasMore
+              ? String((params.offset ?? 0) + (params.limit ?? 25))
+              : null,
+            hasNextPage: result.pagination.hasMore,
+            total: result.pagination.total,
           },
-          data,
+          data: sanitized,
         };
 
         const { text, structuredContent } = truncateListResponse(response);

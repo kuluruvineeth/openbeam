@@ -123,3 +123,44 @@ export const findTeamBySlug = async (db: Database, slug: string) =>
     where: { slug },
     select: { id: true },
   });
+
+export async function getTeamWithCounts(db: Database, teamId: string) {
+  const [team, connectorCount, memberCount] = await Promise.all([
+    db.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        subscriptionTier: true,
+        createdAt: true,
+      },
+    }),
+    db.connector.count({ where: { teamId } }),
+    db.usersOnTeam.count({ where: { teamId } }),
+  ]);
+  if (!team) {
+    return null;
+  }
+  return { ...team, connectorCount, memberCount };
+}
+
+export async function listTeamMembers(db: Database, teamId: string) {
+  const members = await db.usersOnTeam.findMany({
+    where: { teamId },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, image: true },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  return members.map((m) => ({
+    userId: m.user.id,
+    name: m.user.name,
+    email: m.user.email,
+    image: m.user.image,
+    role: m.role,
+    createdAt: m.createdAt,
+  }));
+}

@@ -1,3 +1,8 @@
+import db, {
+  findContextEntry,
+  findContextRelations,
+  incrementActiveCount,
+} from "@openbeam/db";
 import { z } from "zod";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
@@ -80,13 +85,38 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
           .optional()
           .describe("Max results (1-50, default 10)"),
       },
-      outputSchema: {
-        data: z.array(z.record(z.string(), z.any())),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const results = await Promise.resolve([] as unknown[]);
+      const take = params.limit ?? 20;
+
+      const where: Record<string, unknown> = {
+        teamId: ctx.teamId,
+        abstractText: { contains: params.query, mode: "insensitive" },
+      };
+
+      if (params.contextType) {
+        where.contextType = params.contextType;
+      }
+
+      if (params.category) {
+        where.category = params.category;
+      }
+
+      const entries = await db.contextEntry.findMany({
+        where,
+        orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
+        take,
+      });
+
+      const results = entries.map((e) => ({
+        uri: e.uri,
+        abstract: e.abstractText,
+        overview: e.overview,
+        contextType: e.contextType,
+        category: e.category,
+        updatedAt: e.updatedAt.toISOString(),
+      }));
 
       const data = sanitizeArray(mcpContextEntrySchema, results);
 
@@ -128,20 +158,40 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
             "Content level: 0 = abstract only, 1 = overview, 2 = full content (default: 2)"
           ),
       },
-      outputSchema: {
-        data: z.record(z.string(), z.any()),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ uri: _uri }) => {
-      const result = await Promise.resolve(null as unknown);
+    withErrorHandling(async ({ uri, level }) => {
+      const entry = await findContextEntry(db, ctx.teamId, uri);
 
-      if (!result) {
+      if (!entry) {
         return {
           content: [{ type: "text" as const, text: "Context entry not found" }],
           isError: true,
         };
       }
+
+      await incrementActiveCount(db, ctx.teamId, uri);
+
+      const relations = await findContextRelations(db, ctx.teamId, uri);
+
+      const resolvedLevel = level ?? "2";
+
+      const result = {
+        uri: entry.uri,
+        abstract: entry.abstractText,
+        overview: resolvedLevel >= "1" ? entry.overview : null,
+        content: resolvedLevel >= "2" ? entry.content : null,
+        contextType: entry.contextType,
+        category: entry.category,
+        parentUri: entry.parentUri,
+        ownerType: entry.ownerType,
+        activeCount: entry.activeCount,
+        updatedAt: entry.updatedAt.toISOString(),
+        relations: relations.map((r) => ({
+          targetUri: r.targetUri,
+          reason: r.reason,
+        })),
+      };
 
       const clean = sanitize(mcpContextDetailSchema, result);
 
@@ -170,9 +220,6 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
           .max(20)
           .optional()
           .describe("Max source documents to consider (1-20, default 5)"),
-      },
-      outputSchema: {
-        data: z.record(z.string(), z.any()),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },

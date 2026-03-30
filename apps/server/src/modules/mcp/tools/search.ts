@@ -1,3 +1,4 @@
+import { hybridSearch, searchService } from "@openbeam/services";
 import { z } from "zod";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
@@ -65,21 +66,43 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
           .optional()
           .describe("Filter results updated before this date (ISO 8601)"),
       },
-      outputSchema: {
-        data: z.array(z.record(z.string(), z.any())),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const results = await Promise.resolve([] as unknown[]);
+      const accessControlIds = [
+        `team:${ctx.teamId}`,
+        ctx.userId,
+        ctx.userEmail,
+      ].filter(Boolean) as string[];
 
-      const clean = sanitizeArray(mcpSearchResultSchema, results);
+      const result = await hybridSearch({
+        query: params.query,
+        teamId: ctx.teamId,
+        limit: params.limit || 10,
+        connectorTypes: params.connectorTypes,
+        accessControlIds,
+      });
+
+      const mapped = result.documents.map((doc) => ({
+        id: doc.id,
+        title: doc.title,
+        snippet: doc.content?.slice(0, 300),
+        source: doc.connector_type,
+        connectorType: doc.connector_type,
+        url: doc.url,
+        score: doc.relevanceScore,
+        updatedAt: doc.updated_at
+          ? new Date(doc.updated_at * 1000).toISOString()
+          : null,
+      }));
+
+      const clean = sanitizeArray(mcpSearchResultSchema, mapped);
 
       const response = {
         meta: {
           query: params.query,
-          totalResults: clean.length,
-          hasNextPage: false,
+          totalResults: result.total,
+          hasNextPage: clean.length < result.total,
         },
         data: clean,
       };
@@ -115,15 +138,22 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
           .optional()
           .describe("Filter by connector type slugs"),
       },
-      outputSchema: {
-        data: z.array(z.record(z.string(), z.any())),
-      },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async (_params) => {
-      const results = await Promise.resolve([] as unknown[]);
+      const facets = await searchService.getAuthorFacets({
+        teamId: ctx.teamId,
+        limit: _params.limit || 10,
+      });
 
-      const clean = sanitizeArray(mcpPersonSchema, results);
+      const mapped = facets.map((facet) => ({
+        id: facet.authorId,
+        name: facet.authorName,
+        email: facet.authorEmail,
+        avatarUrl: facet.authorAvatarUrl,
+      }));
+
+      const clean = sanitizeArray(mcpPersonSchema, mapped);
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(clean) }],
