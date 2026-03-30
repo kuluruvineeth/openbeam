@@ -37,14 +37,14 @@ type OAuthAppRow = {
   updatedAt: Date;
 };
 
-const COLUMNS = [
+const COLUMNS: { id: string; header: string; className?: string }[] = [
   { id: "name", header: "Application" },
   { id: "clientId", header: "Client ID", className: "w-[200px]" },
   { id: "scopes", header: "Permissions", className: "w-[140px]" },
   { id: "status", header: "Status", className: "w-[130px]" },
   { id: "updatedAt", header: "Updated", className: "w-[140px]" },
   { id: "actions", header: "", className: "w-[48px]" },
-] as const;
+];
 
 function ActionsCell({ row }: { row: OAuthAppRow }) {
   const { openEdit, openDelete } = useOAuthAppModal();
