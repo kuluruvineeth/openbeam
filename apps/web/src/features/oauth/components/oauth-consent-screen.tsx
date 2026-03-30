@@ -9,13 +9,13 @@ import {
   SelectValue,
   Separator,
 } from "@openbeam/ui";
+import { OAuthScopeItem } from "@openbeam/ui/components/oauth-scope-item";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { useTRPC } from "@/trpc/client";
-import { OAuthScopeItem } from "./oauth-scope-item";
 
 type OAuthAppInfo = {
   id: string;

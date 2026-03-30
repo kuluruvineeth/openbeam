@@ -648,6 +648,7 @@ export {
   Toaster,
   useProgressToast,
 } from "./notifications";
+export { OAuthScopeItem } from "./oauth-scope-item";
 export {
   Popover,
   PopoverAnchor,
