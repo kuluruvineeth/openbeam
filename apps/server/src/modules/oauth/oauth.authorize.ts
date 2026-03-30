@@ -8,7 +8,7 @@ import db, {
 import { type AuthEnv, sessionMiddleware } from "@/middleware/auth";
 import { API_SCOPES } from "@/types/auth";
 
-const VALID_SCOPES = new Set(Object.values(API_SCOPES));
+const VALID_SCOPES: Set<string> = new Set(Object.values(API_SCOPES));
 
 const appInfoSchema = z.object({
   id: z.string(),
