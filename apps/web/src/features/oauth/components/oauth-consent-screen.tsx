@@ -9,7 +9,7 @@ import {
   SelectValue,
   Separator,
 } from "@openbeam/ui";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -70,35 +70,6 @@ function AppLogo({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
       {name.charAt(0).toUpperCase()}
     </div>
   );
-}
-
-async function submitDecision(payload: {
-  client_id: string;
-  decision: "allow" | "deny";
-  scopes: string[];
-  redirect_uri: string;
-  state: string;
-  code_challenge?: string;
-  teamId: string;
-}): Promise<{ redirect_url: string }> {
-  const response = await fetch("/api/oauth/authorize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: "unknown" }));
-    throw new Error(
-      err.error_description ?? err.error ?? "Authorization failed"
-    );
-  }
-
-  if (response.redirected) {
-    return { redirect_url: response.url };
-  }
-
-  return response.json();
 }
 
 type Team = { id: string; name: string };
@@ -166,53 +137,51 @@ export function OAuthConsentScreen({ app, codeChallenge }: OAuthConsentProps) {
 
   const canSubmit = Boolean(resolvedTeamId) && !submitting && !teamsLoading;
 
-  const handleAuthorize = useCallback(async () => {
+  const authorizeMutation = useMutation(
+    trpc.oauthApplications.authorize.mutationOptions({
+      onSuccess: (result) => {
+        window.location.href = result.redirectUrl;
+      },
+      onError: (err) => {
+        setError(err.message);
+        setSubmitting(false);
+      },
+    })
+  );
+
+  const handleAuthorize = useCallback(() => {
     if (!canSubmit) {
       return;
     }
     setSubmitting(true);
     setError(null);
+    authorizeMutation.mutate({
+      clientId: app.clientId,
+      decision: "allow",
+      scopes: app.scopes,
+      redirectUri: app.redirectUri,
+      state: app.state,
+      codeChallenge,
+      teamId: resolvedTeamId,
+    });
+  }, [app, codeChallenge, resolvedTeamId, canSubmit, authorizeMutation]);
 
-    try {
-      const result = await submitDecision({
-        client_id: app.clientId,
-        decision: "allow",
-        scopes: app.scopes,
-        redirect_uri: app.redirectUri,
-        state: app.state,
-        code_challenge: codeChallenge,
-        teamId: resolvedTeamId,
-      });
-      window.location.href = result.redirect_url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Authorization failed");
-      setSubmitting(false);
-    }
-  }, [app, codeChallenge, resolvedTeamId, canSubmit]);
-
-  const handleDeny = useCallback(async () => {
+  const handleDeny = useCallback(() => {
     if (!resolvedTeamId || submitting) {
       return;
     }
     setSubmitting(true);
     setError(null);
-
-    try {
-      const result = await submitDecision({
-        client_id: app.clientId,
-        decision: "deny",
-        scopes: app.scopes,
-        redirect_uri: app.redirectUri,
-        state: app.state,
-        code_challenge: codeChallenge,
-        teamId: resolvedTeamId,
-      });
-      window.location.href = result.redirect_url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to deny");
-      setSubmitting(false);
-    }
-  }, [app, codeChallenge, resolvedTeamId, submitting]);
+    authorizeMutation.mutate({
+      clientId: app.clientId,
+      decision: "deny",
+      scopes: app.scopes,
+      redirectUri: app.redirectUri,
+      state: app.state,
+      codeChallenge,
+      teamId: resolvedTeamId,
+    });
+  }, [app, codeChallenge, resolvedTeamId, submitting, authorizeMutation]);
 
   useHotkeys("enter", handleAuthorize, {
     enabled: canSubmit,

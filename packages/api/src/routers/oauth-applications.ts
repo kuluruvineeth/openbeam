@@ -1,7 +1,11 @@
 import {
+  claimDCRApplication,
+  createAuthorizationCode,
   createOAuthApplication,
   deleteOAuthApplication,
+  findOAuthAppByClientId,
   findOAuthAppById,
+  getTeamMembership,
   listAuthorizedApps,
   listOAuthAppsByTeam,
   regenerateOAuthSecret,
@@ -141,6 +145,114 @@ export const oauthApplicationsRouter = createTRPCRouter({
         teamId,
         input.status
       );
+    }),
+
+  getApplicationInfo: protectedProcedure
+    .input(
+      z.object({
+        clientId: z.string(),
+        redirectUri: z.string(),
+        scope: z.string().optional(),
+        state: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const app = await findOAuthAppByClientId(ctx.prisma, input.clientId);
+      if (!app?.active) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Application not found",
+        });
+      }
+      if (!app.redirectUris.includes(input.redirectUri)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid redirect URI",
+        });
+      }
+      const scopes = input.scope ? input.scope.split(" ").filter(Boolean) : [];
+      return {
+        id: app.id,
+        name: app.name,
+        description: app.description,
+        logoUrl: app.logoUrl,
+        website: app.website,
+        clientId: app.clientId,
+        scopes,
+        redirectUri: input.redirectUri,
+        state: input.state ?? "",
+        status: app.status,
+      };
+    }),
+
+  authorize: protectedProcedure
+    .input(
+      z.object({
+        clientId: z.string(),
+        decision: z.enum(["allow", "deny"]),
+        scopes: z.array(z.string()),
+        redirectUri: z.string(),
+        state: z.string(),
+        codeChallenge: z.string().optional(),
+        teamId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const app = await findOAuthAppByClientId(ctx.prisma, input.clientId);
+      if (!app?.active) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Application not found",
+        });
+      }
+
+      if (!app.redirectUris.includes(input.redirectUri)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid redirect URI",
+        });
+      }
+
+      const membership = await getTeamMembership(
+        ctx.prisma,
+        ctx.session.user.id,
+        input.teamId
+      );
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not a member of this team",
+        });
+      }
+
+      if (input.decision === "deny") {
+        const params = new URLSearchParams({
+          error: "access_denied",
+          state: input.state,
+        });
+        return { redirectUrl: `${input.redirectUri}?${params.toString()}` };
+      }
+
+      if (!app.teamId) {
+        await claimDCRApplication(
+          ctx.prisma,
+          app.id,
+          input.teamId,
+          ctx.session.user.id
+        );
+      }
+
+      const { code } = await createAuthorizationCode(ctx.prisma, {
+        applicationId: app.id,
+        userId: ctx.session.user.id,
+        teamId: input.teamId,
+        scopes: input.scopes,
+        redirectUri: input.redirectUri,
+        codeChallenge: input.codeChallenge,
+      });
+
+      const params = new URLSearchParams({ code, state: input.state });
+      return { redirectUrl: `${input.redirectUri}?${params.toString()}` };
     }),
 
   authorized: protectedProcedure.query(
