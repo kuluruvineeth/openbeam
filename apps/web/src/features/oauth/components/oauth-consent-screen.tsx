@@ -11,7 +11,7 @@ import {
 } from "@openbeam/ui";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { useTRPC } from "@/trpc/client";
@@ -139,6 +139,12 @@ export function OAuthConsentScreen({ app, codeChallenge }: OAuthConsentProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (teams?.length === 1 && !selectedTeamId) {
+      setSelectedTeamId(teams[0].id);
+    }
+  }, [teams, selectedTeamId]);
 
   const resolvedTeamId =
     selectedTeamId || (teams?.length === 1 ? teams[0].id : "");
