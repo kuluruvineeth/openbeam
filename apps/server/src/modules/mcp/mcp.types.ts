@@ -33,5 +33,10 @@ export const DESTRUCTIVE_ANNOTATIONS = {
 } as const;
 
 export function hasScope(ctx: McpContext, requiredScope: string): boolean {
-  return ctx.scopes.includes(requiredScope);
+  const normalized = requiredScope.replace(".", ":");
+  return (
+    ctx.scopes.includes(normalized) ||
+    ctx.scopes.includes(requiredScope) ||
+    ctx.scopes.includes("admin:*")
+  );
 }
