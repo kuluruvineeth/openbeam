@@ -377,6 +377,8 @@ export {
   CommandSeparator,
   CommandShortcut,
 } from "./command";
+export type { ConnectorRowProps } from "./connector-row";
+export { ConnectorRow } from "./connector-row";
 export {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -415,6 +417,22 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
+export type {
+  DocumentCardActionsProps,
+  DocumentCardContentProps,
+  DocumentCardHeaderProps,
+  DocumentCardMetadataProps,
+  DocumentCardRootProps,
+  DocumentCardVariant,
+} from "./document-card";
+export {
+  DocumentCard,
+  DocumentCardActions,
+  DocumentCardContent,
+  DocumentCardHeader,
+  DocumentCardMetadata,
+  DocumentCardRoot,
+} from "./document-card";
 export {
   Drawer,
   DrawerClose,
@@ -704,6 +722,11 @@ export { ScheduleBuilder } from "./schedule-builder";
 export type { ScoreBadgeProps } from "./score-badge";
 export { ScoreBadge, scoreBadgeVariants } from "./score-badge";
 export { ScrollArea, ScrollBar } from "./scroll-area";
+export type { SearchResultCardProps } from "./search-result-card";
+export {
+  SearchResultCard,
+  searchResultCardVariants,
+} from "./search-result-card";
 export {
   Select,
   SelectContent,

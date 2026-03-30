@@ -1,4 +1,5 @@
-import { type Connector, ConnectorRow } from "./connector-row";
+import { ConnectorRow } from "@openbeam/ui/components/connector-row";
+import type { Connector } from "./connector-row";
 
 type DashboardViewProps = {
   connectors: Connector[];
@@ -16,7 +17,7 @@ export function DashboardView({ connectors }: DashboardViewProps) {
         </div>
       </div>
       <div className="rounded-md border border-border/50">
-        <div className="grid grid-cols-[1fr_80px_100px_80px] gap-2 border-border/50 border-b px-3 py-1.5 font-medium text-muted-foreground text-xs">
+        <div className="grid grid-cols-[1fr_100px_100px_80px] gap-3 border-border/50 border-b px-3 py-1.5 font-medium text-muted-foreground text-xs">
           <span>Source</span>
           <span>Status</span>
           <span>Last Sync</span>
@@ -28,7 +29,15 @@ export function DashboardView({ connectors }: DashboardViewProps) {
           </div>
         ) : (
           connectors.map((connector) => (
-            <ConnectorRow connector={connector} key={connector.id} />
+            <ConnectorRow
+              connectorType={connector.type}
+              documentCount={connector.documentCount}
+              id={connector.id}
+              key={connector.id}
+              lastSyncAt={connector.lastSyncAt}
+              name={connector.name}
+              status={connector.status}
+            />
           ))
         )}
       </div>

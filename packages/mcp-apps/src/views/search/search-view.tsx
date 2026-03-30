@@ -1,5 +1,5 @@
+import { SearchResultCard } from "@openbeam/ui/components/search-result-card";
 import type { SearchResult } from "./mock-data";
-import { ResultCard } from "./result-card";
 
 interface SearchViewProps {
   query: string;
@@ -29,7 +29,21 @@ export function SearchView({ query, results, total }: SearchViewProps) {
       </div>
       <div className="flex flex-col gap-2">
         {results.map((result) => (
-          <ResultCard key={result.id} result={result} />
+          <SearchResultCard
+            connectorType={result.source}
+            id={result.id}
+            key={result.id}
+            onOpen={
+              result.url
+                ? () => window.open(result.url, "_blank", "noopener")
+                : undefined
+            }
+            score={result.score}
+            snippet={result.snippet}
+            title={result.title}
+            updatedAt={result.updatedAt}
+            url={result.url}
+          />
         ))}
       </div>
     </div>
