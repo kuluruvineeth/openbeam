@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.3 AS pruner
+FROM openbeamdevacr.azurecr.io/oven/bun:1.3.3 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
@@ -22,7 +22,7 @@ WORKDIR /app
 ARG CACHE_BUST=1
 RUN bun run --filter=@openbeam/mcp-apps build && bun run --filter=server build
 
-FROM oven/bun:1.3.3 AS runner
+FROM openbeamdevacr.azurecr.io/oven/bun:1.3.3 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \

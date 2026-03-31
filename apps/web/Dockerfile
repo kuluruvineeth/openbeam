@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.3 AS pruner
+FROM openbeamdevacr.azurecr.io/oven/bun:1.3.3 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
@@ -34,7 +34,7 @@ ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL} \
     DOCKER_BUILD=1
 RUN bun run --filter=web build
 
-FROM oven/bun:1.3.3 AS runner
+FROM openbeamdevacr.azurecr.io/oven/bun:1.3.3 AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
