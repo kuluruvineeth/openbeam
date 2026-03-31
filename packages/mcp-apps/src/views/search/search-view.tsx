@@ -1,5 +1,5 @@
 import { SearchResultRow } from "@openbeam/ui/components/search-result-row";
-import { ConnectorLogo } from "../../shared/connector-logo";
+import type { SearchResultDocument } from "@openbeam/ui/components/search-result-types";
 import { EmptyState } from "../../shared/empty-state";
 import type { SearchResult } from "./mock-data";
 
@@ -8,6 +8,28 @@ type SearchViewProps = {
   results: SearchResult[];
   total: number;
 };
+
+function toSearchDoc(result: SearchResult): SearchResultDocument {
+  const updatedAtMs = result.updatedAt
+    ? new Date(result.updatedAt).getTime() / 1000
+    : Date.now() / 1000;
+
+  return {
+    id: result.id,
+    connector_id: "",
+    connector_type: result.source ?? result.connectorType ?? "",
+    team_id: "",
+    workspace_id: "",
+    external_id: "",
+    document_type: "message",
+    title: result.title ?? "",
+    content: result.snippet ?? "",
+    created_at: updatedAtMs,
+    updated_at: updatedAtMs,
+    is_public: false,
+    url: result.url,
+  };
+}
 
 export function SearchView({ query, results, total }: SearchViewProps) {
   if (results.length === 0) {
@@ -30,24 +52,17 @@ export function SearchView({ query, results, total }: SearchViewProps) {
         </span>
       </div>
       <div className="flex flex-col divide-y divide-border/30">
-        {results.map((result) => {
-          const connectorType = result.source ?? result.connectorType ?? "";
-          return (
-            <SearchResultRow
-              icon={<ConnectorLogo size={16} type={connectorType} />}
-              key={result.id}
-              onClick={
-                result.url
-                  ? () => window.open(result.url, "_blank", "noopener")
-                  : undefined
-              }
-              snippet={result.snippet}
-              title={result.title}
-              typeLabel={connectorType.replace(/_/g, " ")}
-              updatedAt={result.updatedAt}
-            />
-          );
-        })}
+        {results.map((result) => (
+          <SearchResultRow
+            document={toSearchDoc(result)}
+            key={result.id}
+            onSelect={
+              result.url
+                ? () => window.open(result.url, "_blank", "noopener")
+                : undefined
+            }
+          />
+        ))}
       </div>
     </div>
   );

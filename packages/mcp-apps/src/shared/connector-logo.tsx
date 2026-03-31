@@ -10,7 +10,7 @@ type ConnectorLogoProps = {
 };
 
 export function ConnectorLogo({ type, size = 24 }: ConnectorLogoProps) {
-  const normalized = type.toUpperCase().replace(/-/g, "_");
+  const normalized = type.toLowerCase().replace(/_/g, "-");
   const Logo: LogoComponent | undefined =
     connectorLogos[normalized as keyof typeof connectorLogos];
 
