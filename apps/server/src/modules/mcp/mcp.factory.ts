@@ -6,6 +6,7 @@ import { registerResources } from "./mcp.resources";
 import type { McpContext } from "./mcp.types";
 import { getDateContext } from "./mcp.utils";
 import {
+  registerActionTools,
   registerConnectorTools,
   registerContextTools,
   registerSearchTools,
@@ -37,8 +38,10 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 Tools are namespaced by domain — use the prefix to discover related tools:
 - search_* — Hybrid semantic + keyword search across all connected data sources
 - connector_* — Manage connected data sources (list, status, configure)
+- connector_actions_* — Discover and execute write actions (send messages, create issues, etc.)
 - sync_* — Trigger and monitor sync operations (full, incremental)
 - context_* — Read and store context entries, memories, and relations
+- ask_question — AI-powered question answering with citations from enterprise data
 - team_* — Team metadata, members, and settings
 
 ## Key Patterns
@@ -69,6 +72,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerSyncTools(server, ctx);
   registerContextTools(server, ctx);
   registerTeamTools(server, ctx);
+  registerActionTools(server, ctx);
 
   registerResources(server, ctx);
   registerPrompts(server, ctx);
