@@ -1,5 +1,5 @@
-import db, { findConnectorById } from "@openbeam/db";
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
+import { dispatchAction } from "@openbeam/services/actions";
 import { z } from "zod";
 import { formatActionsList } from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";
@@ -10,10 +10,6 @@ import {
   WRITE_ANNOTATIONS,
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
-
-const actionsByConnector = new Map(
-  ALL_CONNECTOR_ACTION_REGISTRIES.map((r) => [r.connectorType, r])
-);
 
 const mcpActionSchema = z.object({
   id: z.string(),
@@ -153,77 +149,22 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async ({ connectorId, actionId, params }) => {
-      const connector = await findConnectorById(db, connectorId);
+      const result = await dispatchAction({
+        connectorId,
+        actionId,
+        params,
+        teamId: ctx.teamId,
+        userId: ctx.userId,
+        source: "mcp",
+      });
 
-      if (!connector || connector.teamId !== ctx.teamId) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "Connector not found or access denied",
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      const registry = actionsByConnector.get(connector.app.toLowerCase());
-      if (!registry) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `No actions available for connector type: ${connector.app}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      const actionDef = registry.actions.find((a) => a.id === actionId);
-      if (!actionDef) {
-        const available = registry.actions.map((a) => a.id).join(", ");
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Action "${actionId}" not found. Available: ${available}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      const missingRequired = actionDef.inputs
-        .filter((inp) => inp.required && !(inp.id in params))
-        .map((inp) => inp.id);
-
-      if (missingRequired.length > 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Missing required parameters: ${missingRequired.join(", ")}`,
-            },
-          ],
-          isError: true,
-        };
-      }
+      const text = result.success
+        ? `Action "${actionId}" executed successfully.${result.data ? `\n${JSON.stringify(result.data)}` : ""}`
+        : `Action "${actionId}" failed: ${result.error}`;
 
       return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Action "${actionDef.name}" on ${connector.name} is registered but execution is not yet wired. The action definition and parameter validation passed. Wire the executor in packages/services/src/${connector.app.toLowerCase()}/actions/ to enable execution.`,
-          },
-        ],
-        structuredContent: {
-          status: "validated",
-          action: actionDef.name,
-          connector: connector.name,
-          connectorType: connector.app,
-          params,
-        },
+        content: [{ type: "text" as const, text }],
+        structuredContent: result,
       };
     }, "Failed to execute connector action")
   );

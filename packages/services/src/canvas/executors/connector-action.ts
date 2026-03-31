@@ -1929,7 +1929,7 @@ async function executeLinearAction(params: {
   }
 }
 
-async function executeConnectorAction(params: {
+export async function executeConnectorAction(params: {
   connectorType: string;
   actionId: string;
   inputs: Record<string, unknown>;
