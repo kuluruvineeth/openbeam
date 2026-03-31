@@ -1,0 +1,79 @@
+import {
+  createPanoptoFolder,
+  movePanoptoSession,
+  updatePanoptoSession,
+} from "../../panopto/actions";
+import { createPanoptoClient, type PanoptoClient } from "../../panopto/client";
+import { registerHandler } from "../handler-registry";
+import type { ActionExecutionResult } from "../types";
+
+type Handler = (
+  client: PanoptoClient,
+  p: Record<string, unknown>
+) => Promise<ActionExecutionResult>;
+
+function str(p: Record<string, unknown>, key: string): string {
+  const v = p[key];
+  if (typeof v === "string" && v.trim()) {
+    return v.trim();
+  }
+  throw new Error(`${key} is required`);
+}
+
+function props(p: Record<string, unknown>): Record<string, unknown> {
+  return (
+    typeof p.properties === "object" && p.properties !== null ? p.properties : p
+  ) as Record<string, unknown>;
+}
+
+const actions: Record<string, Handler> = {
+  async folder_create(client, p) {
+    const r = await createPanoptoFolder(client, props(p));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { recordId: r.recordId, url: r.url } };
+  },
+
+  async session_update(client, p) {
+    const r = await updatePanoptoSession(client, str(p, "sessionId"), props(p));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { recordId: r.recordId, url: r.url } };
+  },
+
+  async session_move(client, p) {
+    const r = await movePanoptoSession(
+      client,
+      str(p, "sessionId"),
+      str(p, "folderId")
+    );
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { recordId: r.recordId, url: r.url } };
+  },
+};
+
+registerHandler({
+  connectorType: "panopto",
+  async execute(actionId, params, credentials, connectorId) {
+    const handler = actions[actionId];
+    if (!handler) {
+      return {
+        success: false,
+        data: {},
+        error: `Unsupported Panopto action: ${actionId}`,
+      };
+    }
+
+    const client = createPanoptoClient({
+      connectorId,
+      accessToken: credentials.accessToken,
+      instanceUrl: (credentials.config.instanceUrl as string) ?? "",
+    });
+
+    return await handler(client, params);
+  },
+});

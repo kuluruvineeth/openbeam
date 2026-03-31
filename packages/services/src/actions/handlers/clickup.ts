@@ -1,0 +1,86 @@
+import { addComment, createTask, updateTask } from "../../clickup/actions";
+import { type ClickUpClient, createClickUpClient } from "../../clickup/client";
+import { registerHandler } from "../handler-registry";
+import type { ActionExecutionResult } from "../types";
+
+type Handler = (
+  client: ClickUpClient,
+  p: Record<string, unknown>
+) => Promise<ActionExecutionResult>;
+
+function str(p: Record<string, unknown>, key: string): string {
+  const v = p[key];
+  if (typeof v === "string" && v.trim()) {
+    return v.trim();
+  }
+  throw new Error(`${key} is required`);
+}
+
+const actions: Record<string, Handler> = {
+  async task_create(client, p) {
+    const r = await createTask(client, {
+      listId: str(p, "listId"),
+      name: str(p, "name"),
+      description:
+        typeof p.description === "string" ? p.description : undefined,
+      assignees: Array.isArray(p.assignees)
+        ? (p.assignees as number[])
+        : undefined,
+      priority: typeof p.priority === "number" ? p.priority : undefined,
+      dueDate: typeof p.dueDate === "number" ? p.dueDate : undefined,
+      tags: Array.isArray(p.tags) ? (p.tags as string[]) : undefined,
+    });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { id: r.id, url: r.url } };
+  },
+
+  async task_update(client, p) {
+    const r = await updateTask(client, {
+      taskId: str(p, "taskId"),
+      name: typeof p.name === "string" ? p.name : undefined,
+      description:
+        typeof p.description === "string" ? p.description : undefined,
+      priority: typeof p.priority === "number" ? p.priority : undefined,
+      status: typeof p.status === "string" ? p.status : undefined,
+      dueDate: typeof p.dueDate === "number" ? p.dueDate : undefined,
+    });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { id: r.id } };
+  },
+
+  async task_comment(client, p) {
+    const r = await addComment(client, {
+      taskId: str(p, "taskId"),
+      commentText: str(p, "commentText"),
+    });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { id: r.id } };
+  },
+};
+
+registerHandler({
+  connectorType: "clickup",
+  async execute(actionId, params, credentials, connectorId) {
+    const handler = actions[actionId];
+    if (!handler) {
+      return {
+        success: false,
+        data: {},
+        error: `Unsupported ClickUp action: ${actionId}`,
+      };
+    }
+
+    const client = createClickUpClient({
+      connectorId,
+      accessToken: credentials.accessToken,
+    });
+
+    return await handler(client, params);
+  },
+});
