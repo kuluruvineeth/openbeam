@@ -5,6 +5,11 @@ import db, {
 } from "@openbeam/db";
 import { ragAnswer } from "@openbeam/services";
 import { z } from "zod";
+import {
+  formatAnswer,
+  formatContextDetail,
+  formatContextSearch,
+} from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -130,10 +135,15 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
         data,
       };
 
-      const { text, structuredContent } = truncateListResponse(response);
+      const { structuredContent } = truncateListResponse(response);
 
       return {
-        content: [{ type: "text" as const, text }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatContextSearch(params.query, data),
+          },
+        ],
         structuredContent,
       };
     }, "Failed to search context database")
@@ -197,7 +207,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       const clean = sanitize(mcpContextDetailSchema, result);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [{ type: "text" as const, text: formatContextDetail(clean) }],
         structuredContent: { data: clean },
       };
     }, "Failed to read context entry")
@@ -263,7 +273,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       const clean = sanitize(mcpAnswerSchema, result);
 
       return {
-        content: [{ type: "text" as const, text: clean.answer }],
+        content: [{ type: "text" as const, text: formatAnswer(clean) }],
         structuredContent: { data: clean },
       };
     }, "Failed to answer question")

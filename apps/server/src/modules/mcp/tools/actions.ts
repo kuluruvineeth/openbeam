@@ -1,6 +1,7 @@
 import db, { findConnectorById } from "@openbeam/db";
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
 import { z } from "zod";
+import { formatActionsList } from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -110,10 +111,15 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
         data,
       };
 
-      const { text, structuredContent } = truncateListResponse(response);
+      const { structuredContent } = truncateListResponse(response);
 
       return {
-        content: [{ type: "text" as const, text }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatActionsList(data, params.connectorType),
+          },
+        ],
         structuredContent,
       };
     }

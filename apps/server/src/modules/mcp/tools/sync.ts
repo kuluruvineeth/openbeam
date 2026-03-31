@@ -10,6 +10,11 @@ import {
 } from "@openbeam/services/connectors";
 import { startConnectorSync } from "@openbeam/temporal";
 import { z } from "zod";
+import {
+  formatSyncHistory,
+  formatSyncStatus,
+  formatSyncTrigger,
+} from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -86,7 +91,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
 
           return {
             content: [
-              { type: "text" as const, text: JSON.stringify(response) },
+              { type: "text" as const, text: formatSyncTrigger(response) },
             ],
             structuredContent: response,
           };
@@ -176,7 +181,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
         };
 
         return {
-          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          content: [{ type: "text" as const, text: formatSyncStatus(result) }],
           structuredContent: result,
         };
       }, "Failed to get sync status")
@@ -255,10 +260,15 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
           data: sanitized,
         };
 
-        const { text, structuredContent } = truncateListResponse(response);
+        const { structuredContent } = truncateListResponse(response);
 
         return {
-          content: [{ type: "text" as const, text }],
+          content: [
+            {
+              type: "text" as const,
+              text: formatSyncHistory(sanitized, result.pagination.total),
+            },
+          ],
           structuredContent,
         };
       }, "Failed to list sync history")

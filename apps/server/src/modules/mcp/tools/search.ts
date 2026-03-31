@@ -1,6 +1,7 @@
 import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import { hybridSearch, searchService } from "@openbeam/services";
 import { z } from "zod";
+import { formatPeopleResults, formatSearchResults } from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -120,10 +121,15 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
         data: clean,
       };
 
-      const { text, structuredContent } = truncateListResponse(response);
+      const { structuredContent } = truncateListResponse(response);
 
       return {
-        content: [{ type: "text" as const, text }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatSearchResults(params.query, clean, result.total),
+          },
+        ],
         structuredContent,
       };
     }, "Failed to search documents")
@@ -180,7 +186,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
       const clean = sanitizeArray(mcpPersonSchema, mapped);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [{ type: "text" as const, text: formatPeopleResults(clean) }],
         structuredContent: { data: clean },
       };
     }, "Failed to search people")

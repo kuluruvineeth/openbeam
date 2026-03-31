@@ -6,6 +6,11 @@ import db, {
   getConnectorsWithStats,
 } from "@openbeam/db";
 import { z } from "zod";
+import {
+  formatConnectorDetail,
+  formatConnectorHealth,
+  formatConnectorList,
+} from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -131,10 +136,10 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
         data,
       };
 
-      const { text, structuredContent } = truncateListResponse(response);
+      const { structuredContent } = truncateListResponse(response);
 
       return {
-        content: [{ type: "text" as const, text }],
+        content: [{ type: "text" as const, text: formatConnectorList(data) }],
         structuredContent,
       };
     }, "Failed to list connectors")
@@ -182,7 +187,9 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
       const clean = sanitize(mcpConnectorDetailSchema, result);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [
+          { type: "text" as const, text: formatConnectorDetail(clean) },
+        ],
         structuredContent: { data: clean },
       };
     }, "Failed to get connector")
@@ -240,7 +247,9 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
       const clean = sanitize(mcpConnectorHealthSchema, result);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [
+          { type: "text" as const, text: formatConnectorHealth(clean) },
+        ],
         structuredContent: { data: clean },
       };
     }, "Failed to get connector health")

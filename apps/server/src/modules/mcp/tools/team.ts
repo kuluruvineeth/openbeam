@@ -1,6 +1,7 @@
 import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import db, { getTeamWithCounts, listTeamMembers } from "@openbeam/db";
 import { z } from "zod";
+import { formatTeamInfo, formatTeamMembers } from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -67,7 +68,7 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       });
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [{ type: "text" as const, text: formatTeamInfo(clean) }],
         structuredContent: { data: clean },
       };
     }, "Failed to get team info")
@@ -103,7 +104,7 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       );
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [{ type: "text" as const, text: formatTeamMembers(clean) }],
         structuredContent: { data: clean },
       };
     }, "Failed to list team members")
