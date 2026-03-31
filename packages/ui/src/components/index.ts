@@ -135,6 +135,7 @@ export {
   AlertDialogTrigger,
 } from "./alert-dialog";
 export { AnimatedSizeContainer } from "./animated-size-container";
+export { AppLogo } from "./app-logo";
 export { AspectRatio } from "./aspect-ratio";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export type { BadgeProps } from "./badge";
@@ -379,7 +380,7 @@ export {
 } from "./command";
 export type { ConnectorRowProps } from "./connector-row";
 export { ConnectorRow } from "./connector-row";
-export type { ConnectorTableRowProps, SyncStatus } from "./connector-table-row";
+export type { ConnectorTableRowProps } from "./connector-table-row";
 export { ConnectorTableRow, InlineSyncBadge } from "./connector-table-row";
 export {
   ContextMenu,
@@ -506,6 +507,8 @@ export {
   timelineStepIndicatorVariants,
   timelineStepVariants,
 } from "./execution";
+export type { PreviewCategory, PreviewType } from "./file-preview-config";
+export { getPreviewCategory, isPreviewable } from "./file-preview-config";
 export type {
   AiFilterInputProps,
   FilterChip,
@@ -724,6 +727,13 @@ export { ScheduleBuilder } from "./schedule-builder";
 export type { ScoreBadgeProps } from "./score-badge";
 export { ScoreBadge, scoreBadgeVariants } from "./score-badge";
 export { ScrollArea, ScrollBar } from "./scroll-area";
+export {
+  formatSourceName,
+  getConnectorApp,
+  getDocumentIcon,
+  getDocumentTypeLabel,
+  isContentPrimary,
+} from "./search-display";
 export type { SearchResultCardProps } from "./search-result-card";
 export {
   SearchResultCard,
@@ -731,6 +741,7 @@ export {
 } from "./search-result-card";
 export type { SearchResultRowProps } from "./search-result-row";
 export { SearchResultRow } from "./search-result-row";
+export type { SearchResultDocument } from "./search-result-types";
 export {
   Select,
   SelectContent,
@@ -759,6 +770,8 @@ export {
 export type { SelectionCardProps } from "./selection-card";
 export { SelectionCard, selectionCardVariants } from "./selection-card";
 export { Separator } from "./separator";
+export type { ConnectorData } from "./shared-table-row";
+export { SharedTableRow } from "./shared-table-row";
 export {
   Sheet,
   SheetClose,
@@ -780,6 +793,9 @@ export { Spinner } from "./spinner";
 export type { StatusBadgeProps } from "./status-badge";
 export { StatusBadge, statusBadgeVariants } from "./status-badge";
 export { Switch } from "./switch";
+export { SyncStatusBadge } from "./sync-status-badge";
+export type { SyncStatus, SyncStatusConfig } from "./sync-status-config";
+export { getSyncStatusConfig, SYNC_STATUS_CONFIG } from "./sync-status-config";
 export {
   Table,
   TableBody,

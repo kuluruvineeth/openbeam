@@ -52,7 +52,11 @@ function InlineSyncBadge({
   status: string;
   documentCount: number;
 }) {
-  const config = STATUS_STYLES[status] ?? STATUS_STYLES.INACTIVE;
+  const fallback = {
+    label: "Unknown",
+    className: "bg-foreground/[0.03] text-foreground/40",
+  };
+  const config = STATUS_STYLES[status] ?? fallback;
   const isIndexed = status === "ACTIVE" && documentCount > 0;
   const isReady = status === "ACTIVE" && documentCount === 0;
   let label = config.label;
