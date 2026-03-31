@@ -52,7 +52,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Trigger Sync",
         description:
-          "Start a sync job for a specific connector. Supports full sync (re-index everything) or incremental sync (changes since last sync). Returns a job ID to track progress via sync_status.",
+          "Start a sync job for a specific connector. Returns a job ID and workflow ID to track progress.\n\nDefault is incremental sync (fast, only changes since last sync). Use type 'full' only when explicitly requested — full syncs re-index all documents and can take hours for large connectors. After triggering, use sync_status with the connector ID to monitor progress.\n\nRequires a connector ID from connector_list. The connector must be in an active state — check with connector_get if the trigger fails.",
         inputSchema: {
           connectorId: z.string().describe("Connector ID to sync"),
           type: z
@@ -120,7 +120,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync Job Status",
         description:
-          "Check the sync status of a connector. Returns connector status, latest sync details, document counts, processing state, and scheduled sync jobs.",
+          "Check the current sync state of a connector. Returns: connector status, latest sync job details (status, duration, documents added/updated/deleted, errors), processing queue state, scheduled jobs, and webhook status.\n\nUse this after sync_trigger to monitor a running sync, or proactively to check if a connector's data is fresh. If the latest sync shows errors, use sync_history for failure patterns and connector_health for overall health assessment.",
         inputSchema: {
           connectorId: z
             .string()
@@ -192,7 +192,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync History",
         description:
-          "List past sync jobs for a connector. Shows status, duration, document counts, and errors for each job. Use to diagnose sync issues or verify sync health.",
+          "List past sync jobs for a connector with status, duration, document counts, and error messages. Supports pagination (default 25 results). Use this to diagnose recurring sync failures or verify that recent syncs completed successfully.\n\nLook for patterns: repeated errors suggest auth expiry or API changes. Use connector_health for the overall health score, or sync_trigger to attempt a fresh sync after resolving issues.",
         inputSchema: {
           connectorId: z
             .string()

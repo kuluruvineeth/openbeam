@@ -41,7 +41,7 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
     {
       title: "Get Team Info",
       description:
-        "Get current team details including name, plan, connector count, and member count. Call this first when you need team context for other operations.",
+        "Get current team details: name, slug, subscription plan, connector count, member count, document count, and creation date. Call this FIRST when you need team context — many other tools operate within the team scope returned here.\n\nReturns a single team object. No parameters required — uses the authenticated team. For team member details, use team_members.",
       inputSchema: {},
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/team" } },
@@ -80,7 +80,7 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
     {
       title: "List Team Members",
       description:
-        "List all members of the current team with their name, email, role, and avatar. Use the member ID from the response when assigning tasks or filtering by user.",
+        "List all members of the current team with: name, email, role (admin/member/viewer), avatar URL, and join date. No parameters required.\n\nUse this when the user asks about team composition, roles, or needs a specific member's ID. The member ID can be used for filtering in other tools. For finding people across ALL connected directories (not just team members), use search_people instead.",
       inputSchema: {},
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/team" } },

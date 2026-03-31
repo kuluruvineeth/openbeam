@@ -72,7 +72,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "List Connectors",
       description:
-        "List all configured connectors for the team with their sync status, document count, and last sync time. Filter by status (active, error, pending, disabled) or connector type.",
+        "List all configured data source connectors for the team. Returns each connector's ID, name, type, status, document count, and last sync time. Supports cursor-based pagination (default 25 per page).\n\nUse this FIRST when the user asks about their connected data sources, sync health, or data coverage. Filter by status ('active', 'error', 'pending', 'disabled') to quickly find problematic connectors.\n\nAfter identifying a connector of interest, use connector_get for full configuration details, connector_health for health metrics, or sync_history for past sync jobs. Use connector_actions_list to discover available write actions for a connector type.",
       inputSchema: {
         status: z
           .enum(["active", "error", "pending", "disabled"])
@@ -151,7 +151,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "Get Connector",
       description:
-        "Get full details for a single connector by ID, including configuration, sync schedule, health status, and error information.",
+        "Get full details for a single connector by its ID. Returns configuration, sync schedule, health score, error messages, and document count.\n\nUse this after connector_list to drill into a specific connector. The connector ID comes from connector_list results. Use connector_health for dedicated health metrics, or sync_status for detailed sync state.",
       inputSchema: {
         id: z.string().describe("Connector ID"),
       },
@@ -200,7 +200,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "Connector Health Check",
       description:
-        "Get health metrics for a specific connector: sync success rate, document count, error count, last sync duration, and overall health score (0-100).",
+        "Get health metrics for a specific connector by its ID. Returns: health score (0-100, where 100 is fully healthy), document count, last sync timestamp, and last error message if any.\n\nA score below 75 indicates issues — use sync_history to check for recurring failures, then sync_trigger to attempt a fresh sync. Use connector_list first to discover connector IDs.",
       inputSchema: {
         id: z.string().describe("Connector ID"),
       },

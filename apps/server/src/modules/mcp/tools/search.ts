@@ -47,7 +47,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     {
       title: "Search Documents",
       description:
-        "Search across all connected enterprise data sources using hybrid semantic + keyword search. Returns ranked results with snippets. Use this as the primary way to find information across Slack, Google Drive, Notion, Jira, Confluence, GitHub, and 100+ other connectors.",
+        "Search across all connected enterprise data sources using hybrid semantic + keyword search. This is the PRIMARY tool for answering factual questions about the user's organization — use it BEFORE attempting to answer from your own knowledge.\n\nReturns up to 50 ranked results, each with: title, snippet (first 300 chars), source connector type, author, URL, and relevance score. Filter by connector type (e.g. 'slack', 'google-drive', 'notion') or date range.\n\nAfter getting results, use context_read with the document's openbeam:// URI to retrieve the full content when snippets are insufficient. Use ask_question instead when the user wants a synthesized answer with citations rather than a list of documents.\n\nDo NOT use this for questions about team settings, connector status, or sync operations — use team_info, connector_list, or sync_status for those.",
       inputSchema: {
         query: z
           .string()
@@ -141,7 +141,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     {
       title: "Search People",
       description:
-        "Search for people across connected enterprise directories. Finds team members, contacts, and collaborators from Google Workspace, Microsoft 365, Slack, and other connectors.",
+        'Search for people across connected enterprise directories by name, email, or title. Finds team members, contacts, and collaborators from Google Workspace, Microsoft 365, Slack, and other connectors.\n\nReturns matching people with: name, email, avatar URL, and connector type. Use this when the user asks "who works on X" or "find someone who knows about Y."\n\nFor a complete list of team members with roles, use team_members instead. To find documents authored by a specific person, use search_documents with their name as the query.',
       inputSchema: {
         query: z
           .string()

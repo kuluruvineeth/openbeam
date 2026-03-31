@@ -71,7 +71,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     {
       title: "Search Context Database",
       description:
-        "Search the context database using hierarchical retrieval. Finds memories, resources, skills, and tools ranked by semantic relevance and usage frequency. Uses L0/L1 tiered loading for token efficiency.",
+        "Search the context database for memories, resources, skills, and tools. Returns entries ranked by relevance and usage frequency, each with: URI, abstract (L0 summary), overview (L1), context type, and category.\n\nUse this to find previously stored knowledge, user preferences, agent learnings, or enterprise resources. Filter by contextType ('resource', 'memory', 'skill', 'tool') or category ('preferences', 'entities', 'cases', 'patterns').\n\nResults include L0/L1 summaries for efficiency. Use context_read with the returned URI to get the full L2 content when you need complete details.",
       inputSchema: {
         query: z.string().min(1).describe("Natural language search query"),
         contextType: z
@@ -154,7 +154,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     {
       title: "Read Context Entry",
       description:
-        "Read a context entry by its openbeam:// URI. Returns the full content (L2) including metadata, relations, and the complete original content. Use after context_search to get full details.",
+        "Read a context entry by its openbeam:// URI. Returns content at the requested level: 0 (abstract only, ~100 tokens), 1 (overview, ~2K tokens), or 2 (full content, default). Also returns metadata, related entries, and usage count.\n\nUse after context_search to retrieve full content for a specific entry. The URI comes from context_search results (e.g. 'openbeam://resources/team123/doc456'). Request level 0 or 1 when you only need a summary to save tokens.",
       inputSchema: {
         uri: z
           .string()
@@ -218,7 +218,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     {
       title: "Ask a Question",
       description:
-        "Ask a natural language question and get an AI-generated answer grounded in your enterprise data. Uses RAG (retrieval-augmented generation) to search across all connected sources and provide an answer with citations.",
+        "Ask a natural language question and get an AI-generated answer grounded in enterprise data, with citations. Uses RAG to search across all connected sources, synthesize an answer, and provide source references with relevance scores.\n\nUse this when the user wants a DIRECT ANSWER rather than a list of documents. Returns: answer text, confidence score, and citations (each with URI, title, snippet, source connector). Filter sources with connectorTypes if the question is domain-specific.\n\nFor exploratory research where you need to see all matching documents, use search_documents instead. Use context_read to follow up on specific citations.",
       inputSchema: {
         question: z.string().min(1).describe("The question to answer"),
         connectorTypes: z

@@ -44,7 +44,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
     {
       title: "List Connector Actions",
       description:
-        "List all available write actions for a connector type. Shows what operations can be performed (send message, create issue, create page, etc.) with their required inputs. Use this to discover what you can do with each connector.",
+        "Discover available write actions for connected data sources. Lists operations like sending Slack messages, creating Jira issues, creating Notion pages, etc. Each action includes: ID, name, description, category, stakes level, reversibility, and required input parameters.\n\nUse this FIRST before connector_action_execute — it returns the action IDs and required parameters you need. Filter by connector type (e.g. 'slack', 'linear', 'notion') or category ('create', 'update', 'delete', 'notify'). Omit connectorType to see all available actions across all connectors.\n\nThe response includes stakes ('low', 'medium', 'high') and reversibility to help assess risk before execution.",
       inputSchema: {
         connectorType: z
           .string()
@@ -134,7 +134,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
     {
       title: "Execute Connector Action",
       description:
-        "Execute a write action on a connected data source. Use connector_actions_list first to discover available actions and their required inputs. Examples: send a Slack message, create a Linear issue, create a Notion page, send a Gmail email.",
+        "Execute a write action on a connected data source. Requires three parameters: the connector ID (from connector_list), the action ID (from connector_actions_list), and a params object whose keys match the input IDs from connector_actions_list.\n\nIMPORTANT: Always call connector_actions_list first to discover the exact action ID and required parameters. Always confirm with the user before executing high-stakes or irreversible actions.\n\nExamples: send a Slack message (action: 'message_send'), create a Linear issue (action: 'issue_create'), create a Notion page (action: 'page_create'). The connector ID must reference an active, connected instance — use connector_list to find it.",
       inputSchema: {
         connectorId: z
           .string()

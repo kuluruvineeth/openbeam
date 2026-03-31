@@ -33,16 +33,35 @@ Today is ${dateCtx.date} in the user's timezone (${dateCtx.timezone}). The curre
 
 The user's locale is "${userLocale}". Format dates and numbers according to this locale when presenting data.
 
-## Tool Organization
+## Decision Guide — Which Tool to Use
 
-Tools are namespaced by domain — use the prefix to discover related tools:
+| User Intent | Start With | Then |
+|-------------|-----------|------|
+| Find information / answer a question | ask_question | context_read for citation details |
+| Search for specific documents | search_documents | context_read for full content |
+| Find a person or expert | search_people | search_documents by their name |
+| Check data source health | connector_list (filter: error) | connector_health, sync_history |
+| Trigger a data refresh | connector_list to find ID | sync_trigger, then sync_status |
+| Send a message / create an issue | connector_actions_list | connector_action_execute |
+| Team overview | team_info | team_members, connector_list |
+
+## Tool Namespaces
+
 - search_* — Hybrid semantic + keyword search across all connected data sources
-- connector_* — Manage connected data sources (list, status, configure)
+- connector_* — Manage connected data sources (list, details, health)
 - connector_actions_* — Discover and execute write actions (send messages, create issues, etc.)
 - sync_* — Trigger and monitor sync operations (full, incremental)
-- context_* — Read and store context entries, memories, and relations
+- context_* — Search and read the context database (memories, resources, skills)
 - ask_question — AI-powered question answering with citations from enterprise data
-- team_* — Team metadata, members, and settings
+- team_* — Team metadata and members
+
+## Common Tool Chains
+
+1. **Answer a question:** ask_question -> context_read (for citation URIs)
+2. **Research a topic:** search_documents -> context_read (for full content) -> search_people (for experts)
+3. **Diagnose sync issues:** connector_list(status: 'error') -> connector_health -> sync_history -> sync_trigger
+4. **Execute an action:** connector_actions_list(connectorType) -> connector_list (to get connector ID) -> connector_action_execute
+5. **Explore context:** context_search -> context_read(level: '2')
 
 ## Key Patterns
 
@@ -50,7 +69,8 @@ Tools are namespaced by domain — use the prefix to discover related tools:
 - List tools support cursor-based pagination; pass the returned cursor to fetch the next page.
 - Tool errors return isError: true with a text explanation.
 - Use search_documents for quick lookups across all data types instead of listing each connector separately.
-- Call team_get first when you need team settings or base configuration.
+- Call team_info first when you need team settings or base configuration.
+- Always call connector_actions_list before connector_action_execute to discover action IDs and required parameters.
 `;
 }
 
