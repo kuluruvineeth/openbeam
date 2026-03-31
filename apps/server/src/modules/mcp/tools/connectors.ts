@@ -117,7 +117,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
         name: c.name,
         type: c.app,
         status: c.status,
-        lastSyncAt: c.lastSync?.completedAt?.toISOString() ?? null,
+        lastSyncAt: c.lastSyncedAt?.toISOString() ?? null,
         documentCount: c.documentCount ?? 0,
       }));
 

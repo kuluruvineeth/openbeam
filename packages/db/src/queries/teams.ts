@@ -125,7 +125,7 @@ export const findTeamBySlug = async (db: Database, slug: string) =>
   });
 
 export async function getTeamWithCounts(db: Database, teamId: string) {
-  const [team, connectorCount, memberCount] = await Promise.all([
+  const [team, connectorCount, memberCount, documentCount] = await Promise.all([
     db.team.findUnique({
       where: { id: teamId },
       select: {
@@ -138,11 +138,12 @@ export async function getTeamWithCounts(db: Database, teamId: string) {
     }),
     db.connector.count({ where: { teamId } }),
     db.usersOnTeam.count({ where: { teamId } }),
+    db.indexedDocument.count({ where: { connector: { teamId } } }),
   ]);
   if (!team) {
     return null;
   }
-  return { ...team, connectorCount, memberCount };
+  return { ...team, connectorCount, memberCount, documentCount };
 }
 
 export async function listTeamMembers(db: Database, teamId: string) {

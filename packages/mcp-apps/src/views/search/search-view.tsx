@@ -1,7 +1,6 @@
-import { SearchResultCard } from "@openbeam/ui/components/search-result-card";
-import { ConnectorLogo } from "../../shared/connector-logo";
 import { EmptyState } from "../../shared/empty-state";
 import type { SearchResult } from "./mock-data";
+import { SearchResultRow } from "./search-result-row";
 
 type SearchViewProps = {
   query: string;
@@ -20,35 +19,34 @@ export function SearchView({ query, results, total }: SearchViewProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline gap-1.5">
-        <span className="font-medium text-sm">&ldquo;{query}&rdquo;</span>
-        <span className="text-muted-foreground text-xs">
-          {total} result{total !== 1 ? "s" : ""}
+    <div className="flex flex-col">
+      <div className="flex items-baseline gap-2 px-3 pb-2">
+        <span className="font-mono text-[10px] text-foreground/40 uppercase tracking-wide">
+          Results
+        </span>
+        <span className="font-mono text-[10px] text-foreground/30 tabular-nums">
+          {total}
         </span>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col divide-y divide-border/30">
         {results.map((result) => (
-          <SearchResultCard
-            connectorType={result.source ?? result.connectorType ?? ""}
-            icon={
-              <ConnectorLogo
-                size={20}
-                type={result.source ?? result.connectorType ?? ""}
-              />
-            }
-            id={result.id}
+          <SearchResultRow
+            doc={{
+              id: result.id,
+              title: result.title,
+              snippet: result.snippet,
+              source: result.source,
+              connectorType: result.connectorType,
+              url: result.url,
+              score: result.score,
+              updatedAt: result.updatedAt,
+            }}
             key={result.id}
-            onOpen={
+            onClick={
               result.url
                 ? () => window.open(result.url, "_blank", "noopener")
                 : undefined
             }
-            score={result.score}
-            snippet={result.snippet}
-            title={result.title}
-            updatedAt={result.updatedAt}
-            url={result.url}
           />
         ))}
       </div>

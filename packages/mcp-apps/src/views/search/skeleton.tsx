@@ -1,18 +1,23 @@
 import { Bone } from "../../shared/loading-skeleton";
 
-function CardSkeleton() {
+function RowSkeleton() {
   return (
-    <div className="flex gap-3 rounded-sm border border-border/50 p-3">
-      <Bone className="h-5 w-5 shrink-0" />
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <Bone className="h-3.5 w-3/4" />
-        <Bone className="h-3 w-full" />
-        <Bone className="h-3 w-5/6" />
-        <div className="flex items-center gap-2 pt-1">
-          <Bone className="h-3 w-12" />
-          <Bone className="h-3 w-8" />
-          <Bone className="h-3 w-16" />
+    <div className="flex items-start gap-3 px-3 py-2.5">
+      <Bone className="size-7 shrink-0" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <Bone className="h-2.5 w-16" />
+          <Bone className="h-2.5 w-20" />
+          <Bone className="ml-auto h-2.5 w-12" />
         </div>
+        <Bone className="h-3.5 w-3/4" />
+        <div className="flex items-center gap-1.5">
+          <Bone className="size-4 rounded-full" />
+          <Bone className="h-2.5 w-20" />
+          <Bone className="h-2.5 w-24" />
+        </div>
+        <Bone className="h-3 w-full" />
+        <Bone className="h-3 w-4/5" />
       </div>
     </div>
   );
@@ -20,12 +25,16 @@ function CardSkeleton() {
 
 export function SearchSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      <Bone className="h-4 w-48" />
-      <div className="flex flex-col gap-1.5 pt-1">
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
+    <div className="flex flex-col">
+      <div className="flex items-center gap-2 px-3 pb-2">
+        <Bone className="h-2.5 w-14" />
+        <Bone className="h-2.5 w-6" />
+      </div>
+      <div className="flex flex-col divide-y divide-border/30">
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </div>
     </div>
   );
