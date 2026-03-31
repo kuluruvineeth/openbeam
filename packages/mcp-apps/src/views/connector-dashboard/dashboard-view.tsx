@@ -1,4 +1,5 @@
 import { ConnectorRow } from "@openbeam/ui/components/connector-row";
+import { ConnectorLogo } from "../../shared/connector-logo";
 import type { Connector } from "./connector-row";
 
 type DashboardViewProps = {
@@ -30,6 +31,7 @@ export function DashboardView({ connectors }: DashboardViewProps) {
         ) : (
           connectors.map((connector) => (
             <ConnectorRow
+              appLogo={<ConnectorLogo size={22} type={connector.type} />}
               connectorType={connector.type}
               documentCount={connector.documentCount}
               id={connector.id}

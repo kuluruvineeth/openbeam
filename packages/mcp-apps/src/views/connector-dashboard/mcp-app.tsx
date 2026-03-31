@@ -1,34 +1,36 @@
 import "../../globals.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { AppShell } from "../../shared/app-shell";
 import { McpAppWrapper } from "../../shared/mcp-app-wrapper";
 import type { Connector } from "./connector-row";
 import { DashboardView } from "./dashboard-view";
 import { DashboardSkeleton } from "./skeleton";
 
-function parseConnectors(toolResult: {
-  content: Array<{ type: string; text?: string }>;
-}): Connector[] {
-  const first = toolResult.content[0];
-  if (!(first && "text" in first) || typeof first.text !== "string") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(first.text);
-    return parsed?.data ?? [];
-  } catch {
-    return [];
-  }
+interface ToolStructuredContent {
+  meta?: { cursor?: string; hasNextPage?: boolean };
+  data?: Connector[];
 }
 
 function App() {
   return (
-    <McpAppWrapper name="ConnectorDashboard" skeleton={<DashboardSkeleton />}>
+    <McpAppWrapper
+      name="ConnectorDashboard"
+      skeleton={
+        <AppShell>
+          <DashboardSkeleton />
+        </AppShell>
+      }
+    >
       {({ toolResult }) => {
-        const connectors = parseConnectors(
-          toolResult as { content: Array<{ type: string; text?: string }> }
+        const sc = toolResult.structuredContent as
+          | ToolStructuredContent
+          | undefined;
+        return (
+          <AppShell>
+            <DashboardView connectors={sc?.data ?? []} />
+          </AppShell>
         );
-        return <DashboardView connectors={connectors} />;
       }}
     </McpAppWrapper>
   );

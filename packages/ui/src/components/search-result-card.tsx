@@ -52,6 +52,7 @@ type SearchResultCardProps = React.HTMLAttributes<HTMLButtonElement> &
     reactionCount?: number;
     replyCount?: number;
     fileSize?: number;
+    icon?: React.ReactNode;
     isSelected?: boolean;
     onSelect?: () => void;
     onOpen?: () => void;
@@ -80,6 +81,7 @@ const SearchResultCard = React.forwardRef<
       reactionCount,
       replyCount,
       fileSize,
+      icon,
       isSelected,
       onSelect,
       onOpen,
@@ -120,11 +122,13 @@ const SearchResultCard = React.forwardRef<
         type="button"
         {...props}
       >
-        <SourceIcon
-          className="mt-0.5 shrink-0"
-          size={24}
-          type={connectorType}
-        />
+        {icon ?? (
+          <SourceIcon
+            className="mt-0.5 shrink-0"
+            size={24}
+            type={connectorType}
+          />
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate font-medium text-sm">{title}</span>

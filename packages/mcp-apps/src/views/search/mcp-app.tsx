@@ -7,6 +7,11 @@ import type { SearchResult } from "./mock-data";
 import { SearchView } from "./search-view";
 import { SearchSkeleton } from "./skeleton";
 
+interface ToolStructuredContent {
+  meta?: { query?: string; totalResults?: number };
+  data?: SearchResult[];
+}
+
 function SearchApp() {
   return (
     <McpAppWrapper
@@ -18,15 +23,15 @@ function SearchApp() {
       }
     >
       {({ toolResult }) => {
-        const data = toolResult.structuredContent as
-          | Record<string, unknown>
+        const sc = toolResult.structuredContent as
+          | ToolStructuredContent
           | undefined;
         return (
           <AppShell>
             <SearchView
-              query={(data?.query as string) ?? ""}
-              results={(data?.results as SearchResult[]) ?? []}
-              total={(data?.total as number) ?? 0}
+              query={sc?.meta?.query ?? ""}
+              results={sc?.data ?? []}
+              total={sc?.meta?.totalResults ?? 0}
             />
           </AppShell>
         );

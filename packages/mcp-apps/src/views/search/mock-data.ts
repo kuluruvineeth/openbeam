@@ -2,7 +2,8 @@ export interface SearchResult {
   id: string;
   title: string;
   snippet: string;
-  source: string;
+  source?: string;
+  connectorType?: string;
   url?: string;
   score: number;
   updatedAt: string;

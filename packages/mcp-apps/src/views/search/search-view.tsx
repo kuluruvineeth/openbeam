@@ -1,4 +1,5 @@
 import { SearchResultCard } from "@openbeam/ui/components/search-result-card";
+import { ConnectorLogo } from "../../shared/connector-logo";
 import type { SearchResult } from "./mock-data";
 
 interface SearchViewProps {
@@ -30,7 +31,13 @@ export function SearchView({ query, results, total }: SearchViewProps) {
       <div className="flex flex-col gap-2">
         {results.map((result) => (
           <SearchResultCard
-            connectorType={result.source}
+            connectorType={result.source ?? result.connectorType}
+            icon={
+              <ConnectorLogo
+                size={20}
+                type={result.source ?? result.connectorType ?? ""}
+              />
+            }
             id={result.id}
             key={result.id}
             onOpen={
