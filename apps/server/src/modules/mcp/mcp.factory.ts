@@ -1,3 +1,4 @@
+import { getUiCapability } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerOpenBeamApps } from "./mcp.apps";
 import { registerPrompts } from "./mcp.prompts";
@@ -72,6 +73,18 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerResources(server, ctx);
   registerPrompts(server, ctx);
   registerOpenBeamApps(server);
+
+  server.server.oninitialized = () => {
+    const caps = server.server.getClientCapabilities();
+    const uiCap = getUiCapability(caps);
+    console.log(
+      "[mcp] client capabilities:",
+      JSON.stringify({
+        extensions: (caps as Record<string, unknown>)?.extensions,
+        uiCap,
+      })
+    );
+  };
 
   return server;
 }

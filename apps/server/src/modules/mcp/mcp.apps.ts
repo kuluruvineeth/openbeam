@@ -27,12 +27,15 @@ function resolveDist(): string | null {
 export function registerOpenBeamApps(server: McpServer): void {
   const dist = resolveDist();
   if (!dist) {
+    console.log("[mcp-apps] dist not found, skipping app registration");
     return;
   }
 
+  let registered = 0;
   for (const [uri, file] of Object.entries(VIEWS)) {
     const filePath = join(dist, file);
     if (!existsSync(filePath)) {
+      console.log(`[mcp-apps] file not found: ${filePath}`);
       continue;
     }
 
@@ -47,5 +50,7 @@ export function registerOpenBeamApps(server: McpServer): void {
         contents: [{ uri, mimeType: RESOURCE_MIME_TYPE, text: html }],
       })
     );
+    registered += 1;
   }
+  console.log(`[mcp-apps] registered ${registered} app resources from ${dist}`);
 }
