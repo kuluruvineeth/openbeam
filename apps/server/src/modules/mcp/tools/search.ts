@@ -155,13 +155,22 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/people" } },
     },
-    withErrorHandling(async (_params) => {
+    withErrorHandling(async (params) => {
       const facets = await searchService.getAuthorFacets({
         teamId: ctx.teamId,
-        limit: _params.limit || 10,
+        limit: 100,
       });
 
-      const mapped = facets.map((facet) => ({
+      const query = params.query.toLowerCase();
+      const filtered = facets.filter((f) => {
+        const name = f.authorName?.toLowerCase() ?? "";
+        const email = f.authorEmail?.toLowerCase() ?? "";
+        return name.includes(query) || email.includes(query);
+      });
+
+      const limited = filtered.slice(0, params.limit || 10);
+
+      const mapped = limited.map((facet) => ({
         id: facet.authorId,
         name: facet.authorName,
         email: facet.authorEmail,
