@@ -1,6 +1,7 @@
 import { DocumentCard } from "@openbeam/ui/components/document-card";
-import { SourceIcon } from "@openbeam/ui/components/source-icon";
 import { formatDate } from "@openbeam/ui/utils/format";
+import { ConnectorLogo } from "../../shared/connector-logo";
+import { EmptyState } from "../../shared/empty-state";
 import type { DocumentRecord } from "./mock-data";
 
 function buildMetadata(
@@ -21,11 +22,15 @@ function buildMetadata(
   return items;
 }
 
-interface PreviewViewProps {
-  document: DocumentRecord;
-}
+type PreviewViewProps = {
+  document: DocumentRecord | null;
+};
 
 export function PreviewView({ document: doc }: PreviewViewProps) {
+  if (!doc) {
+    return <EmptyState description="No document data" title="Not found" />;
+  }
+
   const breadcrumb = [doc.connectorName, doc.documentType]
     .filter(Boolean)
     .join(" \u203A ");
@@ -35,13 +40,13 @@ export function PreviewView({ document: doc }: PreviewViewProps) {
       <DocumentCard.Header
         breadcrumb={breadcrumb}
         externalUrl={doc.url}
-        icon={<SourceIcon size={24} type={doc.source} />}
+        icon={<ConnectorLogo size={24} type={doc.source} />}
         subtitle={doc.documentType}
         title={doc.title}
       />
 
       {doc.content && (
-        <DocumentCard.Content maxLines={5}>{doc.content}</DocumentCard.Content>
+        <DocumentCard.Content maxLines={8}>{doc.content}</DocumentCard.Content>
       )}
 
       <DocumentCard.Metadata columns={2} items={buildMetadata(doc)} />
@@ -49,7 +54,7 @@ export function PreviewView({ document: doc }: PreviewViewProps) {
       {doc.url && (
         <DocumentCard.Actions>
           <button
-            className="flex h-8 w-full items-center justify-center rounded-sm border border-border/50 font-medium text-[13px] transition-colors hover:bg-muted/50"
+            className="flex h-8 w-full items-center justify-center rounded-sm border border-border/50 font-medium text-xs transition-colors hover:bg-muted/50"
             onClick={() => window.open(doc.url, "_blank", "noopener")}
             type="button"
           >

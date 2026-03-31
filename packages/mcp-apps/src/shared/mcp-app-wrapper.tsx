@@ -4,6 +4,8 @@ import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { type ReactNode, useEffect, useState } from "react";
+import { ErrorBoundary } from "./error-boundary";
+import { ErrorState } from "./error-state";
 
 type Props = {
   name: string;
@@ -46,12 +48,18 @@ export function McpAppWrapper({ name, children, skeleton }: Props) {
   }, [app]);
 
   if (error) {
-    return <p className="p-4 text-red-500 text-sm">{error.message}</p>;
+    return <ErrorState message={error.message} />;
   }
 
   if (!(isConnected && toolResult && app)) {
     return <>{skeleton}</>;
   }
 
-  return <>{children({ toolResult, app })}</>;
+  return (
+    <ErrorBoundary
+      fallback={<ErrorState message="An unexpected error occurred" />}
+    >
+      {children({ toolResult, app })}
+    </ErrorBoundary>
+  );
 }

@@ -9,6 +9,9 @@
     "build:search": "INPUT=search vite build",
     "build:connector-dashboard": "INPUT=connector-dashboard vite build",
     "build:document-preview": "INPUT=document-preview vite build",
+    "build:people": "INPUT=people vite build",
+    "build:sync-status": "INPUT=sync-status vite build",
+    "build:team": "INPUT=team vite build",
     "test": "bun test --exit --timeout 10000",
     "typecheck": "tsc --noEmit"
   },

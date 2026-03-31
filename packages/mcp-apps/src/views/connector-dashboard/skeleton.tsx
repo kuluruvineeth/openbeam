@@ -1,39 +1,51 @@
-function SkeletonRow() {
+import { Bone } from "../../shared/loading-skeleton";
+
+function StatSkeleton() {
   return (
-    <div className="grid grid-cols-[1fr_80px_100px_80px] items-center gap-2 border-border/50 border-b px-3 py-2.5 last:border-b-0">
+    <div className="flex flex-col gap-1 rounded-sm border border-border/50 p-2.5">
+      <Bone className="h-3 w-16" />
+      <Bone className="h-5 w-10" />
+    </div>
+  );
+}
+
+function RowSkeleton() {
+  return (
+    <div className="grid grid-cols-[1fr_100px_100px_60px] items-center gap-3 border-border/50 border-b px-3 py-2.5 last:border-b-0">
       <div className="flex items-center gap-2.5">
-        <div className="h-6 w-6 shrink-0 animate-pulse rounded-sm bg-muted" />
-        <div className="h-3.5 w-28 animate-pulse rounded-sm bg-muted" />
+        <Bone className="size-5.5 shrink-0" />
+        <Bone className="h-3.5 w-28" />
       </div>
       <div className="flex items-center gap-1.5">
-        <div className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-muted" />
-        <div className="h-3 w-10 animate-pulse rounded-sm bg-muted" />
+        <Bone className="size-1.5 shrink-0 rounded-full" />
+        <Bone className="h-3 w-10" />
       </div>
-      <div className="h-3 w-14 animate-pulse rounded-sm bg-muted" />
-      <div className="ml-auto h-3 w-8 animate-pulse rounded-sm bg-muted" />
+      <Bone className="h-3 w-14" />
+      <Bone className="ml-auto h-3 w-8" />
     </div>
   );
 }
 
 export function DashboardSkeleton() {
   return (
-    <div>
-      <div className="flex items-center gap-2 pb-3">
-        <div className="h-4 w-20 animate-pulse rounded-sm bg-muted" />
-        <div className="h-4 w-6 animate-pulse rounded-sm bg-muted" />
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-3 gap-2">
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
       </div>
-      <div className="rounded-md border border-border/50">
-        <div className="grid grid-cols-[1fr_80px_100px_80px] gap-2 border-border/50 border-b px-3 py-1.5">
-          <div className="h-3 w-12 animate-pulse rounded-sm bg-muted" />
-          <div className="h-3 w-10 animate-pulse rounded-sm bg-muted" />
-          <div className="h-3 w-14 animate-pulse rounded-sm bg-muted" />
-          <div className="ml-auto h-3 w-8 animate-pulse rounded-sm bg-muted" />
+      <Bone className="h-4 w-24" />
+      <div className="rounded-sm border border-border/50">
+        <div className="grid grid-cols-[1fr_100px_100px_60px] gap-3 border-border/50 border-b px-3 py-1.5">
+          <Bone className="h-3 w-12" />
+          <Bone className="h-3 w-10" />
+          <Bone className="h-3 w-14" />
+          <Bone className="ml-auto h-3 w-8" />
         </div>
-        <SkeletonRow />
-        <SkeletonRow />
-        <SkeletonRow />
-        <SkeletonRow />
-        <SkeletonRow />
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </div>
     </div>
   );

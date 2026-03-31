@@ -1,6 +1,4 @@
-function Bone({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded-sm bg-muted ${className}`} />;
-}
+import { Bone } from "../../shared/loading-skeleton";
 
 function CardSkeleton() {
   return (
@@ -24,7 +22,7 @@ export function SearchSkeleton() {
   return (
     <div className="flex flex-col gap-2">
       <Bone className="h-4 w-48" />
-      <div className="flex flex-col gap-2 pt-1">
+      <div className="flex flex-col gap-1.5 pt-1">
         <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />

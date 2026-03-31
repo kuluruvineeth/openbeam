@@ -11,6 +11,9 @@ const VIEWS: Record<string, string> = {
   "ui://openbeam/search": "search.html",
   "ui://openbeam/connector-dashboard": "connector-dashboard.html",
   "ui://openbeam/document-preview": "document-preview.html",
+  "ui://openbeam/people": "people.html",
+  "ui://openbeam/sync-status": "sync-status.html",
+  "ui://openbeam/team": "team.html",
 };
 
 function resolveDist(): string | null {

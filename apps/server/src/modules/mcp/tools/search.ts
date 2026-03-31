@@ -119,7 +119,8 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     }, "Failed to search documents")
   );
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "search_people",
     {
       title: "Search People",
@@ -142,6 +143,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
           .describe("Filter by connector type slugs"),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/people" } },
     },
     withErrorHandling(async (_params) => {
       const facets = await searchService.getAuthorFacets({

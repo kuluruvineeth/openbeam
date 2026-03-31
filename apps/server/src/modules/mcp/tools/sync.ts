@@ -1,3 +1,4 @@
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import prisma, {
   getSyncHistory,
   getSyncStatus,
@@ -40,7 +41,8 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
   }
 
   if (hasWriteScope) {
-    server.registerTool(
+    registerAppTool(
+      server,
       "sync_trigger",
       {
         title: "Trigger Sync",
@@ -54,6 +56,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
             .describe("Sync type (default: incremental)"),
         },
         annotations: WRITE_ANNOTATIONS,
+        _meta: { ui: { resourceUri: "ui://openbeam/sync-status" } },
       },
       async (params) => {
         try {
@@ -106,7 +109,8 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
   }
 
   if (hasReadScope) {
-    server.registerTool(
+    registerAppTool(
+      server,
       "sync_status",
       {
         title: "Sync Job Status",
@@ -118,6 +122,7 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
             .describe("Connector ID to check sync status for"),
         },
         annotations: READ_ONLY_ANNOTATIONS,
+        _meta: { ui: { resourceUri: "ui://openbeam/sync-status" } },
       },
       withErrorHandling(async ({ connectorId }) => {
         const connector = await verifyConnectorOwnership(

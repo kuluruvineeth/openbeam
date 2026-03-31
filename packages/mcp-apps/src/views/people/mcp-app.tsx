@@ -3,34 +3,30 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell } from "../../shared/app-shell";
 import { McpAppWrapper } from "../../shared/mcp-app-wrapper";
-import type { SearchResult } from "./mock-data";
-import { SearchView } from "./search-view";
-import { SearchSkeleton } from "./skeleton";
+import type { Person } from "./mock-data";
+import { PeopleView } from "./people-view";
+import { PeopleSkeleton } from "./skeleton";
 
 type ToolData = {
-  meta?: { query?: string; totalResults?: number };
-  data?: SearchResult[];
+  meta?: { totalResults?: number };
+  data?: Person[];
 };
 
-function SearchApp() {
+function PeopleApp() {
   return (
     <McpAppWrapper
-      name="OpenBeam Search"
+      name="OpenBeam People"
       skeleton={
-        <AppShell title="Search">
-          <SearchSkeleton />
+        <AppShell title="People">
+          <PeopleSkeleton />
         </AppShell>
       }
     >
       {({ toolResult }) => {
         const sc = toolResult.structuredContent as ToolData | undefined;
         return (
-          <AppShell title="Search">
-            <SearchView
-              query={sc?.meta?.query ?? ""}
-              results={sc?.data ?? []}
-              total={sc?.meta?.totalResults ?? 0}
-            />
+          <AppShell title="People">
+            <PeopleView people={sc?.data ?? []} />
           </AppShell>
         );
       }}
@@ -40,6 +36,6 @@ function SearchApp() {
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
-    <SearchApp />
+    <PeopleApp />
   </StrictMode>
 );

@@ -3,31 +3,29 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell } from "../../shared/app-shell";
 import { McpAppWrapper } from "../../shared/mcp-app-wrapper";
-import type { Connector } from "./connector-row";
 import { DashboardView } from "./dashboard-view";
 import { DashboardSkeleton } from "./skeleton";
+import type { Connector } from "./types";
 
-interface ToolStructuredContent {
+type ToolData = {
   meta?: { cursor?: string; hasNextPage?: boolean };
   data?: Connector[];
-}
+};
 
 function App() {
   return (
     <McpAppWrapper
       name="ConnectorDashboard"
       skeleton={
-        <AppShell>
+        <AppShell title="Connectors">
           <DashboardSkeleton />
         </AppShell>
       }
     >
       {({ toolResult }) => {
-        const sc = toolResult.structuredContent as
-          | ToolStructuredContent
-          | undefined;
+        const sc = toolResult.structuredContent as ToolData | undefined;
         return (
-          <AppShell>
+          <AppShell title="Connectors">
             <DashboardView connectors={sc?.data ?? []} />
           </AppShell>
         );

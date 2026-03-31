@@ -1,5 +1,9 @@
 export { AppShell } from "./app-shell";
+export { ConnectorLogo } from "./connector-logo";
+export { EmptyState } from "./empty-state";
 export { ErrorBoundary } from "./error-boundary";
-export { LoadingSkeleton } from "./loading-skeleton";
+export { ErrorState } from "./error-state";
+export { Bone, LoadingSkeleton } from "./loading-skeleton";
 export { McpAppWrapper } from "./mcp-app-wrapper";
-export { SourceIcon } from "./source-icon";
+export { SectionHeader } from "./section-header";
+export { StatCard } from "./stat-card";
