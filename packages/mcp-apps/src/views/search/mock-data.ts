@@ -4,6 +4,11 @@ export interface SearchResult {
   snippet: string;
   source?: string;
   connectorType?: string;
+  documentType?: string;
+  sourceName?: string;
+  sourceType?: string;
+  authorName?: string;
+  authorAvatarUrl?: string;
   url?: string;
   score: number;
   updatedAt: string;
