@@ -1,6 +1,6 @@
+import { ConnectorTableRow } from "@openbeam/ui/components/connector-table-row";
+import { ConnectorLogo } from "../../shared/connector-logo";
 import { EmptyState } from "../../shared/empty-state";
-import { StatCard } from "../../shared/stat-card";
-import { ConnectorTableRow } from "./connector-table-row";
 import type { Connector } from "./types";
 
 type DashboardViewProps = {
@@ -11,27 +11,14 @@ export function DashboardView({ connectors }: DashboardViewProps) {
   const active = connectors.filter(
     (c) => c.status === "ACTIVE" || c.status === "SYNCING"
   ).length;
-  const errors = connectors.filter(
-    (c) => c.status === "ERROR" || c.status === "AUTH_EXPIRED"
-  ).length;
   const totalDocs = connectors.reduce((sum, c) => sum + c.documentCount, 0);
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="hidden items-center gap-6 md:flex">
+      <div className="flex items-center gap-6">
         <Stat label="Connected" value={active} />
         <Stat label="Active" value={connectors.length} />
         <Stat label="Documents" value={totalDocs.toLocaleString()} />
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 md:hidden">
-        <StatCard label="Connected" value={active} />
-        <StatCard label="Documents" value={totalDocs.toLocaleString()} />
-        <StatCard
-          label="Errors"
-          trend={errors > 0 ? "down" : "neutral"}
-          value={errors}
-        />
       </div>
 
       {connectors.length === 0 ? (
@@ -56,7 +43,16 @@ export function DashboardView({ connectors }: DashboardViewProps) {
             </span>
           </div>
           {connectors.map((connector) => (
-            <ConnectorTableRow connector={connector} key={connector.id} />
+            <ConnectorTableRow
+              connectorType={connector.type}
+              documentCount={connector.documentCount}
+              icon={<ConnectorLogo size={28} type={connector.type} />}
+              id={connector.id}
+              key={connector.id}
+              lastSyncAt={connector.lastSyncAt}
+              name={connector.name}
+              status={connector.status}
+            />
           ))}
         </div>
       )}

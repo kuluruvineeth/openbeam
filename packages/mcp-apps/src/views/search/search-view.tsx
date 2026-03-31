@@ -1,6 +1,7 @@
+import { SearchResultRow } from "@openbeam/ui/components/search-result-row";
+import { ConnectorLogo } from "../../shared/connector-logo";
 import { EmptyState } from "../../shared/empty-state";
 import type { SearchResult } from "./mock-data";
-import { SearchResultRow } from "./search-result-row";
 
 type SearchViewProps = {
   query: string;
@@ -29,26 +30,24 @@ export function SearchView({ query, results, total }: SearchViewProps) {
         </span>
       </div>
       <div className="flex flex-col divide-y divide-border/30">
-        {results.map((result) => (
-          <SearchResultRow
-            doc={{
-              id: result.id,
-              title: result.title,
-              snippet: result.snippet,
-              source: result.source,
-              connectorType: result.connectorType,
-              url: result.url,
-              score: result.score,
-              updatedAt: result.updatedAt,
-            }}
-            key={result.id}
-            onClick={
-              result.url
-                ? () => window.open(result.url, "_blank", "noopener")
-                : undefined
-            }
-          />
-        ))}
+        {results.map((result) => {
+          const connectorType = result.source ?? result.connectorType ?? "";
+          return (
+            <SearchResultRow
+              icon={<ConnectorLogo size={16} type={connectorType} />}
+              key={result.id}
+              onClick={
+                result.url
+                  ? () => window.open(result.url, "_blank", "noopener")
+                  : undefined
+              }
+              snippet={result.snippet}
+              title={result.title}
+              typeLabel={connectorType.replace(/_/g, " ")}
+              updatedAt={result.updatedAt}
+            />
+          );
+        })}
       </div>
     </div>
   );

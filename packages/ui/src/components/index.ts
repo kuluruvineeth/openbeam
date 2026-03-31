@@ -379,6 +379,8 @@ export {
 } from "./command";
 export type { ConnectorRowProps } from "./connector-row";
 export { ConnectorRow } from "./connector-row";
+export type { ConnectorTableRowProps, SyncStatus } from "./connector-table-row";
+export { ConnectorTableRow, InlineSyncBadge } from "./connector-table-row";
 export {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -727,6 +729,8 @@ export {
   SearchResultCard,
   searchResultCardVariants,
 } from "./search-result-card";
+export type { SearchResultRowProps } from "./search-result-row";
+export { SearchResultRow } from "./search-result-row";
 export {
   Select,
   SelectContent,
