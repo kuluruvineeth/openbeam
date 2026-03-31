@@ -3,6 +3,7 @@ import db, {
   findContextRelations,
   incrementActiveCount,
 } from "@openbeam/db";
+import { ragAnswer } from "@openbeam/services";
 import { z } from "zod";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
 import {
@@ -223,17 +224,46 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ question }) => {
-      const result = await Promise.resolve({
-        answer: `Placeholder answer for: "${question}". Connect the RAG engine to provide real answers.`,
-        confidence: null,
-        citations: [],
+    withErrorHandling(async ({ question, maxSources }) => {
+      const accessControlIds = [
+        `team:${ctx.teamId}`,
+        ctx.userId,
+        ctx.userEmail,
+      ].filter(Boolean) as string[];
+
+      const ragResult = await ragAnswer({
+        query: question,
+        teamId: ctx.teamId,
+        accessControlIds,
+        topK: maxSources ?? 5,
       });
+
+      const result = {
+        answer: ragResult.answer,
+        confidence:
+          ragResult.citations.length > 0
+            ? Math.min(
+                ragResult.citations.reduce(
+                  (sum, c) => sum + c.relevanceScore,
+                  0
+                ) / ragResult.citations.length,
+                1
+              )
+            : null,
+        citations: ragResult.citations.map((c) => ({
+          uri: c.documentId
+            ? `openbeam://resources/${ctx.teamId}/${c.documentId}`
+            : null,
+          title: c.title,
+          snippet: c.snippet,
+          source: c.connectorType ?? null,
+        })),
+      };
 
       const clean = sanitize(mcpAnswerSchema, result);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(clean) }],
+        content: [{ type: "text" as const, text: clean.answer }],
         structuredContent: { data: clean },
       };
     }, "Failed to answer question")
