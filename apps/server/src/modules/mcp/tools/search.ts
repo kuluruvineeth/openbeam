@@ -100,7 +100,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
         documentType: doc.document_type,
         sourceName: doc.source_name,
         sourceType: doc.source_type,
-        authorName: doc.author,
+        authorName: doc.author_name,
         authorAvatarUrl: doc.author_avatar_url,
         url: doc.url,
         score: doc.relevanceScore,

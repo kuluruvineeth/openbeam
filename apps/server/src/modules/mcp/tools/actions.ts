@@ -66,7 +66,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling((params) => {
+    (params) => {
       let registries = ALL_CONNECTOR_ACTION_REGISTRIES;
 
       if (params.connectorType) {
@@ -105,6 +105,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
         meta: {
           totalActions: data.length,
           connectorTypes: [...new Set(data.map((a) => a.connectorType))],
+          hasNextPage: false,
         },
         data,
       };
@@ -115,7 +116,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
         content: [{ type: "text" as const, text }],
         structuredContent,
       };
-    }, "Failed to list connector actions")
+    }
   );
 
   if (!hasScope(ctx, "connectors.write")) {
