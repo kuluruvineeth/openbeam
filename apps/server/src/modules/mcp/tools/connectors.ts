@@ -1,3 +1,4 @@
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import db, {
   type ConnectorStatus,
   findConnectorById,
@@ -60,7 +61,8 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     return;
   }
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "connector_list",
     {
       title: "List Connectors",
@@ -81,6 +83,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
           .describe("Results per page (1-100, default 25)"),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/connector-dashboard" } },
     },
     withErrorHandling(async (params) => {
       const statusFilter = params.status
@@ -137,7 +140,8 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     }, "Failed to list connectors")
   );
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "connector_get",
     {
       title: "Get Connector",
@@ -147,6 +151,7 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
         id: z.string().describe("Connector ID"),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/document-preview" } },
     },
     withErrorHandling(async ({ id }) => {
       const connector = await findConnectorById(db, id, true);

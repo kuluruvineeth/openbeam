@@ -22,6 +22,7 @@
     "@openbeam/auth": "workspace:*",
     "@openbeam/db": "workspace:*",
     "@openbeam/integrations": "workspace:*",
+    "@openbeam/mcp-apps": "workspace:*",
     "@openbeam/mcp-server": "workspace:*",
     "@openbeam/observability": "workspace:*",
     "@openbeam/orchestrations": "workspace:*",

@@ -19,8 +19,8 @@ export default defineConfig(({ command }) => {
   return {
     plugins: [react(), viteSingleFile()],
     build: {
-      outDir: resolve(__dirname, "dist/views"),
-      emptyOutDir: false,
+      outDir: resolve(__dirname, `dist/views/${INPUT}`),
+      emptyOutDir: true,
       rollupOptions: {
         input: resolve(__dirname, `src/views/${INPUT}/mcp-app.html`),
         onwarn(warning, handler) {

@@ -1,3 +1,4 @@
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import { hybridSearch, searchService } from "@openbeam/services";
 import { z } from "zod";
 import { sanitizeArray } from "../mcp.sanitize";
@@ -34,7 +35,8 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     return;
   }
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "search_documents",
     {
       title: "Search Documents",
@@ -67,6 +69,7 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
           .describe("Filter results updated before this date (ISO 8601)"),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/search" } },
     },
     withErrorHandling(async (params) => {
       const accessControlIds = [
