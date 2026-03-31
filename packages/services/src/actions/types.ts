@@ -1,16 +1,7 @@
-export interface ActionExecutionContext {
-  teamId: string;
-  userId: string;
-  connectorId: string;
-  connectorType: string;
-  source: "mcp" | "canvas" | "api" | "agent";
-  traceId: string;
-}
-
-export interface ActionExecutionRequest {
-  actionId: string;
-  params: Record<string, unknown>;
-  context: ActionExecutionContext;
+export interface ActionCredentials {
+  accessToken: string;
+  refreshToken?: string;
+  config: Record<string, unknown>;
 }
 
 export interface ActionExecutionResult {
@@ -19,13 +10,21 @@ export interface ActionExecutionResult {
   error?: string;
 }
 
-export interface ActionExecutor {
+export interface ConnectorHandler {
   readonly connectorType: string;
-  readonly supportedActions: ReadonlySet<string>;
   execute(
-    request: ActionExecutionRequest,
-    accessToken: string
+    actionId: string,
+    params: Record<string, unknown>,
+    credentials: ActionCredentials,
+    connectorId: string
   ): Promise<ActionExecutionResult>;
 }
 
-export type ActionExecutorFactory = () => ActionExecutor;
+export interface DispatchRequest {
+  connectorId: string;
+  actionId: string;
+  params: Record<string, unknown>;
+  teamId: string;
+  userId: string;
+  source: "mcp" | "canvas" | "api" | "agent";
+}

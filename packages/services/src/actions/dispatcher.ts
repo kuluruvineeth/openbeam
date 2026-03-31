@@ -1,12 +1,13 @@
-import db, { findConnectorById } from "@openbeam/db";
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
-import { executeConnectorAction } from "../canvas/executors/connector-action";
+import { resolveCredentials } from "./credentials";
+import "./handlers";
 import {
   ActionExecutorError,
   ActionNotFoundError,
   ActionValidationError,
 } from "./errors";
-import type { ActionExecutionResult } from "./types";
+import { getHandler, getRegisteredTypes } from "./handler-registry";
+import type { ActionExecutionResult, DispatchRequest } from "./types";
 
 const actionsByConnector = new Map(
   ALL_CONNECTOR_ACTION_REGISTRIES.map((r) => [
@@ -15,15 +16,6 @@ const actionsByConnector = new Map(
   ])
 );
 
-export interface DispatchRequest {
-  connectorId: string;
-  actionId: string;
-  params: Record<string, unknown>;
-  teamId: string;
-  userId: string;
-  source: "mcp" | "canvas" | "api" | "agent";
-}
-
 function normalizeType(type: string): string {
   return type.toLowerCase().trim().replace(/-/g, "_");
 }
@@ -31,30 +23,25 @@ function normalizeType(type: string): string {
 export async function dispatchAction(
   request: DispatchRequest
 ): Promise<ActionExecutionResult> {
-  const connector = await findConnectorById(db, request.connectorId);
+  const { credentials, connectorType: rawType } = await resolveCredentials(
+    request.connectorId,
+    request.teamId
+  );
 
-  if (!connector || connector.teamId !== request.teamId) {
-    return {
-      success: false,
-      data: {},
-      error: "Connector not found or access denied",
-    };
-  }
+  const connectorType = normalizeType(rawType);
 
-  const type = normalizeType(connector.app);
-
-  const registry = actionsByConnector.get(type);
+  const registry = actionsByConnector.get(connectorType);
   if (!registry) {
     return {
       success: false,
       data: {},
-      error: `No actions available for connector type: ${type}`,
+      error: `No actions defined for connector type: ${connectorType}`,
     };
   }
 
   const actionDef = registry.actions.find((a) => a.id === request.actionId);
   if (!actionDef) {
-    throw new ActionNotFoundError(type, request.actionId);
+    throw new ActionNotFoundError(connectorType, request.actionId);
   }
 
   const missingRequired = actionDef.inputs
@@ -67,31 +54,28 @@ export async function dispatchAction(
     );
   }
 
-  try {
-    const result = await executeConnectorAction({
-      connectorType: type,
-      actionId: request.actionId,
-      inputs: request.params,
-      connectorId: request.connectorId,
-      connectorConfig: {},
-      timeoutMs: 30_000,
-    });
+  const handler = getHandler(connectorType);
+  if (!handler) {
+    const registered = getRegisteredTypes();
+    return {
+      success: false,
+      data: { connectorType, actionId: request.actionId },
+      error: `No executor registered for "${connectorType}". ${registered.length} executors available: ${registered.join(", ")}`,
+    };
+  }
 
-    return { success: true, data: result };
+  try {
+    return await handler.execute(
+      request.actionId,
+      request.params,
+      credentials,
+      request.connectorId
+    );
   } catch (error) {
     if (error instanceof ActionExecutorError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : "Unknown error";
-
-    if (message.includes("Unsupported connector type")) {
-      return {
-        success: false,
-        data: { connectorType: type, actionId: request.actionId },
-        error: `Connector type "${type}" does not have an executor yet. Supported: slack, gmail, notion, google_drive, linear.`,
-      };
-    }
-
     return { success: false, data: {}, error: message };
   }
 }
