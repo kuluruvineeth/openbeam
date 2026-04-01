@@ -1,4 +1,5 @@
 import {
+  appLogos,
   connectorLogos,
   type LogoComponent,
 } from "@openbeam/integrations/logos";
@@ -10,9 +11,12 @@ type ConnectorLogoProps = {
 };
 
 export function ConnectorLogo({ type, size = 24 }: ConnectorLogoProps) {
-  const normalized = type.toLowerCase().replace(/_/g, "-");
+  const upper = type.toUpperCase().replace(/-/g, "_");
+  const lower = type.toLowerCase().replace(/_/g, "-");
+
   const Logo: LogoComponent | undefined =
-    connectorLogos[normalized as keyof typeof connectorLogos];
+    appLogos[upper as keyof typeof appLogos] ??
+    connectorLogos[lower as keyof typeof connectorLogos];
 
   if (Logo) {
     return <Logo size={size} />;
