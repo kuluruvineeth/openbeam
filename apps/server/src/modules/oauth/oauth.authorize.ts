@@ -76,7 +76,7 @@ const postAuthorizeRoute = createRoute({
   method: "post",
   path: "/oauth/authorize",
   tags: ["OAuth"],
-  middleware: [sessionMiddleware] as const,
+  middleware: [sessionMiddleware],
   responses: {
     200: {
       description: "Authorization granted",

@@ -27,7 +27,6 @@ import {
   GoogleChatAuth,
   GoogleDriveAuth,
   HubSpotAuth,
-  type IntegrationAuth,
   IntercomAuth,
   JiraAuth,
   LinearAuth,
@@ -51,7 +50,17 @@ import {
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
 
-const AUTH_MAP: Record<string, new () => IntegrationAuth> = {
+const AUTH_MAP: Record<
+  string,
+  new () => {
+    start(ctx: {
+      user: { id: string };
+      workspaceId: string;
+      connectorId: string;
+      redirectUrl: string;
+    }): Promise<string>;
+  }
+> = {
   AIRTABLE: AirtableAuth,
   ASANA: AsanaAuth,
   BITBUCKET: BitbucketAuth,
