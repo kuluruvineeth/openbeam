@@ -177,6 +177,33 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         };
       }
 
+      const existing = await getConnectorsWithStats(db, ctx.teamId);
+      const alreadyConnected = existing.find(
+        (c) =>
+          c.app === appType && (c.status === "ACTIVE" || c.status === "SYNCING")
+      );
+      if (alreadyConnected) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `${app.name} is already connected (ID: ${alreadyConnected.id}). Use sync_trigger to sync or connector_disconnect to remove it first.`,
+            },
+          ],
+          structuredContent: {
+            connectorId: alreadyConnected.id,
+            status: "already_connected",
+          },
+        };
+      }
+
+      const staleConnecting = existing.filter(
+        (c) => c.app === appType && c.status === "CONNECTING"
+      );
+      for (const stale of staleConnecting) {
+        await updateConnector(db, stale.id, { status: "INACTIVE" });
+      }
+
       const connector = await createConnector(db, {
         teamId: ctx.teamId,
         userId: ctx.userId,
