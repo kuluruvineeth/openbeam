@@ -6,7 +6,7 @@ registerHandler({
     return Promise.resolve({
       success: false,
       data: {},
-      error: `Unsupported Gong action: ${actionId}`,
+      error: `Gong is a read-only connector. Action "${actionId}" is not supported.`,
     });
   },
 });
