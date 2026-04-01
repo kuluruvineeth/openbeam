@@ -1,3 +1,5 @@
+export type { ActionExecutionResult } from "./actions";
+export { type DispatchRequest, dispatchAction } from "./actions";
 export type {
   AhaClient,
   AhaEpic,

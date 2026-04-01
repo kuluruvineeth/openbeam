@@ -1,5 +1,5 @@
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
-import { dispatchAction } from "@openbeam/services/actions";
+import { dispatchAction } from "@openbeam/services";
 import { z } from "zod";
 import { formatActionsList } from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";

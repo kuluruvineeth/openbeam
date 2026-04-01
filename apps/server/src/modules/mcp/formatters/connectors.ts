@@ -2,11 +2,11 @@ import { num, numbered, plural, relativeTime } from "./helpers";
 
 type ConnectorItem = {
   id: string;
-  name: string;
-  type: string;
-  status: string;
+  name?: string | null;
+  type?: string | null;
+  status?: string | null;
   lastSyncAt?: string | null;
-  documentCount: number;
+  documentCount?: number | null;
 };
 
 type ConnectorDetail = ConnectorItem & {
@@ -23,25 +23,27 @@ type ConnectorHealth = {
   lastError?: string | null;
 };
 
-function statusLabel(status: string, docs: number): string {
-  if (status === "ACTIVE" && docs > 0) {
+function statusLabel(status: string | null | undefined, docs: number): string {
+  const s = status ?? "UNKNOWN";
+  if (s === "ACTIVE" && docs > 0) {
     return "indexed";
   }
-  if (status === "ACTIVE") {
+  if (s === "ACTIVE") {
     return "ready";
   }
-  return status.toLowerCase().replace(/_/g, " ");
+  return s.toLowerCase().replace(/_/g, " ");
 }
 
 export function formatConnectorList(items: ConnectorItem[]): string {
-  const totalDocs = items.reduce((s, c) => s + c.documentCount, 0);
+  const totalDocs = items.reduce((s, c) => s + (c.documentCount ?? 0), 0);
   const header = `Found ${plural(items.length, "connector")} (${num(totalDocs)} total documents):`;
 
   const rows = numbered(
     items.map((c) => {
-      const status = statusLabel(c.status, c.documentCount);
+      const docs = c.documentCount ?? 0;
+      const status = statusLabel(c.status, docs);
       const sync = relativeTime(c.lastSyncAt);
-      return `${c.name} (${c.type}) — ${status}, ${num(c.documentCount)} docs, synced ${sync}`;
+      return `${c.name ?? "Unknown"} (${c.type ?? "unknown"}) — ${status}, ${num(docs)} docs, synced ${sync}`;
     })
   );
 
@@ -55,11 +57,12 @@ export function formatConnectorList(items: ConnectorItem[]): string {
 }
 
 export function formatConnectorDetail(c: ConnectorDetail): string {
-  const status = statusLabel(c.status, c.documentCount);
+  const docs = c.documentCount ?? 0;
+  const status = statusLabel(c.status, docs);
   const parts = [
-    `${c.name} (${c.type})`,
+    `${c.name ?? "Unknown"} (${c.type ?? "unknown"})`,
     `Status: ${status}`,
-    `Documents: ${num(c.documentCount)}`,
+    `Documents: ${num(docs)}`,
     `Last sync: ${relativeTime(c.lastSyncAt)}`,
   ];
 
@@ -74,9 +77,7 @@ export function formatConnectorDetail(c: ConnectorDetail): string {
   parts.push("");
   parts.push("To trigger a sync: use sync_trigger with this connector's ID.");
   parts.push(
-    'To see write actions: use connector_actions_list with type "' +
-      c.type +
-      '".'
+    `To see write actions: use connector_actions_list with type "${c.type ?? "unknown"}".`
   );
 
   return parts.join("\n");
