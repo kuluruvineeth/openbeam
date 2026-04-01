@@ -9,6 +9,38 @@ import db, {
   updateConnector,
 } from "@openbeam/db";
 import { appStore } from "@openbeam/integrations";
+import {
+  AirtableAuth,
+  AsanaAuth,
+  BitbucketAuth,
+  BoxAuth,
+  CanvaAuth,
+  ClickUpAuth,
+  ConfluenceAuth,
+  DocuSignAuth,
+  DropboxAuth,
+  FigmaAuth,
+  GitHubAuth,
+  GitLabAuth,
+  GmailAuth,
+  GoogleCalendarAuth,
+  GoogleChatAuth,
+  GoogleDriveAuth,
+  HubSpotAuth,
+  type IntegrationAuth,
+  IntercomAuth,
+  JiraAuth,
+  LinearAuth,
+  MiroAuth,
+  MondayAuth,
+  NotionAuth,
+  OutlookAuth,
+  PipedriveAuth,
+  SalesforceAuth,
+  SlackAuth,
+  ZendeskAuth,
+  ZoomAuth,
+} from "@openbeam/services";
 import { z } from "zod";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
@@ -19,8 +51,39 @@ import {
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
 
+const AUTH_MAP: Record<string, new () => IntegrationAuth> = {
+  AIRTABLE: AirtableAuth,
+  ASANA: AsanaAuth,
+  BITBUCKET: BitbucketAuth,
+  BOX: BoxAuth,
+  CANVA: CanvaAuth,
+  CLICKUP: ClickUpAuth,
+  CONFLUENCE: ConfluenceAuth,
+  DOCUSIGN: DocuSignAuth,
+  DROPBOX: DropboxAuth,
+  FIGMA: FigmaAuth,
+  GITHUB: GitHubAuth,
+  GITLAB: GitLabAuth,
+  GMAIL: GmailAuth,
+  GOOGLE_CALENDAR: GoogleCalendarAuth,
+  GOOGLE_CHAT: GoogleChatAuth,
+  GOOGLE_DRIVE: GoogleDriveAuth,
+  HUBSPOT: HubSpotAuth,
+  INTERCOM: IntercomAuth,
+  JIRA: JiraAuth,
+  LINEAR: LinearAuth,
+  MIRO: MiroAuth,
+  MONDAY: MondayAuth,
+  NOTION: NotionAuth,
+  OUTLOOK: OutlookAuth,
+  PIPEDRIVE: PipedriveAuth,
+  SALESFORCE: SalesforceAuth,
+  SLACK: SlackAuth,
+  ZENDESK: ZendeskAuth,
+  ZOOM: ZoomAuth,
+};
+
 const SETUP_TTL_MS = 15 * 60 * 1000;
-const API_URL = process.env.OPENBEAM_API_URL || "https://api.openbeam.work";
 const WEB_URL = process.env.OPENBEAM_WEB_URL || "https://app.openbeam.work";
 
 const mcpAvailableSchema = z.object({
@@ -248,8 +311,28 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
       });
 
       const slug = appType.toLowerCase().replace(/_/g, "-");
-      const redirectUrl = `${WEB_URL}/connectors/setup/complete?sessionId=${session.id}`;
-      const oauthUrl = `${API_URL}/api/integrations/${slug}/oauth/start?connectorId=${connector.id}&workspaceId=${ctx.teamId}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+      const redirectUrl = `${WEB_URL}/connectors/setup/${slug}/oauth/callback`;
+
+      const AuthClass = AUTH_MAP[appType];
+      if (!AuthClass) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `OAuth setup for ${app.name} is not supported yet via MCP.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const auth = new AuthClass();
+      const oauthUrl = await auth.start({
+        user: { id: ctx.userId },
+        workspaceId: ctx.teamId,
+        connectorId: connector.id,
+        redirectUrl,
+      });
 
       const text = [
         `Open this URL in your browser to connect ${app.name}:`,
