@@ -174,11 +174,11 @@ export const findConnectorsPendingDeletion = async (
   });
 
 export const activateConnector = async (
-  db: Pick<Database, "connector">,
+  db: Pick<Database, "connector" | "connectorSetupSession">,
   id: string,
   data: ActivateConnectorInput
-): Promise<Connector> =>
-  db.connector.update({
+): Promise<Connector> => {
+  const connector = await db.connector.update({
     where: { id },
     data: {
       status: ConnectorStatus.ACTIVE,
@@ -189,6 +189,23 @@ export const activateConnector = async (
       config: data.config as Prisma.InputJsonValue,
     },
   });
+
+  await db.connectorSetupSession
+    .updateMany({
+      where: {
+        teamId: connector.teamId,
+        appType: connector.app,
+        status: "PENDING",
+      },
+      data: {
+        status: "COMPLETED",
+        connectorId: connector.id,
+      },
+    })
+    .catch(Function.prototype as () => void);
+
+  return connector;
+};
 
 export const setConnectorError = async (
   db: Pick<Database, "connector">,
