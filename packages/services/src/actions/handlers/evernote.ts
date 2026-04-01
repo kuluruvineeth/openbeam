@@ -78,7 +78,7 @@ registerHandler({
       environment:
         typeof credentials.config.environment === "string"
           ? (credentials.config.environment as "production" | "sandbox")
-          : undefined,
+          : "production",
     });
 
     return await handler(client, params);

@@ -103,8 +103,14 @@ registerHandler({
       appKey: (credentials.config.appKey as string) ?? "",
       site:
         typeof credentials.config.site === "string"
-          ? credentials.config.site
-          : undefined,
+          ? (credentials.config.site as
+              | "us1"
+              | "us3"
+              | "us5"
+              | "eu"
+              | "ap1"
+              | "gov")
+          : "us1",
     });
 
     return await handler(client, params);

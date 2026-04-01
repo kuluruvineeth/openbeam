@@ -34,10 +34,7 @@ const actions: Record<string, Handler> = {
       description:
         typeof p.description === "string" ? p.description : undefined,
       issueType: typeof p.issueType === "string" ? p.issueType : "Task",
-      assigneeAccountId:
-        typeof p.assigneeAccountId === "string"
-          ? p.assigneeAccountId
-          : undefined,
+      assigneeId: typeof p.assigneeId === "string" ? p.assigneeId : undefined,
       priority: typeof p.priority === "string" ? p.priority : undefined,
       labels: Array.isArray(p.labels) ? (p.labels as string[]) : undefined,
     });
@@ -51,8 +48,7 @@ const actions: Record<string, Handler> = {
   },
 
   async issue_update(client, p) {
-    const r = await updateIssue(client, {
-      issueKey: str(p, "issueKey"),
+    const r = await updateIssue(client, str(p, "issueKey"), {
       summary: typeof p.summary === "string" ? p.summary : undefined,
       description:
         typeof p.description === "string" ? p.description : undefined,
@@ -66,10 +62,11 @@ const actions: Record<string, Handler> = {
   },
 
   async issue_transition(client, p) {
-    const r = await transitionIssueStatus(client, {
-      issueKey: str(p, "issueKey"),
-      transitionId: str(p, "transitionId"),
-    });
+    const r = await transitionIssueStatus(
+      client,
+      str(p, "issueKey"),
+      str(p, "targetStatus")
+    );
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -77,10 +74,11 @@ const actions: Record<string, Handler> = {
   },
 
   async issue_assign(client, p) {
-    const r = await assignIssue(client, {
-      issueKey: str(p, "issueKey"),
-      accountId: str(p, "accountId"),
-    });
+    const r = await assignIssue(
+      client,
+      str(p, "issueKey"),
+      str(p, "accountId")
+    );
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -96,10 +94,7 @@ const actions: Record<string, Handler> = {
   },
 
   async issue_comment(client, p) {
-    const r = await addComment(client, {
-      issueKey: str(p, "issueKey"),
-      body: str(p, "body"),
-    });
+    const r = await addComment(client, str(p, "issueKey"), str(p, "body"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }

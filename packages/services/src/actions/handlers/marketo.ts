@@ -35,9 +35,8 @@ registerHandler({
 
     const client = createMarketoClient({
       connectorId: "",
+      accessToken: credentials.accessToken,
       munchkinId: (credentials.config.munchkinId as string) ?? "",
-      clientId: (credentials.config.clientId as string) ?? "",
-      clientSecret: (credentials.config.clientSecret as string) ?? "",
     });
 
     return await handler(client, params);

@@ -84,7 +84,7 @@ registerHandler({
       accountId: (credentials.config.accountId as string) ?? "",
       consumerKey: (credentials.config.consumerKey as string) ?? "",
       consumerSecret: (credentials.config.consumerSecret as string) ?? "",
-      tokenId: (credentials.config.tokenId as string) ?? "",
+      tokenKey: (credentials.config.tokenKey as string) ?? "",
       tokenSecret: (credentials.config.tokenSecret as string) ?? "",
     });
 

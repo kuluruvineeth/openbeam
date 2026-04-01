@@ -60,7 +60,7 @@ registerHandler({
     const client = createInteractClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
+      instance: (credentials.config.instance as string) ?? "",
     });
 
     return await handler(client, params);

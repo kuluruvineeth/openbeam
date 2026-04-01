@@ -34,7 +34,10 @@ const actions: Record<string, Handler> = {
       message: str(p, "message"),
       description:
         typeof p.description === "string" ? p.description : undefined,
-      priority: typeof p.priority === "string" ? p.priority : undefined,
+      priority:
+        typeof p.priority === "string"
+          ? (p.priority as "P1" | "P2" | "P3" | "P4" | "P5")
+          : undefined,
       tags: Array.isArray(p.tags) ? (p.tags as string[]) : undefined,
     });
     if (!r.success) {
@@ -81,7 +84,10 @@ const actions: Record<string, Handler> = {
       message: str(p, "message"),
       description:
         typeof p.description === "string" ? p.description : undefined,
-      priority: typeof p.priority === "string" ? p.priority : undefined,
+      priority:
+        typeof p.priority === "string"
+          ? (p.priority as "P1" | "P2" | "P3" | "P4" | "P5")
+          : "P3",
       tags: Array.isArray(p.tags) ? (p.tags as string[]) : undefined,
     });
     if (!r.success) {
@@ -117,6 +123,10 @@ registerHandler({
     const client = createOpsGenieClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
+      region:
+        typeof credentials.config.region === "string"
+          ? (credentials.config.region as "us" | "eu")
+          : "us",
     });
 
     return await handler(client, params);

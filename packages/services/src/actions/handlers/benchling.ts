@@ -73,7 +73,7 @@ registerHandler({
     const client = createBenchlingClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
-      tenantUrl: (credentials.config.tenantUrl as string) ?? "",
+      tenant: (credentials.config.tenantUrl as string) ?? "",
     });
 
     return await handler(client, params);

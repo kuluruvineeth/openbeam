@@ -77,7 +77,7 @@ registerHandler({
     const client = createInsidedClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
+      communityUrl: (credentials.config.communityUrl as string) ?? "",
     });
 
     return await handler(client, params);

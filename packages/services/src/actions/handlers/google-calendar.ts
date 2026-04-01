@@ -65,10 +65,11 @@ const actions: Record<string, Handler> = {
   },
 
   async event_delete(client, p) {
-    const r = await deleteCalendarEvent(client, {
-      calendarId: typeof p.calendarId === "string" ? p.calendarId : undefined,
-      eventId: str(p, "eventId"),
-    });
+    const r = await deleteCalendarEvent(
+      client,
+      typeof p.calendarId === "string" ? p.calendarId : undefined,
+      str(p, "eventId")
+    );
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }

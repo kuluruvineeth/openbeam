@@ -60,7 +60,6 @@ registerHandler({
     const client = createLoopioClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
     });
 
     return await handler(client, params);

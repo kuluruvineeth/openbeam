@@ -27,7 +27,7 @@ function str(p: Record<string, unknown>, key: string): string {
 const actions: Record<string, Handler> = {
   async page_create(client, p) {
     const r = await createConfluencePage(client, {
-      spaceKey: str(p, "spaceKey"),
+      spaceId: str(p, "spaceId"),
       title: str(p, "title"),
       body: typeof p.body === "string" ? p.body : "",
       parentId: typeof p.parentId === "string" ? p.parentId : undefined,
@@ -41,9 +41,10 @@ const actions: Record<string, Handler> = {
   async page_update(client, p) {
     const r = await updateConfluencePage(client, {
       pageId: str(p, "pageId"),
-      title: typeof p.title === "string" ? p.title : undefined,
-      body: typeof p.body === "string" ? p.body : undefined,
-      version: typeof p.version === "number" ? p.version : undefined,
+      title: str(p, "title"),
+      body: str(p, "body"),
+      versionMessage:
+        typeof p.versionMessage === "string" ? p.versionMessage : undefined,
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -60,10 +61,11 @@ const actions: Record<string, Handler> = {
   },
 
   async comment_add(client, p) {
-    const r = await addConfluenceComment(client, {
-      pageId: str(p, "pageId"),
-      body: str(p, "body"),
-    });
+    const r = await addConfluenceComment(
+      client,
+      str(p, "pageId"),
+      str(p, "body")
+    );
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }

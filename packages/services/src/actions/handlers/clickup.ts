@@ -79,6 +79,7 @@ registerHandler({
     const client = createClickUpClient({
       connectorId,
       accessToken: credentials.accessToken,
+      workspaceId: (credentials.config.workspaceId as string) ?? "",
     });
 
     return await handler(client, params);

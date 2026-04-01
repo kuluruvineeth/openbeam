@@ -50,10 +50,6 @@ export async function resolveCredentials(
     config.syncAccessToken = syncToken;
   }
 
-  if (oauth.metadata && typeof oauth.metadata === "object") {
-    Object.assign(config, oauth.metadata);
-  }
-
   return {
     credentials: {
       accessToken,

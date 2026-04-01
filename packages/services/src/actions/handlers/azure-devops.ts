@@ -96,6 +96,7 @@ registerHandler({
     }
 
     const client = createAzureDevOpsClient({
+      connectorId: _connectorId,
       organization: (credentials.config.organization as string) ?? "",
       accessToken: credentials.accessToken,
     });

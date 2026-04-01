@@ -73,8 +73,8 @@ registerHandler({
 
     const client = createLumAppsClient({
       connectorId: "",
-      apiKey: (credentials.config.apiKey as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
+      apiToken: (credentials.config.apiToken as string) ?? "",
+      baseUrl: (credentials.config.baseUrl as string) ?? undefined,
     });
 
     return await handler(client, params);
