@@ -1,0 +1,80 @@
+---
+title: Team Tools
+description: Team metadata, member list, and role information.
+---
+
+# Team Tools
+
+Two tools for team information. Both require the `teams.read` scope and operate on the authenticated team (no team ID parameter needed).
+
+## team_info
+
+Get current team details including name, subscription plan, and aggregate counts for connectors, members, and documents. Call this first when you need team context -- many other tools operate within the team scope returned here.
+
+### Parameters
+
+None. Uses the authenticated team from the API key.
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Team ID |
+| `name` | `string` | Team display name |
+| `slug` | `string` | URL-safe team slug |
+| `plan` | `string` | Subscription tier (e.g. `free`, `pro`, `enterprise`) |
+| `connectorCount` | `number` | Total configured connectors |
+| `memberCount` | `number` | Total team members |
+| `documentCount` | `number` | Total indexed documents across all connectors |
+| `createdAt` | `string` | Team creation timestamp (ISO 8601) |
+
+### Example
+
+```json
+{}
+```
+
+### Chaining
+
+- Use `team_members` for the full member list with roles.
+- Use `connector_list` to see all connected data sources.
+- Use `search_documents` to search across the team's indexed documents.
+
+---
+
+## team_members
+
+List all members of the current team with name, email, role, and join date.
+
+<Callout type="info">
+This returns OpenBeam team members only. To find people across all connected directories (Google Workspace, Slack, etc.), use `search_people` instead.
+</Callout>
+
+### Parameters
+
+None. Uses the authenticated team from the API key.
+
+### Response
+
+Each member contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | User ID |
+| `name` | `string` | Display name |
+| `email` | `string` | Email address |
+| `role` | `string` | Team role: `admin`, `member`, `viewer` |
+| `avatarUrl` | `string` | Avatar URL |
+| `joinedAt` | `string` | Join timestamp (ISO 8601) |
+
+### Example
+
+```json
+{}
+```
+
+### Chaining
+
+- Use member IDs to filter results in other tools.
+- Use `search_people` for a broader people search across all connected directories.
+- Use `search_documents` with a member's name to find their authored content.

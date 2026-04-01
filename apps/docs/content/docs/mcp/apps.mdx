@@ -1,0 +1,117 @@
+---
+title: Rich UI Views
+description: Interactive app views that render inside Claude Desktop and compatible clients
+---
+
+# Rich UI Views
+
+OpenBeam renders interactive React UIs directly inside AI clients that support the `ext-apps` extension to MCP. Instead of plain-text tool responses, you see styled cards, tables, status badges, and interactive elements alongside the model's text output.
+
+## How It Works
+
+When you invoke an OpenBeam tool, the response includes two payloads:
+
+| Payload | Consumer | Purpose |
+|---------|----------|---------|
+| `content` | The AI model | Plain text the model reads and reasons about |
+| `structuredContent` | The UI layer | Typed data rendered as an interactive HTML view |
+
+The client loads a self-contained HTML file (no external assets, no network requests) into a sandboxed iframe and passes `structuredContent` into it. The view renders using React with the same design system as the OpenBeam web app.
+
+<Callout type="info">
+If your client does not support `ext-apps`, tool responses still work -- the model receives the same text content and can answer your questions normally. Rich views are a progressive enhancement.
+</Callout>
+
+## Available Views
+
+OpenBeam ships seven views. Each is tied to one or more MCP tools and renders automatically when those tools return results.
+
+### Search Results
+
+**URI:** `ui://openbeam/search`
+**Triggered by:** `search_documents`
+
+Displays document cards with source icons, titles, content snippets, relevance scores, and direct links to the original document. Results are grouped by source type and sorted by relevance.
+
+### Connector Dashboard
+
+**URI:** `ui://openbeam/connector-dashboard`
+**Triggered by:** `connector_list`
+
+A grid of all connected data sources showing status badges (active, error, syncing), document counts, last sync timestamps, and health indicators. Gives you a single-glance overview of your entire data pipeline.
+
+### Document Preview
+
+**URI:** `ui://openbeam/document-preview`
+**Triggered by:** `connector_get`
+
+Full document content with metadata sidebar: source connector, author, creation date, last updated, permissions, and a link to the original. Renders Markdown content with syntax highlighting for code blocks.
+
+### People Directory
+
+**URI:** `ui://openbeam/people`
+**Triggered by:** `search_people`
+
+Team member cards showing name, role, department, expertise areas, and contact information. Useful for finding subject-matter experts across your organization.
+
+### Sync Status
+
+**URI:** `ui://openbeam/sync-status`
+**Triggered by:** `sync_status`, `sync_trigger`
+
+Real-time sync progress for a specific connector: current job state, document counts, error details, and a scrollable history of past sync runs. Shows both full and incremental sync results.
+
+### Team Overview
+
+**URI:** `ui://openbeam/team`
+**Triggered by:** `team_info`, `team_members`
+
+Team metadata (name, plan, member count) alongside a member list with roles and connected source counts. Helpful for onboarding prompts and understanding team structure.
+
+### Connector Setup
+
+**URI:** `ui://openbeam/connector-setup`
+**Triggered by:** `connector_setup`, `connector_configure`
+
+An interactive wizard for connecting new data sources without leaving the AI client. Browse available connectors in a card grid, initiate OAuth authorization or enter an API key, and see a success confirmation -- all within the chat interface.
+
+## Client Support
+
+| Client | Rich UI | Text Fallback |
+|--------|---------|---------------|
+| Claude Desktop (1.5+) | Full support | -- |
+| Cursor | Not yet | Text responses work |
+| Windsurf | Not yet | Text responses work |
+| Claude Code | Not yet | Text responses work |
+| Codex | Not yet | Text responses work |
+
+<Callout type="warn">
+Rich UI views require Claude Desktop version 1.5 or later. If cards appear blank, check the developer console for content-security-policy errors -- a corporate proxy may be blocking sandboxed iframe resources.
+</Callout>
+
+## Theming
+
+Views automatically sync with the host application's theme. When the client switches between light and dark mode, views update instantly via the `onhostcontextchanged` callback. Colors are defined as CSS variables, so all views respect the active theme without any user configuration.
+
+## Architecture
+
+Each view is a single self-contained HTML file with all CSS and JavaScript inlined. No external network requests, no CDN dependencies. This design ensures views load instantly and work in sandboxed environments with strict content-security policies.
+
+```
+packages/mcp-apps/
+  src/views/{name}/
+    mcp-app.html       # HTML entry point
+    mcp-app.tsx         # React entry with McpAppWrapper
+    {name}-view.tsx     # View component
+    mock-data.ts        # Dev preview data
+  dist/views/
+    {name}.html         # Built single-file output
+```
+
+The build pipeline uses Vite with `vite-plugin-singlefile` to produce one HTML file per view. The server reads these files at startup and registers them as MCP app resources.
+
+<Cards>
+  <Card title="Client Setup" href="/docs/mcp/clients" description="Configure OpenBeam MCP in your AI client" />
+  <Card title="Tools Reference" href="/docs/mcp/tools" description="Full list of available MCP tools" />
+  <Card title="Write Actions" href="/docs/mcp/actions" description="Execute operations across 88 connectors" />
+</Cards>

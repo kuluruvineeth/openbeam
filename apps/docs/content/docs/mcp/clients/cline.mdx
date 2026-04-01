@@ -1,0 +1,98 @@
+---
+title: Cline
+description: Connect OpenBeam to Cline for autonomous coding with enterprise knowledge
+---
+
+# Cline
+
+[Cline](https://github.com/cline/cline) is an autonomous coding agent for VS Code that can plan, write, and execute code with minimal supervision. By connecting OpenBeam via MCP, Cline can autonomously research your enterprise knowledge base, look up internal APIs, create issues in connected tools, and ground its coding decisions in your organization's actual documentation.
+
+## Prerequisites
+
+| Requirement | Details |
+|-------------|---------|
+| **Cline** | Installed in VS Code ([marketplace](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)) |
+| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
+| **OpenBeam instance** | Running and accessible from your machine |
+
+<Callout type="info">
+  For Cline to execute write actions like creating issues or triggering syncs, your API key needs `connectors:write` and `sync:write` scopes in addition to read scopes.
+</Callout>
+
+## Configuration
+
+<Steps>
+  <Step>
+    ### Open MCP server settings
+
+    In VS Code, open the command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Cline: MCP Servers**. This opens the MCP configuration interface.
+
+    Alternatively, edit the configuration file directly at `~/.cline/mcp_settings.json`.
+  </Step>
+
+  <Step>
+    ### Add the OpenBeam server
+
+    Add the following entry to the `mcpServers` object:
+
+    ```json title="~/.cline/mcp_settings.json"
+    {
+      "mcpServers": {
+        "openbeam": {
+          "url": "https://api.openbeam.work/mcp",
+          "headers": {
+            "Authorization": "Bearer op_live_your_key_here"
+          }
+        }
+      }
+    }
+    ```
+
+    Replace `op_live_your_key_here` with your actual API key.
+
+    <Callout type="warn">
+      If you are running OpenBeam on a self-hosted instance, replace `https://api.openbeam.dev` with your server URL.
+    </Callout>
+  </Step>
+
+  <Step>
+    ### Restart Cline
+
+    Close and reopen the Cline panel, or reload the VS Code window (`Ctrl+Shift+P` > **Developer: Reload Window**) to activate the new MCP server.
+  </Step>
+</Steps>
+
+## Verification
+
+Confirm the connection by asking Cline a question that requires enterprise data:
+
+1. Open the Cline panel in VS Code
+2. Type: `Search our internal docs for the database migration process`
+3. Cline should call `search_documents` and present results from your connected sources
+
+If no tool calls appear, check the Cline output panel for MCP connection errors.
+
+## Use Cases
+
+| Task | How |
+|------|-----|
+| **Research before coding** | Ask Cline to search for existing patterns before implementing a feature. It queries indexed repos, wikis, and docs. |
+| **Create issues from context** | Ask "Create a Jira ticket for this bug" and Cline uses `connector_action_execute` to create it in the connected project tracker. |
+| **Search internal documentation** | Cline autonomously calls `search_documents` to find relevant internal docs when answering architecture questions. |
+| **Check sync status** | Ask "Is our Slack connector up to date?" and Cline checks via `sync_status` and `connector_health`. |
+| **Find who to ask** | Ask "Who is the expert on our payment system?" and Cline uses `search_people` to find domain owners. |
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| OpenBeam not listed in Cline tools | Config not loaded | Verify JSON syntax in `mcp_settings.json`. Reload VS Code window. |
+| `401 Unauthorized` | Invalid API key | Generate a new key in **Settings > API Keys** with appropriate scopes. |
+| Connection timeout | Network or firewall issue | Confirm `https://api.openbeam.work/mcp` is reachable. Run `curl -I https://api.openbeam.work/mcp`. |
+| Cline does not use OpenBeam tools | Agent not aware of tools | Mention OpenBeam explicitly: "Use OpenBeam to search for..." |
+| Write actions fail | Insufficient scopes | Ensure your API key includes `connectors:write` scope. |
+
+<Cards>
+  <Card title="API Keys" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="VS Code" href="/docs/mcp/clients/vscode" description="Use OpenBeam with VS Code's native MCP support" />
+</Cards>

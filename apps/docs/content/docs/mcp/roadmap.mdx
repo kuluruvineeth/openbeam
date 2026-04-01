@@ -1,0 +1,57 @@
+---
+title: Roadmap
+description: Upcoming MCP capabilities and integrations
+---
+
+# Roadmap
+
+OpenBeam's MCP server evolves rapidly. Here is what we have shipped and what is coming next, organized by phase.
+
+## Phase 1 — Foundation (Current)
+
+This is where we are today. The core MCP infrastructure is live and production-ready.
+
+- **20 MCP tools** covering search, connectors, sync, context, actions, and team management
+- **88 connector integrations** with full write actions (create issues, send messages, update records)
+- **7 rich UI views** rendered inside Claude Desktop via `ext-apps`
+- **OAuth + API key connector setup** directly from AI clients — no need to leave your editor
+
+## Phase 2 — Intelligence
+
+Smarter retrieval and deeper reasoning capabilities exposed as MCP tools.
+
+- **Knowledge graph tools** — entity extraction, relationship traversal, and graph-based discovery across all connected sources
+- **AI agent research tools** — multi-step analysis backed by Temporal workflows for durable, long-running investigations
+- **Context memory system** — cross-session learning with L0/L1/L2 tiered retrieval (80-96% token reduction compared to flat RAG)
+- **Additional search tools** — `search_similar` for finding related documents by embedding proximity, `search_recent` for time-weighted results
+
+## Phase 3 — Full Coverage
+
+Closing the gap between what you can do in the OpenBeam dashboard and what you can do from an AI client.
+
+- **Sync scheduling via MCP** — configure recurring sync intervals and one-off triggers without leaving your conversation
+- **Admin settings and API key management** — create, rotate, and revoke API keys through MCP tools
+- **Real-time notifications** — subscribe to sync events, document alerts, and connector status changes
+- **10+ MCP App views** — richer UI surfaces for analytics, knowledge graph exploration, admin panels, and more
+
+## Phase 4 — Distribution
+
+Making it trivial to install and run the OpenBeam MCP server anywhere.
+
+- **npm package** (`@openbeam/mcp-server`) — install with a single command, no infrastructure required
+- **Marketplace listings** — one-click install from Claude Desktop, Cursor, and VS Code extension marketplaces
+- **CLI MCP server mode** — run `openbeam mcp serve` to start a local MCP server backed by your OpenBeam instance
+- **Self-hosted deployment guide** — full documentation for running the MCP server behind your own firewall
+
+## Phase 5 — Enterprise
+
+Features for teams operating at scale in regulated environments.
+
+- **SSO/SAML integration** — authenticate MCP clients through your identity provider
+- **Audit logging** — every tool invocation logged with user, timestamp, parameters, and response metadata
+- **Usage-based billing** — metered API access with per-team quotas and cost visibility
+- **Custom connector SDK** — build proprietary connectors that surface data and actions through MCP without contributing upstream
+
+---
+
+We ship weekly. Follow our [changelog](/docs/changelog) for updates.

@@ -1,0 +1,152 @@
+---
+title: Context & Knowledge Tools
+description: Search the context database, read entries at multiple detail levels, and get AI-powered answers with citations.
+---
+
+# Context & Knowledge Tools
+
+Three tools for accessing OpenBeam's context database and RAG-powered Q&A. All require the `context.read` scope.
+
+The context database stores memories, resources, skills, and tools in a hierarchical `openbeam://` namespace. Entries are available at three detail levels (L0/L1/L2) to optimize token usage.
+
+## context_search
+
+Search the context database for memories, resources, skills, and tools. Returns entries ranked by relevance and usage frequency, each with L0 abstract and L1 overview summaries.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | `string` | Yes | Natural language search query |
+| `contextType` | `string` | No | Filter by type: `resource`, `memory`, `skill`, `tool` |
+| `category` | `string` | No | Filter by category (e.g. `preferences`, `entities`, `cases`, `patterns`) |
+| `limit` | `number` | No | Max results (1-50, default 10) |
+
+### Response
+
+Each entry contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uri` | `string` | `openbeam://` URI for this entry |
+| `title` | `string` | Entry title |
+| `abstract` | `string` | L0 summary (~100 tokens) |
+| `overview` | `string` | L1 overview (~2K tokens) |
+| `contextType` | `string` | Type: `resource`, `memory`, `skill`, `tool` |
+| `category` | `string` | Category within the type |
+| `score` | `number` | Relevance score |
+| `updatedAt` | `string` | Last updated timestamp (ISO 8601) |
+
+### Example
+
+```json
+{
+  "query": "deployment checklist",
+  "contextType": "resource",
+  "limit": 5
+}
+```
+
+### Chaining
+
+- Use `context_read` with the returned URI to get the full L2 content.
+- Use `search_documents` for broader document search across all connectors.
+
+---
+
+## context_read
+
+Read a context entry by its `openbeam://` URI at a specific detail level. Supports three levels to optimize token consumption:
+
+| Level | Content | Token Cost | Use When |
+|-------|---------|------------|----------|
+| **0** | Abstract only | ~100 tokens | Scanning many entries |
+| **1** | Abstract + overview | ~2K tokens | Deciding relevance |
+| **2** | Full content (default) | Unbounded | Reading in detail |
+
+Also returns metadata, related entries, and usage count. Each read increments the entry's `activeCount`, which influences future ranking.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `uri` | `string` | Yes | The `openbeam://` URI (e.g. `openbeam://resources/team123/doc456`) |
+| `level` | `string` | No | Content level: `0`, `1`, or `2` (default: `2`) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uri` | `string` | Entry URI |
+| `abstract` | `string` | L0 abstract (~100 tokens) |
+| `overview` | `string` | L1 overview (included at level 1+) |
+| `content` | `string` | L2 full content (included at level 2) |
+| `contextType` | `string` | Type: `resource`, `memory`, `skill`, `tool` |
+| `category` | `string` | Category |
+| `parentUri` | `string` | Parent entry URI |
+| `ownerType` | `string` | Owner type: `user`, `agent`, `team` |
+| `activeCount` | `number` | Total read count (usage frequency) |
+| `relations` | `array` | Related entries |
+| `relations[].targetUri` | `string` | Related entry URI |
+| `relations[].reason` | `string` | Why these entries are related |
+
+### Example
+
+```json
+{
+  "uri": "openbeam://resources/team_abc/doc_123",
+  "level": "1"
+}
+```
+
+### Chaining
+
+- Use `context_search` first to discover URIs.
+- Start with level 0 or 1, then request level 2 only when full content is needed.
+- Follow `relations[].targetUri` to explore connected context entries.
+
+---
+
+## ask_question
+
+Ask a natural language question and get an AI-generated answer grounded in enterprise data, with citations. Uses RAG to search across all connected sources, synthesize an answer, and provide source references.
+
+<Callout type="info">
+Use `ask_question` when you want a direct answer. Use `search_documents` when you want to browse matching documents yourself.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `question` | `string` | Yes | The question to answer |
+| `connectorTypes` | `string[]` | No | Limit answer sources to specific connector types |
+| `maxSources` | `number` | No | Max source documents to consider (1-20, default 5) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `answer` | `string` | AI-generated answer text |
+| `confidence` | `number` | Confidence score (0-1), based on citation relevance |
+| `citations` | `array` | Source references |
+| `citations[].uri` | `string` | `openbeam://` URI of the source document |
+| `citations[].title` | `string` | Document title |
+| `citations[].snippet` | `string` | Relevant excerpt |
+| `citations[].source` | `string` | Connector type slug |
+
+### Example
+
+```json
+{
+  "question": "What is our policy on remote work?",
+  "connectorTypes": ["notion", "google-drive"],
+  "maxSources": 10
+}
+```
+
+### Chaining
+
+- Use `context_read` with citation URIs to get the full source document.
+- Use `search_documents` for broader exploration when the answer needs more context.
+- Use `search_people` to find subject matter experts on the topic.

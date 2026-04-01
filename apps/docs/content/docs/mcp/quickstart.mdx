@@ -1,0 +1,160 @@
+---
+title: Quickstart
+description: Connect OpenBeam to your AI tool in under 5 minutes. One URL, one auth flow, full enterprise access.
+---
+
+# Quickstart
+
+Three steps to give your AI assistant access to every document, message, and file across your team's tools.
+
+## Prerequisites
+
+- An OpenBeam account with at least one connected data source
+- An AI tool that supports MCP (Claude Desktop, Cursor, Windsurf, Claude Code, etc.)
+
+## Step 1: Get your credentials
+
+<Tabs items={["Hosted (OAuth)", "Self-Hosted (API Key)"]}>
+  <Tab value="Hosted (OAuth)">
+    No API key needed. OpenBeam's hosted MCP server uses OAuth -- your AI tool will prompt you to sign in with your OpenBeam account when you first connect.
+
+    The MCP URL is:
+
+    ```
+    https://mcp.openbeam.work/mcp
+    ```
+  </Tab>
+  <Tab value="Self-Hosted (API Key)">
+    Generate an API key from your OpenBeam dashboard:
+
+    1. Go to **Settings > API Keys**
+    2. Click **Create API Key**
+    3. Copy the key (starts with `op_live_`)
+
+    Or via the CLI:
+
+    ```bash
+    openbeam auth login
+    openbeam api-key create --name "mcp-server"
+    ```
+  </Tab>
+</Tabs>
+
+## Step 2: Add to your AI tool
+
+<Tabs items={["Claude Desktop", "Claude Code", "Cursor", "Other Clients"]}>
+  <Tab value="Claude Desktop">
+    Open **Settings > Connectors** in Claude Desktop and add OpenBeam as a remote MCP server:
+
+    ```
+    URL: https://mcp.openbeam.work/mcp
+    ```
+
+    Claude will prompt you to authenticate with your OpenBeam account via OAuth.
+
+    Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "openbeam": {
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Claude Code">
+    ```bash
+    claude mcp add --transport http openbeam https://mcp.openbeam.work/mcp
+    ```
+
+    Then run `/mcp` in a Claude Code session to authenticate.
+  </Tab>
+  <Tab value="Cursor">
+    Add to `.cursor/mcp.json` in your project root:
+
+    ```json
+    {
+      "mcpServers": {
+        "openbeam": {
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Other Clients">
+    For any MCP client that supports HTTP transport, use the URL directly:
+
+    ```
+    https://mcp.openbeam.work/mcp
+    ```
+
+    For stdio-based clients, wrap with `mcp-remote`:
+
+    ```bash
+    npx -y mcp-remote https://mcp.openbeam.work/mcp
+    ```
+
+    For self-hosted instances with API key auth:
+
+    ```json
+    {
+      "mcpServers": {
+        "openbeam": {
+          "url": "https://your-instance.example.com/mcp",
+          "headers": {
+            "Authorization": "Bearer op_live_your_key_here"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Step 3: Try it
+
+Once connected, ask your AI assistant any of these:
+
+| Prompt | What happens |
+|--------|-------------|
+| "What connectors are connected to OpenBeam?" | Calls `connector_list` to show your data sources |
+| "Search for our Q4 planning docs" | Calls `search_documents` with hybrid semantic + keyword search |
+| "Who knows the most about authentication?" | Calls `search_people` to find subject matter experts |
+| "Create a Linear issue for the login bug" | Calls `connector_action_execute` to create the issue |
+| "What's the sync status of my Slack connector?" | Calls `sync_status` to show sync health |
+| "Summarize what we know about Project Atlas" | Calls `ask_question` for RAG-powered answer with citations |
+
+<Callout type="info">
+  The AI assistant automatically discovers available tools. You do not need to tell it which tool to use -- just describe what you want in natural language.
+</Callout>
+
+## Verify the connection
+
+The simplest test:
+
+> "List my connected data sources and their sync status."
+
+If you see your connectors listed with document counts and last sync times, everything is working.
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| "Server not found" | Ensure `https://mcp.openbeam.work` is reachable from your network |
+| "Authentication failed" | Re-authenticate via OAuth, or check your API key is valid |
+| "No results" | Verify at least one connector is synced in the OpenBeam dashboard |
+| Connection timeout | Check firewall rules; the MCP endpoint requires HTTPS on port 443 |
+| Tools not appearing | Restart your AI tool after adding the MCP configuration |
+
+## Next steps
+
+<Cards>
+  <Card title="Capabilities" href="/docs/mcp/capabilities" description="Full list of tools, apps, resources, and prompts" />
+  <Card title="Authentication" href="/docs/mcp/authentication" description="OAuth flows, API key scopes, and permissions" />
+  <Card title="Clients" href="/docs/mcp/clients" description="Detailed setup for every supported AI client" />
+</Cards>

@@ -5,7 +5,7 @@ description: Connect OpenBeam to Claude, Cursor, Windsurf, Codex, and any MCP-co
 
 # MCP Server
 
-OpenBeam ships an MCP server that gives AI assistants access to your enterprise knowledge — 103+ connectors, hybrid search, RAG answers, and agent execution.
+OpenBeam ships a Model Context Protocol (MCP) server that gives AI assistants access to your enterprise knowledge — 88+ connector integrations with write actions, hybrid search, RAG answers, rich UI views, and connector management.
 
 ## Quick Setup
 
@@ -25,8 +25,10 @@ Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_confi
 {
   "mcpServers": {
     "openbeam": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+      "url": "https://api.openbeam.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
     }
   }
 }
@@ -73,69 +75,16 @@ Or use `mcp-remote` for stdio-based hosts:
 npx -y mcp-remote https://mcp.openbeam.work/mcp
 ```
 
-## Self-Hosted Setup
+## What You Get
 
-If you run your own OpenBeam instance, use the local MCP server with an API key:
+Once connected, your AI assistant can:
 
-```json
-{
-  "mcpServers": {
-    "openbeam": {
-      "command": "npx",
-      "args": ["-y", "@openbeam/mcp-server"],
-      "env": {
-        "MCP_API_KEY": "your-api-key",
-        "OPENBEAM_URL": "https://your-instance.example.com"
-      }
-    }
-  }
-}
-```
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `MCP_API_KEY` | Yes | API key from your OpenBeam Settings |
-| `OPENBEAM_URL` | Yes | Your self-hosted OpenBeam URL |
-
-## Available Tools
-
-Once connected, your AI assistant can use these tools:
-
-### Search
-
-| Tool | Description |
-|------|-------------|
-| `search_documents` | Hybrid semantic + keyword search across all connected sources |
-| `search_people` | Find experts by name, email, department, or expertise |
-| `get_document` | Retrieve full document content by ID |
-| `get_related` | Find related documents by similarity or knowledge graph |
-
-### Knowledge
-
-| Tool | Description |
-|------|-------------|
-| `ask_question` | RAG-powered Q&A with citations from enterprise data |
-| `list_connectors` | List all connected data sources and their sync status |
-| `get_connector_stats` | Get detailed statistics for a connector |
-
-### Agents
-
-| Tool | Description |
-|------|-------------|
-| `run_agent` | Start an autonomous research or analysis agent |
-| `deep_research` | Multi-step research across all enterprise sources |
-| `get_job_status` | Check progress of async agent jobs |
-
-## Resources
-
-The server exposes enterprise data as browsable MCP resources:
-
-| URI Pattern | Description |
-|-------------|-------------|
-| `openbeam://resources/{teamId}/` | Synced enterprise documents |
-| `openbeam://user/{teamId}/{userId}/memories/` | User knowledge and preferences |
-| `openbeam://agent/{teamId}/{agentId}/skills/` | Agent capabilities |
-| `openbeam://tools/{teamId}/` | Tool definitions and stats |
+- **Search** across all connected data sources with hybrid semantic + keyword search
+- **Ask questions** with RAG-powered answers and citations
+- **Manage connectors** — list, inspect health, connect new sources via OAuth
+- **Trigger syncs** — run full or incremental syncs and monitor progress
+- **Execute actions** — create issues, send messages, update records across 88+ integrations
+- **Browse context** — access the enterprise knowledge graph and context memory
 
 ## Verify It Works
 
@@ -143,11 +92,18 @@ After setup, ask your AI assistant:
 
 > "What connectors are connected to OpenBeam?"
 
-The assistant will call `list_connectors` and show your connected data sources.
+The assistant will call `connector_list` and show your connected data sources. If you see connector names, statuses, and document counts, the integration is working.
 
-> "Search for our authentication architecture docs"
+## Full Documentation
 
-The assistant will call `search_documents` and return results from Confluence, Notion, Google Drive, or wherever your docs live.
+For detailed guides on every tool, authentication options, rich UI views, and client-specific setup instructions, see the comprehensive MCP documentation:
+
+<Cards>
+  <Card title="MCP Overview" href="/docs/mcp" description="Architecture, capabilities, and tool catalog" />
+  <Card title="Authentication" href="/docs/mcp/authentication" description="OAuth, API keys, and scope management" />
+  <Card title="Client Guides" href="/docs/mcp/clients/claude-desktop" description="Step-by-step setup for Claude Desktop, Cursor, and more" />
+  <Card title="Roadmap" href="/docs/mcp/roadmap" description="Upcoming MCP capabilities and integrations" />
+</Cards>
 
 ## Troubleshooting
 

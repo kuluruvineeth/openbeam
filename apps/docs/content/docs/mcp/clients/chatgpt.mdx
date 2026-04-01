@@ -1,0 +1,189 @@
+---
+title: ChatGPT
+description: Connect OpenBeam to ChatGPT for enterprise knowledge in conversations
+---
+
+# ChatGPT
+
+The ChatGPT desktop application supports MCP server connections, allowing OpenBeam to bring your organization's enterprise knowledge directly into ChatGPT conversations. Search across all connected data sources, retrieve documents, get team information, and execute write actions without leaving the chat interface.
+
+## Prerequisites
+
+- **ChatGPT desktop app** installed ([macOS](https://chatgpt.com/download) or [Windows](https://chatgpt.com/download))
+- A **ChatGPT Plus, Team, or Enterprise** subscription (MCP support requires a paid plan)
+- An **OpenBeam account** with at least one connected data source
+- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
+
+<Callout type="info">
+API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
+</Callout>
+
+## Configuration
+
+ChatGPT manages MCP servers through its settings UI rather than a config file.
+
+<Steps>
+<Step>
+
+### Open MCP settings
+
+In the ChatGPT desktop app, navigate to **Settings > MCP Servers**. This panel lists all configured MCP server connections.
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Click **Add Server** and fill in the following:
+
+| Field | Value |
+|-------|-------|
+| Name | `OpenBeam` |
+| URL | `https://api.openbeam.work/mcp` |
+| Authentication | API Key |
+| Header name | `Authorization` |
+| Header value | `Bearer op_live_your_key_here` |
+
+Replace `op_live_your_key_here` with your actual API key.
+
+<Callout type="warn">
+If you self-host OpenBeam, replace `https://api.openbeam.dev` with your server's base URL.
+</Callout>
+
+</Step>
+<Step>
+
+### Save and verify
+
+Click **Save**. ChatGPT will attempt to connect to the server and perform a handshake. A green status indicator confirms the connection is active.
+
+</Step>
+</Steps>
+
+## Verification
+
+Open a new conversation and type:
+
+```text
+List my connected data sources
+```
+
+ChatGPT should invoke the `connector_list` tool and return a summary of your connectors with names, types, statuses, and document counts. If you see this information, the integration is working.
+
+You can also check for the MCP tools icon in the composer area, which indicates that external tools are available for the current conversation.
+
+## Use Cases
+
+ChatGPT can use OpenBeam tools to answer questions grounded in your organization's actual data rather than general knowledge.
+
+### Ask questions about internal documentation
+
+```text
+What does our internal documentation say about the incident
+response process? Cite the specific documents.
+```
+
+ChatGPT searches across your connected Confluence, Notion, Google Docs, and other sources, then synthesizes an answer with citations.
+
+### Search across all connected sources
+
+```text
+Find all documents related to our Q1 product roadmap
+across Notion, Google Drive, and Confluence.
+```
+
+The `search_documents` tool runs a hybrid semantic and keyword search across every connected data source, returning the most relevant matches.
+
+### Get team information
+
+```text
+Who is on the infrastructure team and what are their roles?
+```
+
+ChatGPT uses `team_members` and `search_people` to retrieve team structure and expertise information from your connected sources.
+
+### Check connector health and sync status
+
+```text
+Are all my data source connections healthy? When did each
+one last sync?
+```
+
+The agent calls `connector_list` and `connector_health` to provide a status overview of all connected integrations.
+
+### Research a topic with follow-up questions
+
+```text
+Search our internal docs for information about our
+authentication architecture. Then find who on the team
+has the most expertise in auth systems.
+```
+
+ChatGPT chains `search_documents` and `search_people` together, building a research summary across multiple tool calls.
+
+## Limitations
+
+| Limitation | Details |
+|------------|---------|
+| No ext-apps support | ChatGPT does not render MCP `ext-apps` UI cards. All OpenBeam responses are presented as text, not rich interactive views. |
+| Text-only responses | Search results, connector lists, and other structured data are formatted as readable text rather than visual cards or tables. |
+| Conversation scope | MCP tool access is per-conversation. You may need to re-invoke tools if starting a new chat about the same topic. |
+| Rate limits | OpenBeam API keys are subject to rate limits. Conversations with many tool calls may hit limits during extended research sessions. |
+| Plan requirement | MCP server connections require a ChatGPT Plus, Team, or Enterprise subscription. Free-tier users do not have access to MCP. |
+
+<Callout type="info">
+Because ChatGPT does not support `ext-apps`, you will not see the rich UI cards (search result cards, connector dashboards, document previews) that are available in Claude Desktop. All data is returned as formatted text that ChatGPT presents inline in the conversation.
+</Callout>
+
+## Troubleshooting
+
+### Server not connecting
+
+<Steps>
+<Step>
+Confirm the URL is entered correctly: `https://api.openbeam.work/mcp`. A missing `/mcp` path or trailing slash can cause connection failures.
+</Step>
+<Step>
+Check that the authentication header is formatted correctly. The header name should be `Authorization` and the value should be `Bearer op_live_...` with a space between `Bearer` and the key.
+</Step>
+<Step>
+Test the OpenBeam endpoint directly to rule out network issues:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer op_live_your_key_here" \
+  https://api.openbeam.work/mcp
+```
+
+A `200` or `405` response confirms the server is reachable.
+</Step>
+</Steps>
+
+### Authentication failed
+
+- Double-check that your API key starts with `op_live_` and has not been revoked.
+- Ensure there are no extra spaces or line breaks in the header value.
+- Verify the key has not expired in **Settings > API Keys** on the OpenBeam dashboard.
+- If you self-host, confirm your server is reachable and the `/mcp` endpoint is exposed.
+
+### Tools not appearing in conversation
+
+- Some tools are gated by scopes assigned to your API key. If you only see a subset of tools, check the key's scope configuration in **Settings > API Keys**.
+- If no tools appear at all, return to **Settings > MCP Servers** and confirm the status indicator is green. A red or yellow indicator means the handshake failed.
+- Try removing and re-adding the server configuration.
+
+### Responses seem incomplete
+
+- ChatGPT may truncate long tool responses. If a search returns many results, ask follow-up questions to drill into specific items: "Tell me more about the third result" or "Read the full document from that search."
+- For large result sets, specify a lower limit in your prompt: "Search for deployment docs, limit to 5 results."
+
+### ChatGPT not using OpenBeam tools
+
+- Be explicit about searching your internal sources. Phrases like "search my docs," "check our internal knowledge base," or "look in our connected sources" signal that the model should use OpenBeam tools.
+- If ChatGPT answers from general knowledge instead, restate the question: "Using my connected data sources, what does our documentation say about..."
+
+<Cards>
+  <Card title="API Key Management" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="MCP Server Reference" href="/docs/ai/mcp" description="Full MCP protocol documentation" />
+  <Card title="Claude Desktop" href="/docs/mcp/clients/claude-desktop" description="Claude Desktop setup with rich UI support" />
+</Cards>

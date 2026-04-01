@@ -1,0 +1,139 @@
+---
+title: Sync Tools
+description: Trigger, monitor, and review sync operations for connected data sources.
+---
+
+# Sync Tools
+
+Three tools for managing sync operations. `sync_trigger` requires `sync.write` scope. `sync_status` and `sync_history` require `sync.read`.
+
+## sync_trigger
+
+Start a sync job for a specific connector. Default is incremental sync, which only processes changes since the last sync and completes quickly. Full sync re-indexes all documents and can take hours for large connectors.
+
+<Callout type="warn">
+Use `full` sync only when explicitly requested. Full syncs re-index every document and can take hours for large data sources.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID to sync (from `connector_list`) |
+| `type` | `string` | No | Sync type: `full` or `incremental` (default: `incremental`) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `syncJobId` | `string` | Sync job ID for tracking |
+| `workflowId` | `string` | Temporal workflow ID |
+| `connectorId` | `string` | Connector ID |
+| `type` | `string` | Sync type that was started |
+
+### Example
+
+```json
+{
+  "connectorId": "conn_abc123",
+  "type": "incremental"
+}
+```
+
+### Chaining
+
+- Use `sync_status` with the `connectorId` to monitor progress.
+- If the trigger fails, use `connector_get` to check that the connector is in an active state.
+
+---
+
+## sync_status
+
+Check the current sync state of a connector. Returns the latest sync job details including status, duration, document counts, processing queue state, and webhook status.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID to check |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connector` | `object` | Connector metadata |
+| `latestSync.id` | `string` | Sync job ID |
+| `latestSync.status` | `string` | Job status (`RUNNING`, `COMPLETED`, `FAILED`) |
+| `latestSync.startedAt` | `string` | Start timestamp |
+| `latestSync.finishedAt` | `string` | Completion timestamp |
+| `latestSync.durationMs` | `number` | Duration in milliseconds |
+| `latestSync.dataAdded` | `number` | Documents added |
+| `latestSync.dataUpdated` | `number` | Documents updated |
+| `latestSync.dataDeleted` | `number` | Documents deleted |
+| `latestSync.errorMessage` | `string` | Error message, if any |
+| `stats` | `object` | Aggregate sync statistics |
+| `processing` | `object` | Processing queue state |
+| `syncJobs` | `array` | Scheduled sync jobs |
+| `webhookStatus` | `object` | Webhook registration status |
+
+### Chaining
+
+- If the latest sync shows errors, use `sync_history` for failure patterns.
+- Use `connector_health` for the overall health assessment.
+- Use `sync_trigger` to start a fresh sync after resolving issues.
+
+---
+
+## sync_history
+
+List past sync jobs for a connector with status, duration, document counts, and error messages. Supports pagination. Use this to diagnose recurring sync failures or verify that recent syncs completed successfully.
+
+<Callout type="info">
+Look for patterns in the history: repeated errors often suggest auth expiry or upstream API changes.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID to get history for |
+| `limit` | `number` | No | Max results (1-100, default 25) |
+| `offset` | `number` | No | Offset for pagination (default 0) |
+
+### Response
+
+Each sync job contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Sync job ID |
+| `connectorId` | `string` | Connector ID |
+| `status` | `string` | Job status (`COMPLETED`, `FAILED`, `RUNNING`, etc.) |
+| `type` | `string` | Sync type (`FULL`, `INCREMENTAL`) |
+| `startedAt` | `string` | Start timestamp (ISO 8601) |
+| `completedAt` | `string` | Completion timestamp |
+| `documentsProcessed` | `number` | Total documents processed (added + updated) |
+| `documentsErrored` | `number` | Documents that failed |
+| `errorMessage` | `string` | Error message, if any |
+
+Pagination metadata:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `meta.cursor` | `string` | Cursor for next page |
+| `meta.hasNextPage` | `boolean` | Whether more results exist |
+| `meta.total` | `number` | Total sync history entries |
+
+### Example
+
+```json
+{
+  "connectorId": "conn_abc123",
+  "limit": 10
+}
+```
+
+### Chaining
+
+- Use `connector_health` for the overall health score.
+- Use `sync_trigger` to attempt a fresh sync after resolving issues.

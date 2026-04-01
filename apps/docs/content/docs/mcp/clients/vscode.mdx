@@ -1,0 +1,138 @@
+---
+title: VS Code
+description: Connect OpenBeam to VS Code's built-in MCP support
+---
+
+# VS Code
+
+VS Code has native MCP support through GitHub Copilot's agent mode. This lets you query OpenBeam tools directly from Copilot Chat without installing any additional extensions. Search enterprise documents, find experts, create tickets, and trigger syncs from the editor.
+
+## Prerequisites
+
+| Requirement | Details |
+|-------------|---------|
+| **VS Code** | Version 1.99 or later with MCP support |
+| **GitHub Copilot** | Active subscription with Copilot Chat enabled |
+| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
+| **OpenBeam instance** | Running and accessible from your machine |
+
+<Callout type="info">
+  VS Code MCP support requires GitHub Copilot in agent mode. Ensure you have the Copilot Chat extension installed and the agent mode toggle enabled in chat settings.
+</Callout>
+
+## Configuration
+
+You can configure the MCP server at the workspace level or user level.
+
+### Option A: Workspace configuration (recommended)
+
+<Steps>
+  <Step>
+    ### Create the MCP config file
+
+    Create `.vscode/mcp.json` in your workspace root:
+
+    ```json title=".vscode/mcp.json"
+    {
+      "servers": {
+        "openbeam": {
+          "type": "sse",
+          "url": "https://api.openbeam.work/mcp",
+          "headers": {
+            "Authorization": "Bearer op_live_your_key_here"
+          }
+        }
+      }
+    }
+    ```
+
+    Replace `op_live_your_key_here` with your actual API key.
+
+    <Callout type="warn">
+      Add `.vscode/mcp.json` to your `.gitignore` if it contains API keys. For shared team setups, use environment variable references if your VS Code version supports them.
+    </Callout>
+  </Step>
+
+  <Step>
+    ### Reload the window
+
+    Run `Ctrl+Shift+P` > **Developer: Reload Window** to pick up the new configuration.
+  </Step>
+</Steps>
+
+### Option B: User-level configuration
+
+<Steps>
+  <Step>
+    ### Open MCP settings
+
+    Run `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) and select **MCP: Add Server**.
+  </Step>
+
+  <Step>
+    ### Enter server details
+
+    When prompted:
+    - **Server name**: `openbeam`
+    - **Type**: `sse`
+    - **URL**: `https://api.openbeam.work/mcp`
+    - **Headers**: Add `Authorization: Bearer op_live_your_key_here`
+
+    This saves the configuration to your VS Code user settings, making it available across all workspaces.
+  </Step>
+</Steps>
+
+## Verification
+
+<Steps>
+  <Step>
+    ### Open Copilot Chat in agent mode
+
+    Click the Copilot Chat icon in the sidebar or press `Ctrl+Shift+I`. Ensure agent mode is enabled (toggle in the chat input area).
+  </Step>
+
+  <Step>
+    ### Test a search query
+
+    Type in Copilot Chat:
+
+    ```
+    @openbeam Search for API authentication documentation
+    ```
+
+    Copilot should invoke the `search_documents` tool and return results from your connected enterprise sources.
+  </Step>
+
+  <Step>
+    ### Confirm tool availability
+
+    Type `@openbeam` followed by a space. Copilot should show available tools including `search_documents`, `connector_list`, `sync_trigger`, and others.
+  </Step>
+</Steps>
+
+## Use Cases
+
+| Task | How |
+|------|-----|
+| **Search documentation** | `@openbeam Find the deployment runbook for the payments service` |
+| **Find domain experts** | `@openbeam Who is the expert on our Kubernetes infrastructure?` |
+| **Create a ticket** | `@openbeam Create a Linear issue for this bug in the auth module` (uses `connector_action_execute`) |
+| **Trigger a data sync** | `@openbeam Trigger an incremental sync for the Confluence connector` (uses `sync_trigger`) |
+| **Check connector status** | `@openbeam Show me all connectors with sync errors` (uses `connector_list` with error filter) |
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `@openbeam` not available in chat | MCP config not loaded | Verify `.vscode/mcp.json` is valid JSON. Reload the window. |
+| `401 Unauthorized` | Invalid or expired API key | Generate a new key in **Settings > API Keys**. |
+| Agent mode not available | Copilot version too old | Update the GitHub Copilot Chat extension to the latest version. |
+| Tools return empty results | API key missing scopes | Regenerate the key with at least `search:read` and `connectors:read` scopes. |
+| Connection refused | Server unreachable | Confirm your OpenBeam server URL is correct and accessible. Test with `curl -I https://api.openbeam.work/mcp`. |
+| MCP option not in command palette | VS Code version too old | Update VS Code to 1.99 or later. MCP support is not available in older versions. |
+
+<Cards>
+  <Card title="API Keys" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="Continue" href="/docs/mcp/clients/continue-dev" description="Use OpenBeam with Continue AI coding assistant" />
+  <Card title="Cline" href="/docs/mcp/clients/cline" description="Use OpenBeam with Cline autonomous coding agent" />
+</Cards>

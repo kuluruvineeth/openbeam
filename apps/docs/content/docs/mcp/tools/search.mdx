@@ -1,0 +1,110 @@
+---
+title: Search Tools
+description: Hybrid semantic + keyword search across all connected enterprise data sources.
+---
+
+# Search Tools
+
+Two tools for finding documents and people across all connected data sources. Both require the `search.read` scope.
+
+## search_documents
+
+Hybrid semantic + keyword search across all connected enterprise data sources. This is the primary tool for answering factual questions about your organization's data.
+
+Returns up to 50 ranked results with titles, snippets, source metadata, and relevance scores. Results respect source permissions -- users only see documents they have access to.
+
+<Callout type="info">
+Use `ask_question` instead when you want a synthesized answer with citations rather than a list of documents.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | `string` | Yes | Natural language or keyword search query |
+| `limit` | `number` | No | Max results to return (1-50, default 10) |
+| `connectorTypes` | `string[]` | No | Filter by connector type slugs (e.g. `["slack", "google-drive", "notion"]`) |
+| `dateFrom` | `string` | No | Filter results updated after this date (ISO 8601) |
+| `dateTo` | `string` | No | Filter results updated before this date (ISO 8601) |
+
+### Response
+
+Each result contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Document ID |
+| `title` | `string` | Document title |
+| `snippet` | `string` | First 300 characters of content |
+| `source` | `string` | Connector type slug |
+| `connectorType` | `string` | Connector type slug |
+| `documentType` | `string` | Document type (e.g. `message`, `page`, `file`) |
+| `sourceName` | `string` | Source name (e.g. channel name, folder name) |
+| `sourceType` | `string` | Source type (e.g. `channel`, `folder`) |
+| `authorName` | `string` | Author display name |
+| `authorAvatarUrl` | `string` | Author avatar URL |
+| `url` | `string` | Original document URL |
+| `score` | `number` | Relevance score |
+| `updatedAt` | `string` | Last updated timestamp (ISO 8601) |
+
+### Example
+
+```json
+{
+  "query": "quarterly revenue report",
+  "connectorTypes": ["google-drive", "notion"],
+  "limit": 5
+}
+```
+
+### Chaining
+
+- Use `context_read` with a document's `openbeam://` URI to retrieve the full content when snippets are insufficient.
+- Use `search_people` to find the author of a document.
+- Use `ask_question` for a synthesized answer instead of raw search results.
+
+---
+
+## search_people
+
+Find people across connected enterprise directories by name, email, or title. Searches Google Workspace, Microsoft 365, Slack, and other connectors that sync user profiles.
+
+<Callout type="info">
+For a complete list of team members with roles, use `team_members` instead. `search_people` searches across all connected directories, not just your OpenBeam team.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | `string` | Yes | Name, email, or title to search for |
+| `limit` | `number` | No | Max results to return (1-50, default 10) |
+| `connectorTypes` | `string[]` | No | Filter by connector type slugs |
+
+### Response
+
+Each result contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Person ID |
+| `name` | `string` | Display name |
+| `email` | `string` | Email address |
+| `title` | `string` | Job title |
+| `department` | `string` | Department |
+| `avatarUrl` | `string` | Avatar URL |
+| `connectorType` | `string` | Source connector type |
+
+### Example
+
+```json
+{
+  "query": "engineering manager",
+  "limit": 5
+}
+```
+
+### Chaining
+
+- Use `search_documents` with a person's name to find their authored documents.
+- Use `team_members` for team role information.

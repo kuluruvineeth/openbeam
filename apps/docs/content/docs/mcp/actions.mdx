@@ -1,0 +1,243 @@
+---
+title: Write Actions
+description: Execute write operations across 88 connected enterprise tools
+---
+
+# Write Actions
+
+OpenBeam exposes write operations -- creating issues, sending messages, updating records, deleting items -- across 88 connected enterprise tools through a two-tool discovery pattern. Instead of learning a different API for each tool, you use the same two MCP tools for everything.
+
+## How It Works
+
+Actions follow a discover-then-execute pattern using two tools:
+
+<Steps>
+  <Step>
+    **Discover available actions** with `connector_actions_list`. Filter by connector type or action category to find what you can do.
+  </Step>
+  <Step>
+    **Execute an action** with `connector_action_execute`. Pass the connector ID, action ID, and parameters.
+  </Step>
+</Steps>
+
+This pattern keeps the tool count low (two tools instead of 500+ individual tools) while supporting every write operation across every connector.
+
+<Callout type="info">
+You do not need to memorize action IDs or parameter schemas. Ask your AI assistant what actions are available for a connector and it will call `connector_actions_list` to discover them, then call `connector_action_execute` with the correct parameters.
+</Callout>
+
+## The Two Tools
+
+### `connector_actions_list`
+
+**Scope required:** `connectors.read`
+
+Discovers available write actions. Returns the action ID, name, description, category, stakes level, reversibility, and the full list of input parameters for each action.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorType` | string | No | Filter by connector (e.g. `slack`, `linear`, `jira`). Omit to list all. |
+| `category` | enum | No | Filter by category: `create`, `read`, `update`, `delete`, `search`, `list`, `notify` |
+
+### `connector_action_execute`
+
+**Scope required:** `connectors.write`
+
+Executes a write action on a connected data source.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | string | Yes | ID of the connected connector instance (from `connector_list`) |
+| `actionId` | string | Yes | Action ID (from `connector_actions_list`) |
+| `params` | object | Yes | Action parameters -- keys match the input IDs from `connector_actions_list` |
+
+## Stakes and Safety
+
+Every action has a stakes level that indicates risk. The AI model uses this to decide whether to confirm with you before executing.
+
+| Stakes | Meaning | Confirmation | Examples |
+|--------|---------|-------------|----------|
+| **Low** | Safe, easily reversible | Execute immediately | Send message, add comment, add reaction |
+| **Medium** | Reversible but may have side effects | Confirm first | Create channel, create issue, share file |
+| **High** | Destructive or difficult to reverse | Always confirm | Delete issue, archive channel, trash email |
+
+Actions also declare whether they are **reversible**. An irreversible action (like deleting a message in Slack) always requires explicit confirmation regardless of stakes level.
+
+## Top Connectors and Actions
+
+The table below shows example actions for the most commonly used connectors. Each connector has between 4 and 14 actions.
+
+| Connector | Example Actions |
+|-----------|----------------|
+| **Slack** | Send message, reply to thread, add reaction, create channel, set topic, invite to channel, send DM, archive channel, upload file, search messages |
+| **Linear** | Create issue, update issue, assign issue, add comment, add label, search issues, create project, add issue to cycle |
+| **GitHub** | Create issue, add issue comment, create pull request, add PR comment, search issues, get repository |
+| **Jira** | Create issue, update issue, transition status, assign issue, add comment, add watcher, delete issue, search issues |
+| **Notion** | Create page, update page, archive page, query database, create database, append block, delete block, add comment, search |
+| **Gmail** | Send email, reply, forward, create draft, search emails, trash email, modify labels, create label, get thread |
+| **Google Drive** | Create file, copy file, move file, rename file, delete file, share file, remove access, create folder, search files |
+| **Confluence** | Create page, update page, add comment, archive page |
+| **Salesforce** | Create record, update record, delete record, search records, get record, describe object |
+| **HubSpot** | Create contact, update contact, create deal, update deal, create company, search contacts |
+| **Asana** | Create task, update task, complete task, add comment, create project, search tasks |
+| **Microsoft Teams** | Send message, reply to message, create channel, list channels |
+
+## Example Workflows
+
+### Create a bug report and notify the team
+
+```text
+Create a Jira issue titled "Login timeout on mobile" with priority High,
+then send a message in #engineering on Slack with the issue link.
+```
+
+The AI assistant will:
+1. Call `connector_list` to find your Jira and Slack connector IDs
+2. Call `connector_action_execute` with `issue_create` on Jira
+3. Call `connector_action_execute` with `message_send` on Slack with the new issue URL
+
+### Track a feature request end-to-end
+
+```text
+Create a Linear issue for "Dark mode support" in the Design project,
+add a comment with the user feedback from Intercom, and create a
+Notion page in the Product Specs database with the requirements.
+```
+
+### Triage and respond
+
+```text
+Search my Gmail for unread emails about "quarterly review",
+summarize them, then create a Google Calendar event for next Tuesday
+and send a Slack message to #leadership with the summary.
+```
+
+## All 88 Connectors with Actions
+
+<Accordions>
+<Accordion title="Full connector list (A-Z)">
+
+| Connector | Type |
+|-----------|------|
+| 15Five | `fifteen_five` |
+| Aha! | `aha` |
+| Airtable | `airtable` |
+| Amazon S3 | `s3` |
+| Amplitude | `amplitude` |
+| Asana | `asana` |
+| AWS IoT Core | `aws_iot` |
+| Azure DevOps | `azure_devops` |
+| BambooHR | `bamboohr` |
+| Benchling | `benchling` |
+| Bitbucket | `bitbucket` |
+| Box | `box` |
+| Bynder | `bynder` |
+| Canva | `canva` |
+| ClickUp | `clickup` |
+| Coda | `coda` |
+| Confluence | `confluence` |
+| Coupa | `coupa` |
+| Datadog | `datadog` |
+| Docebo | `docebo` |
+| DocuSign | `docusign` |
+| Dropbox | `dropbox` |
+| Dynamics 365 | `dynamics365` |
+| Egnyte | `egnyte` |
+| Evernote | `evernote` |
+| Fellow | `fellow` |
+| Figma | `figma` |
+| Freshservice | `freshservice` |
+| GitHub | `github` |
+| GitLab | `gitlab` |
+| Gmail | `gmail` |
+| Gong | `gong` |
+| Google Calendar | `google_calendar` |
+| Google Chat | `google_chat` |
+| Google Drive | `google_drive` |
+| Google Sites | `google_sites` |
+| Greenhouse | `greenhouse` |
+| Guru | `guru` |
+| Harvest | `harvest` |
+| Haystack | `haystack` |
+| Highspot | `highspot` |
+| HubSpot | `hubspot` |
+| inSided | `insided` |
+| Interact | `interact` |
+| Intercom | `intercom` |
+| Ironclad | `ironclad` |
+| Jenkins | `jenkins` |
+| JFrog Artifactory | `jfrog` |
+| Jira | `jira` |
+| Klue | `klue` |
+| Lessonly | `lessonly` |
+| Linear | `linear` |
+| Looker Studio | `looker_studio` |
+| Loopio | `loopio` |
+| Lucidchart | `lucid` |
+| LumApps | `lumapps` |
+| Marketo | `marketo` |
+| Microsoft Calendar | `microsoft_calendar` |
+| Microsoft OneNote | `onenote` |
+| Microsoft Outlook | `outlook` |
+| Microsoft SharePoint | `sharepoint` |
+| Microsoft Teams | `teams` |
+| Mindtickle | `mindtickle` |
+| MindTouch | `mindtouch` |
+| Miro | `miro` |
+| Monday.com | `monday` |
+| NetSuite | `netsuite` |
+| NICE CXone | `nice_cxone` |
+| Notion | `notion` |
+| OpsGenie | `opsgenie` |
+| PagerDuty | `pagerduty` |
+| Panopto | `panopto` |
+| Phabricator | `phabricator` |
+| Pipedrive | `pipedrive` |
+| Procore | `procore` |
+| Salesforce | `salesforce` |
+| Samsara | `samsara` |
+| Seismic | `seismic` |
+| ServiceNow | `servicenow` |
+| Showpad | `showpad` |
+| Simpplr | `simpplr` |
+| Slack | `slack` |
+| Smartsheet | `smartsheet` |
+| SmartThings | `smartthings` |
+| Verkada | `verkada` |
+| Workday | `workday` |
+| Zendesk | `zendesk` |
+| Zoom | `zoom` |
+
+</Accordion>
+</Accordions>
+
+## Action Categories
+
+Actions are organized into seven categories. Use the `category` parameter on `connector_actions_list` to filter.
+
+| Category | Description | Example Actions |
+|----------|-------------|----------------|
+| `create` | Create new records | Create issue, send message, create page |
+| `read` | Fetch specific records | Get email, lookup user, get repository |
+| `update` | Modify existing records | Update issue status, rename file, set topic |
+| `delete` | Remove records | Delete issue, trash email, remove access |
+| `search` | Query for records | Search messages, search issues, search files |
+| `list` | Enumerate records | List channels, list labels |
+| `notify` | Send notifications | Send DM, add reaction |
+
+## Scope Requirements
+
+Actions require two scopes on your API key:
+
+| Scope | Grants |
+|-------|--------|
+| `connectors.read` | Discover available actions via `connector_actions_list` |
+| `connectors.write` | Execute actions via `connector_action_execute` |
+
+If your API key only has `connectors.read`, you can browse actions but not execute them. Generate a key with both scopes in **Settings > API Keys** on the OpenBeam dashboard.
+
+<Cards>
+  <Card title="Rich UI Views" href="/docs/mcp/apps" description="Interactive views rendered inside AI clients" />
+  <Card title="Tools Reference" href="/docs/mcp/tools" description="Full list of available MCP tools" />
+  <Card title="Authentication" href="/docs/mcp/authentication" description="API key scopes and access control" />
+</Cards>

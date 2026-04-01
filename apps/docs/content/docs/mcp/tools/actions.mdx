@@ -1,0 +1,188 @@
+---
+title: Action Tools
+description: Discover and execute write actions across 88 connected data sources -- send messages, create issues, update records.
+---
+
+# Action Tools
+
+Two tools implementing a progressive discovery pattern for write operations across connected data sources. First discover available actions with `connector_actions_list`, then execute with `connector_action_execute`.
+
+<Callout type="info">
+Always call `connector_actions_list` first to discover the exact action ID and required parameters before calling `connector_action_execute`.
+</Callout>
+
+## connector_actions_list
+
+Discover available write actions for connected data sources. Lists operations like sending Slack messages, creating Jira issues, creating Notion pages, and more. Each action includes its ID, description, required parameters, stakes level, and reversibility.
+
+Requires `connectors.read` scope.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorType` | `string` | No | Filter by connector type (e.g. `slack`, `linear`, `notion`). Omit to list all. |
+| `category` | `string` | No | Filter by category: `create`, `read`, `update`, `delete`, `search`, `list`, `notify` |
+
+### Response
+
+Each action contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Action ID (e.g. `message_send`, `issue_create`) |
+| `name` | `string` | Human-readable action name |
+| `description` | `string` | What the action does |
+| `connectorType` | `string` | Connector type this action belongs to |
+| `category` | `string` | Action category |
+| `stakes` | `string` | Risk level: `low`, `medium`, `high` |
+| `reversible` | `boolean` | Whether the action can be undone |
+| `inputs` | `array` | Required and optional input parameters |
+| `inputs[].id` | `string` | Parameter ID (used as key in `params`) |
+| `inputs[].name` | `string` | Human-readable parameter name |
+| `inputs[].type` | `string` | Parameter type (`string`, `number`, `boolean`, etc.) |
+| `inputs[].required` | `boolean` | Whether the parameter is required |
+| `inputs[].description` | `string` | Parameter description |
+
+### Example
+
+```json
+{
+  "connectorType": "linear",
+  "category": "create"
+}
+```
+
+### Chaining
+
+- Use `connector_list` to find the connector ID needed for `connector_action_execute`.
+- Use the `inputs` array to construct the `params` object for execution.
+
+---
+
+## connector_action_execute
+
+Execute a write action on a connected data source. Requires three parameters: the connector instance ID, the action ID, and a params object whose keys match the input IDs from `connector_actions_list`.
+
+Requires `connectors.write` scope.
+
+<Callout type="warn">
+Always confirm with the user before executing high-stakes or irreversible actions. Check the `stakes` and `reversible` fields from `connector_actions_list`.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | `string` | Yes | ID of the connected connector instance (from `connector_list`) |
+| `actionId` | `string` | Yes | Action ID (from `connector_actions_list`, e.g. `message_send`, `issue_create`) |
+| `params` | `object` | Yes | Action parameters -- keys match the input IDs from `connector_actions_list` |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `boolean` | Whether the action succeeded |
+| `data` | `object` | Action-specific response data (e.g. created issue ID, sent message ID) |
+| `error` | `string` | Error message if the action failed |
+
+### Examples
+
+**Create a Linear issue:**
+
+```json
+{
+  "connectorId": "conn_linear_abc",
+  "actionId": "issue_create",
+  "params": {
+    "title": "Fix search ranking for recent documents",
+    "teamId": "TEAM-1",
+    "priority": 2,
+    "description": "Recent documents should rank higher in search results."
+  }
+}
+```
+
+**Send a Slack message:**
+
+```json
+{
+  "connectorId": "conn_slack_xyz",
+  "actionId": "message_send",
+  "params": {
+    "channel": "C0123456789",
+    "text": "Deploy completed successfully."
+  }
+}
+```
+
+**Create a Notion page:**
+
+```json
+{
+  "connectorId": "conn_notion_def",
+  "actionId": "page_create",
+  "params": {
+    "parentId": "db_123",
+    "title": "Meeting Notes - Q2 Planning",
+    "content": "## Agenda\n\n1. Review Q1 metrics\n2. Set Q2 goals"
+  }
+}
+```
+
+---
+
+## Supported Connectors
+
+88 connectors currently have action registries. Use `connector_actions_list` to discover exact actions for each.
+
+| Connector | Category | Connector | Category |
+|-----------|----------|-----------|----------|
+| Aha | Project Management | Ironclad | Legal |
+| Airtable | Productivity | Jenkins | Development |
+| Amplitude | Analytics | JFrog | Development |
+| Asana | Project Management | Jira | Project Management |
+| AWS IoT | IoT | Klue | Sales |
+| Azure DevOps | Development | Lessonly | Learning |
+| BambooHR | HR | Linear | Project Management |
+| Benchling | Science | Looker Studio | Analytics |
+| Bitbucket | Development | Loopio | Sales |
+| Box | Storage | Lucid | Design |
+| Bynder | Media | LumApps | Intranet |
+| Canva | Design | Marketo | Marketing |
+| ClickUp | Project Management | Microsoft Calendar | Communication |
+| Coda | Productivity | MindTickle | Sales |
+| Confluence | Knowledge | MindTouch | Knowledge |
+| Coupa | Procurement | Miro | Design |
+| Datadog | Monitoring | Monday | Project Management |
+| Docebo | Learning | NetSuite | Finance |
+| DocuSign | Legal | NICE CXone | Support |
+| Dropbox | Storage | Notion | Productivity |
+| Dynamics 365 | CRM | OneNote | Productivity |
+| Egnyte | Storage | OpsGenie | Monitoring |
+| Evernote | Productivity | Outlook | Communication |
+| Fellow | Meetings | PagerDuty | Monitoring |
+| 15Five | HR | Panopto | Video |
+| Figma | Design | Phabricator | Development |
+| Freshservice | IT | Pipedrive | CRM |
+| GitHub | Development | Procore | Construction |
+| GitLab | Development | S3 | Storage |
+| Gmail | Communication | Salesforce | CRM |
+| Gong | Sales | Samsara | IoT |
+| Google Calendar | Communication | Seismic | Sales |
+| Google Chat | Communication | ServiceNow | IT |
+| Google Drive | Storage | SharePoint | Storage |
+| Google Sites | Knowledge | Showpad | Sales |
+| Greenhouse | HR | Simpplr | Intranet |
+| Guru | Knowledge | Slack | Communication |
+| Harvest | Finance | Smartsheet | Productivity |
+| Haystack | Intranet | SmartThings | IoT |
+| Highspot | Sales | Teams | Communication |
+| HubSpot | CRM | Verkada | IoT |
+| inSided | Community | Workday | HR |
+| Interact | Intranet | Zendesk | Support |
+| Intercom | Support | Zoom | Communication |
+
+<Callout type="info">
+Action counts vary by connector. Communication tools (Slack, Teams) typically have 5-10 actions. CRM tools (Salesforce, HubSpot) may have 15-20. Use `connector_actions_list` filtered by `connectorType` to see the exact list.
+</Callout>

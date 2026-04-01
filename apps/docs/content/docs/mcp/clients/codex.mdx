@@ -1,0 +1,232 @@
+---
+title: OpenAI Codex
+description: Connect OpenBeam to OpenAI Codex CLI for enterprise-augmented coding agents
+---
+
+# OpenAI Codex
+
+OpenAI Codex CLI is a terminal-based coding agent by OpenAI that runs software engineering tasks autonomously. By connecting OpenBeam as an MCP server, Codex agents gain access to your organization's internal documentation, pull requests, architecture decisions, and connected data sources -- turning a general-purpose coding agent into one that understands your codebase's context.
+
+## Prerequisites
+
+- **OpenAI Codex CLI** installed ([GitHub](https://github.com/openai/codex))
+- An **OpenBeam account** with at least one connected data source
+- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
+
+<Callout type="info">
+API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
+</Callout>
+
+## Configuration
+
+Codex stores MCP configuration in `config.toml`, shared across CLI, VS Code, and Desktop.
+
+<Steps>
+<Step>
+
+### Add via CLI (recommended)
+
+The fastest way to add OpenBeam:
+
+```bash
+codex mcp add openbeam --url https://api.openbeam.work/mcp
+```
+
+</Step>
+<Step>
+
+### Or edit config.toml directly
+
+Codex reads from `~/.codex/config.toml` (global) or `.codex/config.toml` (project-scoped, trusted projects only):
+
+```toml title="~/.codex/config.toml"
+[mcp.openbeam]
+type = "remote"
+url = "https://api.openbeam.work/mcp"
+
+[mcp.openbeam.headers]
+Authorization = "Bearer op_live_your_key_here"
+```
+
+Replace `op_live_your_key_here` with your actual API key. If your Codex supports OAuth, the auth flow is handled automatically when you first use OpenBeam tools.
+
+</Step>
+<Step>
+
+### Verify
+
+```bash
+codex mcp list
+```
+
+You should see `openbeam` in the server list with a connected status.
+
+</Step>
+</Steps>
+
+<Callout type="info">
+Codex config is shared across CLI, VS Code extension, and Desktop app. Configure once, use everywhere.
+</Callout>
+
+### Legacy JSON configuration
+
+Older Codex versions may use `~/.codex/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Replace `op_live_your_key_here` with your actual API key.
+
+<Callout type="warn">
+If you self-host OpenBeam, replace `https://api.openbeam.dev` with your server's base URL.
+</Callout>
+
+</Step>
+<Step>
+
+### Verify the connection
+
+Start a new Codex session and ask it to list your connectors:
+
+```bash
+codex "List my connected data sources"
+```
+
+If the agent returns connector names, statuses, and document counts, the integration is working.
+
+</Step>
+</Steps>
+
+## Verification
+
+Run a quick search to confirm end-to-end connectivity:
+
+```bash
+codex "Search my internal docs for deployment runbook"
+```
+
+Codex should invoke the `search_documents` tool and return matching results from your connected sources. If no results appear, check the Troubleshooting section below.
+
+## Use Cases
+
+Codex agents can chain OpenBeam tools together for complex, multi-step research tasks that go beyond simple search.
+
+### Search internal documentation during code review
+
+```text
+Review this pull request and check our internal docs for any
+architecture guidelines that apply to the changes in src/auth/.
+```
+
+Codex searches your connected Confluence, Notion, or Google Docs for relevant architecture decision records and references them in its review.
+
+### Find related pull requests and prior work
+
+```text
+Find pull requests and documents related to our rate limiting
+implementation. Summarize what was decided and why.
+```
+
+The agent searches across GitHub, Linear, Jira, and document sources to build a timeline of decisions.
+
+### Look up architecture decisions
+
+```text
+What does our internal documentation say about our database
+migration strategy? Cite specific documents.
+```
+
+Codex uses `search_documents` followed by `context_read` to retrieve full documents and extract the relevant sections.
+
+### Create Jira tickets from code context
+
+```text
+I found a bug in the payment processing module. Create a Jira
+ticket with the stack trace and relevant code context, assigned
+to the payments team.
+```
+
+The agent uses `connector_actions_list` to discover available Jira actions, then `connector_action_execute` to create the ticket with structured fields.
+
+### Research before implementing
+
+```text
+Before implementing the new webhook system, search our docs for
+any existing webhook patterns, related Slack discussions, and
+relevant Linear issues. Summarize what already exists.
+```
+
+Codex runs multiple searches across different connector types and synthesizes the findings into an implementation brief.
+
+## Limitations
+
+| Limitation | Details |
+|------------|---------|
+| No rich UI | Codex is a terminal application. All responses are text-based. OpenBeam's `ext-apps` UI cards are not rendered. |
+| Session scoping | Each Codex session starts fresh. Context from previous sessions is not automatically carried over. |
+| Rate limits | OpenBeam API keys are subject to rate limits. Long-running agent sessions with many tool calls may hit limits. |
+| Write actions | Codex can execute write actions (create issues, send messages) through OpenBeam. Review the agent's proposed actions before confirming. |
+
+<Callout type="warn">
+Codex agents operate autonomously and can chain multiple tool calls. When write actions are enabled on your API key, the agent may create issues, send messages, or modify data in connected services. Use scoped API keys to restrict write access when appropriate.
+</Callout>
+
+## Troubleshooting
+
+### MCP server not connecting
+
+<Steps>
+<Step>
+Confirm the config file is valid JSON. A trailing comma or missing bracket will silently prevent loading. Paste the contents into a JSON validator if unsure.
+</Step>
+<Step>
+Verify the file path. If using the default location, confirm `~/.codex/mcp.json` exists. If using `CODEX_MCP_CONFIG`, confirm the environment variable is set in your shell session:
+
+```bash
+echo $CODEX_MCP_CONFIG
+```
+</Step>
+<Step>
+Test the OpenBeam endpoint directly to rule out network issues:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer op_live_your_key_here" \
+  https://api.openbeam.work/mcp
+```
+
+A `200` or `405` response confirms the server is reachable. A connection error indicates a network or URL issue.
+</Step>
+</Steps>
+
+### Authentication failed
+
+- Double-check that your API key starts with `op_live_` and has not been revoked.
+- Ensure there are no extra spaces or line breaks inside the key value in the JSON file.
+- If you self-host, confirm your server is reachable from your machine.
+
+### Tools not appearing
+
+- Some tools are gated by scopes assigned to your API key. If you only see a subset of tools, check the key's scope configuration in **Settings > API Keys**.
+- If no tools appear at all, the server connection likely failed. Start Codex with verbose output to inspect the MCP handshake.
+
+### Agent not using OpenBeam tools
+
+- Be explicit in your prompts. Mention "search my internal docs" or "check our connected sources" to signal that the agent should use OpenBeam tools rather than general web search.
+- If Codex has access to multiple MCP servers, it may prefer other tool sources. Name the tools directly if needed: "Use the search_documents tool to find..."
+
+<Cards>
+  <Card title="API Key Management" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="MCP Server Reference" href="/docs/ai/mcp" description="Full MCP protocol documentation" />
+  <Card title="Self-Hosting" href="/docs/self-hosting/configuration" description="Configure your own OpenBeam server" />
+</Cards>

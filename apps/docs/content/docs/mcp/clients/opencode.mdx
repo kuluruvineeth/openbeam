@@ -1,0 +1,191 @@
+---
+title: OpenCode
+description: Connect OpenBeam to OpenCode CLI for terminal-based enterprise search
+---
+
+# OpenCode
+
+OpenCode is an open-source terminal AI coding tool that brings LLM-assisted development to the command line. By connecting OpenBeam via MCP, you get enterprise search, connector management, and sync operations directly in your terminal -- ideal for SSH sessions, server-side workflows, and developers who prefer keyboard-driven tools.
+
+## Prerequisites
+
+- **OpenCode** installed ([github.com/opencode-ai/opencode](https://github.com/opencode-ai/opencode))
+- An **OpenBeam account** with at least one connected data source
+- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
+
+<Callout type="info">
+API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
+</Callout>
+
+## Configuration
+
+<Steps>
+<Step>
+
+### Locate the config file
+
+OpenCode reads MCP server definitions from its configuration file. The default path is:
+
+```text
+~/.config/opencode/config.json
+```
+
+If you use a custom `XDG_CONFIG_HOME`, the file is at `$XDG_CONFIG_HOME/opencode/config.json`.
+
+If the file does not exist, create it.
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Add the following to the config file. If the file already contains other MCP servers, merge the `openbeam` key into the existing `mcpServers` object.
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Replace `op_live_your_key_here` with your actual API key.
+
+<Callout type="warn">
+If you self-host OpenBeam, replace `https://api.openbeam.dev` with your server's base URL.
+</Callout>
+
+</Step>
+<Step>
+
+### Alternatively, use environment variables
+
+OpenCode also supports configuration via environment variables. Export these in your shell profile (`~/.zshrc`, `~/.bashrc`, or equivalent):
+
+```bash
+export OPENBEAM_MCP_URL="https://api.openbeam.work/mcp"
+export OPENBEAM_API_KEY="op_live_your_key_here"
+```
+
+Then reference them in your config:
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "${OPENBEAM_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${OPENBEAM_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+This approach keeps secrets out of config files, which is useful for shared dotfiles.
+
+</Step>
+<Step>
+
+### Restart OpenCode
+
+If OpenCode is running, exit and restart it. MCP servers connect on startup.
+
+</Step>
+</Steps>
+
+## Verification
+
+After restarting, type the following in an OpenCode session:
+
+```text
+List my connectors
+```
+
+OpenCode should invoke the `connector_list` tool and return a summary of your connected data sources. If you see connector names, statuses, and document counts, the integration is working.
+
+## Use Cases
+
+OpenCode excels in terminal-first workflows. OpenBeam brings enterprise context to environments where a browser is not available or practical.
+
+### Search documentation from the terminal
+
+```text
+Search my docs for database migration runbook
+```
+
+Pull up runbooks, playbooks, and internal documentation without leaving the terminal. Useful during incident response or on-call rotations.
+
+### Trigger syncs from a remote session
+
+```text
+Trigger a full sync on my Confluence connector
+```
+
+When you notice stale data while working on a server, trigger a resync without switching to the dashboard.
+
+### Manage connectors during setup
+
+```text
+What connectors do I have connected? Show me their health status.
+```
+
+Verify that all data sources are healthy and syncing as expected, directly from your terminal.
+
+### Search for code patterns across indexed repositories
+
+```text
+Search for implementations of the retry backoff pattern
+```
+
+Find code examples, design patterns, and implementation references across all indexed repositories and documentation.
+
+### Check sync history for debugging
+
+```text
+Show me recent sync history for GitHub
+```
+
+When investigating missing or outdated search results, inspect sync history to identify failures or incomplete runs.
+
+## Troubleshooting
+
+### MCP server not connecting
+
+<Steps>
+<Step>
+Confirm the config file is valid JSON. A trailing comma or missing bracket will silently prevent loading.
+</Step>
+<Step>
+Verify the file path is correct. Run `echo $XDG_CONFIG_HOME` to check if you use a custom config directory. If unset, the default is `~/.config/opencode/config.json`.
+</Step>
+<Step>
+Restart OpenCode completely. Exit the session and start a new one.
+</Step>
+</Steps>
+
+### Authentication failed
+
+- Double-check that your API key starts with `op_live_` and has not been revoked.
+- If using environment variables, confirm they are exported in the current shell: `echo $OPENBEAM_API_KEY` should print your key.
+- If you self-host, confirm your server is reachable: `curl -s https://your-server/mcp` should return a response (not a connection error).
+
+### Tools not loading
+
+- Some tools are gated by scopes assigned to your API key. If you only see a subset of tools, check the key's scope configuration in **Settings > API Keys**.
+- If no tools appear at all, check OpenCode's log output for connection errors. Most terminal tools print MCP connection status on startup.
+
+### Network issues in SSH sessions
+
+- Ensure the remote machine can reach `api.openbeam.dev` (or your self-hosted server). Run `curl -I https://api.openbeam.work/mcp` to confirm.
+- If behind a corporate proxy, set `HTTPS_PROXY` in your shell environment before launching OpenCode.
+
+<Cards>
+  <Card title="API Key Management" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="Claude Desktop Setup" href="/docs/mcp/clients/claude-desktop" description="Set up OpenBeam in Claude Desktop" />
+</Cards>

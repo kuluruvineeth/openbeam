@@ -1,0 +1,15 @@
+{
+  "title": "Client Setup Guides",
+  "pages": [
+    "claude-desktop",
+    "cursor",
+    "windsurf",
+    "codex",
+    "chatgpt",
+    "vscode",
+    "continue-dev",
+    "cline",
+    "opencode",
+    "conductor"
+  ]
+}

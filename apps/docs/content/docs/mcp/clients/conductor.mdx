@@ -1,0 +1,160 @@
+---
+title: Conductor
+description: Connect OpenBeam to Conductor for AI-powered workflow automation
+---
+
+# Conductor
+
+Conductor is an AI-powered workflow automation platform. By connecting OpenBeam via MCP, your automated workflows gain access to enterprise search, connector management, sync triggers, and write actions across 100+ data sources. This enables workflows that query internal knowledge, react to data changes, and execute actions across your tool stack without custom API integrations.
+
+## Prerequisites
+
+- A **Conductor** account with workflow creation permissions
+- An **OpenBeam account** with at least one connected data source
+- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
+
+<Callout type="info">
+API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
+</Callout>
+
+## Configuration
+
+<Steps>
+<Step>
+
+### Open Conductor MCP settings
+
+In Conductor, navigate to **Settings > Integrations > MCP Servers** (or the equivalent tool configuration section in your version).
+
+If Conductor supports file-based configuration, the MCP config is typically at:
+
+```text
+~/.conductor/mcp.json
+```
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Add the following configuration. If you are using the Conductor UI, paste the JSON into the MCP server configuration form. If using a config file, merge the `openbeam` key into the existing `mcpServers` object.
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Replace `op_live_your_key_here` with your actual API key.
+
+<Callout type="warn">
+If you self-host OpenBeam, replace `https://api.openbeam.dev` with your server's base URL.
+</Callout>
+
+</Step>
+<Step>
+
+### Verify the connection
+
+After saving, Conductor should show the OpenBeam MCP server as connected. Check the integrations page for a green status indicator or run a test query from a workflow draft.
+
+</Step>
+</Steps>
+
+## Verification
+
+Create a simple test workflow (or use Conductor's tool testing interface) and invoke:
+
+```text
+List my connectors
+```
+
+Conductor should invoke the `connector_list` tool and return a summary of your connected data sources. If you see connector names, statuses, and document counts, the integration is working.
+
+## Use Cases
+
+Conductor workflows become significantly more powerful with access to enterprise knowledge. The following patterns demonstrate common automations.
+
+### Query enterprise data in automated workflows
+
+```text
+Search my docs for incident response procedure for database outages
+```
+
+Build workflows that retrieve relevant documentation when triggered by an alert, then surface the right runbook to the on-call engineer.
+
+### Trigger syncs on a schedule or event
+
+```text
+Trigger a full sync on my Jira connector
+```
+
+Create workflows that trigger data syncs in response to events -- for example, resyncing Jira after a sprint closes or resyncing Confluence after a space is updated.
+
+### Execute write actions across tools
+
+```text
+Create a Linear issue titled "Review Q2 security audit findings" with priority high
+```
+
+Chain OpenBeam write actions into multi-step workflows. A single automation can search for data, analyze it, and create tasks, messages, or tickets in connected tools.
+
+### Monitor connector health
+
+```text
+Show me the health status of all my connectors
+```
+
+Build a daily health-check workflow that queries connector status and sends a Slack summary if any source is in an error state.
+
+### Route questions to the right expert
+
+```text
+Find who on my team is an expert in compliance
+```
+
+Create workflows that identify subject-matter experts based on their indexed contributions, then route incoming questions or review requests to the right person.
+
+## Troubleshooting
+
+### MCP server not connecting
+
+<Steps>
+<Step>
+Confirm the configuration is valid JSON. A trailing comma or missing bracket will prevent Conductor from parsing it.
+</Step>
+<Step>
+Verify the server URL is correct. The endpoint should be `https://api.openbeam.work/mcp` (or your self-hosted equivalent).
+</Step>
+<Step>
+Check that Conductor can reach the OpenBeam server. If Conductor runs in a restricted network environment, you may need to allowlist `api.openbeam.dev` in your firewall or proxy rules.
+</Step>
+</Steps>
+
+### Authentication failed
+
+- Double-check that your API key starts with `op_live_` and has not been revoked.
+- Ensure there are no extra spaces or line breaks inside the key value.
+- If you self-host, confirm your server is reachable: `curl -s https://your-server/mcp` should return a response (not a connection error).
+
+### Tools not loading
+
+- Some tools are gated by scopes assigned to your API key. If you only see a subset of tools, check the key's scope configuration in **Settings > API Keys**.
+- If Conductor shows the server as connected but no tools appear, check the MCP server logs for scope or authentication errors.
+
+### Workflow timeouts
+
+- OpenBeam MCP requests typically respond within a few seconds. If a workflow step times out, increase the step timeout to at least 30 seconds.
+- For `sync_trigger` operations, the tool returns immediately with a job ID. Use `sync_status` in a subsequent step to poll for completion rather than waiting in a single step.
+
+<Cards>
+  <Card title="API Key Management" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="Claude Desktop Setup" href="/docs/mcp/clients/claude-desktop" description="Set up OpenBeam in Claude Desktop" />
+</Cards>

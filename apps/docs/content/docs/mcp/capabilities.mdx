@@ -1,0 +1,169 @@
+---
+title: Capabilities
+description: Complete inventory of OpenBeam MCP tools, apps, resources, prompts, connectors, and write actions.
+---
+
+# Capabilities
+
+OpenBeam MCP exposes 20 tools, 7 rich UI views, 5 resources, 7 workflow prompts, 100+ connector integrations, and 500+ write actions through a single server endpoint.
+
+## Tools (20)
+
+Every tool is scope-gated, input-validated with Zod schemas, and returns both text (for the LLM) and structured content (for UI rendering).
+
+### Search
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `search_documents` | Hybrid semantic + keyword search across all connected sources. Returns ranked results with title, snippet, score, and source metadata. | `search.read` |
+| `search_people` | Find team members by name, email, department, or expertise area. Cross-references authorship patterns across sources. | `search.read` |
+
+### Connectors
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `connector_list` | List all connected data sources with status, document count, and last sync time. Filter by status (active, error, pending). | `connectors.read` |
+| `connector_get` | Get detailed information for a specific connector including configuration, sync history summary, and health metrics. | `connectors.read` |
+| `connector_health` | Deep health check for a connector -- token validity, API reachability, rate limit status, and recent error patterns. | `connectors.read` |
+
+### Connector Setup
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `connector_available` | List all available connector types that can be configured, with auth method (OAuth or API key) and category. | `connectors.read` |
+| `connector_setup` | Start the setup flow for a new connector. Returns an OAuth URL or API key form depending on the connector type. | `connectors.write` |
+| `connector_setup_status` | Check the status of an in-progress connector setup (pending OAuth callback, API key validation, etc.). | `connectors.read` |
+| `connector_configure` | Submit configuration for a connector (API key, custom settings). Completes the setup flow. | `connectors.write` |
+| `connector_disconnect` | Disconnect a connector and remove its synced data. Destructive operation with confirmation. | `connectors.write` |
+
+### Actions
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `connector_actions_list` | Discover available write actions for a connector type or category. Returns action schemas with required and optional parameters. | `actions.read` |
+| `connector_action_execute` | Execute a write action on a connected source. Requires connector ID, action ID, and action-specific parameters. | `actions.write` |
+
+### Sync
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `sync_trigger` | Trigger a full or incremental sync for a connector. Returns the sync job ID for status tracking. | `sync.write` |
+| `sync_status` | Check the current sync status for a connector -- progress, documents processed, errors, and ETA. | `sync.read` |
+| `sync_history` | Get sync history for a connector. Shows past sync runs with duration, document counts, and error summaries. | `sync.read` |
+
+### Context
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `context_search` | Search the context database for memories, resources, skills, and tools. Uses hierarchical retrieval with L0/L1/L2 tiered loading. | `context.read` |
+| `context_read` | Read a specific context entry by URI. Returns the full content (L2) for a previously retrieved context entry. | `context.read` |
+| `ask_question` | RAG-powered question answering. Searches across all connected sources and generates a grounded answer with citations. | `search.read` |
+
+### Team
+
+| Tool | Description | Scope |
+|------|-------------|-------|
+| `team_info` | Get team metadata including name, plan, member count, connector count, and document total. | `team.read` |
+| `team_members` | List team members with roles, last active time, and connected data sources per member. | `team.read` |
+
+## MCP App Views (7)
+
+Rich interactive UIs rendered inside Claude Desktop and other MCP clients that support `@modelcontextprotocol/ext-apps`. Each view is a self-contained HTML application that renders tool results visually.
+
+| View | URI | Triggered By | What It Shows |
+|------|-----|-------------|---------------|
+| Search | `ui://openbeam/search` | `search_documents` | Ranked results with source icons, snippets, relevance scores, and filters |
+| Connector Dashboard | `ui://openbeam/connector-dashboard` | `connector_list` | Card grid of all connected sources with status indicators and sync health |
+| Document Preview | `ui://openbeam/document-preview` | `connector_get` | Full document preview with metadata sidebar and related documents |
+| People | `ui://openbeam/people` | `search_people` | People cards with expertise tags, department, and recent activity |
+| Sync Status | `ui://openbeam/sync-status` | `sync_status`, `sync_trigger` | Live sync progress, history timeline, and error details |
+| Team | `ui://openbeam/team` | `team_info`, `team_members` | Team overview with member list, role breakdown, and usage stats |
+| Connector Setup | `ui://openbeam/connector-setup` | `connector_available`, `connector_setup` | Setup wizard with OAuth flow, API key form, and connection verification |
+
+<Callout type="info">
+  MCP App views are rendered automatically when the AI tool supports them. The LLM sees the text response; the user sees the rich UI. No additional configuration required.
+</Callout>
+
+## Connectors (100+)
+
+OpenBeam syncs data from 100+ enterprise tools. Every connected source is searchable through the MCP server. Major categories:
+
+| Category | Connectors |
+|----------|-----------|
+| **Productivity** | Slack, Microsoft Teams, Google Chat, Zoom |
+| **Project Management** | Jira, Linear, Asana, Monday, ClickUp, Azure DevOps |
+| **Documentation** | Confluence, Notion, Google Drive, Dropbox, Box, SharePoint, OneNote, Coda |
+| **Code** | GitHub, GitLab, Bitbucket, Jenkins, JFrog |
+| **CRM & Sales** | Salesforce, HubSpot, Pipedrive, Dynamics 365, Gong, Seismic, Highspot |
+| **Support** | Zendesk, Intercom, Freshservice, ServiceNow, Nice CXOne |
+| **HR** | BambooHR, Workday, Greenhouse, 15Five |
+| **Design** | Figma, Miro, Canva, Lucid |
+| **Calendar** | Google Calendar, Outlook, Microsoft Calendar |
+| **Security** | NVD, CISA KEV, MITRE ATT&CK, OWASP |
+| **IoT & Industrial** | Samsara, Verkada, AWS IoT, Azure IoT, SmartThings, MQTT, OPC-UA, BACnet, ThingsBoard, Node-RED |
+| **Storage** | S3, Egnyte, Bynder |
+| **Other** | Airtable, Datadog, DocuSign, Marketo, PagerDuty, and 40+ more |
+
+See the [Connectors](/docs/connectors) documentation for the full list and setup instructions per connector.
+
+## Write Actions (500+)
+
+89 connectors support write actions through the two-tool progressive discovery pattern:
+
+1. **Discover** with `connector_actions_list` -- browse available actions by connector type or category
+2. **Execute** with `connector_action_execute` -- run the action with validated parameters
+
+Common action categories:
+
+| Category | Examples |
+|----------|---------|
+| **Create** | Create issues (Jira, Linear), create documents (Notion, Confluence), create channels (Slack) |
+| **Update** | Update ticket status, edit pages, modify records |
+| **Send** | Send messages (Slack, Teams), send emails (Gmail, Outlook) |
+| **Manage** | Assign users, add labels, change priorities, move items |
+| **Delete** | Archive channels, close issues, remove records |
+
+See [Actions](/docs/mcp/actions) for the full reference.
+
+## Resources (5)
+
+Static resources exposed via `openbeam://` URIs. Readable by any MCP client to get baseline context without calling tools.
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Team Info | `openbeam://team` | Current team metadata -- ID, configuration, timezone |
+| Connectors | `openbeam://connectors` | Available connector types with setup hints |
+| Recent Documents | `openbeam://documents/recent` | Pointer to recently indexed documents (use `search_documents` for live data) |
+| User Context | `openbeam://user/context` | Current user permissions, scopes, timezone, locale |
+| Connector Types | `openbeam://connector-types` | All supported connector types with display names |
+
+## Workflow Prompts (7)
+
+Pre-built prompts that guide the AI assistant through multi-step workflows. Available as MCP prompts that clients can list and invoke.
+
+| Prompt | Description | Required Scope |
+|--------|-------------|---------------|
+| `connector_setup` | Walk through setting up a new data source connector. Checks team config, lists available types, guides OAuth or API key flow. | `connectors.read` |
+| `troubleshoot_sync` | Diagnose and fix connector sync problems. Checks status, analyzes failure patterns, suggests fixes. | `connectors.read` |
+| `data_overview` | Comprehensive overview of all connected data sources with health assessment and recommendations. | `connectors.read` |
+| `search_analysis` | Multi-depth research and analysis on a topic. Supports quick, standard, and deep analysis modes. | `search.read` |
+| `find_expert` | Find team members with expertise in a given topic by analyzing authorship and activity patterns. | `search.read` |
+| `weekly_digest` | Generate a weekly digest of changes across all connected sources with trending topics and action items. | `search.read` |
+| `onboarding_guide` | Help a new user get started -- shows permissions, connected sources, example searches, and tips. | None |
+
+## Scope model
+
+All tools and resources are gated by scopes. A user or API key must have the required scope to access a tool. Scopes use dot notation in tool code (`connectors.read`) and colon notation in the database (`connectors:read`).
+
+| Scope | Grants Access To |
+|-------|-----------------|
+| `search.read` | `search_documents`, `search_people`, `ask_question` |
+| `connectors.read` | `connector_list`, `connector_get`, `connector_health`, `connector_available`, `connector_setup_status` |
+| `connectors.write` | `connector_setup`, `connector_configure`, `connector_disconnect` |
+| `actions.read` | `connector_actions_list` |
+| `actions.write` | `connector_action_execute` |
+| `sync.read` | `sync_status`, `sync_history` |
+| `sync.write` | `sync_trigger` |
+| `context.read` | `context_search`, `context_read` |
+| `team.read` | `team_info`, `team_members` |
+| `admin:*` | All tools (wildcard) |

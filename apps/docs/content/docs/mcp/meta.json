@@ -1,0 +1,20 @@
+{
+  "title": "MCP",
+  "icon": "Connector",
+  "pages": [
+    "index",
+    "quickstart",
+    "capabilities",
+    "authentication",
+    "---Clients---",
+    "clients",
+    "---Reference---",
+    "tools",
+    "apps",
+    "actions",
+    "resources",
+    "prompts",
+    "---More---",
+    "roadmap"
+  ]
+}

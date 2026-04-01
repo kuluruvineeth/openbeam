@@ -1,0 +1,101 @@
+---
+title: Continue
+description: Connect OpenBeam to Continue for enterprise context in your IDE
+---
+
+# Continue
+
+[Continue](https://continue.dev) is an open-source AI coding assistant that runs inside VS Code and JetBrains IDEs. By connecting OpenBeam as an MCP server, Continue gains access to your enterprise knowledge base, letting you search internal documentation, find architecture decisions, and reference code patterns without leaving your editor.
+
+## Prerequisites
+
+| Requirement | Details |
+|-------------|---------|
+| **Continue** | Installed in VS Code or JetBrains ([continue.dev](https://continue.dev)) |
+| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
+| **OpenBeam instance** | Running and accessible from your machine |
+
+<Callout type="info">
+  Your API key must have at least the `search:read` and `connectors:read` scopes. For full functionality including sync triggers and action execution, use an `admin:*` scoped key.
+</Callout>
+
+## Configuration
+
+<Steps>
+  <Step>
+    ### Locate the Continue config file
+
+    Continue stores its configuration at `~/.continue/config.json`. If the file does not exist, launch Continue once in your IDE and it will be created automatically.
+  </Step>
+
+  <Step>
+    ### Add the OpenBeam MCP server
+
+    Open `~/.continue/config.json` and add the OpenBeam server under the `experimental.modelContextProtocolServers` array:
+
+    ```json title="~/.continue/config.json"
+    {
+      "experimental": {
+        "modelContextProtocolServers": [
+          {
+            "transport": {
+              "type": "sse",
+              "url": "https://api.openbeam.work/mcp",
+              "headers": {
+                "Authorization": "Bearer op_live_your_key_here"
+              }
+            }
+          }
+        ]
+      }
+    }
+    ```
+
+    Replace `op_live_your_key_here` with your actual API key.
+
+    <Callout type="warn">
+      If you are running OpenBeam on a self-hosted instance, replace `https://api.openbeam.dev` with your server URL.
+    </Callout>
+  </Step>
+
+  <Step>
+    ### Reload Continue
+
+    Restart your IDE or run the **Continue: Reload** command from the command palette to pick up the new configuration.
+  </Step>
+</Steps>
+
+## Verification
+
+After reloading, confirm the connection is active:
+
+1. Open Continue in the sidebar
+2. Start a new conversation and type: `Search for onboarding documentation`
+3. Continue should invoke the `search_documents` tool and return results from your connected data sources
+
+If Continue does not show tool calls, check the **Continue: Output** panel in VS Code for connection errors.
+
+## Use Cases
+
+| Task | How |
+|------|-----|
+| **Search internal docs** | Ask Continue to search for a topic. It calls `search_documents` against all your connected sources. |
+| **Find code examples** | Ask "Find examples of retry logic in our codebase" to surface relevant indexed repositories. |
+| **Look up architecture decisions** | Ask "What is our auth strategy?" to retrieve ADRs, Confluence pages, or Notion docs. |
+| **Check connector health** | Ask "Which connectors have errors?" to get a status overview via `connector_list`. |
+| **Find domain experts** | Ask "Who works on the billing system?" to search people with `search_people`. |
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| No tools appear in Continue | MCP config not loaded | Verify `config.json` syntax is valid JSON. Restart IDE. |
+| `401 Unauthorized` in output | Invalid or expired API key | Generate a new key in **Settings > API Keys**. |
+| `ECONNREFUSED` or timeout | Server unreachable | Confirm the OpenBeam server URL is accessible. Check firewall rules. |
+| Tools appear but return empty results | Missing scopes on API key | Regenerate the key with `search:read` and `connectors:read` scopes. |
+| Slow responses | Large result sets | Set `limit` parameters in your queries or ask Continue to narrow the search. |
+
+<Cards>
+  <Card title="API Keys" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="VS Code" href="/docs/mcp/clients/vscode" description="Use OpenBeam with VS Code's native MCP support" />
+</Cards>

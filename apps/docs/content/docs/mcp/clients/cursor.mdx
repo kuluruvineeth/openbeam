@@ -1,0 +1,174 @@
+---
+title: Cursor
+description: Connect OpenBeam to Cursor IDE for enterprise search and code context
+---
+
+# Cursor
+
+Connect OpenBeam to Cursor so your AI assistant can search internal docs, look up tickets, execute actions across 100+ connectors, and answer questions grounded in your enterprise data — all without leaving your editor.
+
+## Prerequisites
+
+- [Cursor](https://cursor.com) installed
+- An OpenBeam account with at least one connected data source
+- An OpenBeam API key (generate one in **Settings > API Keys**)
+
+## Configuration
+
+<Tabs items={["Settings UI", "JSON Config"]}>
+<Tab value="Settings UI">
+
+Open **Cursor Settings > Tools & MCP**, click **Add new MCP server**, and fill in:
+
+- **Name:** `openbeam`
+- **Type:** `streamable-http`
+- **URL:** `https://api.openbeam.work/mcp`
+- **Headers:** `Authorization: Bearer op_live_your_key_here`
+
+Click **Install**, then fully quit and reopen Cursor.
+
+</Tab>
+<Tab value="JSON Config">
+
+Cursor reads MCP server configuration from a JSON file. You can configure OpenBeam at the project level or globally.
+
+### Project-level configuration
+
+Create `.cursor/mcp.json` in your repository root. This scopes OpenBeam to a single project and is useful when different projects connect to different OpenBeam teams.
+
+```json title=".cursor/mcp.json"
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+<Callout type="warn">
+  Do not commit `.cursor/mcp.json` to version control if it contains your API key. Add `.cursor/mcp.json` to your `.gitignore`.
+</Callout>
+
+### Global configuration
+
+To make OpenBeam available in every Cursor project, add the same configuration to `~/.cursor/mcp.json`:
+
+```json title="~/.cursor/mcp.json"
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Global configuration is applied first, then project-level configuration is merged on top. If both define an `openbeam` server, the project-level config takes precedence.
+
+### Self-hosted instances
+
+If you run your own OpenBeam deployment, replace the URL with your instance:
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://your-instance.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+## Verification
+
+<Steps>
+<Step>
+Open Cursor and navigate to **Settings > MCP** (or press `Cmd+Shift+P` and search "MCP").
+</Step>
+<Step>
+Confirm that **openbeam** appears in the server list with a green status indicator.
+</Step>
+<Step>
+Verify that approximately 20 tools are loaded. The exact count depends on your API key scopes.
+</Step>
+<Step>
+Open a chat session and ask: "What connectors are connected to OpenBeam?" Cursor should call `connector_list` and return your connected data sources.
+</Step>
+</Steps>
+
+## Use cases for Cursor
+
+OpenBeam turns Cursor into more than a code assistant. With access to your enterprise knowledge graph, Cursor can answer questions that span code, docs, tickets, and people.
+
+### Search internal docs while coding
+
+When you need context that lives outside the codebase, ask directly:
+
+> "Find our API rate limiting documentation"
+
+> "What does our onboarding flow look like according to the product spec?"
+
+OpenBeam searches across Confluence, Notion, Google Drive, SharePoint, and every other connected source using hybrid semantic and keyword search.
+
+### Look up tickets and issues
+
+No need to switch to Jira or Linear:
+
+> "Search for the login bug ticket in Jira"
+
+> "Find open P0 issues assigned to the platform team"
+
+### Create issues and take actions
+
+OpenBeam exposes 500+ write actions across connected services. Ask Cursor to act on your behalf:
+
+> "Create a GitHub issue for this TODO comment"
+
+> "Post a message in the #deployments Slack channel that the migration is complete"
+
+> "Create a Linear issue to track this tech debt"
+
+### Check connector and sync status
+
+Monitor your data pipeline without opening the dashboard:
+
+> "What is the sync status of our Datadog connector?"
+
+> "Which connectors have errors right now?"
+
+> "Trigger a full sync on the Confluence connector"
+
+### Find team experts
+
+Identify who knows what across your organization:
+
+> "Who on the team knows about our payment system?"
+
+> "Find people who have authored authentication-related documents"
+
+## Limitations
+
+<Callout type="warn">
+  Cursor does not support MCP ext-apps (rich UI views). All tool responses are rendered as plain text in the chat panel. The interactive search results, connector dashboards, and document previews available in Claude Desktop are not available in Cursor. All 20 tools and 500+ write actions work as expected — only the visual rendering is text-based.
+</Callout>
+
+## Troubleshooting
+
+| Symptom | Resolution |
+|---------|------------|
+| OpenBeam not listed in MCP settings | Confirm `.cursor/mcp.json` is valid JSON. Restart Cursor after creating the file. |
+| "Authentication failed" or 401 errors | Verify your API key starts with `op_live_` and has not expired. Generate a new key in **Settings > API Keys**. |
+| "Server not found" or connection timeout | Check that `https://api.openbeam.work/mcp` is reachable from your network. If using a self-hosted instance, verify the URL and that the server is running. |
+| Tools load but return no results | Ensure at least one connector is connected and synced in your OpenBeam dashboard. |
+| Fewer than 20 tools visible | Your API key may have restricted scopes. Check the key permissions in **Settings > API Keys**. |
+| "Tool not found" when asking about actions | Use `connector_actions_list` first to discover available actions, then `connector_action_execute` to run them. Cursor may need explicit tool names in some cases. |

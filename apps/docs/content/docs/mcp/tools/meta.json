@@ -1,0 +1,12 @@
+{
+  "title": "Tools Reference",
+  "pages": [
+    "index",
+    "search",
+    "connectors",
+    "sync",
+    "actions",
+    "context",
+    "team"
+  ]
+}

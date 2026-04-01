@@ -1,0 +1,170 @@
+---
+title: Workflow Prompts
+description: Pre-built prompt templates for common enterprise workflows
+---
+
+# Workflow Prompts
+
+MCP prompts are pre-built templates that guide the AI through multi-step workflows. Instead of writing detailed instructions each time, select a prompt template and the AI follows a structured plan — reading resources, invoking tools, and presenting results in a consistent format.
+
+## How Prompts Work
+
+Prompts are registered by the OpenBeam MCP server alongside tools and resources. When you select a prompt in your MCP client, it injects a structured message into the conversation that tells the AI which steps to follow, which tools to call, and how to format the output.
+
+In Claude Desktop, prompts appear when you click the prompt icon in the composer. Other MCP clients may surface them differently.
+
+<Callout type="info">
+Prompts do not execute anything directly. They provide a plan that the AI follows using the available tools. The AI still asks for confirmation before performing write operations.
+</Callout>
+
+## Available Prompts
+
+### connector_setup
+
+**Scope required:** `connectors.read`
+
+Walks through connecting a new data source to OpenBeam. The AI reads team configuration, shows available connector types, checks for existing connections, and guides the user through OAuth or API key setup.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorType` | string | No | The type of connector to set up (e.g., `slack`, `github`, `jira`). If omitted, the AI presents all available types. |
+
+**Steps the AI follows:**
+1. Read `openbeam://team` for team configuration
+2. Read `openbeam://connector-types` for available types
+3. Use `connector_list` to check for existing connectors
+4. Walk through OAuth or API key setup
+5. Verify the connection and trigger an initial sync
+
+---
+
+### troubleshoot_sync
+
+**Scope required:** `connectors.read`
+
+Diagnoses connector sync failures. The AI checks connector status, reviews sync history for patterns, identifies common causes (expired tokens, rate limits, permission changes), and suggests fixes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | string | No | The ID of the specific connector to troubleshoot. If omitted, all connectors are checked. |
+
+**Steps the AI follows:**
+1. Use `connector_list` to get all connectors and their status
+2. Check `sync_history` for failure patterns
+3. Identify root cause: expired tokens, rate limits, permission changes
+4. Suggest specific fixes
+5. Verify fixes by confirming sync resumes
+
+---
+
+### data_overview
+
+**Scope required:** `connectors.read`
+
+Produces a comprehensive overview of all connected data sources, document counts, sync health, and recommendations. The output includes a summary table, health assessment, and actionable next steps.
+
+This prompt takes no parameters.
+
+**Steps the AI follows:**
+1. Read `openbeam://team` for team context
+2. Use `connector_list` to get all sources with status
+3. Summarize document counts and last sync per connector
+4. Identify connectors with errors or stale syncs
+5. Present as: summary table, health assessment, recommendations
+
+---
+
+### search_analysis
+
+**Scope required:** `search.read`
+
+Performs a research-style search on a topic with configurable depth. The AI runs multiple queries, cross-references sources, identifies experts, and synthesizes findings into a structured report.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | string | Yes | The topic to research |
+| `depth` | `quick` \| `standard` \| `deep` | No | Analysis depth. Defaults to `standard`. |
+
+**Depth modes:**
+
+| Mode | Behavior |
+|------|----------|
+| `quick` | Brief summary from the top 5 results |
+| `standard` | Cross-reference sources, identify agreements and contradictions |
+| `deep` | Multiple queries, comprehensive synthesis, identify patterns and gaps |
+
+**Steps the AI follows:**
+1. Use `search_documents` to find relevant information
+2. Read full content of top results
+3. Use `search_people` to find subject matter experts
+4. Structure output: executive summary, key findings with citations, gaps, next steps
+
+---
+
+### find_expert
+
+**Scope required:** `search.read`
+
+Identifies team members with expertise in a given topic by analyzing document authorship, contributions, and people search results.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | string | Yes | The topic or skill to find experts for |
+
+**Steps the AI follows:**
+1. Use `search_documents` for content related to the topic
+2. Use `search_people` for associated people
+3. Analyze authorship patterns across results
+4. Present: ranked experts with evidence, relevant documents, who to contact
+
+---
+
+### weekly_digest
+
+**Scope required:** `search.read`
+
+Generates a summary of changes and activity across all connected data sources for the past week. Optionally focuses on specific topics.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `focusAreas` | string | No | Comma-separated topics to prioritize in the digest |
+
+**Steps the AI follows:**
+1. Read `openbeam://documents/recent` for context
+2. Search for notable updates across sources
+3. Identify trending topics
+4. Structure output: top highlights, new documents by source, trending topics, action items
+
+---
+
+### onboarding_guide
+
+**Scope required:** None (always available)
+
+Helps new users understand what OpenBeam offers and how to get started. The AI reads the user's current permissions, team configuration, and connected sources, then provides a personalized walkthrough.
+
+This prompt takes no parameters.
+
+**Steps the AI follows:**
+1. Read `openbeam://user/context` for permissions
+2. Read `openbeam://team` for team info
+3. Read `openbeam://connectors` for connected sources
+4. Read `openbeam://connector-types` for available connectors
+5. Present: welcome overview, connected sources summary, example searches, tips, next steps
+
+## Prompt Reference
+
+| Prompt | Scope | Parameters | Use Case |
+|--------|-------|------------|----------|
+| `connector_setup` | `connectors.read` | `connectorType?` | Connect a new data source |
+| `troubleshoot_sync` | `connectors.read` | `connectorId?` | Diagnose sync failures |
+| `data_overview` | `connectors.read` | None | Survey all connected data |
+| `search_analysis` | `search.read` | `topic`, `depth?` | Research a topic across sources |
+| `find_expert` | `search.read` | `topic` | Find knowledgeable team members |
+| `weekly_digest` | `search.read` | `focusAreas?` | Weekly activity summary |
+| `onboarding_guide` | None | None | New user walkthrough |
+
+<Cards>
+  <Card title="Authentication" href="/docs/mcp/authentication" description="API keys and scopes that control prompt availability" />
+  <Card title="Resources" href="/docs/mcp/resources" description="Static data referenced by prompts during execution" />
+</Cards>

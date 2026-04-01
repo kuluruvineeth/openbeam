@@ -1,0 +1,288 @@
+---
+title: Connector Tools
+description: Manage connected data sources -- list, inspect, set up, configure, and disconnect connectors.
+---
+
+# Connector Tools
+
+Eight tools for managing connected data sources. Read operations require `connectors.read` scope. Write operations (setup, configure, disconnect) require `connectors.write`.
+
+## connector_list
+
+List all configured data source connectors for the team with status, document count, and last sync time. Supports cursor-based pagination.
+
+Use this as the starting point when investigating connector health, data coverage, or finding a connector ID for other tools.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `status` | `string` | No | Filter by status: `active`, `error`, `pending`, `disabled` |
+| `type` | `string` | No | Filter by connector type slug (e.g. `slack`, `notion`) |
+| `cursor` | `string` | No | Pagination cursor from previous response |
+| `pageSize` | `number` | No | Results per page (1-100, default 25) |
+
+### Response
+
+Each connector contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Connector ID |
+| `name` | `string` | Display name |
+| `type` | `string` | Connector type slug |
+| `status` | `string` | Current status (`ACTIVE`, `SYNCING`, `ERROR`, `INACTIVE`, etc.) |
+| `lastSyncAt` | `string` | Last sync timestamp (ISO 8601) |
+| `documentCount` | `number` | Total indexed documents |
+
+### Example
+
+```json
+{
+  "status": "error",
+  "pageSize": 10
+}
+```
+
+### Chaining
+
+- Use `connector_get` for full configuration details on a specific connector.
+- Use `connector_health` for health score and diagnostics.
+- Use `sync_history` to review past sync jobs.
+- Use `connector_actions_list` to discover write actions for a connector type.
+
+---
+
+## connector_get
+
+Get full details for a single connector by its ID, including configuration, sync schedule, health score, and error messages.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | Connector ID (from `connector_list`) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Connector ID |
+| `name` | `string` | Display name |
+| `type` | `string` | Connector type slug |
+| `status` | `string` | Current status |
+| `lastSyncAt` | `string` | Last sync timestamp |
+| `createdAt` | `string` | Creation timestamp |
+| `documentCount` | `number` | Total indexed documents |
+| `config` | `object` | Connector configuration |
+| `syncSchedule` | `string` | Sync schedule (cron expression) |
+| `errorMessage` | `string` | Last error message, if any |
+| `health.score` | `number` | Health score (0-100) |
+| `health.status` | `string` | Health status |
+| `health.lastCheckedAt` | `string` | Last health check timestamp |
+
+### Chaining
+
+- Use `connector_health` for dedicated health metrics.
+- Use `sync_status` for detailed sync state.
+- Use `sync_trigger` to start a new sync.
+
+---
+
+## connector_health
+
+Get health metrics for a specific connector. Returns a health score from 0 to 100, where 100 means fully healthy. A score below 75 indicates issues that need attention.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | Connector ID (from `connector_list`) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connectorId` | `string` | Connector ID |
+| `status` | `string` | Current status |
+| `score` | `number` | Health score (0-100) |
+| `lastSyncAt` | `string` | Last sync timestamp |
+| `lastSyncDuration` | `number` | Last sync duration in ms |
+| `documentCount` | `number` | Total indexed documents |
+| `errorCount` | `number` | Number of errors |
+| `lastError` | `string` | Most recent error message |
+
+### Chaining
+
+- Use `sync_history` to check for recurring failures when health is low.
+- Use `sync_trigger` to attempt a fresh sync after resolving issues.
+
+---
+
+## connector_available
+
+Browse all 100+ connectors available for setup. Filter by category, auth type, or search by name. Use this before `connector_setup` or `connector_configure` to discover what can be connected.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `category` | `string` | No | Filter by category (e.g. `Communication`, `CRM`, `Storage`, `Development`) |
+| `authType` | `string` | No | Filter by auth type: `OAUTH2`, `API_KEY`, `SERVICE_ACCOUNT`, `PUBLIC_DATASET` |
+| `query` | `string` | No | Search by name or description |
+
+### Response
+
+Each available connector contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Connector type ID (e.g. `SLACK`, `NOTION`) |
+| `name` | `string` | Display name |
+| `category` | `string` | Category (Communication, CRM, etc.) |
+| `shortDescription` | `string` | Brief description |
+| `authType` | `string` | Authentication type |
+| `active` | `boolean` | Whether the connector is available |
+| `installed` | `boolean` | Whether the team already has this connector |
+| `requiredFields` | `array` | Required configuration fields (for API key connectors) |
+
+### Example
+
+```json
+{
+  "category": "Communication",
+  "authType": "OAUTH2"
+}
+```
+
+### Chaining
+
+- Use `connector_setup` for OAuth connectors (Slack, Gmail, GitHub, etc.).
+- Use `connector_configure` for API key connectors (Samsara, Datadog, etc.).
+
+---
+
+## connector_setup
+
+Start OAuth authorization for a connector. Returns a URL the user must open in their browser to authorize the connection.
+
+<Callout type="warn">
+This tool is for OAuth connectors only. For API key connectors, use `connector_configure` instead. Use `connector_available` to check the auth type.
+</Callout>
+
+Supported OAuth connectors: Airtable, Asana, Bitbucket, Box, Canva, ClickUp, Confluence, DocuSign, Dropbox, Figma, GitHub, GitLab, Gmail, Google Calendar, Google Chat, Google Drive, HubSpot, Intercom, Jira, Linear, Miro, Monday, Notion, Outlook, Pipedrive, Salesforce, Slack, Zendesk, Zoom.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `app` | `string` | Yes | Connector type (e.g. `SLACK`, `GMAIL`, `GITHUB`, `NOTION`) |
+| `name` | `string` | No | Display name for the connector |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `setupId` | `string` | Session ID for polling status |
+| `connectorId` | `string` | Created connector ID |
+| `oauthUrl` | `string` | URL for user to authorize |
+| `app.id` | `string` | Connector type |
+| `app.name` | `string` | Connector display name |
+| `expiresAt` | `string` | Authorization link expiry (15 minutes) |
+
+### Chaining
+
+1. User opens the `oauthUrl` in their browser and authorizes.
+2. Call `connector_setup_status` with the `setupId` to check completion.
+3. Once complete, call `sync_trigger` to start syncing data.
+
+---
+
+## connector_setup_status
+
+Check whether an OAuth connector setup has completed. Call this after the user opens the authorization URL from `connector_setup`.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `setupId` | `string` | Yes | Setup session ID from `connector_setup` |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | One of: `pending`, `completed`, `failed`, `expired` |
+| `connectorId` | `string` | Connector ID (when completed) |
+| `error` | `string` | Error message (when failed) |
+
+### Chaining
+
+- If `completed`: use `sync_trigger` with the `connectorId` to start syncing.
+- If `expired` or `failed`: use `connector_setup` to start a new session.
+
+---
+
+## connector_configure
+
+Set up an API key connector by providing credentials. Use `connector_available` first to discover the required fields for each connector type.
+
+<Callout type="warn">
+This tool is for API key connectors only. For OAuth connectors (Slack, GitHub, etc.), use `connector_setup` instead.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `app` | `string` | Yes | Connector type (e.g. `SAMSARA`, `DATADOG`, `JENKINS`) |
+| `credentials` | `object` | Yes | Key-value credentials matching the connector's required settings |
+| `name` | `string` | No | Display name for the connector |
+
+### Example
+
+```json
+{
+  "app": "SAMSARA",
+  "credentials": {
+    "api_token": "samsara_api_...",
+    "region": "us"
+  },
+  "name": "Fleet Samsara"
+}
+```
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connectorId` | `string` | Created connector ID |
+| `status` | `string` | `active` on success |
+
+### Chaining
+
+- After configuration, use `sync_trigger` to start syncing data.
+
+---
+
+## connector_disconnect
+
+Deactivate a connector. Stops syncing and removes credentials. Indexed documents are preserved and remain searchable.
+
+<Callout type="warn">
+This is a destructive action. Always confirm with the user before disconnecting a connector.
+</Callout>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID to disconnect |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `connectorId` | `string` | Disconnected connector ID |
+| `name` | `string` | Connector display name |
+| `status` | `string` | `disconnected` |

@@ -1,0 +1,258 @@
+---
+title: Claude Desktop
+description: Connect OpenBeam to Claude Desktop for enterprise search and actions
+---
+
+# Claude Desktop
+
+Claude Desktop supports the Model Context Protocol (MCP) natively, allowing OpenBeam to surface enterprise search, connector management, sync operations, and write actions directly inside your Claude conversations. Because Claude Desktop also supports `ext-apps`, OpenBeam renders rich UI cards alongside text responses.
+
+## Prerequisites
+
+- **Claude Desktop** installed ([macOS](https://claude.ai/download) or [Windows](https://claude.ai/download))
+- An **OpenBeam account** with at least one connected data source
+- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
+
+<Callout type="info">
+API keys start with `op_live_`. Keep this value secret — it grants access to all data sources visible to your team.
+</Callout>
+
+## Configuration
+
+There are two ways to connect OpenBeam to Claude Desktop. The Connector UI is the fastest; the JSON config gives full control.
+
+<Tabs items={["Connector UI (Recommended)", "JSON Config"]}>
+<Tab value="Connector UI (Recommended)">
+
+<Steps>
+<Step>
+
+### Open the Connectors panel
+
+In any Claude Desktop chat, click the **+** button, then navigate to **Connectors > Manage Connectors**.
+
+</Step>
+<Step>
+
+### Add OpenBeam
+
+Click **Add custom server** and enter:
+
+- **URL:** `https://api.openbeam.work/mcp`
+- **Header:** `Authorization: Bearer op_live_your_key_here`
+
+Click **Connect**. OpenBeam's 20 tools appear immediately.
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab value="JSON Config">
+
+<Steps>
+<Step>
+
+### Locate the config file
+
+Open Claude Desktop, go to **Settings > Developer > Edit Config**. This opens the config file in your default editor and creates it if it does not exist. The path depends on your operating system.
+
+<Tabs items={["macOS", "Windows"]}>
+  <Tab value="macOS">
+  ```text
+  ~/Library/Application Support/Claude/claude_desktop_config.json
+  ```
+
+  Open it in your editor:
+
+  ```bash
+  open -a "TextEdit" ~/Library/Application\ Support/Claude/claude_desktop_config.json
+  ```
+
+  If the file does not exist, create it.
+  </Tab>
+  <Tab value="Windows">
+  ```text
+  %APPDATA%\Claude\claude_desktop_config.json
+  ```
+
+  Open it in your editor:
+
+  ```powershell
+  notepad "$env:APPDATA\Claude\claude_desktop_config.json"
+  ```
+
+  If the file does not exist, create it.
+  </Tab>
+</Tabs>
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Add the following to the config file. If the file already contains other MCP servers, merge the `openbeam` key into the existing `mcpServers` object.
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Replace `op_live_your_key_here` with your actual API key.
+
+<Callout type="warn">
+If you self-host OpenBeam, replace `https://api.openbeam.dev` with your server's base URL.
+</Callout>
+
+</Step>
+<Step>
+
+### Restart Claude Desktop
+
+Quit Claude Desktop completely and reopen it. The MCP server connects on startup.
+
+</Step>
+</Steps>
+
+</Tab>
+</Tabs>
+
+## Verification
+
+After restarting, open a new conversation and type:
+
+```text
+List my connectors
+```
+
+Claude should invoke the `connector_list` tool and return a summary of your connected data sources. If you see connector names, statuses, and document counts, the integration is working.
+
+You can also click the **MCP tools** icon (hammer) in the bottom-left of the composer to confirm that OpenBeam tools appear in the list.
+
+## Rich UI Views
+
+Claude Desktop supports `ext-apps`, so OpenBeam renders interactive UI cards alongside text responses. These appear automatically when you invoke the relevant tools.
+
+| View | What it shows | Triggered by |
+|------|---------------|-------------|
+| Search results | Source icons, titles, snippets, relevance scores | Searching for documents |
+| Connector dashboard | Status badges, document counts, last sync times | Listing connectors |
+| Document preview | Full content with metadata and source link | Reading a specific document |
+| Sync status | Progress indicators, job state, error details | Checking or triggering syncs |
+| People directory | Avatars, roles, expertise areas, contact info | Searching for people |
+| Connector setup | Browse available connectors, OAuth flow, API key entry | Connecting a new data source |
+| Team overview | Member list, roles, connected sources count | Asking about your team |
+
+<Callout type="info">
+Rich UI cards are rendered in a sandboxed iframe. The data powering them comes from `structuredContent` returned by each tool — the same data Claude sees as text is also rendered visually.
+</Callout>
+
+## Example Prompts
+
+These prompts work out of the box once the integration is configured.
+
+### Search
+
+```text
+Search my docs for quarterly revenue report
+```
+
+### Connector overview
+
+```text
+What connectors do I have connected?
+```
+
+### Trigger a sync
+
+```text
+Trigger a full sync on my Slack connector
+```
+
+### Create a Linear issue
+
+```text
+Create a Linear issue titled "Fix login bug" assigned to the backend team
+```
+
+### Send a Slack message
+
+```text
+Send a message in #general on Slack saying "Deploy complete"
+```
+
+### Find an expert
+
+```text
+Find who on my team is an expert in Kubernetes
+```
+
+### Connector health
+
+```text
+What's the health status of my GitHub connector?
+```
+
+### Sync history
+
+```text
+Show me recent sync history for Notion
+```
+
+### Connect a new data source
+
+```text
+Connect my Jira workspace
+```
+
+This launches the OAuth authorization flow inside Claude Desktop via the connector setup wizard.
+
+### Discover available actions
+
+```text
+What actions can I perform on my connected Linear?
+```
+
+## Troubleshooting
+
+### MCP server not appearing
+
+<Steps>
+<Step>
+Confirm the config file is valid JSON. A trailing comma or missing bracket will silently prevent loading. Paste the file contents into a JSON validator if unsure.
+</Step>
+<Step>
+Verify the file path is correct for your OS (see the Configuration section above).
+</Step>
+<Step>
+Restart Claude Desktop completely — closing the window is not enough on macOS. Use **Claude > Quit Claude** from the menu bar.
+</Step>
+</Steps>
+
+### Authentication failed
+
+- Double-check that your API key starts with `op_live_` and has not been revoked.
+- Ensure there are no extra spaces or line breaks inside the key value.
+- If you self-host, confirm your server is reachable from your machine: `curl -s https://your-server/mcp` should return a response (not a connection error).
+
+### Tools not loading
+
+- Some tools are gated by scopes assigned to your API key. If you only see a subset of tools, check the key's scope configuration in **Settings > API Keys**.
+- If no tools appear at all, the server connection likely failed. Check the Claude Desktop developer console (**Help > Developer Tools**) for network errors.
+
+### Rich UI cards not rendering
+
+- Rich UI requires Claude Desktop version 1.5 or later. Update to the latest version.
+- If cards appear blank, check for content-security-policy errors in the developer console — a corporate proxy may be blocking the sandboxed iframe resources.
+
+<Cards>
+  <Card title="API Key Management" href="/docs/api/connectors" description="Generate and manage OpenBeam API keys" />
+  <Card title="Self-Hosting" href="/docs/self-hosting/configuration" description="Configure your own OpenBeam server" />
+</Cards>

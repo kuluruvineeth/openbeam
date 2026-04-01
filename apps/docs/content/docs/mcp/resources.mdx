@@ -1,0 +1,147 @@
+---
+title: Resources
+description: Static MCP resources exposed by OpenBeam for context and discovery
+---
+
+# Resources
+
+MCP resources are static data endpoints exposed by the OpenBeam server via `openbeam://` URIs. Clients can read these resources to provide the AI model with baseline context about the team, available connectors, and user permissions without invoking any tools.
+
+## How Resources Work
+
+Resources are registered when the MCP server initializes. They are read-only and do not modify any state. MCP clients typically load resources into the model's context automatically, giving the AI awareness of team configuration and available data sources before any user interaction.
+
+Unlike tools (which the model invokes on demand), resources are passively available for the client to fetch at any time.
+
+## Available Resources
+
+OpenBeam exposes five resources. Some are gated by scopes assigned to the API key.
+
+### `openbeam://team`
+
+**Scope required:** `teams.read`
+
+Returns metadata about the authenticated team and user, including the team ID, user ID, email, timezone, and locale. Useful as a foundation for personalized responses.
+
+```json
+{
+  "teamId": "team_abc123",
+  "userId": "user_xyz789",
+  "userEmail": "alice@company.com",
+  "timezone": "America/New_York",
+  "locale": "en"
+}
+```
+
+### `openbeam://connectors`
+
+**Scope required:** `connectors.read`
+
+Lists all available connector types that the team can configure, along with a hint to use the `connector_list` tool for live data. This resource provides a static catalog; it does not reflect which connectors are currently connected.
+
+```json
+{
+  "teamId": "team_abc123",
+  "availableTypes": [
+    "slack", "github", "jira", "confluence", "notion",
+    "google_drive", "google_calendar", "gmail", "outlook",
+    "sharepoint", "teams", "salesforce", "linear", "asana",
+    "hubspot", "zendesk", "intercom", "figma", "dropbox", "box"
+  ],
+  "hint": "Use the connector_list tool for live connector data."
+}
+```
+
+### `openbeam://documents/recent`
+
+**Scope required:** `search.read`
+
+A hint resource that directs the model to use the `search_documents` tool with a date filter for retrieving recently indexed documents. It does not contain document data itself.
+
+```json
+{
+  "teamId": "team_abc123",
+  "hint": "Use search_documents with a dateFrom filter for live recent documents."
+}
+```
+
+### `openbeam://user/context`
+
+**Scope required:** None (always available)
+
+Returns the current user's permissions, scopes, timezone, and locale. This resource is always registered regardless of key scopes, providing the model with awareness of what the user can and cannot do.
+
+```json
+{
+  "userId": "user_xyz789",
+  "userEmail": "alice@company.com",
+  "scopes": ["search:read", "connectors:read", "sync:read", "teams:read"],
+  "timezone": "America/New_York",
+  "locale": "en"
+}
+```
+
+### `openbeam://connector-types`
+
+**Scope required:** None (always available)
+
+Returns all supported connector types with human-readable names. Useful for displaying connector options to users or for the model to reference when helping with connector setup.
+
+```json
+{
+  "types": [
+    { "id": "slack", "name": "Slack" },
+    { "id": "github", "name": "Github" },
+    { "id": "google_drive", "name": "Google Drive" },
+    { "id": "google_calendar", "name": "Google Calendar" }
+  ]
+}
+```
+
+## Scope Summary
+
+| Resource | URI | Scope Required |
+|----------|-----|---------------|
+| Team metadata | `openbeam://team` | `teams.read` |
+| Available connectors | `openbeam://connectors` | `connectors.read` |
+| Recent documents hint | `openbeam://documents/recent` | `search.read` |
+| User context | `openbeam://user/context` | None |
+| Connector type definitions | `openbeam://connector-types` | None |
+
+## Reading Resources
+
+MCP clients fetch resources automatically or on demand. In Claude Desktop, resources are loaded into context when the conversation starts. Other clients may expose them through a resource browser.
+
+To read a resource programmatically via the MCP protocol:
+
+```json
+{
+  "method": "resources/read",
+  "params": {
+    "uri": "openbeam://team"
+  }
+}
+```
+
+The server responds with the resource content as a JSON string:
+
+```json
+{
+  "contents": [
+    {
+      "uri": "openbeam://team",
+      "mimeType": "application/json",
+      "text": "{\"teamId\":\"team_abc123\",\"userId\":\"user_xyz789\"}"
+    }
+  ]
+}
+```
+
+<Callout type="info">
+Resources provide static context. For live data (current connector statuses, search results, sync progress), use the corresponding tools instead.
+</Callout>
+
+<Cards>
+  <Card title="Authentication" href="/docs/mcp/authentication" description="API keys, OAuth, and scopes that control resource access" />
+  <Card title="Workflow Prompts" href="/docs/mcp/prompts" description="Pre-built templates that reference these resources" />
+</Cards>

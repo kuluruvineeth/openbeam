@@ -1,0 +1,75 @@
+---
+title: Tools Reference
+description: Complete reference for all 20 MCP tools exposed by OpenBeam, organized into 6 categories.
+---
+
+# Tools Reference
+
+OpenBeam exposes 20 MCP tools organized into 6 categories. Every tool is available through the MCP protocol to Claude Desktop, Cursor, Claude Code, and any other MCP-compatible client.
+
+Tools follow a progressive discovery pattern: list available resources, inspect details, then act. Most workflows chain 2-3 tools together.
+
+## All Tools
+
+| Tool | Category | Description | Scope Required |
+|------|----------|-------------|----------------|
+| [`search_documents`](/docs/mcp/tools/search#search_documents) | Search | Hybrid semantic + keyword search across all sources | `search.read` |
+| [`search_people`](/docs/mcp/tools/search#search_people) | Search | Find people across connected directories | `search.read` |
+| [`connector_list`](/docs/mcp/tools/connectors#connector_list) | Connectors | List all connectors with status and stats | `connectors.read` |
+| [`connector_get`](/docs/mcp/tools/connectors#connector_get) | Connectors | Full details for one connector | `connectors.read` |
+| [`connector_health`](/docs/mcp/tools/connectors#connector_health) | Connectors | Health score 0-100 with diagnostics | `connectors.read` |
+| [`connector_available`](/docs/mcp/tools/connectors#connector_available) | Connectors | Browse 100+ available connectors | `connectors.read` |
+| [`connector_setup`](/docs/mcp/tools/connectors#connector_setup) | Connectors | Start OAuth flow for a connector | `connectors.write` |
+| [`connector_setup_status`](/docs/mcp/tools/connectors#connector_setup_status) | Connectors | Poll OAuth completion status | `connectors.write` |
+| [`connector_configure`](/docs/mcp/tools/connectors#connector_configure) | Connectors | Configure API key connectors | `connectors.write` |
+| [`connector_disconnect`](/docs/mcp/tools/connectors#connector_disconnect) | Connectors | Deactivate a connector | `connectors.write` |
+| [`sync_trigger`](/docs/mcp/tools/sync#sync_trigger) | Sync | Start full or incremental sync | `sync.write` |
+| [`sync_status`](/docs/mcp/tools/sync#sync_status) | Sync | Current sync state for a connector | `sync.read` |
+| [`sync_history`](/docs/mcp/tools/sync#sync_history) | Sync | Past sync jobs with details | `sync.read` |
+| [`connector_actions_list`](/docs/mcp/tools/actions#connector_actions_list) | Actions | Discover available write actions | `connectors.read` |
+| [`connector_action_execute`](/docs/mcp/tools/actions#connector_action_execute) | Actions | Execute a write action | `connectors.write` |
+| [`context_search`](/docs/mcp/tools/context#context_search) | Context | Search context database | `context.read` |
+| [`context_read`](/docs/mcp/tools/context#context_read) | Context | Read context at L0/L1/L2 detail | `context.read` |
+| [`ask_question`](/docs/mcp/tools/context#ask_question) | Context | AI-powered Q&A with RAG citations | `context.read` |
+| [`team_info`](/docs/mcp/tools/team#team_info) | Team | Team metadata and counts | `teams.read` |
+| [`team_members`](/docs/mcp/tools/team#team_members) | Team | List members with roles | `teams.read` |
+
+## Tool Chaining
+
+Most tasks require chaining multiple tools. Here are the common patterns:
+
+| Goal | Tool Chain |
+|------|------------|
+| Answer a question | `ask_question` &rarr; `context_read` (for citation details) |
+| Research a topic | `search_documents` &rarr; `context_read` &rarr; `search_people` (for experts) |
+| Diagnose connector issues | `connector_list` (filter: error) &rarr; `connector_health` &rarr; `sync_history` |
+| Refresh data | `connector_list` &rarr; `sync_trigger` &rarr; `sync_status` |
+| Send a message / create issue | `connector_actions_list` &rarr; `connector_action_execute` |
+| Set up a new connector | `connector_available` &rarr; `connector_setup` or `connector_configure` &rarr; `sync_trigger` |
+| Team overview | `team_info` &rarr; `team_members` &rarr; `connector_list` |
+
+## Authentication
+
+Every MCP request must include an API key in the `Authorization` header:
+
+```
+Authorization: Bearer op_live_...
+```
+
+API keys are created in Settings and carry the scopes that determine which tools are available. A key without `sync.write` scope will not see the `sync_trigger` tool.
+
+## Response Format
+
+All tools return two fields:
+
+- **`content`** -- Text formatted for the LLM. Human-readable summaries with chaining hints.
+- **`structuredContent`** -- JSON data for UI rendering. Hidden from the LLM, consumed by MCP app views.
+
+List responses include pagination metadata:
+
+```json
+{
+  "meta": { "cursor": "next_id", "hasNextPage": true, "totalResults": 142 },
+  "data": [...]
+}
+```
