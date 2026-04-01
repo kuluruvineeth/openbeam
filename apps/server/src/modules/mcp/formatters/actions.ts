@@ -52,7 +52,8 @@ export function formatActionsList(
 
   const hints = [
     "",
-    "To execute an action: use connector_action_execute with connectorId, actionId, and params.",
+    "To execute an action: use connector_action_execute with connectorId (from connector_list), actionId, and params.",
+    "Get the connector ID first by calling connector_list — it shows [ID: xxx] for each connector.",
     "Required params are listed in parentheses above.",
   ].join("\n");
 

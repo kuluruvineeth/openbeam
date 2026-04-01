@@ -43,7 +43,7 @@ export function formatConnectorList(items: ConnectorItem[]): string {
       const docs = c.documentCount ?? 0;
       const status = statusLabel(c.status, docs);
       const sync = relativeTime(c.lastSyncAt);
-      return `${c.name ?? "Unknown"} (${c.type ?? "unknown"}) — ${status}, ${num(docs)} docs, synced ${sync}`;
+      return `[${c.id}] ${c.name ?? "Unknown"} (${c.type ?? "unknown"}) — ${status}, ${num(docs)} docs, synced ${sync}`;
     })
   );
 
@@ -60,7 +60,7 @@ export function formatConnectorDetail(c: ConnectorDetail): string {
   const docs = c.documentCount ?? 0;
   const status = statusLabel(c.status, docs);
   const parts = [
-    `${c.name ?? "Unknown"} (${c.type ?? "unknown"})`,
+    `${c.name ?? "Unknown"} (${c.type ?? "unknown"}) [ID: ${c.id}]`,
     `Status: ${status}`,
     `Documents: ${num(docs)}`,
     `Last sync: ${relativeTime(c.lastSyncAt)}`,
