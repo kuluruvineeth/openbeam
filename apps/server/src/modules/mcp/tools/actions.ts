@@ -164,7 +164,11 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
 
       return {
         content: [{ type: "text" as const, text }],
-        structuredContent: result,
+        structuredContent: {
+          success: result.success,
+          data: result.data,
+          error: result.error,
+        },
       };
     }, "Failed to execute connector action")
   );
