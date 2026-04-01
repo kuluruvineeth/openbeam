@@ -66,7 +66,7 @@ const actions: Record<string, Handler> = {
     const r = await addReaction(client, {
       channel: str(p, "channel"),
       timestamp: str(p, "timestamp"),
-      name: str(p, "name"),
+      emoji: str(p, "emoji"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -107,7 +107,7 @@ const actions: Record<string, Handler> = {
   async channel_invite(client, p) {
     const r = await inviteToChannel(client, {
       channel: str(p, "channel"),
-      userId: str(p, "user_id"),
+      users: [str(p, "user_id")],
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };

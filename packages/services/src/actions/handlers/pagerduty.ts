@@ -28,8 +28,12 @@ const actions: Record<string, Handler> = {
     const r = await createIncident(client, {
       title: str(p, "title"),
       serviceId: str(p, "serviceId"),
-      urgency: typeof p.urgency === "string" ? p.urgency : undefined,
+      urgency:
+        typeof p.urgency === "string"
+          ? (p.urgency as "high" | "low")
+          : undefined,
       body: typeof p.body === "string" ? p.body : undefined,
+      fromEmail: str(p, "fromEmail"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -40,7 +44,8 @@ const actions: Record<string, Handler> = {
   async incident_status_update(client, p) {
     const r = await updateIncidentStatus(client, {
       incidentId: str(p, "incidentId"),
-      status: str(p, "status"),
+      status: str(p, "status") as "acknowledged" | "resolved",
+      fromEmail: str(p, "fromEmail"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -52,6 +57,7 @@ const actions: Record<string, Handler> = {
     const r = await addIncidentNote(client, {
       incidentId: str(p, "incidentId"),
       content: str(p, "content"),
+      fromEmail: str(p, "fromEmail"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };

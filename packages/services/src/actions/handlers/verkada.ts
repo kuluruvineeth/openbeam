@@ -18,7 +18,7 @@ function str(p: Record<string, unknown>, key: string): string {
 
 const actions: Record<string, Handler> = {
   async door_lock(client, p) {
-    const r = await lockDoor(client, { doorId: str(p, "doorId") });
+    const r = await lockDoor(client, str(p, "doorId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -26,10 +26,7 @@ const actions: Record<string, Handler> = {
   },
 
   async door_unlock(client, p) {
-    const r = await unlockDoor(client, {
-      doorId: str(p, "doorId"),
-      duration: typeof p.duration === "number" ? p.duration : undefined,
-    });
+    const r = await unlockDoor(client, str(p, "doorId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -55,7 +52,7 @@ registerHandler({
       region:
         typeof credentials.config.region === "string"
           ? (credentials.config.region as "us" | "eu" | "au")
-          : undefined,
+          : "us",
     });
 
     return await handler(client, params);

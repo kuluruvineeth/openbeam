@@ -19,10 +19,7 @@ function str(p: Record<string, unknown>, key: string): string {
 
 const actions: Record<string, Handler> = {
   async alert_resolve(client, p) {
-    const r = await resolveAlert(client, {
-      alertId: str(p, "alertId"),
-      resolvedBy: typeof p.resolvedBy === "string" ? p.resolvedBy : undefined,
-    });
+    const r = await resolveAlert(client, str(p, "alertId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -30,10 +27,11 @@ const actions: Record<string, Handler> = {
   },
 
   async driver_message_send(client, p) {
-    const r = await sendDriverMessage(client, {
-      driverId: str(p, "driverId"),
-      message: str(p, "message"),
-    });
+    const r = await sendDriverMessage(
+      client,
+      str(p, "driverId"),
+      str(p, "message")
+    );
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -59,7 +57,8 @@ registerHandler({
       region:
         typeof credentials.config.region === "string"
           ? (credentials.config.region as "us" | "eu")
-          : undefined,
+          : "us",
+      apiVersion: "2024-06-01",
     });
 
     return await handler(client, params);

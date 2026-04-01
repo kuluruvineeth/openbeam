@@ -42,8 +42,10 @@ const actions: Record<string, Handler> = {
   },
 
   async task_update(client, p) {
+    const taskId =
+      typeof p.taskId === "number" ? p.taskId : Number(str(p, "taskId"));
     const r = await updateTask(client, {
-      taskId: str(p, "taskId"),
+      taskId,
       title: typeof p.title === "string" ? p.title : undefined,
       description:
         typeof p.description === "string" ? p.description : undefined,
@@ -60,7 +62,7 @@ const actions: Record<string, Handler> = {
     const r = await createWikiPage(client, {
       title: str(p, "title"),
       content: str(p, "content"),
-      slug: typeof p.slug === "string" ? p.slug : undefined,
+      slug: str(p, "slug"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -70,9 +72,9 @@ const actions: Record<string, Handler> = {
 
   async wiki_page_update(client, p) {
     const r = await updateWikiPage(client, {
-      pageId: str(p, "pageId"),
+      slug: str(p, "slug"),
+      content: str(p, "content"),
       title: typeof p.title === "string" ? p.title : undefined,
-      content: typeof p.content === "string" ? p.content : undefined,
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
@@ -96,7 +98,7 @@ registerHandler({
     const client = createPhabricatorClient({
       connectorId: "",
       apiToken: (credentials.config.apiToken as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
+      instanceUrl: (credentials.config.instanceUrl as string) ?? "",
     });
 
     return await handler(client, params);

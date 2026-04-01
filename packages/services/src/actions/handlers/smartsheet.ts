@@ -34,12 +34,15 @@ const actions: Record<string, Handler> = {
   },
 
   async row_add(client, p) {
-    const r = await addRow(client, {
-      sheetId: str(p, "sheetId"),
-      cells: Array.isArray(p.cells)
-        ? (p.cells as Array<{ columnId: string; value: unknown }>)
-        : [],
-    });
+    const sheetId =
+      typeof p.sheetId === "number" ? p.sheetId : Number(str(p, "sheetId"));
+    const cells = Array.isArray(p.cells)
+      ? (p.cells as Array<{
+          columnId: number;
+          value: string | number | boolean;
+        }>)
+      : [];
+    const r = await addRow(client, { sheetId, cells });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -47,13 +50,17 @@ const actions: Record<string, Handler> = {
   },
 
   async row_update(client, p) {
-    const r = await updateRow(client, {
-      sheetId: str(p, "sheetId"),
-      rowId: str(p, "rowId"),
-      cells: Array.isArray(p.cells)
-        ? (p.cells as Array<{ columnId: string; value: unknown }>)
-        : [],
-    });
+    const sheetId =
+      typeof p.sheetId === "number" ? p.sheetId : Number(str(p, "sheetId"));
+    const rowId =
+      typeof p.rowId === "number" ? p.rowId : Number(str(p, "rowId"));
+    const cells = Array.isArray(p.cells)
+      ? (p.cells as Array<{
+          columnId: number;
+          value: string | number | boolean;
+        }>)
+      : [];
+    const r = await updateRow(client, { sheetId, rowId, cells });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }

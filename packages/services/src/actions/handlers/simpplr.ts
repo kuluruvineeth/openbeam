@@ -21,12 +21,12 @@ const actions: Record<string, Handler> = {
     const r = await createPage(client, {
       title: str(p, "title"),
       content: str(p, "content"),
-      siteId: typeof p.siteId === "string" ? p.siteId : undefined,
+      siteId: str(p, "siteId"),
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
-    return { success: true, data: { id: r.id, url: r.url } };
+    return { success: true, data: { id: r.id } };
   },
 
   async page_update(client, p) {
@@ -57,7 +57,7 @@ registerHandler({
     const client = createSimpplrClient({
       connectorId: "",
       apiKey: (credentials.config.apiKey as string) ?? "",
-      baseUrl: (credentials.config.baseUrl as string) ?? "",
+      instance: (credentials.config.instance as string) ?? "",
     });
 
     return await handler(client, params);
