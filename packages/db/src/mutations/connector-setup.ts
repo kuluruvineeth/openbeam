@@ -1,4 +1,4 @@
-import type { AppType } from "@prisma/client";
+import type { AppType } from "../../prisma/generated/client";
 import type { Database } from "..";
 
 export async function createSetupSession(
