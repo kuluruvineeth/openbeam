@@ -38,12 +38,20 @@ import { MCP_CLIENT_LOGOS } from "@/features/settings/developer/components/mcp-c
 
 const APP_NAME_TO_LOGO_KEY: Record<string, string> = {
   claude: "claude-desktop",
+  "claude desktop": "claude-desktop",
+  "claude code": "claude-code",
   chatgpt: "chatgpt",
   openai: "chatgpt",
   cursor: "cursor",
   windsurf: "windsurf",
+  codeium: "windsurf",
   cline: "cline",
   codex: "codex",
+  "openai codex": "codex",
+  vscode: "vscode",
+  "visual studio code": "vscode",
+  "vs code": "vscode",
+  "github copilot": "vscode",
 };
 
 function AppLogo({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
@@ -59,7 +67,12 @@ function AppLogo({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
     );
   }
 
-  const logoKey = APP_NAME_TO_LOGO_KEY[name.toLowerCase().trim()];
+  const normalized = name.toLowerCase().trim();
+  const logoKey =
+    APP_NAME_TO_LOGO_KEY[normalized] ??
+    Object.entries(APP_NAME_TO_LOGO_KEY).find(([key]) =>
+      normalized.includes(key)
+    )?.[1];
   const LogoComponent = logoKey ? MCP_CLIENT_LOGOS[logoKey] : undefined;
   if (LogoComponent) {
     return LogoComponent({ size: 64 });
