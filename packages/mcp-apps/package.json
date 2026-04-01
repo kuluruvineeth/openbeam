@@ -12,6 +12,7 @@
     "build:people": "INPUT=people vite build",
     "build:sync-status": "INPUT=sync-status vite build",
     "build:team": "INPUT=team vite build",
+    "build:connector-setup": "INPUT=connector-setup vite build",
     "test": "bun test --exit --timeout 10000",
     "typecheck": "tsc --noEmit"
   },

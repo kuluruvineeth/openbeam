@@ -1,3 +1,4 @@
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import db, {
   createConnector,
   createSetupSession,
@@ -37,7 +38,8 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     return;
   }
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "connector_available",
     {
       title: "Available Connectors",
@@ -55,6 +57,7 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         query: z.string().optional().describe("Search by name"),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/connector-setup" } },
     },
     withErrorHandling(async (params) => {
       const teamConnectors = await getConnectorsWithStats(db, ctx.teamId);
@@ -130,7 +133,8 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     return;
   }
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "connector_setup",
     {
       title: "Set Up Connector (OAuth)",
@@ -143,6 +147,7 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         name: z.string().optional().describe("Display name for the connector"),
       },
       annotations: WRITE_ANNOTATIONS,
+      _meta: { ui: { resourceUri: "ui://openbeam/connector-setup" } },
     },
     withErrorHandling(async (params) => {
       const appType = params.app.toUpperCase();

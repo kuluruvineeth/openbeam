@@ -136,6 +136,7 @@ export {
 } from "./alert-dialog";
 export { AnimatedSizeContainer } from "./animated-size-container";
 export { AppLogo } from "./app-logo";
+export { AppSettings } from "./app-settings";
 export { AspectRatio } from "./aspect-ratio";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export type { BadgeProps } from "./badge";
@@ -671,6 +672,7 @@ export {
   Toaster,
   useProgressToast,
 } from "./notifications";
+export { OAuthLoading } from "./oauth-loading";
 export { OAuthScopeItem } from "./oauth-scope-item";
 export {
   Popover,
