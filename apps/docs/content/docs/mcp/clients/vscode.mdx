@@ -19,8 +19,7 @@ VS Code has native MCP support through GitHub Copilot's agent mode. This lets yo
 |-------------|---------|
 | **VS Code** | Version 1.99 or later with MCP support |
 | **GitHub Copilot** | Active subscription with Copilot Chat enabled |
-| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
-| **OpenBeam instance** | Running and accessible from your machine |
+| **OpenBeam account** | With at least one connected data source |
 
 <Callout type="info">
   VS Code MCP support requires GitHub Copilot in agent mode. Ensure you have the Copilot Chat extension installed and the agent mode toggle enabled in chat settings.
@@ -28,7 +27,44 @@ VS Code has native MCP support through GitHub Copilot's agent mode. This lets yo
 
 ## Configuration
 
-You can configure the MCP server at the workspace level or user level.
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
+
+<Steps>
+  <Step>
+    ### Add the MCP server
+
+    Run `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) and select **MCP: Add Server**. Enter:
+
+    - **Server name**: `openbeam`
+    - **Type**: `sse`
+    - **URL**: `https://api.openbeam.work/mcp`
+  </Step>
+
+  <Step>
+    ### Sign in when prompted
+
+    VS Code auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize. Done — OpenBeam's tools appear immediately in Copilot Chat.
+  </Step>
+</Steps>
+
+Or create `.vscode/mcp.json` in your workspace root:
+
+```json title=".vscode/mcp.json"
+{
+  "servers": {
+    "openbeam": {
+      "type": "sse",
+      "url": "https://api.openbeam.work/mcp"
+    }
+  }
+}
+```
+
+Reload the window (`Ctrl+Shift+P` > **Developer: Reload Window**) and sign in when prompted.
+
+</Tab>
+<Tab value="API Key">
 
 ### Option A: Workspace configuration (recommended)
 
@@ -52,7 +88,7 @@ You can configure the MCP server at the workspace level or user level.
     }
     ```
 
-    Replace `op_live_your_key_here` with your actual API key.
+    Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
     <Callout type="warn">
       Add `.vscode/mcp.json` to your `.gitignore` if it contains API keys. For shared team setups, use environment variable references if your VS Code version supports them.
@@ -87,6 +123,9 @@ You can configure the MCP server at the workspace level or user level.
     This saves the configuration to your VS Code user settings, making it available across all workspaces.
   </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Verification
 

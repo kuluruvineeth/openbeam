@@ -17,22 +17,53 @@ OpenAI Codex CLI is a terminal-based coding agent by OpenAI that runs software e
 
 - **OpenAI Codex CLI** installed ([GitHub](https://github.com/openai/codex))
 - An **OpenBeam account** with at least one connected data source
-- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
-
-<Callout type="info">
-API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
-</Callout>
 
 ## Configuration
 
 Codex stores MCP configuration in `config.toml`, shared across CLI, VS Code, and Desktop.
 
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
+
 <Steps>
 <Step>
 
-### Add via CLI (recommended)
+### Add via CLI
 
 The fastest way to add OpenBeam:
+
+```bash
+codex mcp add openbeam --url https://api.openbeam.work/mcp
+```
+
+</Step>
+<Step>
+
+### Sign in when prompted
+
+On first use, Codex auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize. Done — OpenBeam's tools appear immediately.
+
+</Step>
+<Step>
+
+### Verify
+
+```bash
+codex mcp list
+```
+
+You should see `openbeam` in the server list with a connected status.
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab value="API Key">
+
+<Steps>
+<Step>
+
+### Add via CLI
 
 ```bash
 codex mcp add openbeam --url https://api.openbeam.work/mcp
@@ -54,7 +85,7 @@ url = "https://api.openbeam.work/mcp"
 Authorization = "Bearer op_live_your_key_here"
 ```
 
-Replace `op_live_your_key_here` with your actual API key. If your Codex supports OAuth, the auth flow is handled automatically when you first use OpenBeam tools.
+Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
 </Step>
 <Step>
@@ -69,10 +100,6 @@ You should see `openbeam` in the server list with a connected status.
 
 </Step>
 </Steps>
-
-<Callout type="info">
-Codex config is shared across CLI, VS Code extension, and Desktop app. Configure once, use everywhere.
-</Callout>
 
 ### Legacy JSON configuration
 
@@ -92,6 +119,13 @@ Older Codex versions may use `~/.codex/mcp.json`:
 ```
 
 Replace `op_live_your_key_here` with your actual API key.
+
+</Tab>
+</Tabs>
+
+<Callout type="info">
+Codex config is shared across CLI, VS Code extension, and Desktop app. Configure once, use everywhere.
+</Callout>
 
 ## Verification
 

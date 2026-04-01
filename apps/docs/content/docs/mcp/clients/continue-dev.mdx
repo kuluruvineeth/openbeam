@@ -18,14 +18,44 @@ icon: ContinueDev
 | Requirement | Details |
 |-------------|---------|
 | **Continue** | Installed in VS Code or JetBrains ([continue.dev](https://continue.dev)) |
-| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
-| **OpenBeam instance** | Running and accessible from your machine |
-
-<Callout type="info">
-  Your API key must have at least the `search:read` and `connectors:read` scopes. For full functionality including sync triggers and action execution, use an `admin:*` scoped key.
-</Callout>
+| **OpenBeam account** | With at least one connected data source |
 
 ## Configuration
+
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
+
+<Steps>
+  <Step>
+    ### Add the OpenBeam MCP server
+
+    Open `~/.continue/config.json` and add the OpenBeam server under the `experimental.modelContextProtocolServers` array:
+
+    ```json title="~/.continue/config.json"
+    {
+      "experimental": {
+        "modelContextProtocolServers": [
+          {
+            "transport": {
+              "type": "sse",
+              "url": "https://api.openbeam.work/mcp"
+            }
+          }
+        ]
+      }
+    }
+    ```
+  </Step>
+
+  <Step>
+    ### Sign in when prompted
+
+    Reload Continue (**Continue: Reload** from the command palette). On first connection, Continue auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize.
+  </Step>
+</Steps>
+
+</Tab>
+<Tab value="API Key">
 
 <Steps>
   <Step>
@@ -57,7 +87,7 @@ icon: ContinueDev
     }
     ```
 
-    Replace `op_live_your_key_here` with your actual API key.
+    Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
     <Callout type="warn">
       If you are running OpenBeam on a self-hosted instance, replace `https://api.openbeam.work` with your server URL.
@@ -70,6 +100,9 @@ icon: ContinueDev
     Restart your IDE or run the **Continue: Reload** command from the command palette to pick up the new configuration.
   </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Verification
 

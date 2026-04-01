@@ -18,22 +18,51 @@ icon: Cline
 | Requirement | Details |
 |-------------|---------|
 | **Cline** | Installed in VS Code ([marketplace](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)) |
-| **OpenBeam API key** | Generate at **Settings > API Keys** in the OpenBeam dashboard |
-| **OpenBeam instance** | Running and accessible from your machine |
-
-<Callout type="info">
-  For Cline to execute write actions like creating issues or triggering syncs, your API key needs `connectors:write` and `sync:write` scopes in addition to read scopes.
-</Callout>
+| **OpenBeam account** | With at least one connected data source |
 
 ## Configuration
+
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
 
 <Steps>
   <Step>
     ### Open MCP server settings
 
-    In VS Code, open the command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Cline: MCP Servers**. This opens the MCP configuration interface.
+    In VS Code, open the command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Cline: MCP Servers**. Alternatively, edit the configuration file directly at `~/.cline/mcp_settings.json`.
+  </Step>
 
-    Alternatively, edit the configuration file directly at `~/.cline/mcp_settings.json`.
+  <Step>
+    ### Add the OpenBeam server
+
+    Add the following entry to the `mcpServers` object:
+
+    ```json title="~/.cline/mcp_settings.json"
+    {
+      "mcpServers": {
+        "openbeam": {
+          "url": "https://api.openbeam.work/mcp"
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step>
+    ### Sign in when prompted
+
+    Reload the VS Code window (`Ctrl+Shift+P` > **Developer: Reload Window**). On first connection, Cline auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize.
+  </Step>
+</Steps>
+
+</Tab>
+<Tab value="API Key">
+
+<Steps>
+  <Step>
+    ### Open MCP server settings
+
+    In VS Code, open the command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Cline: MCP Servers**. Alternatively, edit the configuration file directly at `~/.cline/mcp_settings.json`.
   </Step>
 
   <Step>
@@ -54,7 +83,7 @@ icon: Cline
     }
     ```
 
-    Replace `op_live_your_key_here` with your actual API key.
+    Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
     <Callout type="warn">
       If you are running OpenBeam on a self-hosted instance, replace `https://api.openbeam.work` with your server URL.
@@ -67,6 +96,9 @@ icon: Cline
     Close and reopen the Cline panel, or reload the VS Code window (`Ctrl+Shift+P` > **Developer: Reload Window**) to activate the new MCP server.
   </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Verification
 

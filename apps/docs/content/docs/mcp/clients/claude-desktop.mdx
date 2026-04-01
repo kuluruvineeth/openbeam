@@ -17,43 +17,37 @@ Claude Desktop supports the Model Context Protocol (MCP) natively, allowing Open
 
 - **Claude Desktop** installed ([macOS](https://claude.ai/download) or [Windows](https://claude.ai/download))
 - An **OpenBeam account** with at least one connected data source
-- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
-
-<Callout type="info">
-API keys start with `op_live_`. Keep this value secret — it grants access to all data sources visible to your team.
-</Callout>
 
 ## Configuration
 
-There are two ways to connect OpenBeam to Claude Desktop. The Connector UI is the fastest; the JSON config gives full control.
+Claude Desktop supports OAuth natively. Just add the server URL and sign in — no API key needed.
 
-<Tabs items={["Connector UI (Recommended)", "JSON Config"]}>
-<Tab value="Connector UI (Recommended)">
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
 
 <Steps>
 <Step>
 
-### Open the Connectors panel
+### Add OpenBeam
 
-In any Claude Desktop chat, click the **+** button, then navigate to **Connectors > Manage Connectors**.
+In any Claude Desktop chat, click the **+** button, then **Connectors > Manage Connectors > Add custom server**:
+
+```
+https://api.openbeam.work/mcp
+```
 
 </Step>
 <Step>
 
-### Add OpenBeam
+### Authorize
 
-Click **Add custom server** and enter:
-
-- **URL:** `https://api.openbeam.work/mcp`
-- **Header:** `Authorization: Bearer op_live_your_key_here`
-
-Click **Connect**. OpenBeam's 20 tools appear immediately.
+Claude opens the OpenBeam sign-in page. Log in with your OpenBeam account and click **Authorize**. Done — OpenBeam's 20 tools appear immediately.
 
 </Step>
 </Steps>
 
 </Tab>
-<Tab value="JSON Config">
+<Tab value="API Key">
 
 <Steps>
 <Step>

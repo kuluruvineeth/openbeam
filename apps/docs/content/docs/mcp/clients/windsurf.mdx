@@ -17,13 +17,11 @@ Windsurf (by Codeium) is an AI-native IDE with built-in Cascade AI. By connectin
 
 - **Windsurf** installed ([windsurf.com](https://windsurf.com))
 - An **OpenBeam account** with at least one connected data source
-- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
-
-<Callout type="info">
-API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
-</Callout>
 
 ## Configuration
+
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
 
 <Steps>
 <Step>
@@ -31,6 +29,49 @@ API keys start with `op_live_`. Keep this value secret -- it grants access to al
 ### Open MCP settings
 
 In Windsurf, open the MCP configuration. You can do this in one of three ways:
+
+- Click the **MCPs icon** in the top-right of the Cascade panel
+- Open **Settings > Cascade > MCP Servers** and click **View raw config**
+- Manually edit the config file at `~/.codeium/windsurf/mcp_config.json`
+
+If the file does not exist, create it.
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Add the following to the config file:
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://api.openbeam.work/mcp"
+    }
+  }
+}
+```
+
+</Step>
+<Step>
+
+### Sign in when prompted
+
+Restart Windsurf. On first connection, Windsurf auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize. Done — OpenBeam's tools appear immediately.
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab value="API Key">
+
+<Steps>
+<Step>
+
+### Open MCP settings
+
+In Windsurf, open the MCP configuration:
 
 - Click the **MCPs icon** in the top-right of the Cascade panel
 - Open **Settings > Cascade > MCP Servers** and click **View raw config**
@@ -58,7 +99,7 @@ Add the following to the config file. If the file already contains other MCP ser
 }
 ```
 
-Replace `op_live_your_key_here` with your actual API key.
+Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
 <Callout type="warn">
 If you self-host OpenBeam, replace `https://api.openbeam.work` with your server's base URL.
@@ -73,6 +114,9 @@ Restart the IDE for the MCP server to connect. Windsurf loads MCP configurations
 
 </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Verification
 

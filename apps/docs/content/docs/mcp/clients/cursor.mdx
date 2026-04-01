@@ -17,24 +17,22 @@ Connect OpenBeam to Cursor so your AI assistant can search internal docs, look u
 
 - [Cursor](https://cursor.com) installed
 - An OpenBeam account with at least one connected data source
-- An OpenBeam API key (generate one in **Settings > API Keys**)
 
 ## Configuration
 
-<Tabs items={["Settings UI", "JSON Config"]}>
-<Tab value="Settings UI">
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
 
-Open **Cursor Settings > Tools & MCP**, click **Add new MCP server**, and fill in:
+Open **Cursor Settings > Tools & MCP**, click **Add new MCP server**:
 
 - **Name:** `openbeam`
 - **Type:** `streamable-http`
 - **URL:** `https://api.openbeam.work/mcp`
-- **Headers:** `Authorization: Bearer op_live_your_key_here`
 
-Click **Install**, then fully quit and reopen Cursor.
+Click **Install**. Cursor will open the OpenBeam sign-in page — log in and authorize. Restart Cursor to load the tools.
 
 </Tab>
-<Tab value="JSON Config">
+<Tab value="API Key">
 
 Cursor reads MCP server configuration from a JSON file. You can configure OpenBeam at the project level or globally.
 

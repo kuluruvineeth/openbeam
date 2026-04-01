@@ -17,13 +17,42 @@ Conductor is an AI-powered workflow automation platform. By connecting OpenBeam 
 
 - A **Conductor** account with workflow creation permissions
 - An **OpenBeam account** with at least one connected data source
-- An **OpenBeam API key** (generate one at **Settings > API Keys** in the OpenBeam dashboard)
-
-<Callout type="info">
-API keys start with `op_live_`. Keep this value secret -- it grants access to all data sources visible to your team.
-</Callout>
 
 ## Configuration
+
+<Tabs items={["OAuth (Recommended)", "API Key"]}>
+<Tab value="OAuth (Recommended)">
+
+<Steps>
+<Step>
+
+### Open Conductor MCP settings
+
+In Conductor, navigate to **Settings > Integrations > MCP Servers** (or the equivalent tool configuration section in your version).
+
+</Step>
+<Step>
+
+### Add the OpenBeam server
+
+Click **Add Server** and enter the URL:
+
+```
+https://api.openbeam.work/mcp
+```
+
+</Step>
+<Step>
+
+### Sign in when prompted
+
+Conductor auto-discovers OpenBeam's OAuth endpoint and opens the sign-in page. Log in with your OpenBeam account and authorize. A green status indicator confirms the connection is active.
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab value="API Key">
 
 <Steps>
 <Step>
@@ -58,7 +87,7 @@ Add the following configuration. If you are using the Conductor UI, paste the JS
 }
 ```
 
-Replace `op_live_your_key_here` with your actual API key.
+Replace `op_live_your_key_here` with your actual API key (generate one at **Settings > API Keys** in the OpenBeam dashboard).
 
 <Callout type="warn">
 If you self-host OpenBeam, replace `https://api.openbeam.work` with your server's base URL.
@@ -73,6 +102,9 @@ After saving, Conductor should show the OpenBeam MCP server as connected. Check 
 
 </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Verification
 
