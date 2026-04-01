@@ -97,23 +97,52 @@ graph TB
 
 ## Supported clients
 
-OpenBeam MCP works with any client that supports the MCP protocol:
+OpenBeam MCP works with any client that supports the MCP protocol.
 
-| Client | Transport | Setup |
-|--------|-----------|-------|
-| Claude Desktop | Streamable HTTP | Native remote server support |
-| Claude Code | Streamable HTTP | `claude mcp add --transport http` |
-| Cursor | stdio via mcp-remote | `.cursor/mcp.json` |
-| Windsurf | Streamable HTTP | Native support |
-| Codex | Streamable HTTP | Native support |
-| ChatGPT | Streamable HTTP | Native support |
-| VS Code Copilot | stdio via mcp-remote | Settings JSON |
-| Continue | stdio via mcp-remote | `config.json` |
-| Cline | stdio via mcp-remote | Settings |
-| OpenCode | Streamable HTTP | Config file |
-| Conductor | Streamable HTTP | Native support |
+<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "16px", margin: "24px 0" }}>
+  <a href="/docs/mcp/clients/claude-desktop" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/claude-color.svg" alt="Claude" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Claude Desktop</span>
+  </a>
+  <a href="/docs/mcp/clients/cursor" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/cursor.svg" alt="Cursor" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Cursor</span>
+  </a>
+  <a href="/docs/mcp/clients/windsurf" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/windsurf.svg" alt="Windsurf" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Windsurf</span>
+  </a>
+  <a href="/docs/mcp/clients/codex" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/codex-color.svg" alt="Codex" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Codex</span>
+  </a>
+  <a href="/docs/mcp/clients/chatgpt" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/chatgpt.svg" alt="ChatGPT" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>ChatGPT</span>
+  </a>
+  <a href="/docs/mcp/clients/vscode" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/vscode.svg" alt="VS Code" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>VS Code</span>
+  </a>
+  <a href="/docs/mcp/clients/continue-dev" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/continue.svg" alt="Continue" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Continue</span>
+  </a>
+  <a href="/docs/mcp/clients/cline" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/cline.svg" alt="Cline" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Cline</span>
+  </a>
+  <a href="/docs/mcp/clients/opencode" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/opencode.svg" alt="OpenCode" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>OpenCode</span>
+  </a>
+  <a href="/docs/mcp/clients/conductor" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", border: "1px solid var(--fd-border)", borderRadius: "8px", textDecoration: "none", color: "inherit" }}>
+    <img src="/assets/mcp-clients/copilot.svg" alt="Conductor" width="28" height="28" />
+    <span style={{ fontSize: "13px", fontWeight: 500 }}>Conductor</span>
+  </a>
+</div>
 
-See [Quickstart](/docs/mcp/quickstart) for setup instructions, or [Clients](/docs/mcp/clients) for client-specific configuration.
+See [Quickstart](/docs/mcp/quickstart) for setup instructions, or [Clients](/docs/mcp/clients) for per-client configuration guides.
 
 ## Next steps
 
