@@ -16,7 +16,7 @@ OpenBeam supports two authentication methods. Most MCP clients support both.
 OpenBeam implements the standard MCP OAuth specification. Clients that support OAuth (Claude Desktop, Cursor, Codex, and others) can discover the auth server automatically:
 
 ```text
-GET https://api.openbeam.dev/.well-known/oauth-authorization-server
+GET https://api.openbeam.work/.well-known/oauth-authorization-server
 ```
 
 This returns the authorization, token, and registration endpoints. The flow uses `authorization_code` grant with `S256` PKCE. No client secret is required (`token_endpoint_auth_methods_supported: ["none"]`).

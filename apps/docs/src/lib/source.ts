@@ -115,6 +115,18 @@ import {
   ZendeskIcon,
   ZoomIcon,
 } from "@/components/connector-icons";
+import {
+  ChatGPTIcon,
+  ClaudeDesktopIcon,
+  ClineIcon,
+  CodexIcon,
+  ConductorIcon,
+  ContinueDevIcon,
+  CursorIcon,
+  OpenCodeIcon,
+  VSCodeIcon,
+  WindsurfIcon,
+} from "@/components/mcp-client-icons";
 
 type IconType = HugeiconsIconProps["icon"];
 
@@ -140,6 +152,16 @@ const customIconMap: Record<
   Aha: AhaIcon,
   Airtable: AirtableIcon,
   Asana: AsanaIcon,
+  ChatGPT: ChatGPTIcon,
+  ClaudeDesktop: ClaudeDesktopIcon,
+  Cline: ClineIcon,
+  Codex: CodexIcon,
+  Conductor: ConductorIcon,
+  ContinueDev: ContinueDevIcon,
+  Cursor: CursorIcon,
+  OpenCode: OpenCodeIcon,
+  VSCode: VSCodeIcon,
+  Windsurf: WindsurfIcon,
   Slack: SlackIcon,
   Gmail: GmailIcon,
   GoogleDrive: GoogleDriveIcon,

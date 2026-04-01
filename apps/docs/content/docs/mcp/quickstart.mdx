@@ -21,7 +21,7 @@ Three steps to give your AI assistant access to every document, message, and fil
     The MCP URL is:
 
     ```
-    https://mcp.openbeam.work/mcp
+    https://api.openbeam.work/mcp
     ```
   </Tab>
   <Tab value="Self-Hosted (API Key)">
@@ -44,22 +44,22 @@ Three steps to give your AI assistant access to every document, message, and fil
 
 <Tabs items={["Claude Desktop", "Claude Code", "Cursor", "Other Clients"]}>
   <Tab value="Claude Desktop">
-    Open **Settings > Connectors** in Claude Desktop and add OpenBeam as a remote MCP server:
+    Click the **+** button in any chat, then **Connectors > Manage Connectors > Add custom server**:
 
     ```
-    URL: https://mcp.openbeam.work/mcp
+    URL: https://api.openbeam.work/mcp
     ```
 
-    Claude will prompt you to authenticate with your OpenBeam account via OAuth.
-
-    Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+    Claude will prompt you to sign in via OAuth. Or add to `claude_desktop_config.json`:
 
     ```json
     {
       "mcpServers": {
         "openbeam": {
-          "command": "npx",
-          "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+          "url": "https://api.openbeam.work/mcp",
+          "headers": {
+            "Authorization": "Bearer op_live_your_key_here"
+          }
         }
       }
     }
@@ -67,39 +67,37 @@ Three steps to give your AI assistant access to every document, message, and fil
   </Tab>
   <Tab value="Claude Code">
     ```bash
-    claude mcp add --transport http openbeam https://mcp.openbeam.work/mcp
+    claude mcp add --transport http openbeam https://api.openbeam.work/mcp
     ```
 
     Then run `/mcp` in a Claude Code session to authenticate.
   </Tab>
   <Tab value="Cursor">
-    Add to `.cursor/mcp.json` in your project root:
+    Open **Settings > Tools & MCP > Add new MCP server**, or add to `.cursor/mcp.json`:
 
     ```json
     {
       "mcpServers": {
         "openbeam": {
-          "command": "npx",
-          "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+          "url": "https://api.openbeam.work/mcp",
+          "headers": {
+            "Authorization": "Bearer op_live_your_key_here"
+          }
         }
       }
     }
     ```
   </Tab>
   <Tab value="Other Clients">
-    For any MCP client that supports HTTP transport, use the URL directly:
+    For any MCP client that supports Streamable HTTP, use the URL directly:
 
     ```
-    https://mcp.openbeam.work/mcp
+    https://api.openbeam.work/mcp
     ```
 
-    For stdio-based clients, wrap with `mcp-remote`:
+    Most modern MCP clients (Windsurf, Codex, VS Code, OpenCode) support native HTTP transport. See the [client setup guides](/docs/mcp/clients) for exact configuration per client.
 
-    ```bash
-    npx -y mcp-remote https://mcp.openbeam.work/mcp
-    ```
-
-    For self-hosted instances with API key auth:
+    For self-hosted instances:
 
     ```json
     {
@@ -145,7 +143,7 @@ If you see your connectors listed with document counts and last sync times, ever
 
 | Issue | Fix |
 |-------|-----|
-| "Server not found" | Ensure `https://mcp.openbeam.work` is reachable from your network |
+| "Server not found" | Ensure `https://api.openbeam.work` is reachable from your network |
 | "Authentication failed" | Re-authenticate via OAuth, or check your API key is valid |
 | "No results" | Verify at least one connector is synced in the OpenBeam dashboard |
 | Connection timeout | Check firewall rules; the MCP endpoint requires HTTPS on port 443 |

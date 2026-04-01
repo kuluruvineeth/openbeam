@@ -1,31 +1,29 @@
 ---
 title: MCP Server
-description: Connect OpenBeam to Claude, Cursor, Windsurf, Codex, and any MCP-compatible AI host.
+description: Connect OpenBeam to Claude, Cursor, Windsurf, Codex, and any MCP-compatible AI tool.
 ---
 
 # MCP Server
 
-OpenBeam ships a Model Context Protocol (MCP) server that gives AI assistants access to your enterprise knowledge — 88+ connector integrations with write actions, hybrid search, RAG answers, rich UI views, and connector management.
+OpenBeam ships a Model Context Protocol (MCP) server that gives AI assistants access to your enterprise knowledge — 88 connector integrations with write actions, hybrid search, RAG answers, rich UI views, and connector management.
 
 ## Quick Setup
 
 ### Claude Desktop (Recommended)
 
-Open **Settings > Connectors** in Claude Desktop, then add OpenBeam as a remote MCP server:
+Click the **+** button in any chat, then **Connectors > Manage Connectors > Add custom server**:
 
 ```
-URL: https://mcp.openbeam.work/mcp
+URL: https://api.openbeam.work/mcp
 ```
 
-Claude will prompt you to authenticate with your OpenBeam account via OAuth.
-
-Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Claude will prompt you to sign in via OAuth. Or add to `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "openbeam": {
-      "url": "https://api.openbeam.dev/mcp",
+      "url": "https://api.openbeam.work/mcp",
       "headers": {
         "Authorization": "Bearer op_live_your_key_here"
       }
@@ -34,46 +32,38 @@ Alternatively, add to `~/Library/Application Support/Claude/claude_desktop_confi
 }
 ```
 
-<Callout type="info">
-  This connects to the hosted OpenBeam API. You only need an OpenBeam account — no database URLs, no infrastructure setup.
-</Callout>
-
 ### Claude Code
 
 ```bash
-claude mcp add --transport http openbeam https://mcp.openbeam.work/mcp
+claude mcp add --transport http openbeam https://api.openbeam.work/mcp
 ```
-
-Then run `/mcp` in a Claude Code session to authenticate.
 
 ### Cursor
 
-Add to `.cursor/mcp.json` in your project root:
+Open **Settings > Tools & MCP > Add new MCP server**, or add to `.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "openbeam": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.openbeam.work/mcp"]
+      "url": "https://api.openbeam.work/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_your_key_here"
+      }
     }
   }
 }
 ```
 
-### Windsurf / Codex / Any MCP Host
+### Other Clients
 
-Use the remote MCP URL directly if the host supports HTTP transport:
+All modern MCP clients support Streamable HTTP natively:
 
 ```
-https://mcp.openbeam.work/mcp
+https://api.openbeam.work/mcp
 ```
 
-Or use `mcp-remote` for stdio-based hosts:
-
-```bash
-npx -y mcp-remote https://mcp.openbeam.work/mcp
-```
+See the [client setup guides](/docs/mcp/clients) for Windsurf, Codex, ChatGPT, VS Code, Continue, Cline, OpenCode, and Conductor.
 
 ## What You Get
 
@@ -83,33 +73,14 @@ Once connected, your AI assistant can:
 - **Ask questions** with RAG-powered answers and citations
 - **Manage connectors** — list, inspect health, connect new sources via OAuth
 - **Trigger syncs** — run full or incremental syncs and monitor progress
-- **Execute actions** — create issues, send messages, update records across 88+ integrations
+- **Execute actions** — create issues, send messages, update records across 88 integrations
 - **Browse context** — access the enterprise knowledge graph and context memory
-
-## Verify It Works
-
-After setup, ask your AI assistant:
-
-> "What connectors are connected to OpenBeam?"
-
-The assistant will call `connector_list` and show your connected data sources. If you see connector names, statuses, and document counts, the integration is working.
 
 ## Full Documentation
 
-For detailed guides on every tool, authentication options, rich UI views, and client-specific setup instructions, see the comprehensive MCP documentation:
-
 <Cards>
   <Card title="MCP Overview" href="/docs/mcp" description="Architecture, capabilities, and tool catalog" />
-  <Card title="Authentication" href="/docs/mcp/authentication" description="OAuth, API keys, and scope management" />
-  <Card title="Client Guides" href="/docs/mcp/clients/claude-desktop" description="Step-by-step setup for Claude Desktop, Cursor, and more" />
+  <Card title="Authentication" href="/docs/mcp/authentication" description="OAuth 2.1, API keys, and scope management" />
+  <Card title="Client Guides" href="/docs/mcp/clients/claude-desktop" description="Step-by-step setup for 10 AI clients" />
   <Card title="Roadmap" href="/docs/mcp/roadmap" description="Upcoming MCP capabilities and integrations" />
 </Cards>
-
-## Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| "Server not found" | Ensure Node.js 18+ is installed: `node --version` |
-| "Authentication failed" | Re-authenticate via OAuth or check your API key |
-| "No results" | Check that connectors are synced in the OpenBeam dashboard |
-| Connection timeout | Verify `https://mcp.openbeam.work` is reachable |
