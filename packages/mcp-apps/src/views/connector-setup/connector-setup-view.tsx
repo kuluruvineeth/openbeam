@@ -1,6 +1,7 @@
 import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
 import { useState } from "react";
 import { ErrorState } from "../../shared/error-state";
+import { ApiKeyStep } from "./apikey-step";
 import { BrowseStep } from "./browse-step";
 import { OAuthStep } from "./oauth-step";
 import { SuccessStep } from "./success-step";
@@ -24,14 +25,15 @@ export function ConnectorSetupView({
   const [connectorId, setConnectorId] = useState<string | null>(
     initialSetupData?.connectorId ?? null
   );
+  const [selectedConnector, setSelectedConnector] =
+    useState<AvailableConnector | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSelectConnector = async (connector: AvailableConnector) => {
+    setSelectedConnector(connector);
+
     if (connector.authType !== "OAUTH2") {
-      setErrorMessage(
-        `${connector.name} uses ${connector.authType}. API key setup coming soon.`
-      );
-      setStep("error");
+      setStep("apikey");
       return;
     }
 
@@ -42,6 +44,14 @@ export function ConnectorSetupView({
       });
 
       const sc = result.structuredContent as SetupData | undefined;
+
+      if (sc?.status === "already_connected" && sc?.connectorId) {
+        setConnectorId(sc.connectorId as string);
+        setSetupData({ app: { id: connector.id, name: connector.name } });
+        setStep("success");
+        return;
+      }
+
       if (result.isError || !sc?.oauthUrl) {
         setErrorMessage("Failed to start setup. Try again.");
         setStep("error");
@@ -56,7 +66,7 @@ export function ConnectorSetupView({
     }
   };
 
-  const handleOAuthComplete = (id: string) => {
+  const handleComplete = (id: string) => {
     setConnectorId(id);
     setStep("success");
   };
@@ -70,6 +80,7 @@ export function ConnectorSetupView({
     setStep("browse");
     setSetupData({});
     setConnectorId(null);
+    setSelectedConnector(null);
     setErrorMessage(null);
   };
 
@@ -83,9 +94,33 @@ export function ConnectorSetupView({
     return (
       <OAuthStep
         app={app}
-        onComplete={handleOAuthComplete}
+        onComplete={handleComplete}
         onError={handleError}
         setupData={setupData}
+      />
+    );
+  }
+
+  if (step === "apikey" && selectedConnector) {
+    const fields =
+      (
+        selectedConnector as AvailableConnector & {
+          requiredFields?: Array<{
+            id: string;
+            label: string;
+            type: string;
+            required: boolean;
+            placeholder?: string | null;
+          }>;
+        }
+      ).requiredFields ?? [];
+    return (
+      <ApiKeyStep
+        app={app}
+        connector={{ id: selectedConnector.id, name: selectedConnector.name }}
+        fields={fields}
+        onComplete={handleComplete}
+        onError={handleError}
       />
     );
   }
@@ -94,8 +129,8 @@ export function ConnectorSetupView({
     return (
       <SuccessStep
         app={app}
-        appId={setupData.app?.id ?? ""}
-        appName={setupData.app?.name ?? "Connector"}
+        appId={selectedConnector?.id ?? setupData.app?.id ?? ""}
+        appName={selectedConnector?.name ?? setupData.app?.name ?? "Connector"}
         connectorId={connectorId}
       />
     );

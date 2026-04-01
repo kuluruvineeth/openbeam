@@ -31,6 +31,17 @@ const mcpAvailableSchema = z.object({
   authType: z.string(),
   active: z.boolean(),
   installed: z.boolean(),
+  requiredFields: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        type: z.string(),
+        required: z.boolean(),
+        placeholder: z.string().nullable().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
@@ -94,6 +105,18 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         authType: app.auth.type,
         active: app.active,
         installed: installedTypes.has(app.id),
+        requiredFields:
+          app.auth.type !== "OAUTH2"
+            ? (app.settings ?? [])
+                .filter((s) => s.required)
+                .map((s) => ({
+                  id: s.id,
+                  label: s.label,
+                  type: s.type,
+                  required: s.required,
+                  placeholder: s.placeholder ?? null,
+                }))
+            : undefined,
       }));
 
       const sanitized = sanitizeArray(mcpAvailableSchema, data);
@@ -326,6 +349,117 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         structuredContent: { status: "pending" },
       };
     }, "Failed to check setup status")
+  );
+
+  server.registerTool(
+    "connector_configure",
+    {
+      title: "Configure Connector (API Key)",
+      description:
+        "Set up an API key connector (Samsara, Datadog, Jenkins, BambooHR, etc.). Pass the connector type and credentials as key-value pairs.\n\nUse connector_available first to see required fields for each connector. The credentials keys must match the setting IDs shown in connector_available.\n\nExample: connector_configure({ app: 'SAMSARA', credentials: { api_token: '...', region: 'us' } })",
+      inputSchema: {
+        app: z
+          .string()
+          .describe("Connector type (e.g. SAMSARA, DATADOG, JENKINS)"),
+        credentials: z
+          .record(z.string(), z.unknown())
+          .describe(
+            "Key-value credentials matching the connector's required settings"
+          ),
+        name: z.string().optional().describe("Display name for the connector"),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    withErrorHandling(async (params) => {
+      const appType = params.app.toUpperCase();
+      const app = appStore.find((a) => a.id === appType);
+
+      if (!app) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Unknown connector: ${params.app}. Use connector_available to browse.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      if (app.auth.type === "OAUTH2") {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `${app.name} uses OAuth. Use connector_setup instead.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const existing = await getConnectorsWithStats(db, ctx.teamId);
+      const alreadyConnected = existing.find(
+        (c) =>
+          c.app === appType && (c.status === "ACTIVE" || c.status === "SYNCING")
+      );
+      if (alreadyConnected) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `${app.name} is already connected (ID: ${alreadyConnected.id}).`,
+            },
+          ],
+          structuredContent: {
+            connectorId: alreadyConnected.id,
+            status: "already_connected",
+          },
+        };
+      }
+
+      const requiredSettings = (app.settings ?? []).filter((s) => s.required);
+      const missingFields = requiredSettings
+        .filter((s) => !(s.id in params.credentials))
+        .map((s) => `${s.id} (${s.label})`);
+
+      if (missingFields.length > 0) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Missing required fields: ${missingFields.join(", ")}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const connector = await createConnector(db, {
+        teamId: ctx.teamId,
+        userId: ctx.userId,
+        workspaceExternalId: ctx.teamId,
+        app: appType as Parameters<typeof createConnector>[1]["app"],
+        name: params.name ?? app.name,
+        type: "SOURCE",
+        authType: app.auth.type as Parameters<
+          typeof createConnector
+        >[1]["authType"],
+        config: params.credentials,
+      });
+
+      await updateConnector(db, connector.id, { status: "ACTIVE" });
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `${app.name} configured and activated (ID: ${connector.id}). Use sync_trigger to start syncing.`,
+          },
+        ],
+        structuredContent: { connectorId: connector.id, status: "active" },
+      };
+    }, "Failed to configure connector")
   );
 
   server.registerTool(

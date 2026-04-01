@@ -1,4 +1,4 @@
-export type SetupStep = "browse" | "oauth" | "success" | "error";
+export type SetupStep = "browse" | "oauth" | "apikey" | "success" | "error";
 
 export type AvailableConnector = {
   id: string;
@@ -8,6 +8,13 @@ export type AvailableConnector = {
   authType: string;
   active: boolean;
   installed: boolean;
+  requiredFields?: Array<{
+    id: string;
+    label: string;
+    type: string;
+    required: boolean;
+    placeholder?: string | null;
+  }>;
 };
 
 export type SetupData = {
@@ -16,6 +23,7 @@ export type SetupData = {
   oauthUrl?: string;
   app?: { id: string; name: string };
   expiresAt?: string;
+  status?: string;
 };
 
 export type PollStatus = "pending" | "completed" | "failed" | "expired";
