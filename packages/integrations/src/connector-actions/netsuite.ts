@@ -1,0 +1,130 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "netsuite",
+  connectorName: "NetSuite",
+  connectorIcon: "netsuite",
+  actions: [
+    {
+      id: "customer_create",
+      name: "Create Customer",
+      description: "Create a new customer record in NetSuite",
+      connectorType: "netsuite",
+      resource: "customer",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description:
+            "Customer record fields (companyName, email, phone, etc.)",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Customer ID", type: "string" },
+        { id: "url", name: "Customer URL", type: "string" },
+      ],
+    },
+    {
+      id: "customer_update",
+      name: "Update Customer",
+      description: "Update an existing customer record in NetSuite",
+      connectorType: "netsuite",
+      resource: "customer",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "customerId",
+          name: "Customer ID",
+          type: "string",
+          required: true,
+        },
+        { id: "properties", name: "Properties", type: "json", required: false },
+      ],
+      outputs: [
+        { id: "recordId", name: "Customer ID", type: "string" },
+        { id: "url", name: "Customer URL", type: "string" },
+      ],
+    },
+    {
+      id: "vendor_create",
+      name: "Create Vendor",
+      description: "Create a new vendor record in NetSuite",
+      connectorType: "netsuite",
+      resource: "vendor",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description: "Vendor record fields",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Vendor ID", type: "string" },
+        { id: "url", name: "Vendor URL", type: "string" },
+      ],
+    },
+    {
+      id: "sales_order_create",
+      name: "Create Sales Order",
+      description: "Create a new sales order in NetSuite",
+      connectorType: "netsuite",
+      resource: "sales_order",
+      category: "create",
+      stakes: "high",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description: "Sales order fields (entity, item, quantity, etc.)",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Sales Order ID", type: "string" },
+        { id: "url", name: "Sales Order URL", type: "string" },
+      ],
+    },
+    {
+      id: "sales_order_update",
+      name: "Update Sales Order",
+      description: "Update an existing sales order in NetSuite",
+      connectorType: "netsuite",
+      resource: "sales_order",
+      category: "update",
+      stakes: "medium",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "salesOrderId",
+          name: "Sales Order ID",
+          type: "string",
+          required: true,
+        },
+        { id: "properties", name: "Properties", type: "json", required: false },
+      ],
+      outputs: [
+        { id: "recordId", name: "Sales Order ID", type: "string" },
+        { id: "url", name: "Sales Order URL", type: "string" },
+      ],
+    },
+  ],
+};

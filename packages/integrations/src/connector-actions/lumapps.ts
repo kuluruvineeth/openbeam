@@ -1,0 +1,90 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const lumappsActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "lumapps",
+  connectorName: "LumApps",
+  connectorIcon: "lumapps",
+  actions: [
+    {
+      id: "content_create",
+      name: "Create Content",
+      description: "Create a new content page in LumApps",
+      connectorType: "lumapps",
+      resource: "content",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        { id: "title", name: "Title", type: "string", required: true },
+        {
+          id: "type",
+          name: "Content Type",
+          type: "string",
+          required: true,
+          description: "Content type (article, page, etc.)",
+        },
+        { id: "body", name: "Body", type: "html", required: false },
+        { id: "spaceId", name: "Space ID", type: "string", required: false },
+        { id: "tags", name: "Tags", type: "array", required: false },
+        {
+          id: "status",
+          name: "Status",
+          type: "string",
+          required: false,
+          description: "Publication status",
+        },
+      ],
+      outputs: [
+        { id: "id", name: "Content ID", type: "string" },
+        { id: "url", name: "Content URL", type: "string" },
+      ],
+    },
+    {
+      id: "content_update",
+      name: "Update Content",
+      description: "Update existing content in LumApps",
+      connectorType: "lumapps",
+      resource: "content",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "contentId", name: "Content ID", type: "string", required: true },
+        { id: "title", name: "Title", type: "string", required: false },
+        { id: "body", name: "Body", type: "html", required: false },
+        { id: "tags", name: "Tags", type: "array", required: false },
+        { id: "status", name: "Status", type: "string", required: false },
+      ],
+      outputs: [
+        { id: "id", name: "Content ID", type: "string" },
+        { id: "url", name: "Content URL", type: "string" },
+      ],
+    },
+    {
+      id: "post_create",
+      name: "Create Community Post",
+      description: "Create a post in a LumApps community",
+      connectorType: "lumapps",
+      resource: "post",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "communityId",
+          name: "Community ID",
+          type: "string",
+          required: true,
+        },
+        { id: "content", name: "Content", type: "string", required: true },
+      ],
+      outputs: [
+        { id: "id", name: "Post ID", type: "string" },
+        { id: "url", name: "Post URL", type: "string" },
+      ],
+    },
+  ],
+};

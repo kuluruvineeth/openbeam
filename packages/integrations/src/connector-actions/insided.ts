@@ -1,0 +1,90 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const insidedActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "insided",
+  connectorName: "inSided",
+  connectorIcon: "insided",
+  actions: [
+    {
+      id: "idea_create",
+      name: "Create Idea",
+      description: "Create a new idea in the inSided community",
+      connectorType: "insided",
+      resource: "idea",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        { id: "title", name: "Title", type: "string", required: true },
+        { id: "content", name: "Content", type: "string", required: true },
+        {
+          id: "categoryId",
+          name: "Category ID",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [
+        { id: "id", name: "Idea ID", type: "string" },
+        { id: "url", name: "Idea URL", type: "string" },
+      ],
+    },
+    {
+      id: "idea_vote",
+      name: "Vote on Idea",
+      description: "Upvote an idea in inSided",
+      connectorType: "insided",
+      resource: "idea",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "ideaId", name: "Idea ID", type: "string", required: true },
+      ],
+      outputs: [{ id: "voted", name: "Voted", type: "boolean" }],
+    },
+    {
+      id: "post_create",
+      name: "Create Post",
+      description: "Create a new community post in inSided",
+      connectorType: "insided",
+      resource: "post",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        { id: "title", name: "Title", type: "string", required: true },
+        { id: "content", name: "Content", type: "string", required: true },
+        {
+          id: "categoryId",
+          name: "Category ID",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [
+        { id: "id", name: "Post ID", type: "string" },
+        { id: "url", name: "Post URL", type: "string" },
+      ],
+    },
+    {
+      id: "post_reply",
+      name: "Reply to Post",
+      description: "Add a reply to a community post in inSided",
+      connectorType: "insided",
+      resource: "post",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        { id: "postId", name: "Post ID", type: "string", required: true },
+        { id: "content", name: "Content", type: "string", required: true },
+      ],
+      outputs: [{ id: "id", name: "Reply ID", type: "string" }],
+    },
+  ],
+};

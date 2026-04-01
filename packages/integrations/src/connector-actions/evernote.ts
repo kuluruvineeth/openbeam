@@ -1,0 +1,81 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const evernoteActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "evernote",
+  connectorName: "Evernote",
+  connectorIcon: "evernote",
+  actions: [
+    {
+      id: "note_create",
+      name: "Create Note",
+      description: "Create a new note in Evernote",
+      connectorType: "evernote",
+      resource: "note",
+      category: "create",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        { id: "title", name: "Title", type: "string", required: true },
+        {
+          id: "content",
+          name: "Content",
+          type: "html",
+          required: true,
+          description: "Note content in ENML/HTML",
+        },
+        {
+          id: "notebookGuid",
+          name: "Notebook GUID",
+          type: "string",
+          required: false,
+          description: "Target notebook GUID",
+        },
+        {
+          id: "tagNames",
+          name: "Tags",
+          type: "array",
+          required: false,
+          description: "Array of tag name strings",
+        },
+      ],
+      outputs: [
+        { id: "noteGuid", name: "Note GUID", type: "string" },
+        { id: "url", name: "Note URL", type: "string" },
+      ],
+    },
+    {
+      id: "note_update",
+      name: "Update Note",
+      description: "Update an existing Evernote note",
+      connectorType: "evernote",
+      resource: "note",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "noteGuid", name: "Note GUID", type: "string", required: true },
+        { id: "title", name: "Title", type: "string", required: false },
+        { id: "content", name: "Content", type: "html", required: false },
+        { id: "tagNames", name: "Tags", type: "array", required: false },
+      ],
+      outputs: [{ id: "noteGuid", name: "Note GUID", type: "string" }],
+    },
+    {
+      id: "note_delete",
+      name: "Delete Note",
+      description: "Delete a note in Evernote (moves to trash)",
+      connectorType: "evernote",
+      resource: "note",
+      category: "delete",
+      stakes: "high",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "noteGuid", name: "Note GUID", type: "string", required: true },
+      ],
+      outputs: [{ id: "deleted", name: "Deleted", type: "boolean" }],
+    },
+  ],
+};

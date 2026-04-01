@@ -1,0 +1,101 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const benchlingActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "benchling",
+  connectorName: "Benchling",
+  connectorIcon: "benchling",
+  actions: [
+    {
+      id: "entry_create",
+      name: "Create Entry",
+      description: "Create a new notebook entry in Benchling",
+      connectorType: "benchling",
+      resource: "entry",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "folderId",
+          name: "Folder ID",
+          type: "string",
+          required: true,
+          description: "Folder to create entry in",
+        },
+        {
+          id: "name",
+          name: "Name",
+          type: "string",
+          required: true,
+          description: "Entry name",
+        },
+        {
+          id: "entryTemplateId",
+          name: "Template ID",
+          type: "string",
+          required: false,
+          description: "Entry template ID",
+        },
+        {
+          id: "schemaId",
+          name: "Schema ID",
+          type: "string",
+          required: false,
+          description: "Schema ID",
+        },
+        {
+          id: "fields",
+          name: "Fields",
+          type: "json",
+          required: false,
+          description: "Custom field values",
+        },
+        {
+          id: "authorIds",
+          name: "Author IDs",
+          type: "array",
+          required: false,
+          description: "Array of author user IDs",
+        },
+      ],
+      outputs: [
+        { id: "id", name: "Entry ID", type: "string" },
+        { id: "url", name: "Entry URL", type: "string" },
+      ],
+    },
+    {
+      id: "entry_update",
+      name: "Update Entry",
+      description: "Update an existing Benchling notebook entry",
+      connectorType: "benchling",
+      resource: "entry",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "entryId",
+          name: "Entry ID",
+          type: "string",
+          required: true,
+          description: "ID of entry to update",
+        },
+        { id: "name", name: "Name", type: "string", required: false },
+        { id: "schemaId", name: "Schema ID", type: "string", required: false },
+        {
+          id: "fields",
+          name: "Fields",
+          type: "json",
+          required: false,
+          description: "Custom field values",
+        },
+      ],
+      outputs: [
+        { id: "id", name: "Entry ID", type: "string" },
+        { id: "url", name: "Entry URL", type: "string" },
+      ],
+    },
+  ],
+};

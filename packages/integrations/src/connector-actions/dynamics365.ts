@@ -1,0 +1,143 @@
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+
+export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
+  connectorType: "dynamics365",
+  connectorName: "Dynamics 365",
+  connectorIcon: "dynamics365",
+  actions: [
+    {
+      id: "account_create",
+      name: "Create Account",
+      description: "Create a new account in Dynamics 365",
+      connectorType: "dynamics365",
+      resource: "account",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description: "Account properties (name, industry, etc.)",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Account ID", type: "string" },
+        { id: "url", name: "Account URL", type: "string" },
+      ],
+    },
+    {
+      id: "account_update",
+      name: "Update Account",
+      description: "Update an existing Dynamics 365 account",
+      connectorType: "dynamics365",
+      resource: "account",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "accountId", name: "Account ID", type: "string", required: true },
+        { id: "properties", name: "Properties", type: "json", required: false },
+      ],
+      outputs: [
+        { id: "recordId", name: "Account ID", type: "string" },
+        { id: "url", name: "Account URL", type: "string" },
+      ],
+    },
+    {
+      id: "contact_create",
+      name: "Create Contact",
+      description: "Create a new contact in Dynamics 365",
+      connectorType: "dynamics365",
+      resource: "contact",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description: "Contact properties (firstName, lastName, email, etc.)",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Contact ID", type: "string" },
+        { id: "url", name: "Contact URL", type: "string" },
+      ],
+    },
+    {
+      id: "contact_update",
+      name: "Update Contact",
+      description: "Update an existing Dynamics 365 contact",
+      connectorType: "dynamics365",
+      resource: "contact",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        { id: "contactId", name: "Contact ID", type: "string", required: true },
+        { id: "properties", name: "Properties", type: "json", required: false },
+      ],
+      outputs: [
+        { id: "recordId", name: "Contact ID", type: "string" },
+        { id: "url", name: "Contact URL", type: "string" },
+      ],
+    },
+    {
+      id: "opportunity_create",
+      name: "Create Opportunity",
+      description: "Create a new opportunity in Dynamics 365",
+      connectorType: "dynamics365",
+      resource: "opportunity",
+      category: "create",
+      stakes: "medium",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "properties",
+          name: "Properties",
+          type: "json",
+          required: true,
+          description: "Opportunity properties (name, estimatedvalue, etc.)",
+        },
+      ],
+      outputs: [
+        { id: "recordId", name: "Opportunity ID", type: "string" },
+        { id: "url", name: "Opportunity URL", type: "string" },
+      ],
+    },
+    {
+      id: "opportunity_update",
+      name: "Update Opportunity",
+      description: "Update an existing Dynamics 365 opportunity",
+      connectorType: "dynamics365",
+      resource: "opportunity",
+      category: "update",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "opportunityId",
+          name: "Opportunity ID",
+          type: "string",
+          required: true,
+        },
+        { id: "properties", name: "Properties", type: "json", required: false },
+      ],
+      outputs: [
+        { id: "recordId", name: "Opportunity ID", type: "string" },
+        { id: "url", name: "Opportunity URL", type: "string" },
+      ],
+    },
+  ],
+};
