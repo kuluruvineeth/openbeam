@@ -46,6 +46,14 @@ export * from "./mutations/audit-logs";
 export * from "./mutations/background-agents";
 export * from "./mutations/composition";
 export * from "./mutations/connector-resources";
+export {
+  completeSetupSession,
+  createSetupSession,
+  expireSetupSession,
+  expireStaleSetupSessions,
+  failSetupSession,
+  getSetupSession,
+} from "./mutations/connector-setup";
 export * from "./mutations/connectors";
 export * from "./mutations/context";
 export * from "./mutations/conversations";

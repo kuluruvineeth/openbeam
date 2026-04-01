@@ -581,3 +581,29 @@ model SlackAssistantFeedback {
   @@index([createdAt])
   @@map("slack_assistant_feedback")
 }
+
+enum ConnectorSetupStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+model ConnectorSetupSession {
+  id          String               @id @default(cuid())
+  teamId      String
+  userId      String
+  appType     AppType
+  status      ConnectorSetupStatus @default(PENDING)
+  connectorId String?
+  errorMessage String?
+  expiresAt   DateTime
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  team        Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, status])
+  @@index([status, expiresAt])
+  @@map("connector_setup_session")
+}

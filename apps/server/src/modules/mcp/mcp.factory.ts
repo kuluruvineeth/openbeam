@@ -7,6 +7,7 @@ import type { McpContext } from "./mcp.types";
 import { getDateContext } from "./mcp.utils";
 import {
   registerActionTools,
+  registerConnectorSetupTools,
   registerConnectorTools,
   registerContextTools,
   registerSearchTools,
@@ -89,6 +90,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
 
   registerSearchTools(server, ctx);
   registerConnectorTools(server, ctx);
+  registerConnectorSetupTools(server, ctx);
   registerSyncTools(server, ctx);
   registerContextTools(server, ctx);
   registerTeamTools(server, ctx);

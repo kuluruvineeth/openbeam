@@ -90,6 +90,7 @@ model Team {
   contextMemoryExtractions ContextMemoryExtraction[]
   contextRelations         ContextRelation[]
   contextSessions          ContextSession[]
+  connectorSetupSessions   ConnectorSetupSession[]
 
   @@map("team")
 }
