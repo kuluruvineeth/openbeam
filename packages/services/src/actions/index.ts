@@ -1,4 +1,4 @@
-export { type DispatchRequest, dispatchAction } from "./dispatcher";
+export { dispatchAction } from "./dispatcher";
 export {
   ActionAuthError,
   ActionExecutorError,
