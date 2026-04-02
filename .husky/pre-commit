@@ -2,17 +2,30 @@
 
 export PATH="/opt/homebrew/bin:$HOME/.bun/bin:$PATH"
 
-# Re-run ultracite only on staged files, then restage them
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
-if [ -n "$STAGED_FILES" ]; then
-  # Run ultracite fix only on staged files (not deleted ones)
-  echo "$STAGED_FILES" | xargs bun x ultracite fix
-  
-  # Restage the formatted files
-  echo "$STAGED_FILES" | while IFS= read -r file; do
-    if [ -n "$file" ] && [ -f "$file" ]; then
-      git add -- "$file"
-    fi
-  done
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+echo "$STAGED_FILES" | xargs bun x ultracite fix
+
+echo "$STAGED_FILES" | while IFS= read -r file; do
+  if [ -n "$file" ] && [ -f "$file" ]; then
+    git add -- "$file"
+  fi
+done
+
+HAS_SERVICES=$(echo "$STAGED_FILES" | grep -c "packages/services/\|packages/types/\|packages/integrations/" || true)
+HAS_SERVER=$(echo "$STAGED_FILES" | grep -c "apps/server/" || true)
+HAS_TEMPORAL=$(echo "$STAGED_FILES" | grep -c "packages/temporal/" || true)
+
+if [ "$HAS_SERVICES" -gt 0 ] || [ "$HAS_SERVER" -gt 0 ]; then
+  echo "[pre-commit] Type checking apps/server..."
+  bun x tsc --noEmit -p apps/server/tsconfig.json || exit 1
+fi
+
+if [ "$HAS_SERVICES" -gt 0 ] || [ "$HAS_TEMPORAL" -gt 0 ]; then
+  echo "[pre-commit] Type checking packages/temporal..."
+  bun x tsc --noEmit -p packages/temporal/tsconfig.json || exit 1
 fi
