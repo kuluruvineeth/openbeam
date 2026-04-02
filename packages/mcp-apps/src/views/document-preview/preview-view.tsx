@@ -28,7 +28,30 @@ type PreviewViewProps = {
 
 export function PreviewView({ document: doc }: PreviewViewProps) {
   if (!doc) {
-    return <EmptyState description="No document data" title="Not found" />;
+    return (
+      <EmptyState
+        description="No document data"
+        icon={
+          <svg
+            aria-hidden="true"
+            className="text-muted-foreground/50"
+            fill="none"
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M16 13H8M16 17H8M10 9H8"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            />
+          </svg>
+        }
+        title="Not found"
+      />
+    );
   }
 
   const breadcrumb = [doc.connectorName, doc.documentType]
