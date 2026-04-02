@@ -160,22 +160,20 @@ export async function searchIssues(
           title: string;
           url: string;
         }>;
-        totalCount: number;
       };
     }>(
-      `query($query: String!, $first: Int) {
-        searchIssues(term: $query, first: $first) {
+      `query($term: String!, $first: Int) {
+        searchIssues(term: $term, first: $first) {
           nodes { id identifier title url }
-          totalCount
         }
       }`,
-      { query, first }
+      { term: query, first }
     );
 
     return {
       success: true,
       issues: data.searchIssues.nodes,
-      totalCount: data.searchIssues.totalCount,
+      totalCount: data.searchIssues.nodes.length,
     };
   } catch (error) {
     return {
