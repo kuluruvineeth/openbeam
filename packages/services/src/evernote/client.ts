@@ -1,6 +1,6 @@
 import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type { EvernoteClientConfig } from "@openbeam/types/services/connectors/evernote";
-import Evernote from "evernote";
+import { Client as EvernoteSDKClient } from "evernote";
 import { logger } from "../lib/logger";
 import { EvernoteApiError } from "./types";
 
@@ -95,7 +95,7 @@ export function createEvernoteClient(
 ): EvernoteClient {
   const { connectorId, developerToken, environment = "production" } = config;
 
-  const sdkClient = new Evernote.Client({
+  const sdkClient = new EvernoteSDKClient({
     token: developerToken,
     sandbox: environment === "sandbox",
   });
