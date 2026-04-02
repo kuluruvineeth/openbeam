@@ -929,6 +929,14 @@
         "redis": "^5.10.0",
       },
     },
+    "packages/sdk": {
+      "name": "@openbeam/sdk",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@openbeam/config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
     "packages/services": {
       "name": "@openbeam/services",
       "version": "0.0.1",
@@ -2333,6 +2341,8 @@
     "@openbeam/relay": ["@openbeam/relay@workspace:packages/relay"],
 
     "@openbeam/sandbox": ["@openbeam/sandbox@workspace:packages/sandbox"],
+
+    "@openbeam/sdk": ["@openbeam/sdk@workspace:packages/sdk"],
 
     "@openbeam/services": ["@openbeam/services@workspace:packages/services"],
 
