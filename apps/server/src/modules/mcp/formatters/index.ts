@@ -11,8 +11,13 @@ export {
 } from "./context";
 export { formatPeopleResults, formatSearchResults } from "./search";
 export {
+  formatSyncControl,
+  formatSyncErrors,
+  formatSyncHealth,
   formatSyncHistory,
+  formatSyncProgress,
   formatSyncStatus,
   formatSyncTrigger,
+  formatSyncTriggerAll,
 } from "./sync";
 export { formatTeamInfo, formatTeamMembers } from "./team";
