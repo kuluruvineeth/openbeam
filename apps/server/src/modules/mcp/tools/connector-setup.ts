@@ -3,43 +3,11 @@ import db, {
   createConnector,
   createSetupSession,
   expireSetupSession,
-  findConnectorById,
   getConnectorsWithStats,
   getSetupSession,
   updateConnector,
 } from "@openbeam/db";
 import { appStore } from "@openbeam/integrations";
-import {
-  AirtableAuth,
-  AsanaAuth,
-  BitbucketAuth,
-  BoxAuth,
-  CanvaAuth,
-  ClickUpAuth,
-  ConfluenceAuth,
-  DocuSignAuth,
-  DropboxAuth,
-  FigmaAuth,
-  GitHubAuth,
-  GitLabAuth,
-  GmailAuth,
-  GoogleCalendarAuth,
-  GoogleChatAuth,
-  GoogleDriveAuth,
-  HubSpotAuth,
-  IntercomAuth,
-  JiraAuth,
-  LinearAuth,
-  MiroAuth,
-  MondayAuth,
-  NotionAuth,
-  OutlookAuth,
-  PipedriveAuth,
-  SalesforceAuth,
-  SlackAuth,
-  ZendeskAuth,
-  ZoomAuth,
-} from "@openbeam/services";
 import { z } from "zod";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
@@ -49,51 +17,7 @@ import {
   WRITE_ANNOTATIONS,
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
-
-const AUTH_MAP: Record<
-  string,
-  new () => {
-    start(ctx: {
-      user: { id: string };
-      workspaceId: string;
-      connectorId: string;
-      redirectUrl: string;
-    }): Promise<string>;
-  }
-> = {
-  AIRTABLE: AirtableAuth,
-  ASANA: AsanaAuth,
-  BITBUCKET: BitbucketAuth,
-  BOX: BoxAuth,
-  CANVA: CanvaAuth,
-  CLICKUP: ClickUpAuth,
-  CONFLUENCE: ConfluenceAuth,
-  DOCUSIGN: DocuSignAuth,
-  DROPBOX: DropboxAuth,
-  FIGMA: FigmaAuth,
-  GITHUB: GitHubAuth,
-  GITLAB: GitLabAuth,
-  GMAIL: GmailAuth,
-  GOOGLE_CALENDAR: GoogleCalendarAuth,
-  GOOGLE_CHAT: GoogleChatAuth,
-  GOOGLE_DRIVE: GoogleDriveAuth,
-  HUBSPOT: HubSpotAuth,
-  INTERCOM: IntercomAuth,
-  JIRA: JiraAuth,
-  LINEAR: LinearAuth,
-  MIRO: MiroAuth,
-  MONDAY: MondayAuth,
-  NOTION: NotionAuth,
-  OUTLOOK: OutlookAuth,
-  PIPEDRIVE: PipedriveAuth,
-  SALESFORCE: SalesforceAuth,
-  SLACK: SlackAuth,
-  ZENDESK: ZendeskAuth,
-  ZOOM: ZoomAuth,
-};
-
-const SETUP_TTL_MS = 15 * 60 * 1000;
-const WEB_URL = process.env.OPENBEAM_WEB_URL || "https://app.openbeam.work";
+import { AUTH_MAP, SETUP_TTL_MS, WEB_URL } from "./connector-auth-map";
 
 const mcpAvailableSchema = z.object({
   id: z.string(),
@@ -579,58 +503,5 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
         structuredContent: { connectorId: connector.id, status: "active" },
       };
     }, "Failed to configure connector")
-  );
-
-  server.registerTool(
-    "connector_disconnect",
-    {
-      title: "Disconnect Connector",
-      description:
-        "Deactivate and disconnect a connector, stopping all future syncs and revoking stored credentials. Previously indexed documents are preserved in the search index and remain searchable — this only stops new data from being synced. Use this when the user wants to remove a data source integration or when a connector is persistently failing and needs to be reconnected from scratch.\n\nReturns the disconnected connector's ID, name, and 'disconnected' status on success. This is a destructive action — always confirm with the user before proceeding, as reconnecting will require re-authorizing (OAuth) or re-entering credentials (API key).\n\nUse connector_list to find the connector ID. After disconnecting, the user can reconnect the same service using connector_setup (OAuth) or connector_configure (API key). Do NOT use this to pause a sync temporarily — there is no 'pause' action; disconnecting fully removes the credential link.",
-      inputSchema: {
-        connectorId: z
-          .string()
-          .describe(
-            "The ID of the connector to disconnect. Get this from connector_list results."
-          ),
-      },
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: true,
-        idempotentHint: true,
-        openWorldHint: false,
-      },
-    },
-    withErrorHandling(async ({ connectorId }) => {
-      const connector = await findConnectorById(db, connectorId);
-
-      if (!connector || connector.teamId !== ctx.teamId) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "Connector not found or access denied.",
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      await updateConnector(db, connectorId, { status: "INACTIVE" });
-
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Disconnected ${connector.name}. Indexed documents are preserved.`,
-          },
-        ],
-        structuredContent: {
-          connectorId,
-          name: connector.name,
-          status: "disconnected",
-        },
-      };
-    }, "Failed to disconnect connector")
   );
 };

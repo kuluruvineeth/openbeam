@@ -1,7 +1,10 @@
 export { registerActionTools } from "./actions";
+export { registerConnectorManageTools } from "./connector-manage";
 export { registerConnectorSetupTools } from "./connector-setup";
 export { registerConnectorTools } from "./connectors";
 export { registerContextTools } from "./context";
 export { registerSearchTools } from "./search";
 export { registerSyncTools } from "./sync";
+export { registerSyncControlTools } from "./sync-control";
+export { registerSyncMonitorTools } from "./sync-monitor";
 export { registerTeamTools } from "./team";

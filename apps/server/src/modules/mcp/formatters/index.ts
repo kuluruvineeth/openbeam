@@ -10,14 +10,11 @@ export {
   formatContextSearch,
 } from "./context";
 export { formatPeopleResults, formatSearchResults } from "./search";
+export { formatSyncHistory, formatSyncStatus, formatSyncTrigger } from "./sync";
+export { formatSyncControl, formatSyncTriggerAll } from "./sync-control";
 export {
-  formatSyncControl,
   formatSyncErrors,
   formatSyncHealth,
-  formatSyncHistory,
   formatSyncProgress,
-  formatSyncStatus,
-  formatSyncTrigger,
-  formatSyncTriggerAll,
-} from "./sync";
+} from "./sync-monitor";
 export { formatTeamInfo, formatTeamMembers } from "./team";
