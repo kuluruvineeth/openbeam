@@ -8,7 +8,8 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "issue_create",
       name: "Create Issue",
-      description: "Create a new Linear issue",
+      description:
+        "Create a new Linear issue. Requires teamId — call team_list first to discover team IDs.",
       connectorType: "linear",
       resource: "issue",
       category: "create",
@@ -463,6 +464,27 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Success",
           type: "boolean",
           description: "Whether issue was added",
+        },
+      ],
+    },
+    {
+      id: "team_list",
+      name: "List Teams",
+      description:
+        "List all teams in the Linear workspace. Use this to discover team IDs before creating issues.",
+      connectorType: "linear",
+      resource: "team",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "teams",
+          name: "Teams",
+          type: "array",
+          description: "Array of teams with id, name, and key",
         },
       ],
     },

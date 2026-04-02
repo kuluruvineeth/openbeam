@@ -6,6 +6,7 @@ import {
   createProject,
   getCycle,
   getProject,
+  listTeams,
   searchIssues,
   updateIssue,
 } from "../../linear/actions";
@@ -162,6 +163,14 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { success: true } };
+  },
+
+  async team_list(client) {
+    const r = await listTeams(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { teams: r.teams } };
   },
 };
 
