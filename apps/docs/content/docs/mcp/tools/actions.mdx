@@ -186,3 +186,57 @@ Always confirm with the user before executing high-stakes or irreversible action
 <Callout type="info">
 Action counts vary by connector. Communication tools (Slack, Teams) typically have 5-10 actions. CRM tools (Salesforce, HubSpot) may have 15-20. Use `connector_actions_list` filtered by `connectorType` to see the exact list.
 </Callout>
+
+## Connector Action Status
+
+Every handler has been audited against real third-party API documentation. The table below reflects the verification status as of April 2026.
+
+### Verified (63 connectors)
+
+All endpoints, HTTP methods, request body formats, and response fields confirmed correct against official API documentation. These connectors are production-ready.
+
+Aha, Airtable, Asana, Azure DevOps, BambooHR, Bitbucket, Box, Canva, ClickUp, Coda, Confluence, Datadog, DocuSign, Dropbox, Dynamics 365, Egnyte, Evernote, Figma, Freshservice, GitHub, GitLab, Gmail, Google Calendar, Google Chat, Google Drive, Google Sites, Greenhouse, Guru, Harvest, HubSpot, Intercom, Jenkins, JFrog, Jira, Lessonly, Linear, Lucid, Marketo, Microsoft Calendar, Microsoft Teams, Miro, Monday, NetSuite, Notion, OneNote, OpsGenie, Outlook, PagerDuty, Panopto, Phabricator, Pipedrive, Procore, Salesforce, ServiceNow, SharePoint, Showpad, Slack, Smartsheet, SmartThings, Zendesk, Zoom.
+
+### Implemented from Research (8 connectors)
+
+Originally stubbed, then reimplemented after researching the real API documentation. Endpoints match official docs but have not been tested against live instances.
+
+| Connector | API Source | Notes |
+|-----------|-----------|-------|
+| Evernote | Official Thrift SDK (`evernote` npm) | Uses NoteStore Thrift RPC, not REST |
+| Fellow | [developers.fellow.ai](https://developers.fellow.ai) | Actions limited to `action_item_complete` and `action_item_archive` (API is read-heavy) |
+| Interact | [developer.interactsoftware.com](https://developer.interactsoftware.com) | Uses `/page/composer` endpoint with PascalCase fields |
+| Loopio | Microsoft Power Platform connector docs | Uses OAuth 2.0 + JSON Patch for updates |
+| Simpplr | [developer.simpplr.com](https://developer.simpplr.com) | Uses centralized `api.ec.simpplr.com` with OAuth + `x-user-email` header |
+| LumApps | [lumapps-sdk](https://github.com/lumapps/lumapps-sdk) Python SDK source | Uses Google App Engine v1 endpoints (`/_ah/api/lumsites/v1/`) with language maps |
+| Mindtickle | Official API docs (authenticated) | Uses JWT-signed auth (HS256) with `/openapi/` and `/services/data/v2.0/mtobjects/` paths |
+| Haystack | Corrected domain references | No write API exists; stub returns clear error |
+
+### Read-Only / No Write API (3 connectors)
+
+These platforms genuinely do not expose write operations via their APIs. The handlers return descriptive error messages explaining why.
+
+| Connector | Reason |
+|-----------|--------|
+| Gong | Call recording platform with read-only API. No write endpoints exist. |
+| S3 | Configured in read-only mode. Write operations require explicit bucket policy changes. |
+| Samsara (alert resolve) | The `POST /fleet/alerts/{id}/resolve` endpoint does not exist in Samsara's public API. Alert management is handled through the Samsara dashboard. |
+
+### Best-Effort / Private APIs (8 connectors)
+
+These connectors target enterprise platforms with API documentation behind customer authentication portals. Implementations follow standard REST conventions and match available public references (SDK source code, community integrations, partner documentation), but exact endpoint paths and field names have not been verified against official docs.
+
+| Connector | Public Evidence | Risk |
+|-----------|----------------|------|
+| inSided (Gainsight Communities) | Singer tap, Python SDK on GitHub | Medium — `/posts` may be `/topics` in v2 |
+| Klue | MCP server blog confirms write capability | Medium — base URL `api.klue.com/v1` is assumed |
+| NICE CXone | Base URL and auth pattern confirmed | Low — specific action paths unverified |
+| Bynder | Partial SDK docs | Low — `addAssetToCollection` body format unverified |
+| Coupa | Enterprise-only docs | Low — endpoint paths match known patterns |
+| Docebo | Community posts reference endpoints | Low — enrollment path may differ |
+| 15Five | Limited public docs | Low — field names (`sender`/`receiver`) may be IDs |
+| Verkada | Physical security API | Medium — `lock` endpoint may not exist (doors auto-lock) |
+
+<Callout type="warn">
+If you encounter errors with any best-effort connector, the issue is likely an incorrect endpoint path or field name. Open an issue with the error message and we will fix it against the real API docs.
+</Callout>
