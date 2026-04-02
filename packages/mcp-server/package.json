@@ -1,0 +1,39 @@
+{
+  "name": "@openbeam/mcp-server-proxy",
+  "version": "0.1.0",
+  "description": "OpenBeam MCP proxy — enterprise search and actions for AI assistants via stdio",
+  "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "openbeam-mcp": "./bin/openbeam-mcp.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node --import tsx src/cli.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "openbeam",
+    "enterprise-search",
+    "claude",
+    "cursor",
+    "windsurf",
+    "model-context-protocol",
+    "proxy"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0"
+  },
+  "devDependencies": {
+    "@openbeam/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "tsx": "^4.19.0"
+  }
+}

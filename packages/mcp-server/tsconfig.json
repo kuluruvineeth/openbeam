@@ -1,0 +1,12 @@
+{
+  "extends": "@openbeam/config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "composite": true,
+    "strictNullChecks": true,
+    "types": ["node"]
+  },
+  "include": ["src", "bin"],
+  "exclude": ["dist"]
+}
