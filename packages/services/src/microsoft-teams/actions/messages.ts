@@ -11,9 +11,9 @@ export async function sendTeamsMessage(
   options: { teamId: string; channelId: string; content: string }
 ): Promise<TeamsMessageActionResult> {
   try {
-    const result = await client.get<{ id: string }>(
+    const result = await client.post<{ id: string }>(
       `/teams/${options.teamId}/channels/${options.channelId}/messages`,
-      undefined
+      { body: { contentType: "html", content: options.content } }
     );
 
     return { success: true, messageId: result.id };
@@ -35,9 +35,9 @@ export async function replyToTeamsMessage(
   }
 ): Promise<TeamsMessageActionResult> {
   try {
-    const result = await client.get<{ id: string }>(
+    const result = await client.post<{ id: string }>(
       `/teams/${options.teamId}/channels/${options.channelId}/messages/${options.messageId}/replies`,
-      undefined
+      { body: { contentType: "html", content: options.content } }
     );
 
     return { success: true, messageId: result.id };

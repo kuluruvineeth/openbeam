@@ -47,7 +47,7 @@ export async function createMicrosoftCalendarEvent(
       }));
     }
 
-    const result = await client.get<GraphEventResponse>("/me/events");
+    const result = await client.post<GraphEventResponse>("/me/events", event);
 
     return { success: true, eventId: result.id, url: result.webLink };
   } catch (error) {
@@ -90,8 +90,9 @@ export async function updateMicrosoftCalendarEvent(
       updates.end = { dateTime: options.endDateTime, timeZone };
     }
 
-    const result = await client.get<GraphEventResponse>(
-      `/me/events/${encodeURIComponent(options.eventId)}`
+    const result = await client.patch<GraphEventResponse>(
+      `/me/events/${encodeURIComponent(options.eventId)}`,
+      updates
     );
 
     return { success: true, eventId: result.id, url: result.webLink };
@@ -108,7 +109,7 @@ export async function deleteMicrosoftCalendarEvent(
   eventId: string
 ): Promise<EventActionResult> {
   try {
-    await client.get<unknown>(`/me/events/${encodeURIComponent(eventId)}`);
+    await client.del(`/me/events/${encodeURIComponent(eventId)}`);
     return { success: true, eventId };
   } catch (error) {
     return {

@@ -31,6 +31,9 @@ type GraphDeltaResponse<T> = {
 export type MicrosoftGraphClient = {
   readonly connectorId: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
+  post<T>(path: string, body?: unknown): Promise<T>;
+  patch<T>(path: string, body?: unknown): Promise<T>;
+  del(path: string): Promise<void>;
   paginate<T>(
     path: string,
     params?: Record<string, string>
@@ -60,12 +63,19 @@ export function createMicrosoftGraphClient(
     return url.toString();
   }
 
-  async function request<T>(url: string, attempt = 0): Promise<T> {
+  async function request<T>(
+    url: string,
+    attempt = 0,
+    options?: { method?: string; body?: unknown }
+  ): Promise<T> {
     const response = await fetch(url, {
+      method: options?.method ?? "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
+      body:
+        options?.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
 
     if (response.status === 429) {
@@ -80,7 +90,7 @@ export function createMicrosoftGraphClient(
           "Graph API rate limited, retrying"
         );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
-        return request<T>(url, attempt + 1);
+        return request<T>(url, attempt + 1, options);
       }
       throw new MicrosoftGraphApiError({
         message: "Rate limited",
@@ -113,7 +123,7 @@ export function createMicrosoftGraphClient(
           "Graph API server error, retrying"
         );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
-        return request<T>(url, attempt + 1);
+        return request<T>(url, attempt + 1, options);
       }
       throw new MicrosoftGraphApiError({
         message: body.error?.message ?? `Request failed: ${response.status}`,
@@ -123,11 +133,26 @@ export function createMicrosoftGraphClient(
       });
     }
 
+    if (response.status === 204) {
+      return undefined as T;
+    }
     return response.json() as Promise<T>;
   }
 
   function get<T>(path: string, params?: Record<string, string>): Promise<T> {
     return request<T>(buildUrl(path, params));
+  }
+
+  function post<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(buildUrl(path), 0, { method: "POST", body });
+  }
+
+  function patch<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(buildUrl(path), 0, { method: "PATCH", body });
+  }
+
+  function del(path: string): Promise<void> {
+    return request<void>(buildUrl(path), 0, { method: "DELETE" });
   }
 
   async function* paginate<T>(
@@ -201,6 +226,9 @@ export function createMicrosoftGraphClient(
   return {
     connectorId,
     get,
+    post,
+    patch,
+    del,
     paginate,
     delta: fetchDelta,
     deltaPages,

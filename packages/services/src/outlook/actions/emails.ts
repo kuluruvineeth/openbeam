@@ -49,14 +49,7 @@ export async function sendEmail(
       saveToSentItems: true,
     };
 
-    await client.get<void>("/me/sendMail", undefined);
-    await fetch("https://graph.microsoft.com/v1.0/me/sendMail", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    await client.post<void>("/me/sendMail", payload);
 
     return { success: true };
   } catch (error) {
@@ -73,10 +66,9 @@ export async function replyToEmail(
 ): Promise<EmailActionResult> {
   try {
     const endpoint = options.replyAll ? "replyAll" : "reply";
-    await client.get<void>(
-      `/me/messages/${options.messageId}/${endpoint}`,
-      undefined
-    );
+    await client.post<void>(`/me/messages/${options.messageId}/${endpoint}`, {
+      comment: options.body,
+    });
 
     return { success: true, messageId: options.messageId };
   } catch (error) {
@@ -92,7 +84,9 @@ export async function moveEmail(
   options: { messageId: string; destinationFolderId: string }
 ): Promise<EmailActionResult> {
   try {
-    await client.get<void>(`/me/messages/${options.messageId}/move`, undefined);
+    await client.post<void>(`/me/messages/${options.messageId}/move`, {
+      destinationId: options.destinationFolderId,
+    });
 
     return { success: true, messageId: options.messageId };
   } catch (error) {
