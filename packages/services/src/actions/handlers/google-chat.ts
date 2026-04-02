@@ -1,4 +1,4 @@
-import { sendChatMessage } from "../../google-chat/actions";
+import { listChatSpaces, sendChatMessage } from "../../google-chat/actions";
 import {
   createGoogleChatClient,
   type GoogleChatClient,
@@ -30,6 +30,14 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { messageId: r.messageId } };
+  },
+
+  async space_list(client) {
+    const r = await listChatSpaces(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { spaces: r.data } };
   },
 };
 

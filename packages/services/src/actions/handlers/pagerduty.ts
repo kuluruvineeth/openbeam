@@ -1,6 +1,7 @@
 import {
   addIncidentNote,
   createIncident,
+  listPagerDutyServices,
   updateIncidentStatus,
 } from "../../pagerduty/actions";
 import {
@@ -24,6 +25,14 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async service_list(client) {
+    const r = await listPagerDutyServices(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { services: r.services } };
+  },
+
   async incident_create(client, p) {
     const r = await createIncident(client, {
       title: str(p, "title"),

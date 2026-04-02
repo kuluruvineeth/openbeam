@@ -6,9 +6,31 @@ export const confluenceActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "confluence",
   actions: [
     {
+      id: "space_list",
+      name: "List Spaces",
+      description:
+        "List all Confluence spaces. Use this to discover space IDs before creating pages.",
+      connectorType: "confluence",
+      resource: "space",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "spaces",
+          name: "Spaces",
+          type: "string",
+          description: "Array of spaces, each with id, key, name, and type",
+        },
+      ],
+    },
+    {
       id: "page_create",
       name: "Create Page",
-      description: "Create a new Confluence page in a space",
+      description:
+        "Create a new Confluence page in a space. Requires space_id — call space_list first to discover available spaces.",
       connectorType: "confluence",
       resource: "page",
       category: "create",

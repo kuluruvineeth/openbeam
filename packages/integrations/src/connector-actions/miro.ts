@@ -6,6 +6,27 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "miro",
   actions: [
     {
+      id: "board_list",
+      name: "List Boards",
+      description:
+        "List all Miro boards accessible to the connected account. Use this first to discover board IDs before calling sticky_note_create or other board actions.",
+      connectorType: "miro",
+      resource: "board",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "boards",
+          name: "Boards",
+          type: "object",
+          description: "Array of boards with id, name, and viewLink",
+        },
+      ],
+    },
+    {
       id: "board_create",
       name: "Create Board",
       description: "Create a new Miro board",
@@ -39,7 +60,8 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "sticky_note_create",
       name: "Create Sticky Note",
-      description: "Create a sticky note on a Miro board",
+      description:
+        "Create a sticky note on a Miro board. Requires board_id — call board_list first to discover board IDs.",
       connectorType: "miro",
       resource: "sticky_note",
       category: "create",
@@ -91,7 +113,8 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "sticky_note_update",
       name: "Update Sticky Note",
-      description: "Update a sticky note on a Miro board",
+      description:
+        "Update a sticky note on a Miro board. Requires board_id — call board_list first to discover board IDs.",
       connectorType: "miro",
       resource: "sticky_note",
       category: "update",
@@ -136,7 +159,8 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "item_delete",
       name: "Delete Item",
-      description: "Delete an item from a Miro board",
+      description:
+        "Delete an item from a Miro board. Requires board_id — call board_list first to discover board IDs.",
       connectorType: "miro",
       resource: "item",
       category: "delete",

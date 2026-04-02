@@ -3,6 +3,8 @@ import {
   type MicrosoftGraphClient,
 } from "../../microsoft/client";
 import {
+  listChannels,
+  listTeams,
   replyToTeamsMessage,
   sendTeamsMessage,
 } from "../../microsoft-teams/actions";
@@ -23,6 +25,22 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async team_list(client) {
+    const r = await listTeams(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { teams: r.data } };
+  },
+
+  async channel_list(client, p) {
+    const r = await listChannels(client, str(p, "teamId"));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { channels: r.data } };
+  },
+
   async message_send(client, p) {
     const r = await sendTeamsMessage(client, {
       teamId: str(p, "teamId"),

@@ -20,7 +20,7 @@ export const workdayActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "fields",
           name: "Fields",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of field name → value pairs",
         },

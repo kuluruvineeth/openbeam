@@ -1,6 +1,8 @@
 import { createArticle, replyToConversation, tagConversation } from "../api";
 import type { IntercomClient } from "../client";
 
+export { listIntercomAdmins, listIntercomTags } from "./lookups";
+
 export type ConversationActionResult = {
   success: boolean;
   conversationId?: string;

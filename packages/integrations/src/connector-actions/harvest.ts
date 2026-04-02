@@ -19,7 +19,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description:
             "Time entry properties (project_id, task_id, hours, spent_date, etc.)",
@@ -39,7 +39,12 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       batchSupport: false,
       inputs: [
         { id: "entryId", name: "Entry ID", type: "string", required: true },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [{ id: "recordId", name: "Time Entry ID", type: "string" }],
     },
@@ -87,7 +92,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description:
             "Expense properties (project_id, expense_category_id, total_cost, spent_date, etc.)",

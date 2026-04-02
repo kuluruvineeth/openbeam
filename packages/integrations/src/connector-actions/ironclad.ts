@@ -26,7 +26,7 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "attributes",
           name: "Attributes",
-          type: "json",
+          type: "object",
           required: false,
           description: "Workflow attribute values",
         },
@@ -53,7 +53,12 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
           type: "string",
           required: true,
         },
-        { id: "attributes", name: "Attributes", type: "json", required: false },
+        {
+          id: "attributes",
+          name: "Attributes",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "id", name: "Workflow ID", type: "string" },

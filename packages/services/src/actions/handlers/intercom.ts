@@ -1,5 +1,7 @@
 import {
   createIntercomArticle,
+  listIntercomAdmins,
+  listIntercomTags,
   replyToIntercomConversation,
   tagIntercomConversation,
 } from "../../intercom/actions";
@@ -54,6 +56,22 @@ const actions: Record<string, Handler> = {
       success: true,
       data: { conversationId: r.conversationId },
     };
+  },
+
+  async admin_list(client) {
+    const r = await listIntercomAdmins(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { admins: r.admins } };
+  },
+
+  async tag_list(client) {
+    const r = await listIntercomTags(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { tags: r.tags } };
   },
 
   async article_create(client, p) {

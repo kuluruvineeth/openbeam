@@ -19,7 +19,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Account properties (name, industry, etc.)",
         },
@@ -41,7 +41,12 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
       batchSupport: false,
       inputs: [
         { id: "accountId", name: "Account ID", type: "string", required: true },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Account ID", type: "string" },
@@ -62,7 +67,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Contact properties (firstName, lastName, email, etc.)",
         },
@@ -84,7 +89,12 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
       batchSupport: false,
       inputs: [
         { id: "contactId", name: "Contact ID", type: "string", required: true },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Contact ID", type: "string" },
@@ -105,7 +115,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Opportunity properties (name, estimatedvalue, etc.)",
         },
@@ -132,7 +142,12 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
           type: "string",
           required: true,
         },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Opportunity ID", type: "string" },

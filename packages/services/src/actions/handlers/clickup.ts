@@ -1,4 +1,12 @@
-import { addComment, createTask, updateTask } from "../../clickup/actions";
+import {
+  addComment,
+  createTask,
+  listFolders,
+  listLists,
+  listSpaces,
+  listWorkspaces,
+  updateTask,
+} from "../../clickup/actions";
 import { type ClickUpClient, createClickUpClient } from "../../clickup/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
@@ -17,6 +25,47 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async workspace_list(client) {
+    const r = await listWorkspaces(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
+  async space_list(client, p) {
+    const r = await listSpaces(client, { teamId: str(p, "teamId") });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
+  async folder_list(client, p) {
+    const r = await listFolders(client, { spaceId: str(p, "spaceId") });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
+  async list_list(client, p) {
+    const spaceId = typeof p.spaceId === "string" ? p.spaceId : undefined;
+    const folderId = typeof p.folderId === "string" ? p.folderId : undefined;
+    if (!(spaceId || folderId)) {
+      return {
+        success: false,
+        data: {},
+        error: "Either spaceId or folderId is required",
+      };
+    }
+    const r = await listLists(client, { spaceId, folderId });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
   async task_create(client, p) {
     const r = await createTask(client, {
       listId: str(p, "listId"),

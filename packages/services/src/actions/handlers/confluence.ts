@@ -6,6 +6,7 @@ import {
   addConfluenceComment,
   archiveConfluencePage,
   createConfluencePage,
+  listConfluenceSpaces,
   updateConfluencePage,
 } from "../../confluence/actions";
 import { registerHandler } from "../handler-registry";
@@ -25,6 +26,14 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async space_list(client) {
+    const r = await listConfluenceSpaces(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { spaces: r.spaces } };
+  },
+
   async page_create(client, p) {
     const r = await createConfluencePage(client, {
       spaceId: str(p, "spaceId"),

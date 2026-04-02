@@ -6,6 +6,27 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "smartsheet",
   actions: [
     {
+      id: "sheet_list",
+      name: "List Sheets",
+      description:
+        "List all sheets accessible to the current user. Use this to discover sheet IDs before adding or updating rows.",
+      connectorType: "smartsheet",
+      resource: "sheet",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "sheets",
+          name: "Sheets",
+          type: "array",
+          description: "Array of { id, name, accessLevel }",
+        },
+      ],
+    },
+    {
       id: "sheet_create",
       name: "Create Sheet",
       description: "Create a new Smartsheet sheet",
@@ -20,7 +41,7 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "columns",
           name: "Columns",
-          type: "json",
+          type: "object",
           required: false,
           description: "Array of { title, type } column definitions",
         },
@@ -33,7 +54,8 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "row_add",
       name: "Add Row",
-      description: "Add a row to a Smartsheet sheet",
+      description:
+        "Add a row to a Smartsheet sheet. Requires sheetId — call sheet_list first to discover sheet IDs.",
       connectorType: "smartsheet",
       resource: "row",
       category: "create",
@@ -45,7 +67,7 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "cells",
           name: "Cells",
-          type: "json",
+          type: "object",
           required: false,
           description: "Array of { columnId, value } cell objects",
         },
@@ -55,7 +77,8 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "row_update",
       name: "Update Row",
-      description: "Update an existing row in a Smartsheet sheet",
+      description:
+        "Update an existing row in a Smartsheet sheet. Requires sheetId — call sheet_list first to discover sheet IDs.",
       connectorType: "smartsheet",
       resource: "row",
       category: "update",
@@ -68,7 +91,7 @@ export const smartsheetActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "cells",
           name: "Cells",
-          type: "json",
+          type: "object",
           required: false,
           description: "Array of { columnId, value } cell objects",
         },

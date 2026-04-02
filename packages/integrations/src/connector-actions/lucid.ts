@@ -19,7 +19,7 @@ export const lucidActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Document properties (title, product, etc.)",
         },
@@ -46,7 +46,12 @@ export const lucidActionsRegistry: ConnectorActionsRegistry = {
           type: "string",
           required: true,
         },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Document ID", type: "string" },
@@ -67,7 +72,7 @@ export const lucidActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Folder properties (name, parent, etc.)",
         },

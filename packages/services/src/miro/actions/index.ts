@@ -5,3 +5,5 @@ export {
   deleteMiroItem,
   updateMiroStickyNote,
 } from "./items";
+export type { BoardListResult } from "./lookup";
+export { listMiroBoards } from "./lookup";

@@ -1,4 +1,10 @@
-import { addUpdate, createItem, moveItemToGroup } from "../../monday/actions";
+import {
+  addUpdate,
+  createItem,
+  listBoards,
+  listGroups,
+  moveItemToGroup,
+} from "../../monday/actions";
 import { createMondayClient, type MondayClient } from "../../monday/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
@@ -17,6 +23,23 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async board_list(client, p) {
+    const limit = typeof p.limit === "number" ? p.limit : undefined;
+    const r = await listBoards(client, { limit });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
+  async group_list(client, p) {
+    const r = await listGroups(client, { boardId: str(p, "boardId") });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.items } };
+  },
+
   async item_create(client, p) {
     const r = await createItem(client, {
       boardId: str(p, "boardId"),

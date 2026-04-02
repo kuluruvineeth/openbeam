@@ -19,7 +19,7 @@ export const marketoActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Lead Properties",
-          type: "json",
+          type: "object",
           required: true,
           description:
             "Lead field values (email, firstName, lastName, company, etc.)",

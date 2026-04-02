@@ -25,7 +25,7 @@ export const awsIotActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "desired_state",
           name: "Desired State",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of desired shadow state",
         },

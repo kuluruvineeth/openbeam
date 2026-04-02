@@ -1,8 +1,14 @@
-export type { RecordActionResult as CodaRecordActionResult } from "./actions";
+export type {
+  DocListResult as CodaDocListResult,
+  RecordActionResult as CodaRecordActionResult,
+  TableListResult as CodaTableListResult,
+} from "./actions";
 export {
   createCodaDoc,
   createCodaRow,
   deleteCodaRow,
+  listCodaDocs,
+  listCodaTables,
   updateCodaRow,
 } from "./actions";
 export type {

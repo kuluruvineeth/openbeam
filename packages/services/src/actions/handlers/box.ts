@@ -1,6 +1,7 @@
 import {
   createBoxFolder,
   deleteBoxItem,
+  listBoxFolderItems,
   moveBoxItem,
   shareBoxItem,
 } from "../../box/actions";
@@ -65,6 +66,18 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { id: r.id, url: r.url } };
+  },
+
+  async folder_list(client, p) {
+    const folderId =
+      typeof p.folder_id === "string" && p.folder_id.trim()
+        ? p.folder_id.trim()
+        : "0";
+    const r = await listBoxFolderItems(client, folderId);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { items: r.data } };
   },
 };
 

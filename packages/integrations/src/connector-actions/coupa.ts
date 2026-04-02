@@ -19,7 +19,7 @@ export const coupaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Requisition properties object",
         },
@@ -49,7 +49,7 @@ export const coupaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Fields to update",
         },
@@ -73,7 +73,7 @@ export const coupaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Supplier properties object",
         },
@@ -97,7 +97,7 @@ export const coupaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Expense report properties",
         },

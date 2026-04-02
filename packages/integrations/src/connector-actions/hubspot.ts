@@ -27,7 +27,7 @@ export const hubspotActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of property name to value pairs",
         },
@@ -63,7 +63,7 @@ export const hubspotActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of property name to value pairs to update",
         },

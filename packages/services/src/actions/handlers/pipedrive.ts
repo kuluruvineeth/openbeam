@@ -3,6 +3,8 @@ import {
   createPipedriveDeal,
   createPipedriveNote,
   createPipedrivePerson,
+  listPipedriveOrganizations,
+  listPipedrivePersons,
   updatePipedriveDeal,
 } from "../../pipedrive/actions";
 import {
@@ -32,6 +34,22 @@ function props(p: Record<string, unknown>): Record<string, unknown> {
 }
 
 const actions: Record<string, Handler> = {
+  async person_list(client) {
+    const r = await listPipedrivePersons(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { persons: r.persons } };
+  },
+
+  async org_list(client) {
+    const r = await listPipedriveOrganizations(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { organizations: r.organizations } };
+  },
+
   async deal_create(client, p) {
     const r = await createPipedriveDeal(client, props(p));
     if (!r.success) {

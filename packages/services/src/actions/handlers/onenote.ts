@@ -1,5 +1,6 @@
 import {
   createOneNotePage,
+  listOneNoteSections,
   updateOneNotePageContent,
 } from "../../onenote/actions";
 import { registerHandler } from "../handler-registry";
@@ -16,6 +17,14 @@ registerHandler({
   connectorType: "onenote",
   async execute(actionId, params, credentials) {
     const token = credentials.accessToken || "";
+
+    if (actionId === "section_list") {
+      const r = await listOneNoteSections(token);
+      if (!r.success) {
+        return { success: false, data: {}, error: r.error };
+      }
+      return { success: true, data: { sections: r.sections } };
+    }
 
     if (actionId === "page_create") {
       const r = await createOneNotePage(token, str(params, "sectionId"), {

@@ -27,7 +27,7 @@ export const salesforceActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "fields",
           name: "Fields",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of field name → value pairs",
         },
@@ -63,7 +63,7 @@ export const salesforceActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "fields",
           name: "Fields",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of field name → value pairs to update",
         },

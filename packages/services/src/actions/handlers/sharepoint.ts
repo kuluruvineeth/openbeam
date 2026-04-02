@@ -2,7 +2,12 @@ import {
   createMicrosoftGraphClient,
   type MicrosoftGraphClient,
 } from "../../microsoft/client";
-import { createFolder, moveFile } from "../../sharepoint/actions";
+import {
+  createFolder,
+  listDrives,
+  listSites,
+  moveFile,
+} from "../../sharepoint/actions";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
 
@@ -42,6 +47,23 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { fileId: r.fileId, url: r.url } };
+  },
+
+  async drive_list(client, p) {
+    const siteId = typeof p.siteId === "string" ? p.siteId.trim() : undefined;
+    const r = await listDrives(client, siteId || undefined);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { drives: r.data } };
+  },
+
+  async site_list(client) {
+    const r = await listSites(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { sites: r.data } };
   },
 };
 

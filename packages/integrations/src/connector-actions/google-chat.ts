@@ -6,9 +6,24 @@ export const googleChatActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "google-chat",
   actions: [
     {
+      id: "space_list",
+      name: "List Spaces",
+      description:
+        "List all Google Chat spaces the user belongs to. Use this to discover the space_name needed by message_send.",
+      connectorType: "google_chat",
+      resource: "space",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [{ id: "spaces", name: "Spaces", type: "array" }],
+    },
+    {
       id: "message_send",
       name: "Send Message",
-      description: "Send a message to a Google Chat space",
+      description:
+        "Send a message to a Google Chat space. Use space_list first to discover the space_name.",
       connectorType: "google_chat",
       resource: "message",
       category: "create",
@@ -21,7 +36,8 @@ export const googleChatActionsRegistry: ConnectorActionsRegistry = {
           name: "Space",
           type: "string",
           required: true,
-          description: "Space resource name (e.g., spaces/AAAA)",
+          description:
+            "Space resource name (e.g., spaces/AAAA). Use space_list to discover available spaces.",
         },
         {
           id: "text",

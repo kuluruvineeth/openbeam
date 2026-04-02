@@ -6,9 +6,75 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "notion",
   actions: [
     {
+      id: "database_list",
+      name: "List Databases",
+      description:
+        "List all databases accessible to this Notion connector. Use this to discover database IDs before creating pages or database entries.",
+      connectorType: "notion",
+      resource: "database",
+      category: "read",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Max databases to return (default 50, max 100)",
+        },
+      ],
+      outputs: [
+        {
+          id: "databases",
+          name: "Databases",
+          type: "array",
+          description: "List of databases with id, title, and url",
+        },
+      ],
+    },
+    {
+      id: "page_search",
+      name: "Search Pages",
+      description:
+        "Search Notion pages by title. Use this to discover page IDs before creating child pages or referencing existing pages.",
+      connectorType: "notion",
+      resource: "page",
+      category: "read",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "query",
+          name: "Query",
+          type: "string",
+          required: true,
+          description: "Search query to match against page titles",
+        },
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Max pages to return (default 20, max 100)",
+        },
+      ],
+      outputs: [
+        {
+          id: "pages",
+          name: "Pages",
+          type: "array",
+          description: "List of pages with id, title, and url",
+        },
+      ],
+    },
+    {
       id: "page_create",
       name: "Create Page",
-      description: "Create a new Notion page",
+      description:
+        "Create a new Notion page. Requires parentId — call database_list or page_search first to discover IDs.",
       connectorType: "notion",
       resource: "page",
       category: "create",

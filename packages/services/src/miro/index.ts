@@ -1,8 +1,9 @@
-export type { MiroActionResult } from "./actions";
+export type { BoardListResult, MiroActionResult } from "./actions";
 export {
   createMiroBoard,
   createMiroStickyNote,
   deleteMiroItem,
+  listMiroBoards,
   updateMiroStickyNote,
 } from "./actions";
 export type { MiroBoard, MiroItem, MiroItemType, MiroTag } from "./api";

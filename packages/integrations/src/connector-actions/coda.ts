@@ -6,6 +6,56 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "coda",
   actions: [
     {
+      id: "doc_list",
+      name: "List Docs",
+      description:
+        "List all Coda documents accessible to the connected account. Use this first to discover doc IDs before calling table_list or row_create.",
+      connectorType: "coda",
+      resource: "doc",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "docs",
+          name: "Docs",
+          type: "object",
+          description: "Array of docs with id, name, and browserLink",
+        },
+      ],
+    },
+    {
+      id: "table_list",
+      name: "List Tables",
+      description:
+        "List all tables in a Coda document. Use doc_list first to get the doc_id, then use this to discover table IDs before creating or updating rows.",
+      connectorType: "coda",
+      resource: "table",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "doc_id",
+          name: "Doc ID",
+          type: "string",
+          required: true,
+          description: "Coda document ID — get from doc_list",
+        },
+      ],
+      outputs: [
+        {
+          id: "tables",
+          name: "Tables",
+          type: "object",
+          description: "Array of tables with id, name, and tableType",
+        },
+      ],
+    },
+    {
       id: "doc_create",
       name: "Create Doc",
       description: "Create a new Coda document",
@@ -39,7 +89,8 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "row_create",
       name: "Create Row",
-      description: "Add a new row to a Coda table",
+      description:
+        "Add a new row to a Coda table. Requires doc_id and table_id — call doc_list then table_list first to discover them.",
       connectorType: "coda",
       resource: "row",
       category: "create",
@@ -64,7 +115,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "cells",
           name: "Cells",
-          type: "json",
+          type: "object",
           required: true,
           description:
             'Array of {column, value} objects, e.g. [{"column":"Name","value":"Alice"}]',
@@ -75,7 +126,8 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "row_update",
       name: "Update Row",
-      description: "Update an existing row in a Coda table",
+      description:
+        "Update an existing row in a Coda table. Requires doc_id and table_id — call doc_list then table_list first.",
       connectorType: "coda",
       resource: "row",
       category: "update",
@@ -107,7 +159,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "cells",
           name: "Cells",
-          type: "json",
+          type: "object",
           required: true,
           description: "Array of {column, value} objects to update",
         },
@@ -117,7 +169,8 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "row_delete",
       name: "Delete Row",
-      description: "Delete a row from a Coda table",
+      description:
+        "Delete a row from a Coda table. Requires doc_id and table_id — call doc_list then table_list first.",
       connectorType: "coda",
       resource: "row",
       category: "delete",

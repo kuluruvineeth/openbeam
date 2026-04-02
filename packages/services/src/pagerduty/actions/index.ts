@@ -3,3 +3,4 @@ export {
   createIncident,
   updateIncidentStatus,
 } from "./incident";
+export { listPagerDutyServices } from "./lookups";

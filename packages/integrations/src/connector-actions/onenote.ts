@@ -6,9 +6,31 @@ export const onenoteActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "onenote",
   actions: [
     {
+      id: "section_list",
+      name: "List Sections",
+      description:
+        "List all OneNote sections across all notebooks. Use this to discover section IDs before creating pages.",
+      connectorType: "onenote",
+      resource: "section",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "sections",
+          name: "Sections",
+          type: "array",
+          description: "Array of { id, displayName }",
+        },
+      ],
+    },
+    {
       id: "page_create",
       name: "Create Page",
-      description: "Create a new page in a OneNote section",
+      description:
+        "Create a new page in a OneNote section. Requires section_id — call section_list first to discover section IDs.",
       connectorType: "onenote",
       resource: "page",
       category: "create",

@@ -6,9 +6,31 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "pagerduty",
   actions: [
     {
+      id: "service_list",
+      name: "List Services",
+      description:
+        "List all services in the PagerDuty account. Use this to discover service IDs before creating incidents.",
+      connectorType: "pagerduty",
+      resource: "service",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "services",
+          name: "Services",
+          type: "array",
+          description: "Array of { id, name, description }",
+        },
+      ],
+    },
+    {
       id: "incident_create",
       name: "Create Incident",
-      description: "Create a new PagerDuty incident",
+      description:
+        "Create a new PagerDuty incident. Requires service_id — call service_list first to discover service IDs.",
       connectorType: "pagerduty",
       resource: "incident",
       category: "create",

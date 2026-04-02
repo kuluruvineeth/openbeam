@@ -1,6 +1,8 @@
 import {
   createAirtableRecord,
   deleteAirtableRecord,
+  listAirtableBases,
+  listAirtableTables,
   updateAirtableRecord,
 } from "../../airtable/actions";
 import {
@@ -24,6 +26,22 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async base_list(client) {
+    const r = await listAirtableBases(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { bases: r.bases } };
+  },
+
+  async table_list(client, p) {
+    const r = await listAirtableTables(client, str(p, "base_id"));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { tables: r.tables } };
+  },
+
   async record_create(client, p) {
     const r = await createAirtableRecord(
       client,

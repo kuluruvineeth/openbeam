@@ -44,7 +44,7 @@ export const showpadActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "metadata",
           name: "Metadata",
-          type: "json",
+          type: "object",
           required: false,
           description: "Metadata key-value pairs",
         },

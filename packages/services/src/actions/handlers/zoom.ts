@@ -1,6 +1,7 @@
 import {
   createZoomMeeting,
   deleteZoomMeeting,
+  listZoomUsers,
   updateZoomMeeting,
 } from "../../zoom/actions";
 import { createZoomClient, type ZoomClient } from "../../zoom/client";
@@ -30,6 +31,14 @@ function num(p: Record<string, unknown>, key: string): number {
 }
 
 const actions: Record<string, Handler> = {
+  async user_list(client) {
+    const r = await listZoomUsers(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { users: r.users } };
+  },
+
   async meeting_create(client, p) {
     const r = await createZoomMeeting(client, {
       userId: str(p, "userId"),

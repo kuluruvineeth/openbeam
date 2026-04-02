@@ -6,9 +6,31 @@ export const zoomActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "zoom",
   actions: [
     {
+      id: "user_list",
+      name: "List Users",
+      description:
+        "List all active users in the Zoom account. Use this to discover user IDs before creating meetings.",
+      connectorType: "zoom",
+      resource: "user",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "users",
+          name: "Users",
+          type: "array",
+          description: "Array of { id, email, first_name, last_name }",
+        },
+      ],
+    },
+    {
       id: "meeting_create",
       name: "Create Meeting",
-      description: "Schedule a new Zoom meeting",
+      description:
+        "Schedule a new Zoom meeting. Requires user_id — call user_list first to discover user IDs.",
       connectorType: "zoom",
       resource: "meeting",
       category: "create",

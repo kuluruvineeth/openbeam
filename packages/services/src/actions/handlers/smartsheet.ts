@@ -1,4 +1,9 @@
-import { addRow, createSheet, updateRow } from "../../smartsheet/actions";
+import {
+  addRow,
+  createSheet,
+  listSmartsheetSheets,
+  updateRow,
+} from "../../smartsheet/actions";
 import {
   createSmartsheetClient,
   type SmartsheetClient,
@@ -20,6 +25,14 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async sheet_list(client) {
+    const r = await listSmartsheetSheets(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { sheets: r.sheets } };
+  },
+
   async sheet_create(client, p) {
     const r = await createSheet(client, {
       name: str(p, "name"),

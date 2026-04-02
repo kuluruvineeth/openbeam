@@ -6,9 +6,52 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "intercom",
   actions: [
     {
+      id: "admin_list",
+      name: "List Admins",
+      description:
+        "List all admins in the Intercom workspace. Use this to discover admin IDs before replying to conversations or tagging.",
+      connectorType: "intercom",
+      resource: "admin",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "admins",
+          name: "Admins",
+          type: "array",
+          description: "Array of { id, name, email }",
+        },
+      ],
+    },
+    {
+      id: "tag_list",
+      name: "List Tags",
+      description:
+        "List all tags in the Intercom workspace. Use this to discover tag IDs before tagging conversations.",
+      connectorType: "intercom",
+      resource: "tag",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "tags",
+          name: "Tags",
+          type: "array",
+          description: "Array of { id, name }",
+        },
+      ],
+    },
+    {
       id: "conversation_reply",
       name: "Reply to Conversation",
-      description: "Send a reply to an Intercom conversation",
+      description:
+        "Send a reply to an Intercom conversation. Requires admin_id — call admin_list first to discover admin IDs.",
       connectorType: "intercom",
       resource: "conversation",
       category: "create",
@@ -45,7 +88,8 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "conversation_tag",
       name: "Tag Conversation",
-      description: "Add a tag to an Intercom conversation",
+      description:
+        "Add a tag to an Intercom conversation. Requires tag_id — call tag_list first to discover tag IDs.",
       connectorType: "intercom",
       resource: "conversation",
       category: "update",

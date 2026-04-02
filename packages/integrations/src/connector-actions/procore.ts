@@ -20,7 +20,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "RFI fields (subject, question, assignee_id, etc.)",
         },
@@ -43,7 +43,12 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
       inputs: [
         { id: "projectId", name: "Project ID", type: "number", required: true },
         { id: "rfiId", name: "RFI ID", type: "string", required: true },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "RFI ID", type: "string" },
@@ -65,7 +70,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Submittal fields (title, spec_section, etc.)",
         },

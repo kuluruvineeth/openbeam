@@ -6,9 +6,45 @@ export const teamsActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "teams",
   actions: [
     {
+      id: "team_list",
+      name: "List Teams",
+      description:
+        "List all Microsoft Teams the authenticated user has joined. Use this to discover team IDs before listing channels or sending messages.",
+      connectorType: "microsoft_teams",
+      resource: "team",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [{ id: "teams", name: "Teams", type: "array" }],
+    },
+    {
+      id: "channel_list",
+      name: "List Channels",
+      description:
+        "List all channels in a Microsoft Teams team. Use team_list first to get the team ID.",
+      connectorType: "microsoft_teams",
+      resource: "channel",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "teamId",
+          name: "Team ID",
+          type: "string",
+          required: true,
+        },
+      ],
+      outputs: [{ id: "channels", name: "Channels", type: "array" }],
+    },
+    {
       id: "message_send",
       name: "Send Message",
-      description: "Send a message to a Teams channel",
+      description:
+        "Send a message to a Teams channel. Use team_list and channel_list first to discover the required IDs.",
       connectorType: "microsoft_teams",
       resource: "message",
       category: "create",
@@ -35,7 +71,8 @@ export const teamsActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "message_reply",
       name: "Reply to Message",
-      description: "Reply to a message in a Teams channel",
+      description:
+        "Reply to a message in a Teams channel. Use team_list and channel_list first to discover the required IDs.",
       connectorType: "microsoft_teams",
       resource: "message",
       category: "create",

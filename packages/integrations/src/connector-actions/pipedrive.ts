@@ -6,9 +6,52 @@ export const pipedriveActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "pipedrive",
   actions: [
     {
+      id: "person_list",
+      name: "List Persons",
+      description:
+        "List all contacts (persons) in Pipedrive. Use this to discover person IDs for deals, notes, and activities.",
+      connectorType: "pipedrive",
+      resource: "person",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "persons",
+          name: "Persons",
+          type: "array",
+          description: "Array of { id, name, email }",
+        },
+      ],
+    },
+    {
+      id: "org_list",
+      name: "List Organizations",
+      description:
+        "List all organizations in Pipedrive. Use this to discover organization IDs for deals and contacts.",
+      connectorType: "pipedrive",
+      resource: "organization",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "organizations",
+          name: "Organizations",
+          type: "array",
+          description: "Array of { id, name }",
+        },
+      ],
+    },
+    {
       id: "deal_create",
       name: "Create Deal",
-      description: "Create a new deal in Pipedrive",
+      description:
+        "Create a new deal in Pipedrive. Optional person_id/org_id — call person_list or org_list first to discover IDs.",
       connectorType: "pipedrive",
       resource: "deal",
       category: "create",
@@ -78,7 +121,7 @@ export const pipedriveActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "JSON object of field name to value pairs to update",
         },

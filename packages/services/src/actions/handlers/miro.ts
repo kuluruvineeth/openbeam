@@ -2,6 +2,7 @@ import {
   createMiroBoard,
   createMiroStickyNote,
   deleteMiroItem,
+  listMiroBoards,
   updateMiroStickyNote,
 } from "../../miro/actions";
 import { createMiroClient, type MiroClient } from "../../miro/client";
@@ -22,6 +23,14 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async board_list(client) {
+    const r = await listMiroBoards(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { boards: r.boards } };
+  },
+
   async board_create(client, p) {
     const r = await createMiroBoard(client, {
       name: str(p, "name"),

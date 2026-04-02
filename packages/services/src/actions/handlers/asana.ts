@@ -2,6 +2,8 @@ import {
   addComment,
   completeTask,
   createTask,
+  listAsanaProjects,
+  listAsanaWorkspaces,
   updateTask,
 } from "../../asana/actions";
 import { type AsanaClient, createAsanaClient } from "../../asana/client";
@@ -22,6 +24,22 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async workspace_list(client) {
+    const r = await listAsanaWorkspaces(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { workspaces: r.workspaces } };
+  },
+
+  async project_list(client, p) {
+    const r = await listAsanaProjects(client, str(p, "workspace_gid"));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { projects: r.projects } };
+  },
+
   async task_create(client, p) {
     const r = await createTask(client, {
       workspaceGid: str(p, "workspace_gid"),

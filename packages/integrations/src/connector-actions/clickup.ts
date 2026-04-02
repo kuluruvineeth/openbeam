@@ -6,9 +6,125 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "clickup",
   actions: [
     {
+      id: "workspace_list",
+      name: "List Workspaces",
+      description:
+        "List all ClickUp workspaces (teams) the user has access to. Use this FIRST to get a teamId, which is needed for space_list.",
+      connectorType: "clickup",
+      resource: "workspace",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "items",
+          name: "Workspaces",
+          type: "array",
+          description: "Array of { id, name } workspace objects",
+        },
+      ],
+    },
+    {
+      id: "space_list",
+      name: "List Spaces",
+      description:
+        "List spaces in a ClickUp workspace. Requires teamId from workspace_list. Use this to get a spaceId for list_list or folder_list.",
+      connectorType: "clickup",
+      resource: "space",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "teamId",
+          name: "Team ID",
+          type: "string",
+          required: true,
+          description: "Workspace (team) ID from workspace_list",
+        },
+      ],
+      outputs: [
+        {
+          id: "items",
+          name: "Spaces",
+          type: "array",
+          description: "Array of { id, name } space objects",
+        },
+      ],
+    },
+    {
+      id: "folder_list",
+      name: "List Folders",
+      description:
+        "List folders in a ClickUp space. Requires spaceId from space_list. Folders contain lists. Use list_list with folderId to see lists inside a folder.",
+      connectorType: "clickup",
+      resource: "folder",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "spaceId",
+          name: "Space ID",
+          type: "string",
+          required: true,
+          description: "Space ID from space_list",
+        },
+      ],
+      outputs: [
+        {
+          id: "items",
+          name: "Folders",
+          type: "array",
+          description: "Array of { id, name } folder objects",
+        },
+      ],
+    },
+    {
+      id: "list_list",
+      name: "List Lists",
+      description:
+        "List lists in a ClickUp space or folder. Provide either spaceId (for folderless lists) or folderId (for lists inside a folder). The returned list IDs are needed for task_create.",
+      connectorType: "clickup",
+      resource: "list",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "spaceId",
+          name: "Space ID",
+          type: "string",
+          required: false,
+          description: "Space ID (for folderless lists)",
+        },
+        {
+          id: "folderId",
+          name: "Folder ID",
+          type: "string",
+          required: false,
+          description: "Folder ID (for lists inside a folder)",
+        },
+      ],
+      outputs: [
+        {
+          id: "items",
+          name: "Lists",
+          type: "array",
+          description: "Array of { id, name } list objects",
+        },
+      ],
+    },
+    {
       id: "task_create",
       name: "Create Task",
-      description: "Create a new ClickUp task",
+      description:
+        "Create a new ClickUp task. Requires listId — use workspace_list → space_list → list_list (or folder_list → list_list) to discover it first.",
       connectorType: "clickup",
       resource: "task",
       category: "create",

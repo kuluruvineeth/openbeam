@@ -68,7 +68,8 @@ export const outlookActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "email_move",
       name: "Move Email",
-      description: "Move an email to a different folder",
+      description:
+        "Move an email to a different folder. Use folder_list first to discover the destination_folder_id.",
       connectorType: "outlook",
       resource: "email",
       category: "update",
@@ -87,9 +88,25 @@ export const outlookActionsRegistry: ConnectorActionsRegistry = {
           name: "Destination Folder ID",
           type: "string",
           required: true,
+          description:
+            "ID of the target folder. Use folder_list to discover available folders.",
         },
       ],
       outputs: [{ id: "messageId", name: "Message ID", type: "string" }],
+    },
+    {
+      id: "folder_list",
+      name: "List Mail Folders",
+      description:
+        "List all mail folders in the user's mailbox. Use this to discover folder IDs before calling email_move.",
+      connectorType: "outlook",
+      resource: "folder",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [{ id: "folders", name: "Folders", type: "array" }],
     },
   ],
 };

@@ -1,5 +1,16 @@
-export type { TaskActionResult } from "./actions";
-export { addComment, completeTask, createTask, updateTask } from "./actions";
+export type {
+  ProjectListResult,
+  TaskActionResult,
+  WorkspaceListResult,
+} from "./actions";
+export {
+  addComment,
+  completeTask,
+  createTask,
+  listAsanaProjects,
+  listAsanaWorkspaces,
+  updateTask,
+} from "./actions";
 export type { AsanaProject } from "./api";
 export { getTaskStories, getWorkspaceProjects, searchTasks } from "./api";
 export type { AsanaStory } from "./api/stories";

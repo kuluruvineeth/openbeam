@@ -2,6 +2,8 @@ import {
   createCodaDoc,
   createCodaRow,
   deleteCodaRow,
+  listCodaDocs,
+  listCodaTables,
   updateCodaRow,
 } from "../../coda/actions";
 import { type CodaClient, createCodaClient } from "../../coda/client";
@@ -22,6 +24,22 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async doc_list(client) {
+    const r = await listCodaDocs(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { docs: r.docs } };
+  },
+
+  async table_list(client, p) {
+    const r = await listCodaTables(client, str(p, "doc_id"));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { tables: r.tables } };
+  },
+
   async doc_create(client, p) {
     const r = await createCodaDoc(client, {
       title: str(p, "title"),

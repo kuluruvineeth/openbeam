@@ -19,7 +19,7 @@ export const doceboActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Enrollment properties (userId, courseId, etc.)",
         },
@@ -44,7 +44,7 @@ export const doceboActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Fields to update",
         },

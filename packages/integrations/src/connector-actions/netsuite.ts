@@ -19,7 +19,7 @@ export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description:
             "Customer record fields (companyName, email, phone, etc.)",
@@ -47,7 +47,12 @@ export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
           type: "string",
           required: true,
         },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Customer ID", type: "string" },
@@ -68,7 +73,7 @@ export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Vendor record fields",
         },
@@ -92,7 +97,7 @@ export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Sales order fields (entity, item, quantity, etc.)",
         },
@@ -119,7 +124,12 @@ export const netsuiteActionsRegistry: ConnectorActionsRegistry = {
           type: "string",
           required: true,
         },
-        { id: "properties", name: "Properties", type: "json", required: false },
+        {
+          id: "properties",
+          name: "Properties",
+          type: "object",
+          required: false,
+        },
       ],
       outputs: [
         { id: "recordId", name: "Sales Order ID", type: "string" },

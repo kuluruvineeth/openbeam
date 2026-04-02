@@ -20,7 +20,7 @@ export const highspotActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "metadata",
           name: "Metadata",
-          type: "json",
+          type: "object",
           required: false,
           description: "Metadata fields to update",
         },
@@ -51,7 +51,7 @@ export const highspotActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "recipients",
           name: "Recipients",
-          type: "json",
+          type: "object",
           required: false,
           description: "Array of { email, name? } objects",
         },

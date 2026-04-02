@@ -46,3 +46,10 @@ export {
   type UpdatePageOptions,
   updatePage,
 } from "./pages";
+
+export {
+  type DatabaseListResult,
+  listDatabases,
+  type PageSearchResult,
+  searchPages,
+} from "./search";

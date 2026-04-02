@@ -45,7 +45,7 @@ export const niceCxoneActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Signal properties",
         },

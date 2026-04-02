@@ -6,7 +6,9 @@ import {
   createDatabaseEntry,
   createPage,
   deleteBlock,
+  listDatabases,
   restorePage,
+  searchPages,
   updateBlock,
   updateDatabaseEntry,
   updatePage,
@@ -29,6 +31,24 @@ function str(p: Record<string, unknown>, key: string): string {
 }
 
 const actions: Record<string, Handler> = {
+  async database_list(client, p) {
+    const limit = typeof p.limit === "number" ? p.limit : 50;
+    const r = await listDatabases(client, limit);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { databases: r.databases } };
+  },
+
+  async page_search(client, p) {
+    const limit = typeof p.limit === "number" ? p.limit : 20;
+    const r = await searchPages(client, str(p, "query"), limit);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { pages: r.pages } };
+  },
+
   async page_create(client, p) {
     const parentType =
       typeof p.parent_type === "string"

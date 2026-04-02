@@ -19,7 +19,7 @@ export const panoptoActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: true,
           description: "Folder properties (Name, ParentFolder, etc.)",
         },
@@ -44,7 +44,7 @@ export const panoptoActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Session fields to update",
         },

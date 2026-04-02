@@ -6,9 +6,69 @@ export const mondayActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "monday",
   actions: [
     {
+      id: "board_list",
+      name: "List Boards",
+      description:
+        "List all Monday.com boards the user has access to. Use this FIRST to get a boardId, which is needed for item_create and group_list.",
+      connectorType: "monday",
+      resource: "board",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Maximum boards to return (default 50, max 200)",
+          validation: { min: 1, max: 200 },
+        },
+      ],
+      outputs: [
+        {
+          id: "items",
+          name: "Boards",
+          type: "array",
+          description: "Array of { id, name } board objects",
+        },
+      ],
+    },
+    {
+      id: "group_list",
+      name: "List Groups",
+      description:
+        "List groups in a Monday.com board. Requires boardId from board_list. Group IDs are needed for item_create (optional) and item_move_to_group.",
+      connectorType: "monday",
+      resource: "group",
+      category: "list",
+      stakes: "low",
+      reversible: false,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "boardId",
+          name: "Board ID",
+          type: "string",
+          required: true,
+          description: "Board ID from board_list",
+        },
+      ],
+      outputs: [
+        {
+          id: "items",
+          name: "Groups",
+          type: "array",
+          description: "Array of { id, name } group objects",
+        },
+      ],
+    },
+    {
       id: "item_create",
       name: "Create Item",
-      description: "Create a new item on a Monday.com board",
+      description:
+        "Create a new item on a Monday.com board. Requires boardId — use board_list to discover it first. Optionally use group_list to get a groupId.",
       connectorType: "monday",
       resource: "item",
       category: "create",
@@ -93,7 +153,8 @@ export const mondayActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "item_move_to_group",
       name: "Move Item to Group",
-      description: "Move an item to a different group",
+      description:
+        "Move an item to a different group. Use group_list with the boardId to discover available group IDs.",
       connectorType: "monday",
       resource: "item",
       category: "update",

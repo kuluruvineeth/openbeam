@@ -6,9 +6,60 @@ export const asanaActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "asana",
   actions: [
     {
+      id: "workspace_list",
+      name: "List Workspaces",
+      description:
+        "List all Asana workspaces accessible to the connected account. Use this first to discover workspace GIDs before calling project_list or task_create.",
+      connectorType: "asana",
+      resource: "workspace",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [],
+      outputs: [
+        {
+          id: "workspaces",
+          name: "Workspaces",
+          type: "object",
+          description: "Array of workspaces with gid and name",
+        },
+      ],
+    },
+    {
+      id: "project_list",
+      name: "List Projects",
+      description:
+        "List all projects in an Asana workspace. Use workspace_list first to get the workspace_gid, then use this to discover project GIDs before calling task_create.",
+      connectorType: "asana",
+      resource: "project",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "workspace_gid",
+          name: "Workspace GID",
+          type: "string",
+          required: true,
+          description: "Asana workspace GID — get from workspace_list",
+        },
+      ],
+      outputs: [
+        {
+          id: "projects",
+          name: "Projects",
+          type: "object",
+          description: "Array of projects with gid, name, and archived status",
+        },
+      ],
+    },
+    {
       id: "task_create",
       name: "Create Task",
-      description: "Create a new Asana task",
+      description:
+        "Create a new Asana task. Requires workspace_gid — call workspace_list first. Optionally call project_list to get a project_gid.",
       connectorType: "asana",
       resource: "task",
       category: "create",
@@ -16,6 +67,13 @@ export const asanaActionsRegistry: ConnectorActionsRegistry = {
       reversible: false,
       batchSupport: false,
       inputs: [
+        {
+          id: "workspace_gid",
+          name: "Workspace GID",
+          type: "string",
+          required: true,
+          description: "Asana workspace GID — get from workspace_list",
+        },
         {
           id: "name",
           name: "Task Name",
@@ -35,7 +93,7 @@ export const asanaActionsRegistry: ConnectorActionsRegistry = {
           name: "Project GID",
           type: "string",
           required: false,
-          description: "Project to add the task to",
+          description: "Project to add the task to — get from project_list",
         },
         {
           id: "assignee_gid",

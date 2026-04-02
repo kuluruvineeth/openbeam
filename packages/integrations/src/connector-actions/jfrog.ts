@@ -73,7 +73,7 @@ export const jfrogActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "properties",
           name: "Properties",
-          type: "json",
+          type: "object",
           required: false,
           description: "Key-value property pairs",
         },

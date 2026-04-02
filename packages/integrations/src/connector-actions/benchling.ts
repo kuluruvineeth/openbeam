@@ -47,7 +47,7 @@ export const benchlingActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "fields",
           name: "Fields",
-          type: "json",
+          type: "object",
           required: false,
           description: "Custom field values",
         },
@@ -87,7 +87,7 @@ export const benchlingActionsRegistry: ConnectorActionsRegistry = {
         {
           id: "fields",
           name: "Fields",
-          type: "json",
+          type: "object",
           required: false,
           description: "Custom field values",
         },

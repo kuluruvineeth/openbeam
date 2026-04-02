@@ -6,9 +6,32 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "box",
   actions: [
     {
+      id: "folder_list",
+      name: "List Folder Items",
+      description:
+        "List files and folders inside a Box folder. Use this to discover folder IDs needed by folder_create and item_move. Pass folder_id=0 (or omit) for root.",
+      connectorType: "box",
+      resource: "folder",
+      category: "read",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      inputs: [
+        {
+          id: "folder_id",
+          name: "Folder ID",
+          type: "string",
+          required: false,
+          description: "ID of the folder to list. Defaults to 0 (root).",
+        },
+      ],
+      outputs: [{ id: "items", name: "Items", type: "array" }],
+    },
+    {
       id: "folder_create",
       name: "Create Folder",
-      description: "Create a new folder in Box",
+      description:
+        "Create a new folder in Box. Use folder_list first to discover the parent_id.",
       connectorType: "box",
       resource: "folder",
       category: "create",
@@ -28,7 +51,8 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
           name: "Parent Folder ID",
           type: "string",
           required: true,
-          description: "ID of the parent folder (0 for root)",
+          description:
+            "ID of the parent folder (0 for root). Use folder_list to discover available folders.",
         },
       ],
       outputs: [
@@ -39,7 +63,8 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "item_move",
       name: "Move Item",
-      description: "Move a file or folder to a new parent folder",
+      description:
+        "Move a file or folder to a new parent folder. Use folder_list first to discover the new_parent_id.",
       connectorType: "box",
       resource: "file",
       category: "update",
@@ -66,7 +91,8 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
           name: "Destination Folder ID",
           type: "string",
           required: true,
-          description: "ID of the destination folder",
+          description:
+            "ID of the destination folder. Use folder_list to discover available folders.",
         },
       ],
       outputs: [

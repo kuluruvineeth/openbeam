@@ -2,7 +2,12 @@ import {
   createMicrosoftGraphClient,
   type MicrosoftGraphClient,
 } from "../../microsoft/client";
-import { moveEmail, replyToEmail, sendEmail } from "../../outlook/actions";
+import {
+  listMailFolders,
+  moveEmail,
+  replyToEmail,
+  sendEmail,
+} from "../../outlook/actions";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
 
@@ -64,6 +69,14 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { moved: true } };
+  },
+
+  async folder_list(client) {
+    const r = await listMailFolders(client);
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { folders: r.data } };
   },
 };
 

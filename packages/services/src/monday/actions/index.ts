@@ -4,3 +4,4 @@ export {
   type ItemActionResult,
   moveItemToGroup,
 } from "./item";
+export { listBoards, listGroups } from "./lookup";
