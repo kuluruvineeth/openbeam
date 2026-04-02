@@ -107,7 +107,7 @@ export async function createPipedriveActivity(
     return {
       success: true,
       recordId: String(result.data.id),
-      url: `https://${client.companyDomain}.pipedrive.com/activities/${result.data.id}`,
+      url: `https://${client.companyDomain}.pipedrive.com/activity/${result.data.id}`,
     };
   } catch (error) {
     return {

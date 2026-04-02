@@ -1,16 +1,18 @@
 import type { EvernoteTransformContext } from "@openbeam/types/services/connectors/evernote";
 import type { GenericDocument } from "@openbeam/vespa";
 import type { EvernoteNotebook } from "../api/notebooks";
-import type { EvernoteNote } from "../api/notes";
+import type { EvernoteNoteMetadata } from "../api/notes";
 import { buildEvernoteNoteUrl, buildTagList, stripEnml } from "./utils";
 
 export function transformNote(
-  note: EvernoteNote,
+  note: EvernoteNoteMetadata,
   context: EvernoteTransformContext,
   notebookMap: Map<string, EvernoteNotebook>,
   rawContent?: string
 ): GenericDocument {
-  const notebook = notebookMap.get(note.notebookGuid);
+  const notebook = note.notebookGuid
+    ? notebookMap.get(note.notebookGuid)
+    : undefined;
   const parts: string[] = [];
 
   if (rawContent) {
@@ -47,10 +49,10 @@ export function transformNote(
     workspace_id: context.workspaceId,
     external_id: note.guid,
     document_type: "document",
-    title: note.title,
+    title: note.title ?? "",
     content,
-    created_at: note.created,
-    updated_at: note.updated,
+    created_at: note.created ?? 0,
+    updated_at: note.updated ?? 0,
     url: buildEvernoteNoteUrl(note.guid, context.environment),
     author_name: note.attributes?.author,
     is_public: false,
@@ -61,7 +63,7 @@ export function transformNote(
       ...(tagList && { tags: tagList }),
       ...(note.attributes?.source && { source: note.attributes.source }),
       ...(note.contentLength && { contentLength: String(note.contentLength) }),
-      notebookGuid: note.notebookGuid,
+      ...(note.notebookGuid && { notebookGuid: note.notebookGuid }),
     },
   };
 }

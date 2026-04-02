@@ -3,6 +3,7 @@ export { getNotebook, listNotebooks } from "./notebooks";
 export type {
   EvernoteNote,
   EvernoteNoteFilter,
+  EvernoteNoteMetadata,
   EvernoteNotesMetadataList,
 } from "./notes";
 export {

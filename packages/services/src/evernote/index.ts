@@ -4,6 +4,7 @@ export type {
   EvernoteNote,
   EvernoteNotebook,
   EvernoteNoteFilter,
+  EvernoteNoteMetadata,
   EvernoteNotesMetadataList,
   EvernoteTag,
 } from "./api";
@@ -17,7 +18,7 @@ export {
   listTags,
 } from "./api";
 export type { EvernoteClient } from "./client";
-export { createEvernoteClient } from "./client";
+export { createEvernoteClient, withRateLimit } from "./client";
 export { evernoteFullSync } from "./sync/full";
 export { evernoteIncrementalSync } from "./sync/incremental";
 export { transformNote } from "./transformers/note";

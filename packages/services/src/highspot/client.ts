@@ -3,7 +3,7 @@ import { HighspotApiError } from "./types";
 
 const MAX_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY_MS = 1000;
-const BASE_URL = "https://api.highspot.com/v1";
+const BASE_URL = "https://api.highspot.com/v0.5";
 
 export type HighspotClientConfig = {
   connectorId: string;

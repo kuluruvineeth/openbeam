@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { EvernoteTransformContext } from "@openbeam/types/services/connectors/evernote";
 import type { EvernoteNotebook } from "../api/notebooks";
-import type { EvernoteNote } from "../api/notes";
+import type { EvernoteNoteMetadata } from "../api/notes";
 import type { EvernoteTag } from "../api/tags";
 import { transformNote } from "../transformers/note";
 import { transformNotebook } from "../transformers/notebook";
@@ -16,13 +16,14 @@ const CONTEXT: EvernoteTransformContext = {
   environment: "production",
 };
 
-function makeNote(overrides: Partial<EvernoteNote> = {}): EvernoteNote {
+function makeNote(
+  overrides: Partial<EvernoteNoteMetadata> = {}
+): EvernoteNoteMetadata {
   return {
     guid: "note_abc123",
     title: "Meeting Notes",
     created: 1_705_312_000_000,
     updated: 1_710_950_400_000,
-    active: true,
     updateSequenceNum: 42,
     notebookGuid: "nb_work",
     tagGuids: ["tag_1", "tag_2"],

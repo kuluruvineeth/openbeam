@@ -1,4 +1,5 @@
-import type { EvernoteClient } from "../client";
+import Evernote from "evernote";
+import { type EvernoteClient, withRateLimit } from "../client";
 
 export interface NoteActionResult {
   success: boolean;
@@ -19,23 +20,25 @@ export async function createNote(
   params: CreateNoteParams
 ): Promise<NoteActionResult> {
   try {
-    const enmlContent = wrapInEnml(params.content);
-    const body: Record<string, unknown> = {
-      title: params.title,
-      content: enmlContent,
-    };
+    const note = new Evernote.Types.Note();
+    note.title = params.title;
+    note.content = wrapInEnml(params.content);
     if (params.notebookGuid) {
-      body.notebookGuid = params.notebookGuid;
+      note.notebookGuid = params.notebookGuid;
     }
     if (params.tagNames && params.tagNames.length > 0) {
-      body.tagNames = params.tagNames;
+      note.tagNames = params.tagNames;
     }
 
-    const result = await client.post<{ guid: string }>("/notes", body);
+    const created = await withRateLimit(client, "createNote", () =>
+      client.noteStore.createNote(note)
+    );
+
+    const guid = created.guid ?? "";
     return {
       success: true,
-      noteGuid: result.guid,
-      url: `https://www.evernote.com/shard/s1/nl/${result.guid}`,
+      noteGuid: guid,
+      url: buildNoteUrl(guid),
     };
   } catch (error) {
     return {
@@ -57,18 +60,22 @@ export async function updateNote(
   params: UpdateNoteParams
 ): Promise<NoteActionResult> {
   try {
-    const body: Record<string, unknown> = { guid: params.noteGuid };
+    const note = new Evernote.Types.Note();
+    note.guid = params.noteGuid;
     if (params.title) {
-      body.title = params.title;
+      note.title = params.title;
     }
     if (params.content) {
-      body.content = wrapInEnml(params.content);
+      note.content = wrapInEnml(params.content);
     }
     if (params.tagNames) {
-      body.tagNames = params.tagNames;
+      note.tagNames = params.tagNames;
     }
 
-    await client.put(`/notes/${params.noteGuid}`, body);
+    await withRateLimit(client, "updateNote", () =>
+      client.noteStore.updateNote(note)
+    );
+
     return {
       success: true,
       noteGuid: params.noteGuid,
@@ -86,7 +93,10 @@ export async function deleteNote(
   noteGuid: string
 ): Promise<NoteActionResult> {
   try {
-    await client.del(`/notes/${noteGuid}`);
+    await withRateLimit(client, "deleteNote", () =>
+      client.noteStore.deleteNote(noteGuid)
+    );
+
     return {
       success: true,
       noteGuid,
@@ -112,4 +122,8 @@ function wrapInEnml(plainText: string): string {
     .join("");
 
   return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note>${htmlBody}</en-note>`;
+}
+
+function buildNoteUrl(guid: string): string {
+  return `https://www.evernote.com/shard/s1/nl/${guid}`;
 }

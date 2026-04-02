@@ -1,23 +1,18 @@
-import type { WorkdayClient } from "../client";
-
 export interface WorkerActionResult {
   success: boolean;
   workerId?: string;
   error?: string;
 }
 
-export async function updateWorker(
-  client: WorkdayClient,
-  workerId: string,
-  fields: Record<string, unknown>
-): Promise<WorkerActionResult> {
-  try {
-    await client.put(`/workers/${encodeURIComponent(workerId)}`, fields);
-    return { success: true, workerId };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to update worker",
-    };
-  }
+export function updateWorker(
+  _workerId: string,
+  _fields: Record<string, unknown>
+): WorkerActionResult {
+  return {
+    success: false,
+    error:
+      "Workday REST API does not support generic worker updates via PUT. " +
+      "Worker mutations require Workday Web Services (SOAP) or specific " +
+      "REST sub-endpoints (e.g., requestTimeOff, changeBusinessTitle).",
+  };
 }

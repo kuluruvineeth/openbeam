@@ -1,4 +1,4 @@
-import type { EvernoteClient } from "../client";
+import { type EvernoteClient, withRateLimit } from "../client";
 
 export type EvernoteNote = {
   guid: string;
@@ -36,10 +36,24 @@ export type EvernoteNoteFilter = {
   order?: number;
 };
 
+export type EvernoteNoteMetadata = {
+  guid: string;
+  title?: string;
+  contentLength?: number;
+  created?: number;
+  updated?: number;
+  deleted?: number;
+  updateSequenceNum?: number;
+  notebookGuid?: string;
+  tagGuids?: string[];
+  tagNames?: string[];
+  attributes?: EvernoteNote["attributes"];
+};
+
 export type EvernoteNotesMetadataList = {
   startIndex: number;
   totalNotes: number;
-  notes: EvernoteNote[];
+  notes: EvernoteNoteMetadata[];
   updateCount?: number;
 };
 
@@ -49,11 +63,8 @@ export function findNotesMetadata(
   offset: number,
   maxNotes: number
 ): Promise<EvernoteNotesMetadataList> {
-  return client.post<EvernoteNotesMetadataList>("/notes/search", {
-    filter,
-    offset,
-    maxNotes,
-    resultSpec: {
+  return withRateLimit(client, "findNotesMetadata", () =>
+    client.noteStore.findNotesMetadata(filter, offset, maxNotes, {
       includeTitle: true,
       includeUpdated: true,
       includeCreated: true,
@@ -61,39 +72,50 @@ export function findNotesMetadata(
       includeTagGuids: true,
       includeAttributes: true,
       includeUpdateSequenceNum: true,
-    },
-  });
+    })
+  );
 }
 
-export async function getNoteContent(
+export function getNoteContent(
   client: EvernoteClient,
   noteGuid: string
 ): Promise<string> {
-  const result = await client.get<{ content: string }>(
-    `/notes/${noteGuid}/content`
+  return withRateLimit(client, "getNoteContent", () =>
+    client.noteStore.getNoteContent(noteGuid)
   );
-  return result.content;
 }
 
-export function getNote(
+export async function getNote(
   client: EvernoteClient,
   noteGuid: string,
   withContent = false
 ): Promise<EvernoteNote> {
-  const params: Record<string, string> = {};
-  if (withContent) {
-    params.withContent = "true";
-  }
-  return client.get<EvernoteNote>(`/notes/${noteGuid}`, params);
+  const raw = await withRateLimit(client, "getNote", () =>
+    client.noteStore.getNote(noteGuid, withContent, false, false, false)
+  );
+  return {
+    guid: raw.guid ?? noteGuid,
+    title: raw.title ?? "",
+    content: raw.content,
+    contentLength: raw.contentLength,
+    created: raw.created ?? 0,
+    updated: raw.updated ?? 0,
+    deleted: raw.deleted,
+    active: raw.active ?? true,
+    updateSequenceNum: raw.updateSequenceNum ?? 0,
+    notebookGuid: raw.notebookGuid ?? "",
+    tagGuids: raw.tagGuids,
+    tagNames: raw.tagNames,
+    attributes: raw.attributes,
+  };
 }
 
 export async function* listAllNotes(
   client: EvernoteClient,
   filter: EvernoteNoteFilter = {},
   batchSize = 50
-): AsyncGenerator<EvernoteNote[], void, undefined> {
+): AsyncGenerator<EvernoteNoteMetadata[], void, undefined> {
   let offset = 0;
-
   let hasMore = true;
 
   while (hasMore) {

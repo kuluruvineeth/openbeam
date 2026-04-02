@@ -51,7 +51,7 @@ export function createPipedriveClient(
   config: PipedriveClientConfig
 ): PipedriveClient {
   const { connectorId, accessToken, companyDomain } = config;
-  const baseUrl = `https://${companyDomain}.pipedrive.com/api/v1`;
+  const baseUrl = `https://${companyDomain}.pipedrive.com/api/v2`;
 
   async function request<T>(
     url: string,

@@ -86,8 +86,8 @@ export async function* evernoteFullSync(
         documents.push(transformNote(note, context, notebookMap, content));
         processed += 1;
 
-        if (note.updateSequenceNum > maxUsn) {
-          maxUsn = note.updateSequenceNum;
+        if ((note.updateSequenceNum ?? 0) > maxUsn) {
+          maxUsn = note.updateSequenceNum ?? 0;
         }
       } catch (error) {
         logger.error(
