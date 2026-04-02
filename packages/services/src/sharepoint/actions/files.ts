@@ -12,9 +12,13 @@ export async function createFolder(
   options: { driveId: string; parentPath: string; folderName: string }
 ): Promise<FileActionResult> {
   try {
-    const result = await client.get<{ id: string; webUrl: string }>(
+    const result = await client.post<{ id: string; webUrl: string }>(
       `/drives/${options.driveId}/root:/${options.parentPath}:/children`,
-      undefined
+      {
+        name: options.folderName,
+        folder: {},
+        "@microsoft.graph.conflictBehavior": "rename",
+      }
     );
 
     return { success: true, fileId: result.id, url: result.webUrl };
@@ -31,9 +35,9 @@ export async function moveFile(
   options: { driveId: string; itemId: string; newParentId: string }
 ): Promise<FileActionResult> {
   try {
-    const result = await client.get<{ id: string; webUrl: string }>(
+    const result = await client.patch<{ id: string; webUrl: string }>(
       `/drives/${options.driveId}/items/${options.itemId}`,
-      undefined
+      { parentReference: { id: options.newParentId } }
     );
 
     return { success: true, fileId: result.id, url: result.webUrl };

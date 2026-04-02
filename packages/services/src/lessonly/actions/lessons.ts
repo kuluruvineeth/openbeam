@@ -10,8 +10,6 @@ interface ActionResult {
 interface UpdateLessonParams {
   lessonId: number;
   title?: string;
-  description?: string;
-  tags?: string[];
 }
 
 export async function updateLesson(
@@ -21,10 +19,6 @@ export async function updateLesson(
   try {
     const body: Record<string, unknown> = {
       ...(params.title && { title: params.title }),
-      ...(params.description && { description: params.description }),
-      ...(params.tags && {
-        tags: params.tags.map((name) => ({ name })),
-      }),
     };
 
     const result = await client.put<{

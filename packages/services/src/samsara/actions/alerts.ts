@@ -6,17 +6,12 @@ export interface AlertActionResult {
   error?: string;
 }
 
-export async function resolveAlert(
-  client: SamsaraClient,
-  alertId: string
-): Promise<AlertActionResult> {
-  try {
-    await client.post(`/fleet/alerts/${alertId}/resolve`, {});
-    return { success: true, alertId };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to resolve alert",
-    };
-  }
+export function resolveAlert(
+  _client: SamsaraClient,
+  _alertId: string
+): AlertActionResult {
+  return {
+    success: false,
+    error: "Alert resolve is not available via Samsara's public API",
+  };
 }

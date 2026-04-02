@@ -76,7 +76,7 @@ export async function setArtifactProperties(
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join(";");
 
-    await client.post(
+    await client.put(
       `/artifactory/api/storage/${params.repo}/${params.path}?properties=${propString}`,
       {}
     );

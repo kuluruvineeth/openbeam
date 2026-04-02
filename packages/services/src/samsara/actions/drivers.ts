@@ -13,7 +13,7 @@ export async function sendDriverMessage(
   try {
     await client.post("/fleet/messages", {
       driverIds: [driverId],
-      message,
+      text: message,
     });
     return { success: true };
   } catch (error) {

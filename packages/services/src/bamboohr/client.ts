@@ -274,7 +274,7 @@ export function createBambooHRClient(
     const response = await fetch(url, {
       method: "PUT",
       headers: {
-        Authorization: `Basic ${authHeader}`,
+        Authorization: authHeader,
         Accept: "application/json",
         "Content-Type": "application/json",
       },

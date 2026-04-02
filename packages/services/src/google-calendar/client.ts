@@ -322,7 +322,7 @@ export function createGoogleCalendarClient(
     const encodedEventId = encodeURIComponent(eventId);
     return mutate<CalendarEvent>(
       buildUrl(`/calendars/${encodedCalendarId}/events/${encodedEventId}`),
-      "PUT",
+      "PATCH",
       event
     );
   }

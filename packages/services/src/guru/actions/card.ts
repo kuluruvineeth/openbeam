@@ -27,7 +27,7 @@ export async function createCard(
     const response = await client.post<{
       id: string;
       slug?: string;
-    }>("/cards", {
+    }>("/cards/extended", {
       preferredPhrase: params.title,
       content: params.content,
       collection: { id: params.collectionId },

@@ -30,7 +30,7 @@ export function createAzureDevOpsClient(
     }
 
     const contentType =
-      method === "PATCH" && Array.isArray(body)
+      (method === "PATCH" || method === "POST") && Array.isArray(body)
         ? "application/json-patch+json"
         : "application/json";
 

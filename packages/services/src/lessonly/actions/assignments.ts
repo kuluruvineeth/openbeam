@@ -19,14 +19,20 @@ export async function createAssignment(
   params: CreateAssignmentParams
 ): Promise<ActionResult> {
   try {
-    const body: Record<string, unknown> = {
-      assignee_id: params.assigneeId,
-      assignable_id: params.assignableId,
-      assignable_type: params.assignableType,
-      ...(params.dueBy && { due_by: params.dueBy }),
+    const body = {
+      assignments: [
+        {
+          assignable_id: params.assignableId,
+          assignable_type: params.assignableType,
+          ...(params.dueBy && { due_by: params.dueBy }),
+        },
+      ],
     };
 
-    const result = await client.post<{ id: number }>("/assignments", body);
+    const result = await client.post<{ id: number }>(
+      `/users/${params.assigneeId}/assignments`,
+      body
+    );
 
     return {
       success: true,

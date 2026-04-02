@@ -20,16 +20,20 @@ export async function createCanvaDesign(
     const result = await client.post<{
       design: { id: string; urls?: { edit_url?: string } };
     }>("/designs", {
-      design_type: properties.design_type ?? "Presentation",
+      design_type:
+        properties.width && properties.height
+          ? {
+              type: "custom",
+              width: properties.width,
+              height: properties.height,
+            }
+          : {
+              type: "preset",
+              name: (
+                (properties.design_type as string) ?? "presentation"
+              ).toLowerCase(),
+            },
       title: properties.title,
-      ...(properties.width &&
-        properties.height && {
-          dimensions: {
-            width: properties.width,
-            height: properties.height,
-            units: "px",
-          },
-        }),
     });
     return {
       success: true,

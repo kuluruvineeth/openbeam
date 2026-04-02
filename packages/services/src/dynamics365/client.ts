@@ -150,6 +150,7 @@ export function createDynamics365Client(
   function post<T>(path: string, body: unknown): Promise<T> {
     return request<T>(buildUrl(path), {
       method: "POST",
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify(body),
     });
   }

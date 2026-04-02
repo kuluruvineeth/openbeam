@@ -21,6 +21,7 @@ export interface JFrogClient {
   readonly instanceUrl: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   post<T>(path: string, body: unknown): Promise<T>;
+  put<T>(path: string, body: unknown): Promise<T>;
   del(path: string): Promise<void>;
   healthCheck(): Promise<boolean>;
 }
@@ -195,6 +196,47 @@ export function createJFrogClient(config: JFrogClientConfig): JFrogClient {
     return {} as T;
   }
 
+  async function putJson<T>(path: string, body: unknown): Promise<T> {
+    await checkRateLimit();
+
+    const url = `${baseUrl}${path}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new JFrogApiError({
+        message: `JFrog API PUT ${response.status}: ${text}`,
+        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
+        statusCode: response.status,
+        retryable: response.status >= 500,
+      });
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      return response.json() as Promise<T>;
+    }
+
+    return {} as T;
+  }
+
   async function deleteRequest(path: string): Promise<void> {
     await checkRateLimit();
 
@@ -251,6 +293,7 @@ export function createJFrogClient(config: JFrogClientConfig): JFrogClient {
     instanceUrl: baseUrl,
     get: fetchJson,
     post: postJson,
+    put: putJson,
     del: deleteRequest,
     healthCheck,
   };

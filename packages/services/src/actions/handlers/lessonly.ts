@@ -47,9 +47,6 @@ const actions: Record<string, Handler> = {
     const r = await updateLesson(client, {
       lessonId: num(p, "lessonId"),
       title: typeof p.title === "string" ? p.title : undefined,
-      description:
-        typeof p.description === "string" ? p.description : undefined,
-      tags: Array.isArray(p.tags) ? (p.tags as string[]) : undefined,
     });
     if (!r.success) {
       return { success: false, data: {}, error: r.error };

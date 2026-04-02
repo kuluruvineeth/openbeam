@@ -63,7 +63,7 @@ export async function createWorkItem(
       });
     }
 
-    const result = await client.patch<{ id: number; url: string }>(
+    const result = await client.post<{ id: number; url: string }>(
       `/${encodeURIComponent(project)}/_apis/wit/workitems/$${encodeURIComponent(workItemType)}`,
       operations
     );
