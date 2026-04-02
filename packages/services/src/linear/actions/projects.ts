@@ -32,19 +32,25 @@ export async function getProject(
         id: string;
         name: string;
         description: string;
-        state: string;
+        status: { name: string; type: string };
         url: string;
         startDate: string;
         targetDate: string;
       };
     }>(
       `query($id: String!) {
-        project(id: $id) { id name description state url startDate targetDate }
+        project(id: $id) { id name description status { name type } url startDate targetDate }
       }`,
       { id: projectId }
     );
 
-    return { success: true, project: data.project };
+    return {
+      success: true,
+      project: {
+        ...data.project,
+        state: data.project.status.name,
+      },
+    };
   } catch (error) {
     return {
       success: false,

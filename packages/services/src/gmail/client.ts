@@ -30,6 +30,7 @@ export interface GmailClient {
   readonly userEmail?: string;
   get<T>(path: string, params?: Record<string, GmailParamValue>): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
+  del(path: string): Promise<void>;
   batchGet<T>(paths: string[]): Promise<T[]>;
   getRateLimitState(): Promise<GmailRateLimitState>;
   healthCheck(): Promise<boolean>;
@@ -129,7 +130,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
   }
 
   async function executeRequest<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE",
     path: string,
     options: {
       params?: Record<string, GmailParamValue>;
@@ -179,7 +180,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
   async function handleRetryableError<T>(
     error: unknown,
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE",
     path: string,
     options: {
       params?: Record<string, GmailParamValue>;
@@ -229,7 +230,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
 
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
   async function retryWithDelay<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE",
     path: string,
     options: {
       params?: Record<string, GmailParamValue>;
@@ -258,6 +259,10 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
 
   async function post<T>(path: string, body?: unknown): Promise<T> {
     return await executeRequest<T>("POST", path, { body });
+  }
+
+  async function del(path: string): Promise<void> {
+    await executeRequest<unknown>("DELETE", path);
   }
 
   async function batchGet<T>(paths: string[]): Promise<T[]> {
@@ -334,6 +339,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     userEmail,
     get,
     post,
+    del,
     batchGet,
     getRateLimitState,
     healthCheck,

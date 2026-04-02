@@ -31,8 +31,8 @@ export async function getRepository(
       name: string;
       full_name: string;
       html_url: string;
-      description: string;
-      language: string;
+      description: string | null;
+      language: string | null;
       stargazers_count: number;
       forks_count: number;
       open_issues_count: number;
@@ -46,8 +46,8 @@ export async function getRepository(
         name: data.name,
         fullName: data.full_name,
         url: data.html_url,
-        description: data.description,
-        language: data.language,
+        description: data.description ?? "",
+        language: data.language ?? "",
         stars: data.stargazers_count,
         forks: data.forks_count,
         openIssues: data.open_issues_count,

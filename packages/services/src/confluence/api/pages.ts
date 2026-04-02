@@ -47,7 +47,7 @@ export function updatePage(
   pageId: string,
   params: UpdatePageRequest
 ): Promise<ConfluencePageResponse> {
-  return client.post<ConfluencePageResponse>(
+  return client.put<ConfluencePageResponse>(
     `/wiki/api/v2/pages/${pageId}`,
     params
   );

@@ -111,7 +111,7 @@ export async function deleteDraft(
   client: GmailClient,
   draftId: string
 ): Promise<{ success: boolean; error?: string }> {
-  await client.post(`/users/me/drafts/${draftId}`, { _method: "DELETE" });
+  await client.del(`/users/me/drafts/${draftId}`);
   return { success: true };
 }
 

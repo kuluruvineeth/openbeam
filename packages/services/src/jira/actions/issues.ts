@@ -122,7 +122,7 @@ export async function updateIssue(
       fields.labels = options.labels;
     }
 
-    await client.post(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`, {
+    await client.put(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`, {
       fields,
     });
 
@@ -207,7 +207,7 @@ export async function assignIssue(
   assigneeAccountId: string
 ): Promise<IssueActionResult> {
   try {
-    await client.post(
+    await client.put(
       `/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}/assignee`,
       { accountId: assigneeAccountId }
     );
