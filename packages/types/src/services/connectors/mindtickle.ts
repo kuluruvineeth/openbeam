@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const MINDTICKLE_RATE_LIMIT_PER_MINUTE = 100;
+export const MINDTICKLE_RATE_LIMIT_PER_MINUTE = 60;
+export const MINDTICKLE_RATE_LIMIT_PER_SECOND = 4;
 
 export const MindtickleSyncCursorSchema = z.object({
   lastSyncTime: z.number().optional(),
@@ -42,6 +43,8 @@ export interface MindtickleSyncOptions {
 export const MindtickleClientConfigSchema = z.object({
   connectorId: z.string(),
   apiKey: z.string(),
+  secretKey: z.string(),
+  clientId: z.string(),
   timeout: z.number().optional(),
 });
 

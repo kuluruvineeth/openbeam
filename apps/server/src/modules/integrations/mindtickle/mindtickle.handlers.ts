@@ -21,11 +21,13 @@ export const apiKeyAuthHandler: RouteHandler<
   }
 
   try {
-    const { connectorId, apiKey } = c.req.valid("json");
+    const { connectorId, apiKey, secretKey, clientId } = c.req.valid("json");
 
     const client = createMindtickleClient({
       connectorId,
       apiKey,
+      secretKey,
+      clientId,
     });
 
     const healthy = await client.healthCheck();
@@ -33,7 +35,8 @@ export const apiKeyAuthHandler: RouteHandler<
       return c.json(
         {
           success: false,
-          message: "Cannot access Mindtickle. Check your API key.",
+          message:
+            "Cannot access Mindtickle. Verify your API key, secret key, and client ID.",
         },
         400
       );

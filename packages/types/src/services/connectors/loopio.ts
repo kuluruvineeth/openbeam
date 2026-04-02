@@ -41,7 +41,8 @@ export interface LoopioSyncOptions {
 
 export const LoopioClientConfigSchema = z.object({
   connectorId: z.string(),
-  apiKey: z.string(),
+  accessToken: z.string(),
+  baseUrl: z.string().optional(),
   timeout: z.number().optional(),
 });
 

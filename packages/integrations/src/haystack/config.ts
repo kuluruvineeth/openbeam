@@ -61,7 +61,8 @@ export const haystackApp: UnifiedApp = {
     type: AuthType.API_KEY,
     config: {
       headerName: "Authorization",
-      documentationUrl: "https://docs.haystack.com/api",
+      documentationUrl:
+        "https://support.haystackteam.com/en/collections/3276723-integrations",
     },
   },
 

@@ -48,7 +48,10 @@ export async function* listMissions(
       params.updated_after = options.updatedSince;
     }
 
-    const response = await client.get<MissionsResponse>("/missions", params);
+    const response = await client.get<MissionsResponse>(
+      "/openapi/missions",
+      params
+    );
 
     if (response.missions.length > 0) {
       yield response.missions;

@@ -715,8 +715,8 @@ export type {
   FellowStream,
 } from "./fellow";
 export {
-  addMeetingNote as addFellowMeetingNote,
-  createActionItem as createFellowActionItem,
+  archiveActionItem as archiveFellowActionItem,
+  completeActionItem as completeFellowActionItem,
   createFellowClient,
   FellowApiError,
   fellowFullSync,
@@ -728,7 +728,6 @@ export {
   transformActionItem as transformFellowActionItem,
   transformMeeting as transformFellowMeeting,
   transformStream as transformFellowStream,
-  updateActionItem as updateFellowActionItem,
 } from "./fellow";
 export type { FhirClient } from "./fhir";
 export {
@@ -1558,6 +1557,8 @@ export type {
 export {
   createMindtickleClient,
   createMission as createMindtickleMission,
+  getUser as getMindtickleUser,
+  inviteUser as inviteMindtickleUser,
   listContent as listMindtickleContent,
   listCourses as listMindtickleCourses,
   listMissions as listMindtickleMissions,

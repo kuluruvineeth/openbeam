@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const LUMAPPS_API_BASE = "https://api.lumapps.com/v2";
 
+export const LUMAPPS_V1_API_SUFFIX = "/_ah/api/lumsites/v1";
+
 export const LUMAPPS_RATE_LIMIT = 100;
 
 export const LumAppsSyncCursorSchema = z.object({
@@ -50,7 +52,15 @@ export const LumAppsClientConfigSchema = z.object({
   connectorId: z.string(),
   apiToken: z.string(),
   baseUrl: z.string().optional().default(LUMAPPS_API_BASE),
+  cellUrl: z
+    .string()
+    .optional()
+    .describe(
+      "Cell-specific URL for v1 App Engine API (e.g. https://go-cell-001.api.lumapps.com)"
+    ),
+  customerId: z.string().optional().describe("LumApps customer ID"),
+  instanceId: z.string().optional().describe("LumApps instance ID"),
   timeout: z.number().optional(),
 });
 
-export type LumAppsClientConfig = z.infer<typeof LumAppsClientConfigSchema>;
+export type LumAppsClientConfig = z.input<typeof LumAppsClientConfigSchema>;

@@ -29,23 +29,22 @@ export async function createMission(
 ): Promise<ActionResult> {
   try {
     const body = {
-      mission: {
-        name: params.name,
-        description: params.description,
-        mission_type: params.mission_type,
-        ...(params.due_date && { due_date: params.due_date }),
-        ...(params.tags?.length && { tags: params.tags }),
-      },
+      name: params.name,
+      description: params.description,
+      mission_type: params.mission_type,
+      ...(params.due_date && { due_date: params.due_date }),
+      ...(params.tags?.length && { tags: params.tags }),
     };
 
     const result = await client.post<{
-      mission: { id: string };
-    }>("/missions", body);
+      id: string;
+      name: string;
+    }>("/openapi/missions", body);
 
     return {
       success: true,
-      id: result.mission.id,
-      url: `https://app.mindtickle.com/missions/${result.mission.id}`,
+      id: result.id,
+      url: `https://app.mindtickle.com/missions/${result.id}`,
     };
   } catch (error) {
     return {
@@ -62,22 +61,21 @@ export async function updateContent(
 ): Promise<ActionResult> {
   try {
     const body = {
-      content: {
-        ...(params.title && { title: params.title }),
-        ...(params.description && { description: params.description }),
-        ...(params.category && { category: params.category }),
-        ...(params.tags?.length && { tags: params.tags }),
-      },
+      ...(params.title && { title: params.title }),
+      ...(params.description && { description: params.description }),
+      ...(params.category && { category: params.category }),
+      ...(params.tags?.length && { tags: params.tags }),
     };
 
-    const result = await client.put<{
-      content: { id: string };
-    }>(`/content/${params.contentId}`, body);
+    const result = await client.patch<{
+      id: string;
+      title: string;
+    }>(`/openapi/content/${params.contentId}`, body);
 
     return {
       success: true,
-      id: result.content.id,
-      url: `https://app.mindtickle.com/content/${result.content.id}`,
+      id: result.id ?? params.contentId,
+      url: `https://app.mindtickle.com/content/${params.contentId}`,
     };
   } catch (error) {
     return {

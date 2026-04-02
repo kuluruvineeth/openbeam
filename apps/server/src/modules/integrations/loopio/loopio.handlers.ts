@@ -25,7 +25,7 @@ export const apiKeyAuthHandler: RouteHandler<
 
     const client = createLoopioClient({
       connectorId,
-      apiKey,
+      accessToken: apiKey,
     });
 
     const healthy = await client.healthCheck();

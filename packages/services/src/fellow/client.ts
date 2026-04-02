@@ -7,7 +7,6 @@ const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000;
 const MAX_RETRY_DELAY = 30_000;
-const BASE_URL = "https://api.fellow.app/v2";
 
 const RATE_LIMITS: RateLimitConfig = {
   requestsPerMinute: 100,
@@ -24,7 +23,8 @@ export interface FellowClient {
 }
 
 export function createFellowClient(config: FellowClientConfig): FellowClient {
-  const { connectorId, apiKey, timeout = DEFAULT_TIMEOUT } = config;
+  const { connectorId, apiKey, subdomain, timeout = DEFAULT_TIMEOUT } = config;
+  const baseUrl = `https://${subdomain}.fellow.app/api/v1`;
 
   async function checkRateLimit(): Promise<void> {
     const { allowed } = await rateLimiter.checkConnectorRateLimit(
@@ -59,7 +59,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
   ): Promise<T> {
     await checkRateLimit();
 
-    const url = new URL(`${BASE_URL}${path}`);
+    const url = new URL(`${baseUrl}${path}`);
     if (params) {
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && value !== "") {
@@ -75,7 +75,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
     try {
       response = await fetch(url.toString(), {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "X-API-KEY": apiKey,
           Accept: "application/json",
           "Content-Type": "application/json",
         },
@@ -149,7 +149,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
   async function postJson<T>(path: string, body: unknown): Promise<T> {
     await checkRateLimit();
 
-    const url = `${BASE_URL}${path}`;
+    const url = `${baseUrl}${path}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -158,7 +158,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
       response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "X-API-KEY": apiKey,
           Accept: "application/json",
           "Content-Type": "application/json",
         },
@@ -185,7 +185,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
   async function putJson<T>(path: string, body: unknown): Promise<T> {
     await checkRateLimit();
 
-    const url = `${BASE_URL}${path}`;
+    const url = `${baseUrl}${path}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -194,7 +194,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
       response = await fetch(url, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "X-API-KEY": apiKey,
           Accept: "application/json",
           "Content-Type": "application/json",
         },
@@ -220,9 +220,7 @@ export function createFellowClient(config: FellowClientConfig): FellowClient {
 
   async function healthCheck(): Promise<boolean> {
     try {
-      await fetchJson<{ results: unknown[] }>("/meetings", {
-        limit: "1",
-      });
+      await fetchJson<Record<string, unknown>>("/authenticated-user");
       return true;
     } catch (error) {
       if (

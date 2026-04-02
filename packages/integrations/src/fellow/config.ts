@@ -54,8 +54,8 @@ export const fellowApp: UnifiedApp = {
   auth: {
     type: AuthType.API_KEY,
     config: {
-      headerName: "Authorization",
-      documentationUrl: "https://developer.fellow.app/docs",
+      headerName: "X-API-KEY",
+      documentationUrl: "https://developers.fellow.ai/reference/introduction",
     },
   },
 
@@ -114,6 +114,16 @@ export const fellowApp: UnifiedApp = {
   ],
 
   settings: [
+    {
+      id: "subdomain",
+      label: "Workspace Subdomain",
+      description:
+        "Your Fellow workspace subdomain (e.g. 'acme' from acme.fellow.app).",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "acme",
+    },
     {
       id: "api_key",
       label: "API Key",

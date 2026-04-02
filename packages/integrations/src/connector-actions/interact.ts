@@ -8,7 +8,8 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "page_create",
       name: "Create Page",
-      description: "Create a new page in Interact intranet",
+      description:
+        "Create a new page in Interact intranet via the /page/composer endpoint",
       connectorType: "interact",
       resource: "page",
       category: "create",
@@ -17,13 +18,62 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
       batchSupport: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
-        { id: "content", name: "Content", type: "html", required: true },
         {
-          id: "section",
-          name: "Section",
+          id: "summary",
+          name: "Summary",
+          type: "string",
+          required: true,
+          description: "Short summary of the page",
+        },
+        {
+          id: "contentHtml",
+          name: "Content HTML",
+          type: "html",
+          required: true,
+          description: "HTML body of the page (Content.Html)",
+        },
+        {
+          id: "contentType",
+          name: "Content Type",
           type: "string",
           required: false,
-          description: "Section to create the page in",
+          description:
+            'Interact content type (e.g. "Page", "News", "Blog"). Defaults to "Page"',
+        },
+        {
+          id: "topSectionIds",
+          name: "Top Section IDs",
+          type: "array",
+          required: true,
+          description: "Array of section IDs the page belongs to",
+        },
+        {
+          id: "categoryIds",
+          name: "Category IDs",
+          type: "array",
+          required: true,
+          description: "Array of category IDs for the page",
+        },
+        {
+          id: "pubStartDate",
+          name: "Publish Start Date",
+          type: "string",
+          required: true,
+          description: "Publication start date (ISO 8601)",
+        },
+        {
+          id: "pubEndDate",
+          name: "Publish End Date",
+          type: "string",
+          required: true,
+          description: "Publication end date (ISO 8601)",
+        },
+        {
+          id: "authorId",
+          name: "Author ID",
+          type: "number",
+          required: true,
+          description: "Numeric user ID of the page author",
         },
       ],
       outputs: [{ id: "id", name: "Page ID", type: "string" }],
@@ -31,7 +81,8 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "page_update",
       name: "Update Page",
-      description: "Update an existing page in Interact",
+      description:
+        "Update an existing page in Interact via the /page/{pageId}/composer endpoint",
       connectorType: "interact",
       resource: "page",
       category: "update",
@@ -41,7 +92,35 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
       inputs: [
         { id: "pageId", name: "Page ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
-        { id: "content", name: "Content", type: "html", required: false },
+        {
+          id: "summary",
+          name: "Summary",
+          type: "string",
+          required: false,
+          description: "Updated summary",
+        },
+        {
+          id: "contentHtml",
+          name: "Content HTML",
+          type: "html",
+          required: false,
+          description: "Updated HTML body",
+        },
+        {
+          id: "transitionState",
+          name: "Transition State",
+          type: "string",
+          required: true,
+          description:
+            'Workflow transition state (e.g. "Draft", "PendingApproval", "Approved")',
+        },
+        {
+          id: "transitionMessage",
+          name: "Transition Message",
+          type: "string",
+          required: false,
+          description: "Optional message for the workflow transition",
+        },
       ],
       outputs: [{ id: "id", name: "Page ID", type: "string" }],
     },

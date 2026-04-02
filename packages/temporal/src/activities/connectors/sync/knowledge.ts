@@ -240,14 +240,21 @@ export function registerKnowledgeFactories(): void {
         unknown
       > | null;
       const apiKey = (mindtickleConfig?.apiKey as string) ?? "";
-      if (!apiKey) {
+      const secretKey = (mindtickleConfig?.secretKey as string) ?? "";
+      const clientId = (mindtickleConfig?.clientId as string) ?? "";
+      if (!(apiKey && secretKey && clientId)) {
         throw ApplicationFailure.nonRetryable(
-          `No API key for connector ${connectorId}`,
+          `Missing Mindtickle credentials (apiKey, secretKey, clientId) for connector ${connectorId}`,
           "AuthorizationError"
         );
       }
 
-      const client = createMindtickleClient({ connectorId, apiKey });
+      const client = createMindtickleClient({
+        connectorId,
+        apiKey,
+        secretKey,
+        clientId,
+      });
 
       const context = {
         connectorId: connector.id,

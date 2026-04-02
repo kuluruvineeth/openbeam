@@ -408,14 +408,15 @@ export function registerHrTalentFactories(): void {
     async function* (connectorId, connector, cursor, syncType) {
       const fellowConfig = connector.config as Record<string, unknown> | null;
       const apiKey = (fellowConfig?.apiKey as string) ?? "";
-      if (!apiKey) {
+      const subdomain = (fellowConfig?.subdomain as string) ?? "";
+      if (!(apiKey && subdomain)) {
         throw ApplicationFailure.nonRetryable(
-          `No credentials for connector ${connectorId}`,
+          `Missing credentials or subdomain for connector ${connectorId}`,
           "AuthorizationError"
         );
       }
 
-      const client = createFellowClient({ connectorId, apiKey });
+      const client = createFellowClient({ connectorId, apiKey, subdomain });
 
       const context = {
         connectorId: connector.id,

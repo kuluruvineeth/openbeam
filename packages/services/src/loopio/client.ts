@@ -7,7 +7,7 @@ const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000;
 const MAX_RETRY_DELAY = 30_000;
-const BASE_URL = "https://api.loopio.com/v1";
+const DEFAULT_BASE_URL = "https://api.loopio.com";
 
 const RATE_LIMITS: RateLimitConfig = {
   requestsPerMinute: 100,
@@ -20,11 +20,17 @@ export interface LoopioClient {
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   post<T>(path: string, body: unknown): Promise<T>;
   put<T>(path: string, body: unknown): Promise<T>;
+  patch<T>(path: string, body: unknown): Promise<T>;
   healthCheck(): Promise<boolean>;
 }
 
 export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
-  const { connectorId, apiKey, timeout = DEFAULT_TIMEOUT } = config;
+  const {
+    connectorId,
+    accessToken,
+    baseUrl = DEFAULT_BASE_URL,
+    timeout = DEFAULT_TIMEOUT,
+  } = config;
 
   async function checkRateLimit(): Promise<void> {
     const { allowed } = await rateLimiter.checkConnectorRateLimit(
@@ -52,16 +58,21 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
     }
   }
 
-  async function fetchJson<T>(
+  async function request<T>(
+    method: string,
     path: string,
-    params?: Record<string, string>,
+    options?: {
+      params?: Record<string, string>;
+      body?: unknown;
+      contentType?: string;
+    },
     attempt = 0
   ): Promise<T> {
     await checkRateLimit();
 
-    const url = new URL(`${BASE_URL}${path}`);
-    if (params) {
-      for (const [key, value] of Object.entries(params)) {
+    const url = new URL(`${baseUrl}${path}`);
+    if (options?.params) {
+      for (const [key, value] of Object.entries(options.params)) {
         if (value !== undefined && value !== "") {
           url.searchParams.set(key, value);
         }
@@ -71,14 +82,18 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+      "Content-Type": options?.contentType ?? "application/json",
+    };
+
     let response: Response;
     try {
       response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+        method,
+        headers,
+        body: options?.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       });
     } finally {
@@ -92,7 +107,7 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
       );
       if (attempt < DEFAULT_RETRY_ATTEMPTS) {
         await sleep(Math.min(retryAfter * 1000, MAX_RETRY_DELAY));
-        return fetchJson<T>(path, params, attempt + 1);
+        return request<T>(method, path, options, attempt + 1);
       }
       throw new LoopioApiError({
         message: "Rate limited",
@@ -105,7 +120,7 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
 
     if (response.status === 401) {
       throw new LoopioApiError({
-        message: "Unauthorized - invalid API key",
+        message: "Unauthorized - invalid or expired OAuth token",
         code: "UNAUTHORIZED",
         statusCode: 401,
         retryable: false,
@@ -133,10 +148,10 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
           "Loopio API server error, retrying"
         );
         await sleep(delay);
-        return fetchJson<T>(path, params, attempt + 1);
+        return request<T>(method, path, options, attempt + 1);
       }
       throw new LoopioApiError({
-        message: `Loopio API ${response.status}: ${body}`,
+        message: `Loopio API ${method} ${response.status}: ${body}`,
         code: "API_ERROR",
         statusCode: response.status,
         retryable: false,
@@ -146,83 +161,10 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
     return response.json() as Promise<T>;
   }
 
-  async function postJson<T>(path: string, body: unknown): Promise<T> {
-    await checkRateLimit();
-
-    const url = `${BASE_URL}${path}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new LoopioApiError({
-        message: `Loopio API POST ${response.status}: ${text}`,
-        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
-        statusCode: response.status,
-        retryable: response.status >= 500,
-      });
-    }
-
-    return response.json() as Promise<T>;
-  }
-
-  async function putJson<T>(path: string, body: unknown): Promise<T> {
-    await checkRateLimit();
-
-    const url = `${BASE_URL}${path}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new LoopioApiError({
-        message: `Loopio API PUT ${response.status}: ${text}`,
-        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
-        statusCode: response.status,
-        retryable: response.status >= 500,
-      });
-    }
-
-    return response.json() as Promise<T>;
-  }
-
   async function healthCheck(): Promise<boolean> {
     try {
-      await fetchJson<{ projects: unknown[] }>("/projects", {
-        page: "1",
-        per_page: "1",
+      await request<{ items: unknown[] }>("GET", "/projects", {
+        params: { page: "1", pageSize: "1" },
       });
       return true;
     } catch {
@@ -232,9 +174,16 @@ export function createLoopioClient(config: LoopioClientConfig): LoopioClient {
 
   return {
     connectorId,
-    get: fetchJson,
-    post: postJson,
-    put: putJson,
+    get: <T>(path: string, params?: Record<string, string>) =>
+      request<T>("GET", path, { params }),
+    post: <T>(path: string, body: unknown) =>
+      request<T>("POST", path, { body }),
+    put: <T>(path: string, body: unknown) => request<T>("PUT", path, { body }),
+    patch: <T>(path: string, body: unknown) =>
+      request<T>("PATCH", path, {
+        body,
+        contentType: "application/json-patch+json",
+      }),
     healthCheck,
   };
 }

@@ -42,6 +42,7 @@ export interface FellowSyncOptions {
 export const FellowClientConfigSchema = z.object({
   connectorId: z.string(),
   apiKey: z.string(),
+  subdomain: z.string(),
   timeout: z.number().optional(),
 });
 

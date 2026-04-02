@@ -47,7 +47,10 @@ export async function* listContent(
       params.updated_after = options.updatedSince;
     }
 
-    const response = await client.get<ContentResponse>("/content", params);
+    const response = await client.get<ContentResponse>(
+      "/openapi/content",
+      params
+    );
 
     if (response.content.length > 0) {
       yield response.content;

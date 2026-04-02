@@ -1,11 +1,14 @@
 import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   LUMAPPS_API_BASE,
+  LUMAPPS_V1_API_SUFFIX,
   type LumAppsClientConfig,
 } from "@openbeam/types/services/connectors/lumapps";
 import { logger } from "../lib/logger";
 import { LumAppsApiError } from "./types";
 
+const TRAILING_SLASH_RE = /\/$/;
+const V2_SUFFIX_RE = /\/v2\/?$/;
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000;
@@ -19,8 +22,11 @@ const RATE_LIMITS: RateLimitConfig = {
 
 export interface LumAppsClient {
   readonly connectorId: string;
+  readonly customerId?: string;
+  readonly instanceId?: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   post<T>(path: string, body: unknown): Promise<T>;
+  postV1<T>(path: string, body: unknown): Promise<T>;
   put<T>(path: string, body: unknown): Promise<T>;
   healthCheck(): Promise<boolean>;
 }
@@ -32,8 +38,15 @@ export function createLumAppsClient(
     connectorId,
     apiToken,
     baseUrl = LUMAPPS_API_BASE,
+    cellUrl,
+    customerId,
+    instanceId,
     timeout = DEFAULT_TIMEOUT,
   } = config;
+
+  const v1BaseUrl = cellUrl
+    ? `${cellUrl.replace(TRAILING_SLASH_RE, "")}${LUMAPPS_V1_API_SUFFIX}`
+    : `${baseUrl.replace(V2_SUFFIX_RE, "")}${LUMAPPS_V1_API_SUFFIX}`;
 
   async function checkRateLimit(): Promise<void> {
     const { allowed } = await rateLimiter.checkConnectorRateLimit(
@@ -227,6 +240,42 @@ export function createLumAppsClient(
     return response.json() as Promise<T>;
   }
 
+  async function postV1Json<T>(path: string, body: unknown): Promise<T> {
+    await checkRateLimit();
+
+    const url = `${v1BaseUrl}${path}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new LumAppsApiError({
+        message: `LumApps v1 API POST ${response.status}: ${text}`,
+        code: response.status === 429 ? "RATE_LIMITED" : "API_ERROR",
+        statusCode: response.status,
+        retryable: response.status >= 500,
+      });
+    }
+
+    return response.json() as Promise<T>;
+  }
+
   async function healthCheck(): Promise<boolean> {
     try {
       await fetchJson("/contents", { maxResults: "1" });
@@ -249,8 +298,11 @@ export function createLumAppsClient(
 
   return {
     connectorId,
+    customerId,
+    instanceId,
     get: fetchJson,
     post: postJson,
+    postV1: postV1Json,
     put: putJson,
     healthCheck,
   };

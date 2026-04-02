@@ -6,7 +6,14 @@ export const ApiKeyAuthBodySchema = z.object({
     example: "conn_mindtickle_123",
   }),
   apiKey: z.string().openapi({
-    description: "Mindtickle API key (Bearer token)",
+    description: "Mindtickle API key (iss claim in JWT)",
+  }),
+  secretKey: z.string().openapi({
+    description: "Mindtickle secret key for signing JWT tokens",
+  }),
+  clientId: z.string().openapi({
+    description:
+      "Mindtickle client ID (aud claim in JWT). Obtain from support@mindtickle.com",
   }),
 });
 

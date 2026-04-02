@@ -6,7 +6,12 @@ export const ApiKeyAuthBodySchema = z.object({
     example: "conn_fellow_123",
   }),
   apiKey: z.string().openapi({
-    description: "Fellow API key (Bearer token)",
+    description: "Fellow API key (X-API-KEY header)",
+  }),
+  subdomain: z.string().openapi({
+    description:
+      "Fellow workspace subdomain (e.g. 'acme' from acme.fellow.app)",
+    example: "acme",
   }),
 });
 

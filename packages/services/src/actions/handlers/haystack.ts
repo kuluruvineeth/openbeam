@@ -7,7 +7,7 @@ registerHandler({
       success: false,
       data: {},
       error:
-        "Haystack people updates are not available. The Haystack API at api.usehaystack.io has no documented people write endpoints.",
+        "Haystack people updates are not available. Haystack (haystackteam.com) does not expose a public developer API for reading or writing people/directory data.",
     });
   },
 });

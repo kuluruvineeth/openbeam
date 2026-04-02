@@ -34,8 +34,8 @@ export async function* listModules(
 ): AsyncGenerator<MindtickleModule[], void, undefined> {
   let page = 1;
   const basePath = options.courseId
-    ? `/courses/${options.courseId}/modules`
-    : "/modules";
+    ? `/openapi/courses/${options.courseId}/modules`
+    : "/openapi/module";
 
   while (true) {
     const params: Record<string, string> = {

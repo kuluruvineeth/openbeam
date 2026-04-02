@@ -550,15 +550,15 @@ export function registerMiscFactories(): void {
     "LOOPIO",
     async function* (connectorId, connector, cursor, syncType) {
       const loopioConfig = connector.config as Record<string, unknown> | null;
-      const apiKey = (loopioConfig?.apiKey as string) ?? "";
-      if (!apiKey) {
+      const accessToken = (loopioConfig?.apiKey as string) ?? "";
+      if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
-          `No API key for connector ${connectorId}`,
+          `No access token for connector ${connectorId}`,
           "AuthorizationError"
         );
       }
 
-      const client = createLoopioClient({ connectorId, apiKey });
+      const client = createLoopioClient({ connectorId, accessToken });
 
       const context = {
         connectorId: connector.id,

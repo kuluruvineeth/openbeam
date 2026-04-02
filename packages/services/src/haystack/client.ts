@@ -7,7 +7,7 @@ const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000;
 const MAX_RETRY_DELAY = 30_000;
-const BASE_URL = "https://api.haystack.com/v1";
+const BASE_URL = "https://api.haystackteam.com/v1";
 
 const RATE_LIMITS: RateLimitConfig = {
   requestsPerMinute: 100,

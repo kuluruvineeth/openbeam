@@ -2,24 +2,38 @@ import type { LoopioClient } from "../client";
 
 interface ActionResult {
   success: boolean;
-  id?: string;
+  id?: number;
   url?: string;
   error?: string;
 }
 
 interface CreateLibraryEntryParams {
-  question: string;
-  answer: string;
-  category?: string;
+  stackID: number;
+  questionText: string;
+  text: string;
+  categoryID?: number;
+  subCategoryID?: number;
+  languageCode?: string;
+  questionComplianceOption?: string;
   tags?: string[];
 }
 
 interface UpdateLibraryEntryParams {
-  entryId: string;
-  question?: string;
-  answer?: string;
-  category?: string;
-  tags?: string[];
+  libraryEntryId: number;
+  op: string;
+  path: string;
+  value: string;
+}
+
+interface LoopioLibraryEntry {
+  id: number;
+  questions?: Array<{ id: number; text: string }>;
+  answer?: { text: string };
+  location?: {
+    stack?: { id: number; name: string };
+    category?: { id: number; name: string };
+    subCategory?: { id: number; name: string };
+  };
 }
 
 export async function createLibraryEntry(
@@ -27,23 +41,34 @@ export async function createLibraryEntry(
   params: CreateLibraryEntryParams
 ): Promise<ActionResult> {
   try {
-    const body = {
-      library_entry: {
-        question: params.question,
-        answer: params.answer,
-        ...(params.category && { category: params.category }),
-        ...(params.tags?.length && { tags: params.tags }),
-      },
+    const body: Record<string, unknown> = {
+      stackID: params.stackID,
+      questionText: params.questionText,
+      text: params.text,
     };
 
-    const result = await client.post<{
-      library_entry: { id: string };
-    }>("/library", body);
+    if (params.categoryID !== undefined) {
+      body.categoryID = params.categoryID;
+    }
+    if (params.subCategoryID !== undefined) {
+      body.subCategoryID = params.subCategoryID;
+    }
+    if (params.languageCode) {
+      body.languageCode = params.languageCode;
+    }
+    if (params.questionComplianceOption) {
+      body.questionComplianceOption = params.questionComplianceOption;
+    }
+    if (params.tags?.length) {
+      body.tags = params.tags;
+    }
+
+    const result = await client.post<LoopioLibraryEntry>("/library", body);
 
     return {
       success: true,
-      id: result.library_entry.id,
-      url: `https://app.loopio.com/library/${result.library_entry.id}`,
+      id: result.id,
+      url: `https://app.loopio.com/library/${String(result.id)}`,
     };
   } catch (error) {
     return {
@@ -61,23 +86,21 @@ export async function updateLibraryEntry(
   params: UpdateLibraryEntryParams
 ): Promise<ActionResult> {
   try {
-    const body = {
-      library_entry: {
-        ...(params.question && { question: params.question }),
-        ...(params.answer && { answer: params.answer }),
-        ...(params.category && { category: params.category }),
-        ...(params.tags?.length && { tags: params.tags }),
-      },
+    const patchBody = {
+      op: params.op,
+      path: params.path,
+      value: params.value,
     };
 
-    const result = await client.put<{
-      library_entry: { id: string };
-    }>(`/library/${params.entryId}`, body);
+    const result = await client.patch<LoopioLibraryEntry>(
+      `/library/${String(params.libraryEntryId)}`,
+      patchBody
+    );
 
     return {
       success: true,
-      id: result.library_entry.id,
-      url: `https://app.loopio.com/library/${result.library_entry.id}`,
+      id: result.id,
+      url: `https://app.loopio.com/library/${String(result.id)}`,
     };
   } catch (error) {
     return {

@@ -21,11 +21,12 @@ export const apiKeyAuthHandler: RouteHandler<
   }
 
   try {
-    const { connectorId, apiKey } = c.req.valid("json");
+    const { connectorId, apiKey, subdomain } = c.req.valid("json");
 
     const client = createFellowClient({
       connectorId,
       apiKey,
+      subdomain,
     });
 
     const healthy = await client.healthCheck();

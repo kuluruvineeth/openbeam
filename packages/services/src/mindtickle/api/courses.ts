@@ -47,7 +47,10 @@ export async function* listCourses(
       params.updated_after = options.updatedSince;
     }
 
-    const response = await client.get<CoursesResponse>("/courses", params);
+    const response = await client.get<CoursesResponse>(
+      "/openapi/courses",
+      params
+    );
 
     if (response.courses.length > 0) {
       yield response.courses;

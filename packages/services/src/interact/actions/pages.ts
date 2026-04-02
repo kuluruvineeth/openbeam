@@ -8,14 +8,27 @@ interface ActionResult {
 
 interface CreatePageParams {
   title: string;
-  content: string;
-  section?: string;
+  summary: string;
+  contentHtml: string;
+  contentType: string;
+  topSectionIds: number[];
+  categoryIds: number[];
+  pubStartDate: string;
+  pubEndDate: string;
+  authorId: number;
 }
 
 interface UpdatePageParams {
   pageId: string;
   title?: string;
-  content?: string;
+  summary?: string;
+  contentHtml?: string;
+  transitionState: string;
+  transitionMessage?: string;
+}
+
+interface ComposerResponse {
+  Id: number;
 }
 
 export async function createPage(
@@ -23,15 +36,21 @@ export async function createPage(
   params: CreatePageParams
 ): Promise<ActionResult> {
   try {
-    const body: Record<string, unknown> = {
+    const body = {
       Title: params.title,
-      Content: params.content,
-      ...(params.section && { Section: params.section }),
+      Summary: params.summary,
+      Content: { Html: params.contentHtml },
+      ContentType: params.contentType,
+      TopSectionIds: params.topSectionIds,
+      CategoryIds: params.categoryIds,
+      PubStartDate: params.pubStartDate,
+      PubEndDate: params.pubEndDate,
+      AuthorId: params.authorId,
     };
 
-    const result = await client.post<{ Id: string }>("/content/pages", body);
+    const result = await client.post<ComposerResponse>("/page/composer", body);
 
-    return { success: true, id: result.Id };
+    return { success: true, id: String(result.Id) };
   } catch (error) {
     return {
       success: false,
@@ -46,11 +65,25 @@ export async function updatePage(
 ): Promise<ActionResult> {
   try {
     const body: Record<string, unknown> = {
-      ...(params.title && { Title: params.title }),
-      ...(params.content && { Content: params.content }),
+      Transition: {
+        State: params.transitionState,
+        ...(params.transitionMessage && {
+          Message: params.transitionMessage,
+        }),
+      },
     };
 
-    await client.put<{ Id: string }>(`/content/pages/${params.pageId}`, body);
+    if (params.title) {
+      body.Title = params.title;
+    }
+    if (params.summary) {
+      body.Summary = params.summary;
+    }
+    if (params.contentHtml) {
+      body.Content = { Html: params.contentHtml };
+    }
+
+    await client.put<ComposerResponse>(`/page/${params.pageId}/composer`, body);
 
     return { success: true, id: params.pageId };
   } catch (error) {
