@@ -1,4 +1,6 @@
 export { registerActionTools } from "./actions";
+export { registerApiKeyTools } from "./admin-apikeys";
+export { registerAdminTeamTools } from "./admin-team";
 export { registerConnectorManageTools } from "./connector-manage";
 export { registerConnectorSetupTools } from "./connector-setup";
 export { registerConnectorTools } from "./connectors";
