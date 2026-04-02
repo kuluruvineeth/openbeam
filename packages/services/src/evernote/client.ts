@@ -21,6 +21,7 @@ type EvernoteNoteStore = ReturnType<
 export type EvernoteClient = {
   readonly connectorId: string;
   readonly noteStore: EvernoteNoteStore;
+  healthCheck(): Promise<boolean>;
 };
 
 export function createEvernoteClient(
@@ -35,7 +36,16 @@ export function createEvernoteClient(
 
   const noteStore = sdkClient.getNoteStore();
 
-  return { connectorId, noteStore };
+  async function healthCheck(): Promise<boolean> {
+    try {
+      await noteStore.listNotebooks();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { connectorId, noteStore, healthCheck };
 }
 
 export async function withRateLimit<T>(
