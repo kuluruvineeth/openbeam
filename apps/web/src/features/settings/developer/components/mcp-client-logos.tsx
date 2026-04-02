@@ -197,4 +197,45 @@ const MCP_CLIENT_LOGOS: Record<
   codex: CodexLogo,
 };
 
-export { MCP_CLIENT_LOGOS, type LogoProps };
+const APP_NAME_TO_LOGO_KEY: Record<string, string> = {
+  claude: "claude-desktop",
+  "claude desktop": "claude-desktop",
+  "claude code": "claude-code",
+  chatgpt: "chatgpt",
+  openai: "chatgpt",
+  cursor: "cursor",
+  windsurf: "windsurf",
+  codeium: "windsurf",
+  cline: "cline",
+  codex: "codex",
+  "openai codex": "codex",
+  vscode: "vscode",
+  "visual studio code": "vscode",
+  "vs code": "vscode",
+  "github copilot": "vscode",
+};
+
+function resolveLogoKey(name: string): string | undefined {
+  const normalized = name.toLowerCase().trim();
+  return (
+    APP_NAME_TO_LOGO_KEY[normalized] ??
+    Object.entries(APP_NAME_TO_LOGO_KEY).find(([key]) =>
+      normalized.includes(key)
+    )?.[1]
+  );
+}
+
+function resolveLogo(
+  name: string
+): ((props: LogoProps) => React.ReactElement) | undefined {
+  const key = resolveLogoKey(name);
+  return key ? MCP_CLIENT_LOGOS[key] : undefined;
+}
+
+export {
+  MCP_CLIENT_LOGOS,
+  APP_NAME_TO_LOGO_KEY,
+  resolveLogoKey,
+  resolveLogo,
+  type LogoProps,
+};

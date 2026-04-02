@@ -20,6 +20,7 @@ import { Icons } from "@/components/icons";
 import { useTRPC } from "@/trpc/client";
 import { useOAuthAppModal } from "../hooks/use-oauth-app-modal";
 import { scopesToDisplayName } from "../lib/scopes";
+import { resolveLogo } from "./mcp-client-logos";
 import { OAuthAppStatusBadge } from "./oauth-app-status-badge";
 
 type OAuthAppRow = {
@@ -36,6 +37,19 @@ type OAuthAppRow = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+function OAuthAppLogo({ name }: { name: string }) {
+  const Logo = resolveLogo(name);
+  if (Logo) {
+    return Logo({ size: 28 });
+  }
+
+  return (
+    <div className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-border/50 bg-muted/50">
+      <Icons.Globe className="text-muted-foreground" size={14} />
+    </div>
+  );
+}
 
 const COLUMNS: { id: string; header: string; className?: string }[] = [
   { id: "name", header: "Application" },
@@ -151,12 +165,7 @@ export function OAuthAppTable() {
               >
                 <TableCell>
                   <div className="flex items-center gap-2.5">
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-border/50 bg-muted/50">
-                      <Icons.Globe
-                        className="text-muted-foreground"
-                        size={14}
-                      />
-                    </div>
+                    <OAuthAppLogo name={row.name} />
                     <span className="truncate font-medium text-sm">
                       {row.name}
                     </span>
