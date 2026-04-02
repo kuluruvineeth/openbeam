@@ -127,17 +127,26 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     {
       title: "Available Connectors",
       description:
-        "Browse all 103+ connectors that can be set up. Filter by category, auth type, or search by name. Use this BEFORE connector_setup (OAuth) or connector_configure (API key) to discover what's available.\n\nReturns: name, category, auth type (OAUTH2/API_KEY). Common categories: Communication, Project Management, Storage, Development, CRM, Security, HR, Analytics.",
+        "Browse the full catalog of 103+ available data source connectors that can be set up for the team. Use this BEFORE connector_setup or connector_configure to discover which connectors exist, what authentication method they require, and whether they are already installed. This is the starting point when the user wants to connect a new data source.\n\nReturns each connector's: ID (used in connector_setup and connector_configure), display name, category (e.g. 'Communication', 'Project Management', 'Storage', 'Development', 'CRM', 'Security', 'HR', 'Analytics'), short description, authentication type ('OAUTH2', 'API_KEY', 'SERVICE_ACCOUNT', 'PUBLIC_DATASET'), whether it is already installed for this team, and for non-OAuth connectors, the required credential fields (field ID, label, type, and whether it is required).\n\nFilter by category to narrow results (e.g. 'CRM' to see Salesforce, HubSpot, Pipedrive), by authType to see only OAuth or API key connectors, or by query to search by name. After finding the connector you want: use connector_setup for OAuth connectors (Slack, Gmail, GitHub, Notion, etc.) or connector_configure for API key connectors (Samsara, Datadog, Jenkins, etc.).\n\nDo NOT use this to check the status of already-connected connectors — use connector_list for that.",
       inputSchema: {
         category: z
           .string()
           .optional()
-          .describe("Filter by category (e.g. Communication, CRM, Storage)"),
+          .describe(
+            "Filter connectors by category. Common values: 'Communication' (Slack, Gmail, Teams), 'Project Management' (Jira, Linear, Asana), 'Storage' (Google Drive, Dropbox, Box), 'Development' (GitHub, GitLab, Bitbucket), 'CRM' (Salesforce, HubSpot, Pipedrive), 'Security', 'HR', 'Analytics'. Case-insensitive partial match."
+          ),
         authType: z
           .enum(["OAUTH2", "API_KEY", "SERVICE_ACCOUNT", "PUBLIC_DATASET"])
           .optional()
-          .describe("Filter by auth type"),
-        query: z.string().optional().describe("Search by name"),
+          .describe(
+            "Filter by authentication type. 'OAUTH2' = browser-based authorization flow (most SaaS tools). 'API_KEY' = requires a token or API key from the service. 'SERVICE_ACCOUNT' = service account credentials. 'PUBLIC_DATASET' = no auth required."
+          ),
+        query: z
+          .string()
+          .optional()
+          .describe(
+            "Search connectors by name or description. Examples: 'slack', 'google', 'project management'. Case-insensitive partial match."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/connector-setup" } },
@@ -234,12 +243,19 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     {
       title: "Set Up Connector (OAuth)",
       description:
-        "Start OAuth setup for a connector (Slack, Gmail, GitHub, Notion, Linear, Jira, etc.). Returns a URL the user must open in their browser to authorize.\n\nAfter the user authorizes, call connector_setup_status to check completion. Use connector_available first to verify the connector uses OAuth.\n\nFor API key connectors, use connector_configure instead.",
+        "Start the OAuth authorization flow for a connector that uses OAuth2 authentication (Slack, Gmail, GitHub, Notion, Linear, Jira, Google Drive, Confluence, Figma, and many others). This creates a new connector record and generates an authorization URL that the user must open in their browser to grant access.\n\nReturns: a setup session ID (needed for connector_setup_status), the new connector's ID, the OAuth authorization URL the user must visit, the app name, and an expiration timestamp (15 minutes). Present the URL to the user and instruct them to open it in their browser. The authorization flow happens entirely in the browser — you cannot complete it programmatically.\n\nAfter the user reports they have authorized (or after a reasonable wait), call connector_setup_status with the returned setupId to check whether authorization succeeded. If it succeeded, use sync_trigger with the connector ID to start the first data sync. Use connector_available first to verify the connector exists and uses OAuth2 — if the connector uses API_KEY auth, use connector_configure instead.\n\nDo NOT call this for connectors that are already connected and active — it will return an error. Use connector_list to check existing connections first.",
       inputSchema: {
         app: z
           .string()
-          .describe("Connector type (e.g. SLACK, GMAIL, GITHUB, NOTION)"),
-        name: z.string().optional().describe("Display name for the connector"),
+          .describe(
+            "Connector type identifier in UPPER_SNAKE_CASE. Examples: 'SLACK', 'GMAIL', 'GITHUB', 'NOTION', 'LINEAR', 'JIRA', 'CONFLUENCE', 'GOOGLE_DRIVE', 'GOOGLE_CALENDAR', 'FIGMA', 'DROPBOX', 'HUBSPOT', 'SALESFORCE', 'ZOOM'. Get the full list from connector_available."
+          ),
+        name: z
+          .string()
+          .optional()
+          .describe(
+            "Optional display name for the connector. Defaults to the app's standard name (e.g. 'Slack', 'GitHub'). Useful when connecting multiple instances of the same app."
+          ),
       },
       annotations: WRITE_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/connector-setup" } },
@@ -370,9 +386,13 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     {
       title: "Check Setup Status",
       description:
-        "Check whether an OAuth connector setup has completed. Call after the user opens the authorization URL from connector_setup.\n\nReturns: pending, completed (with connectorId), failed, or expired. If completed, use sync_trigger to start syncing data.",
+        "Check whether an OAuth connector setup has completed after the user visited the authorization URL from connector_setup. Call this after the user confirms they have authorized the app in their browser, or poll it periodically to detect when authorization completes.\n\nReturns one of four statuses: 'pending' (user has not yet completed authorization — ask them to open the URL), 'completed' (authorization succeeded — includes the connector ID, ready for sync_trigger), 'failed' (authorization failed — includes error message, suggest retrying with connector_setup), or 'expired' (the 15-minute setup window elapsed — start a new setup with connector_setup).\n\nThe setupId parameter comes from the connector_setup response. After a 'completed' status, use sync_trigger with the returned connectorId to start the first data sync. Do NOT call this without first calling connector_setup — the setupId only exists after initiating an OAuth flow.",
       inputSchema: {
-        setupId: z.string().describe("Setup ID from connector_setup"),
+        setupId: z
+          .string()
+          .describe(
+            "The setup session ID returned by connector_setup in the structuredContent.setupId field."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
@@ -448,17 +468,24 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     {
       title: "Configure Connector (API Key)",
       description:
-        "Set up an API key connector (Samsara, Datadog, Jenkins, BambooHR, etc.). Pass the connector type and credentials as key-value pairs.\n\nUse connector_available first to see required fields for each connector. The credentials keys must match the setting IDs shown in connector_available.\n\nExample: connector_configure({ app: 'SAMSARA', credentials: { api_token: '...', region: 'us' } })",
+        "Set up a connector that uses API key, token, or service account authentication (Samsara, Datadog, Jenkins, BambooHR, PagerDuty, and similar services). This creates the connector, validates the required fields are present, and activates it immediately — no browser authorization step needed unlike OAuth connectors.\n\nReturns the new connector's ID and 'active' status on success. If required fields are missing, returns an error listing the missing field IDs and labels. The credentials object keys must exactly match the setting IDs shown in connector_available's requiredFields array for that connector type.\n\nUse connector_available FIRST to discover which fields are required for the target connector — each connector has different required fields (e.g. Samsara needs 'api_token', Datadog needs 'api_key' and 'app_key'). After successful configuration, use sync_trigger with the returned connector ID to start the first data sync.\n\nDo NOT use this for OAuth connectors (Slack, Gmail, GitHub, Notion, etc.) — use connector_setup instead. If the connector is already connected, this returns an error — use connector_list to check existing connections first.",
       inputSchema: {
         app: z
           .string()
-          .describe("Connector type (e.g. SAMSARA, DATADOG, JENKINS)"),
+          .describe(
+            "Connector type identifier in UPPER_SNAKE_CASE. Examples: 'SAMSARA', 'DATADOG', 'JENKINS', 'BAMBOOHR', 'PAGERDUTY', 'AWS_IOT_CORE'. Get the full list from connector_available with authType='API_KEY'."
+          ),
         credentials: z
           .record(z.string(), z.unknown())
           .describe(
-            "Key-value credentials matching the connector's required settings"
+            "Key-value pairs where keys are the setting IDs from connector_available's requiredFields array, and values are the user's credentials. Example for Samsara: { api_token: 'samsara_api_xxxx' }. Example for Datadog: { api_key: 'dd_xxx', app_key: 'dd_app_xxx', site: 'datadoghq.com' }."
           ),
-        name: z.string().optional().describe("Display name for the connector"),
+        name: z
+          .string()
+          .optional()
+          .describe(
+            "Optional display name for the connector. Defaults to the app's standard name. Useful when connecting multiple instances."
+          ),
       },
       annotations: WRITE_ANNOTATIONS,
     },
@@ -559,9 +586,13 @@ export const registerConnectorSetupTools: RegisterTools = (server, ctx) => {
     {
       title: "Disconnect Connector",
       description:
-        "Deactivate a connector. Stops syncing and removes credentials. Indexed documents are preserved.\n\nUse connector_list to find the connector ID. Confirm with the user before disconnecting.",
+        "Deactivate and disconnect a connector, stopping all future syncs and revoking stored credentials. Previously indexed documents are preserved in the search index and remain searchable — this only stops new data from being synced. Use this when the user wants to remove a data source integration or when a connector is persistently failing and needs to be reconnected from scratch.\n\nReturns the disconnected connector's ID, name, and 'disconnected' status on success. This is a destructive action — always confirm with the user before proceeding, as reconnecting will require re-authorizing (OAuth) or re-entering credentials (API key).\n\nUse connector_list to find the connector ID. After disconnecting, the user can reconnect the same service using connector_setup (OAuth) or connector_configure (API key). Do NOT use this to pause a sync temporarily — there is no 'pause' action; disconnecting fully removes the credential link.",
       inputSchema: {
-        connectorId: z.string().describe("Connector ID to disconnect"),
+        connectorId: z
+          .string()
+          .describe(
+            "The ID of the connector to disconnect. Get this from connector_list results."
+          ),
       },
       annotations: {
         readOnlyHint: false,

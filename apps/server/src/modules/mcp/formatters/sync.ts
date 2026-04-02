@@ -38,7 +38,10 @@ export function formatSyncTrigger(r: SyncTriggerResult): string {
     `Type: ${r.type}`,
     `Job ID: ${r.syncJobId}`,
     "",
-    "To check progress: use sync_status with this connector ID.",
+    "Next steps:",
+    `• Check progress: sync_status with connector ID "${r.connectorId}".`,
+    `• View past syncs: sync_history with connector ID "${r.connectorId}".`,
+    `• Check health after sync: connector_health with connector ID "${r.connectorId}".`,
   ].join("\n");
 }
 
@@ -71,8 +74,13 @@ export function formatSyncStatus(r: SyncStatusResult): string {
   }
 
   parts.push("");
-  parts.push("To trigger a new sync: use sync_trigger with this connector ID.");
-  parts.push("To see past syncs: use sync_history.");
+  parts.push("Next steps:");
+  parts.push("• Trigger a new sync: sync_trigger with this connector ID.");
+  parts.push("• View past syncs: sync_history with this connector ID.");
+  parts.push(
+    "• Check connector health: connector_health with this connector ID."
+  );
+  parts.push("• Search synced documents: search_documents with a query.");
 
   return parts.join("\n");
 }
@@ -95,5 +103,13 @@ export function formatSyncHistory(
     return `• ${type} sync ${status} (${time}) ${docs}${err}`;
   });
 
-  return `Sync history (${total} total runs):\n\n${rows.join("\n")}`;
+  const hints = [
+    "",
+    "Next steps:",
+    "• Trigger a new sync: sync_trigger with this connector ID.",
+    "• Check current sync status: sync_status with this connector ID.",
+    "• Check connector health: connector_health with this connector ID.",
+  ].join("\n");
+
+  return `Sync history (${total} total runs):\n\n${rows.join("\n")}${hints}`;
 }

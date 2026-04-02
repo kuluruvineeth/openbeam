@@ -48,9 +48,12 @@ export function formatConnectorList(items: ConnectorItem[]): string {
   );
 
   const hints = [
-    "To sync a connector: use sync_trigger with the connector ID.",
-    "To see available write actions: use connector_actions_list with the connector type.",
-    "To get full details: use connector_get with the connector ID.",
+    "Next steps:",
+    "• Check health: connector_health with the connector ID.",
+    "• Get full details: connector_get with the connector ID.",
+    "• Trigger a sync: sync_trigger with the connector ID.",
+    "• See write actions (create, update, delete): connector_actions_list with the connector type.",
+    "• Search documents from a source: search_documents with a query.",
   ].join("\n");
 
   return `${header}\n\n${rows}\n\n${hints}`;
@@ -75,10 +78,14 @@ export function formatConnectorDetail(c: ConnectorDetail): string {
   }
 
   parts.push("");
-  parts.push("To trigger a sync: use sync_trigger with this connector's ID.");
+  parts.push("Next steps:");
+  parts.push(`• Trigger a sync: sync_trigger with connector ID "${c.id}".`);
+  parts.push(`• Check health: connector_health with connector ID "${c.id}".`);
   parts.push(
-    `To see write actions: use connector_actions_list with type "${c.type ?? "unknown"}".`
+    `• See write actions: connector_actions_list with type "${c.type ?? "unknown"}".`
   );
+  parts.push(`• View sync history: sync_history with connector ID "${c.id}".`);
+  parts.push("• Search its documents: search_documents with a query.");
 
   return parts.join("\n");
 }
@@ -91,6 +98,21 @@ export function formatConnectorHealth(h: ConnectorHealth): string {
     `Last sync: ${relativeTime(h.lastSyncAt)}`,
     h.lastError ? `Last error: ${h.lastError}` : null,
   ].filter(Boolean);
+
+  parts.push("");
+  parts.push("Next steps:");
+  parts.push(
+    `• Trigger a fresh sync: sync_trigger with connector ID "${h.connectorId}".`
+  );
+  parts.push(
+    `• View sync history: sync_history with connector ID "${h.connectorId}".`
+  );
+  parts.push(
+    `• Get full details: connector_get with connector ID "${h.connectorId}".`
+  );
+  if (h.lastError) {
+    parts.push("• The error above may resolve after a fresh sync.");
+  }
 
   return parts.join("\n");
 }

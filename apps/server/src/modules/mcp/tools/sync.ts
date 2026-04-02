@@ -52,13 +52,19 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Trigger Sync",
         description:
-          "Start a sync job for a specific connector. Returns a job ID and workflow ID to track progress.\n\nDefault is incremental sync (fast, only changes since last sync). Use type 'full' only when explicitly requested — full syncs re-index all documents and can take hours for large connectors. After triggering, use sync_status with the connector ID to monitor progress.\n\nRequires a connector ID from connector_list. The connector must be in an active state — check with connector_get if the trigger fails.",
+          "Start a data sync job for a specific connector, pulling the latest data from the connected source into the OpenBeam search index. Use this when the user wants to refresh their data, after setting up a new connector (connector_setup or connector_configure), or when search results appear stale.\n\nReturns: sync job ID (for tracking), Temporal workflow ID, connector ID, and sync type. The default sync type is 'incremental' which only fetches changes since the last successful sync — this is fast (seconds to minutes). Use type 'full' ONLY when the user explicitly requests a complete re-index, as full syncs re-process all documents from scratch and can take hours for large connectors with tens of thousands of documents.\n\nAfter triggering, use sync_status with the connector ID to monitor real-time progress (documents processed, errors, estimated completion). The connector must be in an active state — if the trigger fails, use connector_get to check the connector's status and error message. Use connector_list first if you need to find the connector ID.\n\nDo NOT trigger full syncs proactively — always default to incremental. Do NOT trigger syncs on connectors in 'error' or 'AUTH_EXPIRED' state without first addressing the underlying issue (check connector_health and sync_history for diagnostics).",
         inputSchema: {
-          connectorId: z.string().describe("Connector ID to sync"),
+          connectorId: z
+            .string()
+            .describe(
+              "The ID of the connector to sync. Get this from connector_list results or connector_setup/connector_configure responses."
+            ),
           type: z
             .enum(["full", "incremental"])
             .optional()
-            .describe("Sync type (default: incremental)"),
+            .describe(
+              "Sync type. 'incremental' (default) fetches only changes since the last sync — fast and safe. 'full' re-indexes every document from scratch — slow, use only when explicitly requested by the user."
+            ),
         },
         annotations: WRITE_ANNOTATIONS,
         _meta: { ui: { resourceUri: "ui://openbeam/sync-status" } },
@@ -120,11 +126,13 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync Job Status",
         description:
-          "Check the current sync state of a connector. Returns: connector status, latest sync job details (status, duration, documents added/updated/deleted, errors), processing queue state, scheduled jobs, and webhook status.\n\nUse this after sync_trigger to monitor a running sync, or proactively to check if a connector's data is fresh. If the latest sync shows errors, use sync_history for failure patterns and connector_health for overall health assessment.",
+          "Check the current sync state and latest sync job details for a specific connector. Use this after sync_trigger to monitor a running sync's progress, or proactively when the user asks whether their data is up-to-date or wants to know when the last sync completed.\n\nReturns a comprehensive status object containing: connector metadata (name, type, status), latest sync job details (status, start/finish timestamps, duration in milliseconds, documents added/updated/deleted counts, error message if failed), processing queue state (pending items, in-flight count), scheduled sync jobs, and webhook registration status. This gives you a complete picture of the connector's sync health at a glance.\n\nIf the latest sync shows errors or failures, use sync_history to check whether this is a recurring pattern or a one-time issue. Use connector_health for an overall health score. If data appears stale (last sync was long ago), use sync_trigger to start a fresh incremental sync.\n\nDo NOT confuse this with connector_get — sync_status focuses on sync operations and job details, while connector_get returns connector configuration and setup information.",
         inputSchema: {
           connectorId: z
             .string()
-            .describe("Connector ID to check sync status for"),
+            .describe(
+              "The ID of the connector to check sync status for. Get this from connector_list results or sync_trigger response."
+            ),
         },
         annotations: READ_ONLY_ANNOTATIONS,
         _meta: { ui: { resourceUri: "ui://openbeam/sync-status" } },
@@ -192,22 +200,28 @@ export const registerSyncTools: RegisterTools = (server, ctx) => {
       {
         title: "Sync History",
         description:
-          "List past sync jobs for a connector with status, duration, document counts, and error messages. Supports pagination (default 25 results). Use this to diagnose recurring sync failures or verify that recent syncs completed successfully.\n\nLook for patterns: repeated errors suggest auth expiry or API changes. Use connector_health for the overall health score, or sync_trigger to attempt a fresh sync after resolving issues.",
+          "List historical sync jobs for a connector, ordered from most recent to oldest, with full details for each job. Use this when diagnosing recurring sync failures, verifying that recent syncs completed successfully, or auditing how much data has been synced over time.\n\nReturns each sync job's: ID, connector ID, connector type, status ('COMPLETED', 'FAILED', 'RUNNING', 'CANCELLED'), sync type ('FULL', 'INCREMENTAL'), start and completion timestamps, documents processed count (added + updated), documents errored count, and error message if failed. Supports offset-based pagination with configurable limit (default 25, max 100). The response includes total count and whether more pages are available.\n\nLook for patterns in the results: repeated failures with the same error message suggest a systemic issue like expired OAuth tokens (AUTH_EXPIRED), API rate limiting, or configuration changes on the source platform. Use connector_health for a summarized health score, or sync_trigger to attempt a fresh sync after resolving the underlying issue.\n\nDo NOT use this for real-time monitoring of an in-progress sync — use sync_status instead, which shows the live state of the latest job.",
         inputSchema: {
           connectorId: z
             .string()
-            .describe("Connector ID to get sync history for"),
+            .describe(
+              "The ID of the connector to get sync history for. Get this from connector_list results."
+            ),
           limit: z.coerce
             .number()
             .min(1)
             .max(100)
             .optional()
-            .describe("Max results (1-100, default 25)"),
+            .describe(
+              "Maximum number of sync jobs to return, between 1 and 100. Defaults to 25. Use higher values to see more history for pattern analysis."
+            ),
           offset: z.coerce
             .number()
             .min(0)
             .optional()
-            .describe("Offset for pagination (default 0)"),
+            .describe(
+              "Number of results to skip for pagination. Defaults to 0. Use with limit to page through history."
+            ),
         },
         annotations: READ_ONLY_ANNOTATIONS,
       },

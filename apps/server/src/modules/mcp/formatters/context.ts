@@ -48,7 +48,10 @@ export function formatContextSearch(
     "",
     rows.join("\n\n"),
     "",
-    "To read full content: use context_read with the URI.",
+    "Next steps:",
+    "• Read full content: context_read with the URI from above.",
+    "• Ask a question grounded in these results: ask_question with your query.",
+    "• Search documents: search_documents for broader results across all connectors.",
   ].join("\n");
 }
 
@@ -80,6 +83,19 @@ export function formatContextDetail(e: ContextDetail): string {
     }
   }
 
+  parts.push("");
+  parts.push("Next steps:");
+  if (e.relations && e.relations.length > 0) {
+    parts.push(
+      "• Explore related entries: context_read with a related URI above."
+    );
+  }
+  parts.push("• Search for more context: context_search with a related query.");
+  parts.push("• Ask a question grounded in this content: ask_question.");
+  parts.push(
+    "• Find related documents: search_documents with keywords from this entry."
+  );
+
   return parts.join("\n");
 }
 
@@ -104,6 +120,18 @@ export function formatAnswer(r: AnswerResult): string {
     const pct = Math.round(r.confidence * 100);
     parts.push(`\nConfidence: ${pct}%`);
   }
+
+  parts.push("");
+  parts.push("Next steps:");
+  if (r.citations && r.citations.length > 0) {
+    parts.push(
+      "• Read a cited source in full: context_read with the citation URI."
+    );
+  }
+  parts.push(
+    "• Search for more on this topic: search_documents with a related query."
+  );
+  parts.push("• Find experts: search_people with a relevant name or role.");
 
   return parts.join("\n");
 }

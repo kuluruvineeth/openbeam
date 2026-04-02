@@ -9,7 +9,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       id: "issue_create",
       name: "Create Issue",
       description:
-        "Create a new Linear issue. Requires teamId — call team_list first to discover team IDs.",
+        "Create a new Linear issue. Requires teamId — call team_list first to discover available team IDs. Returns the created issue's ID, identifier (e.g. ENG-123), and URL. Use when the user asks to create, file, or open a new issue or ticket.",
       connectorType: "linear",
       resource: "issue",
       category: "create",
@@ -22,63 +22,71 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Title",
           type: "string",
           required: true,
-          description: "Issue title",
+          description: "Issue title — concise summary of the work.",
         },
         {
           id: "description",
           name: "Description",
           type: "string",
           required: false,
-          description: "Issue description (markdown)",
+          description:
+            "Issue description in markdown format. Supports full markdown including headings, lists, and code blocks.",
         },
         {
           id: "teamId",
           name: "Team ID",
           type: "string",
           required: true,
-          description: "Team ID",
+          description:
+            "The Linear team UUID. Call team_list to discover available team IDs.",
         },
         {
           id: "assigneeId",
           name: "Assignee ID",
           type: "string",
           required: false,
-          description: "Assignee user ID",
+          description:
+            "Linear user UUID to assign. Use issue_search or search_people to find user IDs.",
         },
         {
           id: "priority",
           name: "Priority",
           type: "number",
           required: false,
-          description: "Priority (0-4)",
+          description:
+            "Priority level: 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.",
         },
         {
           id: "stateId",
           name: "State ID",
           type: "string",
           required: false,
-          description: "Workflow state ID",
+          description:
+            "Workflow state UUID (e.g. Backlog, Todo, In Progress, Done). Omit to use team default.",
         },
         {
           id: "labelIds",
           name: "Label IDs",
           type: "array",
           required: false,
-          description: "Label IDs",
+          description:
+            "Array of label UUIDs to apply (e.g. ['bug', 'frontend']).",
         },
         {
           id: "projectId",
           name: "Project ID",
           type: "string",
           required: false,
-          description: "Project ID",
+          description:
+            "Project UUID to associate with. Use project_get or issue_search to discover project IDs.",
         },
         {
           id: "cycleId",
           name: "Cycle ID",
           type: "string",
           required: false,
-          description: "Cycle ID",
+          description:
+            "Cycle UUID to add the issue to. Use cycle_get to look up active cycles.",
         },
       ],
       outputs: [
@@ -86,21 +94,29 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Issue ID",
           type: "string",
-          description: "Created issue ID",
+          description:
+            "Created issue UUID — use this for issue_update, issue_assign, or issue_add_comment.",
         },
         {
           id: "identifier",
           name: "Identifier",
           type: "string",
-          description: "Issue identifier (e.g., ENG-123)",
+          description:
+            "Human-readable identifier (e.g. ENG-123) for referencing in conversations.",
         },
-        { id: "url", name: "URL", type: "string", description: "Issue URL" },
+        {
+          id: "url",
+          name: "URL",
+          type: "string",
+          description: "Direct URL to the issue in Linear.",
+        },
       ],
     },
     {
       id: "issue_update",
       name: "Update Issue",
-      description: "Update an existing Linear issue",
+      description:
+        "Update an existing Linear issue. Requires the issue UUID — use issue_search or a previous issue_create result to get it. Only specified fields are modified; omitted fields remain unchanged.",
       connectorType: "linear",
       resource: "issue",
       category: "update",
@@ -113,42 +129,47 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Issue ID",
           type: "string",
           required: true,
-          description: "Issue ID",
+          description:
+            "Linear issue UUID to update. Get from issue_create output or issue_search results.",
         },
         {
           id: "title",
           name: "Title",
           type: "string",
           required: false,
-          description: "New title",
+          description: "New title. Omit to keep current title.",
         },
         {
           id: "description",
           name: "Description",
           type: "string",
           required: false,
-          description: "New description",
+          description:
+            "New description in markdown. Replaces the entire description.",
         },
         {
           id: "assigneeId",
           name: "Assignee ID",
           type: "string",
           required: false,
-          description: "New assignee",
+          description:
+            "New assignee user UUID. Use issue_assign for a simpler assignment flow.",
         },
         {
           id: "priority",
           name: "Priority",
           type: "number",
           required: false,
-          description: "New priority",
+          description:
+            "New priority: 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.",
         },
         {
           id: "stateId",
           name: "State ID",
           type: "string",
           required: false,
-          description: "New state",
+          description:
+            "New workflow state UUID (e.g. move to 'In Progress' or 'Done').",
         },
       ],
       outputs: [
@@ -156,20 +177,21 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Issue ID",
           type: "string",
-          description: "Updated issue ID",
+          description: "Updated issue UUID.",
         },
         {
           id: "success",
           name: "Success",
           type: "boolean",
-          description: "Whether update succeeded",
+          description: "Whether the update succeeded.",
         },
       ],
     },
     {
       id: "issue_search",
       name: "Search Issues",
-      description: "Search for Linear issues",
+      description:
+        "Search for Linear issues matching a query string. Returns up to 50 results with ID, identifier, title, state, and URL. Use this to find an issue before updating, commenting, or referencing it.",
       connectorType: "linear",
       resource: "issue",
       category: "search",
@@ -182,21 +204,23 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Query",
           type: "string",
           required: true,
-          description: "Search query",
+          description:
+            "Search query — matches against issue title, description, and identifier (e.g. 'login bug' or 'ENG-123').",
         },
         {
           id: "teamId",
           name: "Team ID",
           type: "string",
           required: false,
-          description: "Filter by team",
+          description:
+            "Filter results to a specific team UUID. Call team_list to discover team IDs.",
         },
         {
           id: "first",
           name: "Limit",
           type: "number",
           required: false,
-          description: "Max results",
+          description: "Max results to return (default 20, max 50).",
         },
       ],
       outputs: [
@@ -204,20 +228,22 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "issues",
           name: "Issues",
           type: "array",
-          description: "Matching issues",
+          description:
+            "Matching issues with id, identifier, title, state, and url.",
         },
         {
           id: "totalCount",
           name: "Total Count",
           type: "number",
-          description: "Total matches",
+          description: "Total number of matching issues.",
         },
       ],
     },
     {
       id: "issue_assign",
       name: "Assign Issue",
-      description: "Assign an issue to a user",
+      description:
+        "Assign a Linear issue to a user. Requires the issue UUID and assignee UUID. Use issue_search to find the issue and search_people to find the user. Use when the user asks to assign, delegate, or hand off an issue.",
       connectorType: "linear",
       resource: "issue",
       category: "update",
@@ -230,14 +256,16 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Issue ID",
           type: "string",
           required: true,
-          description: "Issue ID",
+          description:
+            "Linear issue UUID to assign. Get from issue_search or issue_create.",
         },
         {
           id: "assigneeId",
           name: "Assignee ID",
           type: "string",
           required: true,
-          description: "User ID to assign",
+          description:
+            "Linear user UUID to assign the issue to. Use search_people to find user IDs.",
         },
       ],
       outputs: [
@@ -245,14 +273,15 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "success",
           name: "Success",
           type: "boolean",
-          description: "Whether assignment succeeded",
+          description: "Whether the assignment succeeded.",
         },
       ],
     },
     {
       id: "issue_add_comment",
       name: "Add Comment",
-      description: "Add a comment to an issue",
+      description:
+        "Add a comment to a Linear issue. Requires the issue UUID — use issue_search or issue_create to get it. Use when the user asks to comment on, note, or add context to an issue.",
       connectorType: "linear",
       resource: "issue",
       category: "create",
@@ -265,14 +294,16 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Issue ID",
           type: "string",
           required: true,
-          description: "Issue ID",
+          description:
+            "Linear issue UUID to comment on. Get from issue_search or issue_create.",
         },
         {
           id: "body",
           name: "Body",
           type: "string",
           required: true,
-          description: "Comment body (markdown)",
+          description:
+            "Comment body in markdown format. Supports full markdown syntax.",
         },
       ],
       outputs: [
@@ -280,14 +311,15 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Comment ID",
           type: "string",
-          description: "Created comment ID",
+          description: "Created comment UUID.",
         },
       ],
     },
     {
       id: "issue_add_label",
       name: "Add Label",
-      description: "Add a label to an issue",
+      description:
+        "Add a label to a Linear issue. Requires the issue UUID and label UUID. Use issue_search to find the issue. Use when the user asks to tag, label, or categorize an issue.",
       connectorType: "linear",
       resource: "issue",
       category: "update",
@@ -300,14 +332,15 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Issue ID",
           type: "string",
           required: true,
-          description: "Issue ID",
+          description: "Linear issue UUID to add the label to.",
         },
         {
           id: "labelId",
           name: "Label ID",
           type: "string",
           required: true,
-          description: "Label ID to add",
+          description:
+            "Label UUID to add. Labels are workspace-scoped in Linear.",
         },
       ],
       outputs: [
@@ -315,14 +348,15 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "success",
           name: "Success",
           type: "boolean",
-          description: "Whether label was added",
+          description: "Whether the label was added.",
         },
       ],
     },
     {
       id: "project_get",
       name: "Get Project",
-      description: "Get project details",
+      description:
+        "Retrieve details for a Linear project by ID. Returns project name, description, status, and member info. Use this to look up project context before creating issues in a project.",
       connectorType: "linear",
       resource: "project",
       category: "read",
@@ -335,7 +369,8 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Project ID",
           type: "string",
           required: true,
-          description: "Project ID",
+          description:
+            "Linear project UUID. Get from issue_search results or issue_create output.",
         },
       ],
       outputs: [
@@ -343,14 +378,16 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "project",
           name: "Project",
           type: "object",
-          description: "Project data",
+          description:
+            "Project details including name, description, state, targetDate, and teams.",
         },
       ],
     },
     {
       id: "project_create",
       name: "Create Project",
-      description: "Create a new project",
+      description:
+        "Create a new Linear project. Requires at least one team ID — call team_list first. Returns the project ID and URL. Use when the user asks to start, create, or set up a new project.",
       connectorType: "linear",
       resource: "project",
       category: "create",
@@ -363,35 +400,38 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Name",
           type: "string",
           required: true,
-          description: "Project name",
+          description: "Project name.",
         },
         {
           id: "teamIds",
           name: "Team IDs",
           type: "array",
           required: true,
-          description: "Team IDs",
+          description:
+            "Array of team UUIDs to associate with the project. Call team_list to discover available teams.",
         },
         {
           id: "description",
           name: "Description",
           type: "string",
           required: false,
-          description: "Project description",
+          description: "Project description in markdown.",
         },
         {
           id: "leadId",
           name: "Lead ID",
           type: "string",
           required: false,
-          description: "Project lead user ID",
+          description:
+            "User UUID for the project lead. Use search_people to find user IDs.",
         },
         {
           id: "targetDate",
           name: "Target Date",
           type: "date",
           required: false,
-          description: "Target completion date",
+          description:
+            "Target completion date in ISO 8601 format (YYYY-MM-DD).",
         },
       ],
       outputs: [
@@ -399,15 +439,22 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Project ID",
           type: "string",
-          description: "Created project ID",
+          description:
+            "Created project UUID — use as projectId in issue_create.",
         },
-        { id: "url", name: "URL", type: "string", description: "Project URL" },
+        {
+          id: "url",
+          name: "URL",
+          type: "string",
+          description: "Direct URL to the project in Linear.",
+        },
       ],
     },
     {
       id: "cycle_get",
       name: "Get Cycle",
-      description: "Get cycle details",
+      description:
+        "Retrieve details for a Linear cycle (sprint) by ID. Returns cycle name, dates, progress, and issue counts. Use to check cycle status or find cycle IDs for issue_create.",
       connectorType: "linear",
       resource: "cycle",
       category: "read",
@@ -420,7 +467,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Cycle ID",
           type: "string",
           required: true,
-          description: "Cycle ID",
+          description: "Linear cycle UUID.",
         },
       ],
       outputs: [
@@ -428,14 +475,16 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "cycle",
           name: "Cycle",
           type: "object",
-          description: "Cycle data",
+          description:
+            "Cycle details including name, startsAt, endsAt, progress, and issue counts.",
         },
       ],
     },
     {
       id: "cycle_add_issue",
       name: "Add Issue to Cycle",
-      description: "Add an issue to a cycle",
+      description:
+        "Add an existing issue to a Linear cycle (sprint). Requires both the issue UUID and cycle UUID. Use issue_search and cycle_get to discover the required IDs.",
       connectorType: "linear",
       resource: "cycle",
       category: "update",
@@ -448,14 +497,15 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           name: "Issue ID",
           type: "string",
           required: true,
-          description: "Issue ID",
+          description:
+            "Issue UUID to add. Get from issue_search or issue_create.",
         },
         {
           id: "cycleId",
           name: "Cycle ID",
           type: "string",
           required: true,
-          description: "Cycle ID",
+          description: "Target cycle UUID. Get from cycle_get.",
         },
       ],
       outputs: [
@@ -463,7 +513,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "success",
           name: "Success",
           type: "boolean",
-          description: "Whether issue was added",
+          description: "Whether the issue was added to the cycle.",
         },
       ],
     },
@@ -471,7 +521,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       id: "team_list",
       name: "List Teams",
       description:
-        "List all teams in the Linear workspace. Use this to discover team IDs before creating issues.",
+        "List all teams in the connected Linear workspace. Returns each team's ID, name, and key. Use this FIRST before issue_create or project_create to discover the required teamId. No parameters required.",
       connectorType: "linear",
       resource: "team",
       category: "list",
@@ -484,7 +534,8 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
           id: "teams",
           name: "Teams",
           type: "array",
-          description: "Array of teams with id, name, and key",
+          description:
+            "Array of teams with id (UUID), name, and key (e.g. 'ENG').",
         },
       ],
     },

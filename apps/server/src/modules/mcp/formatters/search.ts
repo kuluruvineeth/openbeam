@@ -62,8 +62,12 @@ export function formatSearchResults(
   );
 
   const hints = [
-    "To ask a question about these results: use ask_question.",
-    "To read full document content: use context_read with the document URI.",
+    "Next steps:",
+    "• Read full content: context_read with the document URI.",
+    "• Ask a question about these results: ask_question with your query.",
+    "• Find the author: search_people with their name.",
+    "• Search related context: context_search for deeper exploration.",
+    "• Narrow results: search_documents again with more specific terms or filters.",
   ].join("\n");
 
   return `${header}\n\n${rows}\n\n${hints}`;
@@ -84,5 +88,12 @@ export function formatPeopleResults(people: PersonResult[]): string {
     })
   );
 
-  return `Found ${people.length} people:\n\n${rows}`;
+  const hints = [
+    "",
+    "Next steps:",
+    "• Find documents by a person: search_documents with their name as query.",
+    "• Get team overview: team_info for team-level stats.",
+  ].join("\n");
+
+  return `Found ${people.length} people:\n\n${rows}${hints}`;
 }

@@ -72,20 +72,34 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "List Connectors",
       description:
-        "List all configured data source connectors for the team. Returns each connector's ID, name, type, status, document count, and last sync time. Supports cursor-based pagination (default 25 per page).\n\nUse this FIRST when the user asks about their connected data sources, sync health, or data coverage. Filter by status ('active', 'error', 'pending', 'disabled') to quickly find problematic connectors.\n\nAfter identifying a connector of interest, use connector_get for full configuration details, connector_health for health metrics, or sync_history for past sync jobs. Use connector_actions_list to discover available write actions for a connector type.",
+        "List all configured data source connectors for the current team, with summary statistics for each. Use this FIRST when the user asks about their connected data sources, wants to know what tools are integrated, needs a connector ID for another tool (sync_trigger, connector_action_execute, connector_health), or wants to check which connectors have errors.\n\nReturns each connector's: ID (required by sync_trigger, connector_get, connector_action_execute, and other tools), display name, type slug (e.g. 'SLACK', 'NOTION', 'GITHUB'), status ('ACTIVE', 'SYNCING', 'ERROR', 'AUTH_EXPIRED', 'CONNECTING', 'INACTIVE', 'PAUSED'), indexed document count, and last sync timestamp. Supports cursor-based pagination with configurable page size (default 25). Filter by status category ('active', 'error', 'pending', 'disabled') to quickly isolate problematic connectors, or by type slug to find a specific integration.\n\nAfter identifying a connector, use connector_get for full configuration and error details, connector_health for a health score and failure diagnostics, sync_history for past sync job results, or sync_trigger to start a new sync. Use connector_actions_list with the connector's type to discover available write actions (send message, create issue, etc.).\n\nDo NOT use this to search for documents or content — use search_documents for that. Do NOT use this to find people — use search_people.",
       inputSchema: {
         status: z
           .enum(["active", "error", "pending", "disabled"])
           .optional()
-          .describe("Filter by connector status"),
-        type: z.string().optional().describe("Filter by connector type slug"),
-        cursor: z.string().optional().describe("Pagination cursor"),
+          .describe(
+            "Filter connectors by status category. 'active' = working connectors (ACTIVE, SYNCING). 'error' = connectors with issues (ERROR, AUTH_EXPIRED, RATE_LIMITED). 'pending' = connectors still being set up (CONNECTING). 'disabled' = paused or removed connectors (INACTIVE, PAUSED, DELETING). Omit to return all."
+          ),
+        type: z
+          .string()
+          .optional()
+          .describe(
+            "Filter by connector type slug, e.g. 'slack', 'notion', 'github', 'google-drive', 'jira'. Case-insensitive. Omit to return all types."
+          ),
+        cursor: z
+          .string()
+          .optional()
+          .describe(
+            "Pagination cursor from a previous response's meta.cursor field. Omit for the first page."
+          ),
         pageSize: z.coerce
           .number()
           .min(1)
           .max(100)
           .optional()
-          .describe("Results per page (1-100, default 25)"),
+          .describe(
+            "Number of connectors per page, between 1 and 100. Defaults to 25."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/connector-dashboard" } },
@@ -151,9 +165,13 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "Get Connector",
       description:
-        "Get full details for a single connector by its ID. Returns configuration, sync schedule, health score, error messages, and document count.\n\nUse this after connector_list to drill into a specific connector. The connector ID comes from connector_list results. Use connector_health for dedicated health metrics, or sync_status for detailed sync state.",
+        "Retrieve full details for a single data source connector by its ID, including configuration, health, and error information. Use this after connector_list when you need to drill into a specific connector's setup — for example, to diagnose why a connector is in an error state, to check its sync schedule, or to see its full configuration.\n\nReturns: connector ID, name, type slug, current status, creation date, last sync timestamp, total indexed document count, error message (if any), sync schedule, and a health object containing health score (0-100), status, and last health check timestamp. The connector ID is obtained from connector_list results.\n\nFor a dedicated health assessment with failure diagnostics, use connector_health instead. For detailed sync job information (documents added/updated/deleted, duration, queue state), use sync_status. To trigger a new sync after diagnosing an issue, use sync_trigger with this connector's ID.",
       inputSchema: {
-        id: z.string().describe("Connector ID"),
+        id: z
+          .string()
+          .describe(
+            "The connector ID to look up. Get this from connector_list results, e.g. 'clxyz123abc'."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/document-preview" } },
@@ -200,9 +218,13 @@ export const registerConnectorTools: RegisterTools = (server, ctx) => {
     {
       title: "Connector Health Check",
       description:
-        "Get health metrics for a specific connector by its ID. Returns: health score (0-100, where 100 is fully healthy), document count, last sync timestamp, and last error message if any.\n\nA score below 75 indicates issues — use sync_history to check for recurring failures, then sync_trigger to attempt a fresh sync. Use connector_list first to discover connector IDs.",
+        "Get health metrics and diagnostics for a specific connector, identified by its ID. Use this when a connector appears unhealthy (status 'error' in connector_list), when the user asks about sync reliability, or when you need to assess whether a connector's data is trustworthy and up-to-date.\n\nReturns: health score (0-100, where 100 means fully healthy with no recent errors), current status, indexed document count, last successful sync timestamp, and last error message if any. A score below 75 indicates problems that may need attention — common causes include expired OAuth tokens, API rate limits, or configuration changes on the source platform.\n\nAfter identifying health issues, use sync_history to look for recurring failure patterns over time, then sync_trigger to attempt a fresh sync after the root cause is resolved. Use connector_list first if you need to discover the connector ID. For full connector configuration details, use connector_get instead.",
       inputSchema: {
-        id: z.string().describe("Connector ID"),
+        id: z
+          .string()
+          .describe(
+            "The connector ID to check health for. Get this from connector_list results."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },

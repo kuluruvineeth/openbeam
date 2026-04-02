@@ -8,7 +8,8 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "file_get",
       name: "Get File",
-      description: "Get file metadata",
+      description:
+        "Retrieve metadata for a Google Drive file by ID. Returns name, MIME type, size, owners, and sharing status. Use file_search to find the file ID first. Use this to inspect a file before moving, sharing, or copying it.",
       connectorType: "google_drive",
       resource: "file",
       category: "read",
@@ -21,14 +22,16 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File ID",
+          description:
+            "Google Drive file ID. Get from file_search results or file_create output.",
         },
         {
           id: "fields",
           name: "Fields",
           type: "string",
           required: false,
-          description: "Fields to include",
+          description:
+            "Comma-separated fields to include (e.g. 'name,mimeType,size,webViewLink,permissions'). Omit for default fields.",
         },
       ],
       outputs: [
@@ -36,14 +39,16 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "file",
           name: "File",
           type: "object",
-          description: "File metadata",
+          description:
+            "File metadata including name, mimeType, size, webViewLink, owners, and modifiedTime.",
         },
       ],
     },
     {
       id: "file_search",
       name: "Search Files",
-      description: "Search for files in Google Drive",
+      description:
+        "Search for files and folders in Google Drive using Drive's query syntax. Returns up to 100 results with ID, name, MIME type, and URL. Use this to find files before moving, sharing, copying, renaming, or deleting them.",
       connectorType: "google_drive",
       resource: "file",
       category: "search",
@@ -56,21 +61,23 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "Query",
           type: "string",
           required: true,
-          description: "Drive query string",
+          description:
+            "Drive query string (e.g. \"name contains 'report'\", \"mimeType = 'application/pdf'\", \"'folderId' in parents\"). See Google Drive API query documentation for full syntax.",
         },
         {
           id: "pageSize",
           name: "Page Size",
           type: "number",
           required: false,
-          description: "Results per page",
+          description: "Results per page (default 50, max 1000).",
         },
         {
           id: "orderBy",
           name: "Order By",
           type: "string",
           required: false,
-          description: "Sort order",
+          description:
+            "Sort order (e.g. 'modifiedTime desc', 'name', 'createdTime desc').",
         },
       ],
       outputs: [
@@ -78,20 +85,22 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "files",
           name: "Files",
           type: "array",
-          description: "Matching files",
+          description:
+            "Matching files with id, name, mimeType, webViewLink, and modifiedTime.",
         },
         {
           id: "nextPageToken",
           name: "Next Page Token",
           type: "string",
-          description: "Pagination token",
+          description: "Pagination token for fetching more results.",
         },
       ],
     },
     {
       id: "file_create",
       name: "Create File",
-      description: "Create a new file",
+      description:
+        "Create a new file in Google Drive. Optionally place it in a specific folder by providing parent folder IDs — use file_search to find folder IDs. Returns the file ID and web link. Use when the user asks to create a document, spreadsheet, or upload content.",
       connectorType: "google_drive",
       resource: "file",
       category: "create",
@@ -104,28 +113,32 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "Name",
           type: "string",
           required: true,
-          description: "File name",
+          description:
+            "File name with extension (e.g. 'Q4 Report.docx', 'Budget.xlsx', 'Notes.txt').",
         },
         {
           id: "mimeType",
           name: "MIME Type",
           type: "string",
           required: false,
-          description: "File MIME type",
+          description:
+            "File MIME type. For Google Docs: 'application/vnd.google-apps.document', Sheets: 'application/vnd.google-apps.spreadsheet', Slides: 'application/vnd.google-apps.presentation'.",
         },
         {
           id: "parents",
           name: "Parent Folders",
           type: "array",
           required: false,
-          description: "Parent folder IDs",
+          description:
+            "Array of parent folder IDs to place the file in. Use file_search to find folder IDs. Omit for root 'My Drive'.",
         },
         {
           id: "content",
           name: "Content",
           type: "string",
           required: false,
-          description: "File content",
+          description:
+            "File content as text. For Google Docs, provide plain text or HTML.",
         },
       ],
       outputs: [
@@ -133,21 +146,28 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "File ID",
           type: "string",
-          description: "Created file ID",
+          description:
+            "Created file ID — use for file_move, file_rename, permission_create, etc.",
         },
-        { id: "name", name: "Name", type: "string", description: "File name" },
+        {
+          id: "name",
+          name: "Name",
+          type: "string",
+          description: "Created file name.",
+        },
         {
           id: "webViewLink",
           name: "Web Link",
           type: "string",
-          description: "View URL",
+          description: "Direct URL to view the file in Google Drive.",
         },
       ],
     },
     {
       id: "file_copy",
       name: "Copy File",
-      description: "Copy a file",
+      description:
+        "Create a copy of an existing Google Drive file. Requires the source file ID — use file_search to find it. Optionally place the copy in a different folder. Use when the user asks to duplicate or copy a file.",
       connectorType: "google_drive",
       resource: "file",
       category: "create",
@@ -160,21 +180,23 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "Source file ID",
+          description: "Source file ID to copy. Get from file_search results.",
         },
         {
           id: "name",
           name: "Name",
           type: "string",
           required: false,
-          description: "New file name",
+          description:
+            "Name for the copy. Defaults to 'Copy of {original name}'.",
         },
         {
           id: "parents",
           name: "Parent Folders",
           type: "array",
           required: false,
-          description: "Destination folder IDs",
+          description:
+            "Destination folder IDs. Omit to place in same folder as original.",
         },
       ],
       outputs: [
@@ -182,15 +204,21 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "File ID",
           type: "string",
-          description: "Copied file ID",
+          description: "Copied file ID.",
         },
-        { id: "name", name: "Name", type: "string", description: "File name" },
+        {
+          id: "name",
+          name: "Name",
+          type: "string",
+          description: "Copied file name.",
+        },
       ],
     },
     {
       id: "file_move",
       name: "Move File",
-      description: "Move a file to a different folder",
+      description:
+        "Move a file to a different Google Drive folder. Requires the file ID and destination folder ID — use file_search to find both. Use when the user asks to move, organize, or relocate a file.",
       connectorType: "google_drive",
       resource: "file",
       category: "update",
@@ -203,21 +231,23 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File to move",
+          description: "File ID to move. Get from file_search.",
         },
         {
           id: "addParents",
           name: "Destination Folder",
           type: "string",
           required: true,
-          description: "Target folder ID",
+          description:
+            "Target folder ID to move the file to. Use file_search with mimeType='application/vnd.google-apps.folder' to find folders.",
         },
         {
           id: "removeParents",
           name: "Source Folder",
           type: "string",
           required: false,
-          description: "Current folder ID",
+          description:
+            "Current parent folder ID to remove from. Use file_get to check current parents.",
         },
       ],
       outputs: [
@@ -225,20 +255,21 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "File ID",
           type: "string",
-          description: "Moved file ID",
+          description: "Moved file ID.",
         },
         {
           id: "parents",
           name: "Parents",
           type: "array",
-          description: "New parent folders",
+          description: "New parent folder IDs.",
         },
       ],
     },
     {
       id: "file_rename",
       name: "Rename File",
-      description: "Rename a file",
+      description:
+        "Rename a file or folder in Google Drive. Requires the file ID — use file_search to find it. Only the name is changed; location and content remain the same.",
       connectorType: "google_drive",
       resource: "file",
       category: "update",
@@ -251,25 +282,36 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File to rename",
+          description: "File or folder ID to rename. Get from file_search.",
         },
         {
           id: "name",
           name: "Name",
           type: "string",
           required: true,
-          description: "New name",
+          description: "New name with extension (e.g. 'Updated Report.docx').",
         },
       ],
       outputs: [
-        { id: "id", name: "File ID", type: "string", description: "File ID" },
-        { id: "name", name: "Name", type: "string", description: "New name" },
+        {
+          id: "id",
+          name: "File ID",
+          type: "string",
+          description: "Renamed file ID.",
+        },
+        {
+          id: "name",
+          name: "Name",
+          type: "string",
+          description: "New file name.",
+        },
       ],
     },
     {
       id: "file_delete",
       name: "Delete File",
-      description: "Move file to trash",
+      description:
+        "Move a file to Google Drive's trash. The file can be recovered from trash for 30 days. Requires the file ID — use file_search to verify the correct file before deleting.",
       connectorType: "google_drive",
       resource: "file",
       category: "delete",
@@ -282,7 +324,8 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File to delete",
+          description:
+            "File ID to trash. Get from file_search. Verify with file_get before deleting.",
         },
       ],
       outputs: [
@@ -290,14 +333,15 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "File ID",
           type: "string",
-          description: "Deleted file ID",
+          description: "Trashed file ID.",
         },
       ],
     },
     {
       id: "permission_create",
       name: "Share File",
-      description: "Share a file with a user",
+      description:
+        "Share a Google Drive file with a user by granting them a permission role. Requires the file ID and user's email. Use file_search to find the file ID. Use when the user asks to share, give access, or invite someone to a file.",
       connectorType: "google_drive",
       resource: "permission",
       category: "create",
@@ -310,28 +354,31 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File to share",
+          description: "File or folder ID to share. Get from file_search.",
         },
         {
           id: "email",
           name: "Email",
           type: "email",
           required: true,
-          description: "User email",
+          description:
+            "Email address of the user to share with (e.g. 'jane@company.com').",
         },
         {
           id: "role",
           name: "Role",
           type: "string",
           required: true,
-          description: "Permission role (reader, writer, commenter)",
+          description:
+            "Permission role: 'reader' (view only), 'writer' (edit), or 'commenter' (comment only).",
         },
         {
           id: "sendNotification",
           name: "Send Notification",
           type: "boolean",
           required: false,
-          description: "Email the user",
+          description:
+            "Send an email notification to the user about the share. Defaults to true.",
         },
       ],
       outputs: [
@@ -339,14 +386,16 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Permission ID",
           type: "string",
-          description: "Created permission ID",
+          description:
+            "Created permission ID — use for permission_remove to revoke access later.",
         },
       ],
     },
     {
       id: "permission_remove",
       name: "Remove Access",
-      description: "Remove user access from a file",
+      description:
+        "Remove a user's access to a Google Drive file. Requires the file ID and user's email. This action is irreversible — the user loses access immediately. Use when the user asks to unshare, revoke access, or remove someone from a file.",
       connectorType: "google_drive",
       resource: "permission",
       category: "delete",
@@ -359,14 +408,14 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "File ID",
           type: "string",
           required: true,
-          description: "File ID",
+          description: "File or folder ID to remove access from.",
         },
         {
           id: "email",
           name: "Email",
           type: "email",
           required: true,
-          description: "User to remove",
+          description: "Email address of the user whose access to revoke.",
         },
       ],
       outputs: [
@@ -374,14 +423,15 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "ok",
           name: "Success",
           type: "boolean",
-          description: "Whether removal succeeded",
+          description: "Whether the access removal succeeded.",
         },
       ],
     },
     {
       id: "folder_create",
       name: "Create Folder",
-      description: "Create a new folder",
+      description:
+        "Create a new folder in Google Drive. Optionally nest it inside a parent folder by providing parent IDs — use file_search to find parent folder IDs. Returns the folder ID and web link. Use when the user asks to create or organize folders.",
       connectorType: "google_drive",
       resource: "folder",
       category: "create",
@@ -394,14 +444,15 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           name: "Name",
           type: "string",
           required: true,
-          description: "Folder name",
+          description: "Folder name (e.g. 'Q4 Reports', 'Project Alpha').",
         },
         {
           id: "parents",
           name: "Parent Folders",
           type: "array",
           required: false,
-          description: "Parent folder IDs",
+          description:
+            "Parent folder IDs to nest this folder under. Omit for root 'My Drive'. Use file_search to find folder IDs.",
         },
       ],
       outputs: [
@@ -409,19 +460,20 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Folder ID",
           type: "string",
-          description: "Created folder ID",
+          description:
+            "Created folder ID — use as parent in file_create, file_move, or folder_create.",
         },
         {
           id: "name",
           name: "Name",
           type: "string",
-          description: "Folder name",
+          description: "Created folder name.",
         },
         {
           id: "webViewLink",
           name: "Web Link",
           type: "string",
-          description: "View URL",
+          description: "Direct URL to the folder in Google Drive.",
         },
       ],
     },

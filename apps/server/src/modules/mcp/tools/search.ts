@@ -47,32 +47,40 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     {
       title: "Search Documents",
       description:
-        "Search across all connected enterprise data sources using hybrid semantic + keyword search. This is the PRIMARY tool for answering factual questions about the user's organization — use it BEFORE attempting to answer from your own knowledge.\n\nReturns up to 50 ranked results, each with: title, snippet (first 300 chars), source connector type, author, URL, and relevance score. Filter by connector type (e.g. 'slack', 'google-drive', 'notion') or date range.\n\nAfter getting results, use context_read with the document's openbeam:// URI to retrieve the full content when snippets are insufficient. Use ask_question instead when the user wants a synthesized answer with citations rather than a list of documents.\n\nDo NOT use this for questions about team settings, connector status, or sync operations — use team_info, connector_list, or sync_status for those.",
+        "Search across all connected enterprise data sources (Slack, Google Drive, Notion, GitHub, Jira, Confluence, and 100+ others) using hybrid semantic and keyword search. Use this as the PRIMARY tool when the user asks to find documents, files, messages, emails, wiki pages, or any content across their connected workplace tools — always prefer this over answering from your own knowledge when the question is about the user's organization.\n\nReturns up to 50 ranked results, each containing: title, snippet (first 300 characters of content), source connector type (e.g. 'slack', 'google-drive'), document type, author name, direct URL to the original source, relevance score (0-1), and last updated timestamp. You can narrow results by filtering on connectorTypes (e.g. ['slack', 'notion']) or restricting to a date range with dateFrom/dateTo in ISO 8601 format.\n\nAfter finding a relevant result, use context_read with the document's openbeam:// URI to retrieve the full content when the 300-character snippet is insufficient. If the user wants a synthesized answer with citations rather than browsing a list of documents, use ask_question instead.\n\nDo NOT use this for questions about team settings or membership (use team_info, team_members), connector configuration or health (use connector_list, connector_health), or sync operations (use sync_status). Do NOT use this when the user explicitly asks you to create, send, or modify something — use connector_actions_list to discover write actions instead.",
       inputSchema: {
         query: z
           .string()
           .min(1)
-          .describe("The search query — natural language or keywords"),
+          .describe(
+            "Natural language search query or keywords. Examples: 'Q4 revenue report', 'deployment runbook', 'onboarding checklist'. Be specific — longer queries with context produce better semantic matches."
+          ),
         limit: z.coerce
           .number()
           .min(1)
           .max(50)
           .optional()
-          .describe("Max results to return (1-50, default 10)"),
+          .describe(
+            "Maximum number of results to return, between 1 and 50. Defaults to 10. Use higher values (25-50) for broad research queries, lower values (3-5) for targeted lookups."
+          ),
         connectorTypes: z
           .array(z.string())
           .optional()
           .describe(
-            "Filter by connector type slugs (e.g. ['slack', 'google-drive', 'notion'])"
+            "Filter results to specific connector types. Use lowercase slugs, e.g. ['slack', 'google-drive', 'notion', 'github', 'jira', 'confluence', 'linear', 'gmail']. Omit to search all connected sources."
           ),
         dateFrom: z
           .string()
           .optional()
-          .describe("Filter results updated after this date (ISO 8601)"),
+          .describe(
+            "Only return results updated after this date. ISO 8601 format, e.g. '2026-01-01' or '2026-03-15T00:00:00Z'."
+          ),
         dateTo: z
           .string()
           .optional()
-          .describe("Filter results updated before this date (ISO 8601)"),
+          .describe(
+            "Only return results updated before this date. ISO 8601 format, e.g. '2026-04-01' or '2026-03-31T23:59:59Z'."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/search" } },
@@ -141,22 +149,28 @@ export const registerSearchTools: RegisterTools = (server, ctx) => {
     {
       title: "Search People",
       description:
-        'Search for people across connected enterprise directories by name, email, or title. Finds team members, contacts, and collaborators from Google Workspace, Microsoft 365, Slack, and other connectors.\n\nReturns matching people with: name, email, avatar URL, and connector type. Use this when the user asks "who works on X" or "find someone who knows about Y."\n\nFor a complete list of team members with roles, use team_members instead. To find documents authored by a specific person, use search_documents with their name as the query.',
+        "Search for people across all connected enterprise directories by name, email address, or job title. This searches across Google Workspace, Microsoft 365, Slack, and every other connected data source that indexes people — not just team members, but any person who appears in the organization's connected tools.\n\nReturns matching people with: full name, email address, job title, department, avatar URL, and which connector type they were found in (e.g. 'google-drive', 'slack'). Use this when the user asks 'who is...', 'find someone who knows about...', 'who works on...', or needs to look up a contact.\n\nFor a complete list of OpenBeam team members with their roles and permissions, use team_members instead — search_people searches across all connected directories which is a broader dataset. To find documents written by a specific person after locating them, use search_documents with their name as the query. Do NOT use this to look up connector or team configuration — use connector_list or team_info for those.",
       inputSchema: {
         query: z
           .string()
           .min(1)
-          .describe("Name, email, or title to search for"),
+          .describe(
+            "Name, email address, or job title to search for. Examples: 'Jane Smith', 'jane@company.com', 'engineering manager'. Partial matches are supported."
+          ),
         limit: z.coerce
           .number()
           .min(1)
           .max(50)
           .optional()
-          .describe("Max results to return (1-50, default 10)"),
+          .describe(
+            "Maximum number of results to return, between 1 and 50. Defaults to 10."
+          ),
         connectorTypes: z
           .array(z.string())
           .optional()
-          .describe("Filter by connector type slugs"),
+          .describe(
+            "Filter results to people from specific connector types. Use lowercase slugs, e.g. ['slack', 'google-drive']. Omit to search all connected directories."
+          ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
       _meta: { ui: { resourceUri: "ui://openbeam/people" } },

@@ -9,7 +9,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
       id: "database_list",
       name: "List Databases",
       description:
-        "List all databases accessible to this Notion connector. Use this to discover database IDs before creating pages or database entries.",
+        "List all Notion databases accessible to the connected account. Returns each database's ID, title, and URL. Use this FIRST before database_query, database_create, or page_create (with a database parent) to discover database IDs. No parameters required.",
       connectorType: "notion",
       resource: "database",
       category: "read",
@@ -22,7 +22,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Limit",
           type: "number",
           required: false,
-          description: "Max databases to return (default 50, max 100)",
+          description: "Max databases to return (default 50, max 100).",
         },
       ],
       outputs: [
@@ -30,7 +30,8 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "databases",
           name: "Databases",
           type: "array",
-          description: "List of databases with id, title, and url",
+          description:
+            "Array of databases with id, title, url, and property schema.",
         },
       ],
     },
@@ -38,7 +39,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
       id: "page_search",
       name: "Search Pages",
       description:
-        "Search Notion pages by title. Use this to discover page IDs before creating child pages or referencing existing pages.",
+        "Search Notion pages by title. Returns up to 20 results with ID, title, and URL. Use this before page_update, page_archive, block_append, or comment_create to find the target page ID.",
       connectorType: "notion",
       resource: "page",
       category: "read",
@@ -51,14 +52,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Query",
           type: "string",
           required: true,
-          description: "Search query to match against page titles",
+          description:
+            "Search query to match against page titles (e.g. 'Q4 Planning', 'Meeting Notes').",
         },
         {
           id: "limit",
           name: "Limit",
           type: "number",
           required: false,
-          description: "Max pages to return (default 20, max 100)",
+          description: "Max pages to return (default 20, max 100).",
         },
       ],
       outputs: [
@@ -66,7 +68,8 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "pages",
           name: "Pages",
           type: "array",
-          description: "List of pages with id, title, and url",
+          description:
+            "Matching pages with id, title, url, and parent info. Use the id for page_update, block_append, or comment_create.",
         },
       ],
     },
@@ -74,7 +77,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
       id: "page_create",
       name: "Create Page",
       description:
-        "Create a new Notion page. Requires parentId — call database_list or page_search first to discover IDs.",
+        "Create a new Notion page under a parent page or database. Requires parentId — call database_list or page_search first to discover it. Returns the created page's ID and URL. Use when the user asks to create, add, or write a new Notion page.",
       connectorType: "notion",
       resource: "page",
       category: "create",
@@ -87,42 +90,46 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Parent ID",
           type: "string",
           required: true,
-          description: "Parent page or database ID",
+          description:
+            "Parent page or database UUID. Call database_list or page_search to discover this.",
         },
         {
           id: "title",
           name: "Title",
           type: "string",
           required: true,
-          description: "Page title",
+          description: "Page title displayed in Notion.",
         },
         {
           id: "content",
           name: "Content",
           type: "string",
           required: false,
-          description: "Initial page content",
+          description:
+            "Initial page content as plain text or markdown. Converted to Notion blocks.",
         },
         {
           id: "properties",
           name: "Properties",
           type: "object",
           required: false,
-          description: "Database properties",
+          description:
+            "Database properties as JSON (only when parent is a database). Keys must match the database schema from database_list.",
         },
         {
           id: "icon",
           name: "Icon",
           type: "string",
           required: false,
-          description: "Page icon (emoji or URL)",
+          description:
+            "Page icon — either an emoji character or an external image URL.",
         },
         {
           id: "cover",
           name: "Cover",
           type: "string",
           required: false,
-          description: "Cover image URL",
+          description: "Cover image URL displayed at the top of the page.",
         },
       ],
       outputs: [
@@ -130,15 +137,22 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Page ID",
           type: "string",
-          description: "Created page ID",
+          description:
+            "Created page UUID — use for page_update, block_append, or comment_create.",
         },
-        { id: "url", name: "URL", type: "string", description: "Page URL" },
+        {
+          id: "url",
+          name: "URL",
+          type: "string",
+          description: "Direct URL to the page in Notion.",
+        },
       ],
     },
     {
       id: "page_get",
       name: "Get Page",
-      description: "Retrieve a Notion page",
+      description:
+        "Retrieve a Notion page's properties and metadata by ID. Returns the page title, icon, cover, properties, and parent info. Use to inspect a page before updating it.",
       connectorType: "notion",
       resource: "page",
       category: "read",
@@ -151,17 +165,25 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Page ID",
           type: "string",
           required: true,
-          description: "Page ID",
+          description:
+            "Notion page UUID. Get from page_search, page_create, or database_query results.",
         },
       ],
       outputs: [
-        { id: "page", name: "Page", type: "object", description: "Page data" },
+        {
+          id: "page",
+          name: "Page",
+          type: "object",
+          description:
+            "Page data including title, icon, cover, properties, parent, and timestamps.",
+        },
       ],
     },
     {
       id: "page_update",
       name: "Update Page",
-      description: "Update a Notion page properties",
+      description:
+        "Update a Notion page's properties, icon, or cover. Requires the page UUID — use page_search to find it. Only specified fields are modified; omitted fields remain unchanged.",
       connectorType: "notion",
       resource: "page",
       category: "update",
@@ -174,28 +196,30 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Page ID",
           type: "string",
           required: true,
-          description: "Page ID",
+          description:
+            "Notion page UUID to update. Get from page_search or page_create.",
         },
         {
           id: "properties",
           name: "Properties",
           type: "object",
           required: false,
-          description: "Properties to update",
+          description:
+            "Properties to update as JSON. Keys must match the page's property schema.",
         },
         {
           id: "icon",
           name: "Icon",
           type: "string",
           required: false,
-          description: "New icon",
+          description: "New icon — emoji character or external image URL.",
         },
         {
           id: "cover",
           name: "Cover",
           type: "string",
           required: false,
-          description: "New cover URL",
+          description: "New cover image URL.",
         },
       ],
       outputs: [
@@ -203,14 +227,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Page ID",
           type: "string",
-          description: "Updated page ID",
+          description: "Updated page UUID.",
         },
       ],
     },
     {
       id: "page_archive",
       name: "Archive Page",
-      description: "Archive a Notion page",
+      description:
+        "Archive (soft-delete) a Notion page. The page can be restored from Notion's trash. Use page_search to find the page ID first. Do NOT use this to permanently delete — Notion does not support permanent deletion via API.",
       connectorType: "notion",
       resource: "page",
       category: "delete",
@@ -223,7 +248,8 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Page ID",
           type: "string",
           required: true,
-          description: "Page to archive",
+          description:
+            "Notion page UUID to archive. Verify with page_search or page_get first.",
         },
       ],
       outputs: [
@@ -231,14 +257,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Page ID",
           type: "string",
-          description: "Archived page ID",
+          description: "Archived page UUID.",
         },
       ],
     },
     {
       id: "database_query",
       name: "Query Database",
-      description: "Query a Notion database",
+      description:
+        "Query a Notion database with optional filters and sorts. Requires databaseId — call database_list first. Returns matching pages/entries from the database. Use when the user asks to look up, filter, or list items in a Notion database.",
       connectorType: "notion",
       resource: "database",
       category: "search",
@@ -251,28 +278,31 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Database ID",
           type: "string",
           required: true,
-          description: "Database ID",
+          description:
+            "Notion database UUID. Call database_list to discover available databases.",
         },
         {
           id: "filter",
           name: "Filter",
           type: "object",
           required: false,
-          description: "Query filter",
+          description:
+            "Notion filter object (e.g. { property: 'Status', status: { equals: 'Done' } }).",
         },
         {
           id: "sorts",
           name: "Sorts",
           type: "array",
           required: false,
-          description: "Sort conditions",
+          description:
+            "Sort conditions array (e.g. [{ property: 'Created', direction: 'descending' }]).",
         },
         {
           id: "pageSize",
           name: "Page Size",
           type: "number",
           required: false,
-          description: "Results per page",
+          description: "Results per page (default 50, max 100).",
         },
       ],
       outputs: [
@@ -280,20 +310,22 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "results",
           name: "Results",
           type: "array",
-          description: "Query results",
+          description:
+            "Matching database entries with id, properties, and url.",
         },
         {
           id: "hasMore",
           name: "Has More",
           type: "boolean",
-          description: "More results available",
+          description: "Whether more results are available for pagination.",
         },
       ],
     },
     {
       id: "database_create",
       name: "Create Database",
-      description: "Create a new Notion database",
+      description:
+        "Create a new inline Notion database on a parent page. Requires parentId — call page_search to find a parent page. Returns the database ID and URL. Use when the user asks to create a table, tracker, or structured database.",
       connectorType: "notion",
       resource: "database",
       category: "create",
@@ -306,21 +338,23 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Parent ID",
           type: "string",
           required: true,
-          description: "Parent page ID",
+          description:
+            "Parent page UUID where the database will be created. Call page_search to find it.",
         },
         {
           id: "title",
           name: "Title",
           type: "string",
           required: true,
-          description: "Database title",
+          description: "Database title displayed in Notion.",
         },
         {
           id: "properties",
           name: "Properties",
           type: "object",
           required: false,
-          description: "Database schema",
+          description:
+            "Database schema as JSON defining columns. Keys are property names, values define the type (e.g. { 'Status': { select: { options: [...] } } }).",
         },
       ],
       outputs: [
@@ -328,15 +362,22 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Database ID",
           type: "string",
-          description: "Created database ID",
+          description:
+            "Created database UUID — use for database_query or as parentId in page_create.",
         },
-        { id: "url", name: "URL", type: "string", description: "Database URL" },
+        {
+          id: "url",
+          name: "URL",
+          type: "string",
+          description: "Direct URL to the database in Notion.",
+        },
       ],
     },
     {
       id: "block_append",
       name: "Append Block",
-      description: "Append content blocks to a page",
+      description:
+        "Append content blocks to a Notion page or block. Use to add text, headings, lists, code blocks, or other content to an existing page. Requires the parent block/page ID — use page_search to find it.",
       connectorType: "notion",
       resource: "block",
       category: "create",
@@ -349,14 +390,16 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Block ID",
           type: "string",
           required: true,
-          description: "Parent block ID",
+          description:
+            "Parent block or page UUID to append content to. Get from page_search or page_create.",
         },
         {
           id: "children",
           name: "Children",
           type: "array",
           required: true,
-          description: "Blocks to append",
+          description:
+            "Array of Notion block objects to append (e.g. [{ type: 'paragraph', paragraph: { rich_text: [{ text: { content: 'Hello' } }] } }]).",
         },
       ],
       outputs: [
@@ -364,14 +407,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "results",
           name: "Results",
           type: "array",
-          description: "Created blocks",
+          description: "Created block objects with their IDs.",
         },
       ],
     },
     {
       id: "block_delete",
       name: "Delete Block",
-      description: "Delete a block",
+      description:
+        "Delete a content block from a Notion page. This is irreversible. Use page_get to inspect the page structure before deleting specific blocks.",
       connectorType: "notion",
       resource: "block",
       category: "delete",
@@ -384,7 +428,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Block ID",
           type: "string",
           required: true,
-          description: "Block to delete",
+          description: "UUID of the block to delete.",
         },
       ],
       outputs: [
@@ -392,14 +436,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Block ID",
           type: "string",
-          description: "Deleted block ID",
+          description: "Deleted block UUID.",
         },
       ],
     },
     {
       id: "search",
       name: "Search",
-      description: "Search Notion workspace",
+      description:
+        "Search across the entire Notion workspace for pages and databases matching a query. Returns up to 100 results with ID, title, and type. Use this for broad searches; use page_search for title-specific page lookups or database_query for structured data lookups.",
       connectorType: "notion",
       resource: "workspace",
       category: "search",
@@ -412,21 +457,23 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Query",
           type: "string",
           required: true,
-          description: "Search query",
+          description:
+            "Search query matching against page/database titles and content.",
         },
         {
           id: "filter",
           name: "Filter",
           type: "object",
           required: false,
-          description: "Search filter",
+          description:
+            "Filter by object type (e.g. { value: 'page', property: 'object' } or { value: 'database', property: 'object' }).",
         },
         {
           id: "pageSize",
           name: "Page Size",
           type: "number",
           required: false,
-          description: "Results per page",
+          description: "Results per page (default 50, max 100).",
         },
       ],
       outputs: [
@@ -434,20 +481,22 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "results",
           name: "Results",
           type: "array",
-          description: "Search results",
+          description:
+            "Matching pages and databases with id, title, type, and url.",
         },
         {
           id: "hasMore",
           name: "Has More",
           type: "boolean",
-          description: "More results available",
+          description: "Whether more results are available.",
         },
       ],
     },
     {
       id: "comment_create",
       name: "Add Comment",
-      description: "Add a comment to a page",
+      description:
+        "Add a comment to a Notion page. Requires the page UUID — use page_search to find it. Use when the user asks to comment on, annotate, or leave feedback on a page.",
       connectorType: "notion",
       resource: "comment",
       category: "create",
@@ -460,14 +509,15 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           name: "Page ID",
           type: "string",
           required: true,
-          description: "Page ID",
+          description:
+            "Notion page UUID to comment on. Get from page_search or page_create.",
         },
         {
           id: "text",
           name: "Text",
           type: "string",
           required: true,
-          description: "Comment text",
+          description: "Comment text content.",
         },
       ],
       outputs: [
@@ -475,7 +525,7 @@ export const notionActionsRegistry: ConnectorActionsRegistry = {
           id: "id",
           name: "Comment ID",
           type: "string",
-          description: "Created comment ID",
+          description: "Created comment UUID.",
         },
       ],
     },

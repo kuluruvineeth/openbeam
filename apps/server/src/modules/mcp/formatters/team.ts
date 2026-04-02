@@ -27,8 +27,11 @@ export function formatTeamInfo(t: TeamInfo): string {
   ].filter(Boolean);
 
   parts.push("");
-  parts.push("To see team members: use team_members.");
-  parts.push("To list connectors: use connector_list.");
+  parts.push("Next steps:");
+  parts.push("• See team members: team_members.");
+  parts.push("• List connected sources: connector_list.");
+  parts.push("• Search team documents: search_documents with a query.");
+  parts.push("• Find a person: search_people with their name.");
 
   return parts.join("\n");
 }
@@ -44,5 +47,13 @@ export function formatTeamMembers(members: TeamMember[]): string {
     return `• ${m.name ?? "Unknown"}${role}${email}`;
   });
 
-  return `${members.length} team members:\n\n${rows.join("\n")}`;
+  const hints = [
+    "",
+    "Next steps:",
+    "• Get team overview: team_info.",
+    "• Find documents by a member: search_documents with their name.",
+    "• List connected sources: connector_list.",
+  ].join("\n");
+
+  return `${members.length} team members:\n\n${rows.join("\n")}${hints}`;
 }
