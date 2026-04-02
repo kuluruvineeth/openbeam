@@ -9,6 +9,11 @@ export {
   formatRoleUpdated,
 } from "./admin";
 export {
+  formatAgentList,
+  formatAgentRunResult,
+  formatAgentStatus,
+} from "./agents";
+export {
   formatConnectorDetail,
   formatConnectorHealth,
   formatConnectorList,

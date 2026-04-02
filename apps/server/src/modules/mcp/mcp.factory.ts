@@ -8,6 +8,7 @@ import { getDateContext } from "./mcp.utils";
 import {
   registerActionTools,
   registerAdminTeamTools,
+  registerAgentTools,
   registerApiKeyTools,
   registerConnectorManageTools,
   registerConnectorSetupTools,
@@ -56,6 +57,7 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 | Send a message / create an issue | connector_actions_list | connector_action_execute |
 | Team overview | team_info | team_members, connector_list |
 | Recent activity / what's new | search_recent | search_documents for deeper search |
+| Complex analysis / synthesis | agent_list to pick agent | agent_run with task input |
 
 ## Tool Namespaces
 
@@ -65,6 +67,7 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 - sync_* — Trigger and monitor sync operations (full, incremental)
 - context_* — Search and read the context database (memories, resources, skills)
 - ask_question — AI-powered question answering with citations from enterprise data
+- agent_* — AI agent templates and execution (research, analysis, content generation)
 - team_* — Team metadata and members
 
 ## Common Tool Chains
@@ -114,6 +117,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerKnowledgeTools(server, ctx);
   registerTeamTools(server, ctx);
   registerActionTools(server, ctx);
+  registerAgentTools(server, ctx);
   registerApiKeyTools(server, ctx);
   registerAdminTeamTools(server, ctx);
 

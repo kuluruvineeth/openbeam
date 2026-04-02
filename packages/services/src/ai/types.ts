@@ -35,6 +35,7 @@ export interface RAGContextParams {
   topK?: number;
   minScore?: number;
   accessControlIds?: string[];
+  connectorTypes?: string[];
   includeMetadata?: boolean;
   sourceId?: string;
   includeMedia?: boolean;

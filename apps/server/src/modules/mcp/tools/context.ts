@@ -18,6 +18,16 @@ import {
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
 
+const MCP_RAG_PROMPT = `Answer questions using the provided context documents.
+
+Rules:
+- Answer ONLY from the provided context documents
+- If context is insufficient, say "I couldn't find enough information to answer this"
+- Cite sources by referencing document titles with [n] notation matching document order
+- Be concise — prefer short paragraphs and bullet points
+- Never fabricate information not in the context
+- Use markdown formatting (bold, lists, code blocks)`;
+
 const mcpContextEntrySchema = z.object({
   uri: z.string(),
   title: z.string().nullable().optional(),
@@ -252,7 +262,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ question, maxSources }) => {
+    withErrorHandling(async ({ question, connectorTypes, maxSources }) => {
       const accessControlIds = [
         `team:${ctx.teamId}`,
         ctx.userId,
@@ -263,7 +273,9 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
         query: question,
         teamId: ctx.teamId,
         accessControlIds,
+        connectorTypes,
         topK: maxSources ?? 5,
+        systemPrompt: MCP_RAG_PROMPT,
       });
 
       const result = {
