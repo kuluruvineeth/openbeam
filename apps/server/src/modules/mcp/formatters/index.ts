@@ -9,7 +9,14 @@ export {
   formatContextDetail,
   formatContextSearch,
 } from "./context";
-export { formatPeopleResults, formatSearchResults } from "./search";
+export {
+  formatAuthorDocuments,
+  formatPeopleResults,
+  formatRecentResults,
+  formatSearchResults,
+  formatSemanticResults,
+  formatSimilarResults,
+} from "./search";
 export { formatSyncHistory, formatSyncStatus, formatSyncTrigger } from "./sync";
 export { formatSyncControl, formatSyncTriggerAll } from "./sync-control";
 export {

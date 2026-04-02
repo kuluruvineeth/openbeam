@@ -11,6 +11,7 @@ import {
   registerConnectorSetupTools,
   registerConnectorTools,
   registerContextTools,
+  registerSearchAdvancedTools,
   registerSearchTools,
   registerSyncControlTools,
   registerSyncMonitorTools,
@@ -43,11 +44,15 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 |-------------|-----------|------|
 | Find information / answer a question | ask_question | context_read for citation details |
 | Search for specific documents | search_documents | context_read for full content |
-| Find a person or expert | search_people | search_documents by their name |
+| Find conceptually similar content | search_semantic | search_similar for related docs |
+| Find docs similar to a known doc | search_similar | context_read for full content |
+| Find a person or expert | search_people | search_by_author for their docs |
+| See all docs by a person | search_by_author | context_read for full content |
 | Check data source health | connector_list (filter: error) | connector_health, sync_history |
 | Trigger a data refresh | connector_list to find ID | sync_trigger, then sync_status |
 | Send a message / create an issue | connector_actions_list | connector_action_execute |
 | Team overview | team_info | team_members, connector_list |
+| Recent activity / what's new | search_recent | search_documents for deeper search |
 
 ## Tool Namespaces
 
@@ -66,6 +71,9 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 3. **Diagnose sync issues:** connector_list(status: 'error') -> connector_health -> sync_history -> sync_trigger
 4. **Execute an action:** connector_actions_list(connectorType) -> connector_list (to get connector ID) -> connector_action_execute
 5. **Explore context:** context_search -> context_read(level: '2')
+6. **Deep concept search:** search_semantic -> search_similar -> context_read
+7. **Author research:** search_people -> search_by_author -> context_read
+8. **Daily digest:** search_recent(hours: 24) -> search_documents for topics of interest
 
 ## Key Patterns
 
@@ -92,6 +100,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   );
 
   registerSearchTools(server, ctx);
+  registerSearchAdvancedTools(server, ctx);
   registerConnectorTools(server, ctx);
   registerConnectorSetupTools(server, ctx);
   registerConnectorManageTools(server, ctx);
