@@ -5,6 +5,7 @@ export { registerConnectorManageTools } from "./connector-manage";
 export { registerConnectorSetupTools } from "./connector-setup";
 export { registerConnectorTools } from "./connectors";
 export { registerContextTools } from "./context";
+export { registerKnowledgeTools } from "./knowledge";
 export { registerSearchTools } from "./search";
 export { registerSearchAdvancedTools } from "./search-advanced";
 export { registerSyncTools } from "./sync";

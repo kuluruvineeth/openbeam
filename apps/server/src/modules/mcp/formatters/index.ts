@@ -19,6 +19,14 @@ export {
   formatContextSearch,
 } from "./context";
 export {
+  formatEntityPanel,
+  formatEntityRelations,
+  formatEntitySearch,
+  formatPersonExpertise,
+  formatTopicExperts,
+  formatTopicList,
+} from "./knowledge";
+export {
   formatAuthorDocuments,
   formatPeopleResults,
   formatRecentResults,

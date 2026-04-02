@@ -13,6 +13,7 @@ import {
   registerConnectorSetupTools,
   registerConnectorTools,
   registerContextTools,
+  registerKnowledgeTools,
   registerSearchAdvancedTools,
   registerSearchTools,
   registerSyncControlTools,
@@ -110,6 +111,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerSyncControlTools(server, ctx);
   registerSyncMonitorTools(server, ctx);
   registerContextTools(server, ctx);
+  registerKnowledgeTools(server, ctx);
   registerTeamTools(server, ctx);
   registerActionTools(server, ctx);
   registerApiKeyTools(server, ctx);

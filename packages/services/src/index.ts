@@ -1314,6 +1314,15 @@ export {
   resolveOrCreateEntity,
   updateExpertise,
 } from "./knowledge";
+export {
+  getExpertsForTopicForTeam,
+  getKnowledgeEntityForTeam,
+  getKnowledgePanelForTeam,
+  getKnowledgeRelationsForTeam,
+  getPersonExpertiseForTeam,
+  listKnowledgeEntitiesForTeam,
+  searchKnowledgeEntitiesForTeam,
+} from "./knowledge-api";
 export type {
   LessonlyAssignment,
   LessonlyClient,
