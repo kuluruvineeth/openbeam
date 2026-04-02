@@ -40,7 +40,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
     {
       title: "List Connector Actions",
       description:
-        "Discover available write actions for connected data sources. Lists operations like sending Slack messages, creating Jira issues, creating Notion pages, etc. Each action includes: ID, name, description, category, stakes level, reversibility, and required input parameters.\n\nUse this FIRST before connector_action_execute — it returns the action IDs and required parameters you need. Filter by connector type (e.g. 'slack', 'linear', 'notion') or category ('create', 'update', 'delete', 'notify'). Omit connectorType to see all available actions across all connectors.\n\nThe response includes stakes ('low', 'medium', 'high') and reversibility to help assess risk before execution.",
+        "Discover available write actions for connected data sources. Returns action IDs, required parameters, and descriptions.\n\nUse this FIRST when the user wants to perform an action (send message, create issue, etc.). Filter by connectorType (e.g. 'linear', 'slack', 'notion') to see available actions for that tool.\n\nKey pattern: Some actions require IDs from other actions first. For example, Linear issue_create requires a teamId — call team_list first. The action descriptions include these hints.\n\nAfter discovering the action, use connector_action_execute with the connector ID from connector_list.",
       inputSchema: {
         connectorType: z
           .string()
@@ -130,7 +130,7 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
     {
       title: "Execute Connector Action",
       description:
-        "Execute a write action on a connected data source. Requires three parameters: the connector ID (from connector_list), the action ID (from connector_actions_list), and a params object whose keys match the input IDs from connector_actions_list.\n\nIMPORTANT: Always call connector_actions_list first to discover the exact action ID and required parameters. Always confirm with the user before executing high-stakes or irreversible actions.\n\nExamples: send a Slack message (action: 'message_send'), create a Linear issue (action: 'issue_create'), create a Notion page (action: 'page_create'). The connector ID must reference an active, connected instance — use connector_list to find it.",
+        "Execute a write action on a connected data source.\n\nFlow: connector_actions_list (discover actions + params) → connector_list (get connector ID) → connector_action_execute.\n\nFor actions requiring IDs (e.g. Linear teamId, Jira projectKey): use list/search actions first. Example: Linear issue_create needs teamId — call team_list action first, then issue_create with the returned team ID.\n\nCommon actions: message_send (Slack), issue_create (Linear/Jira), page_create (Notion). Confirm with user before high-stakes or irreversible actions.",
       inputSchema: {
         connectorId: z
           .string()
