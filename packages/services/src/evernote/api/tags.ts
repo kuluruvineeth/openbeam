@@ -1,4 +1,8 @@
-import { type EvernoteClient, withRateLimit } from "../client";
+import {
+  type EvernoteTag as ClientTag,
+  type EvernoteClient,
+  withRateLimit,
+} from "../client";
 
 export type EvernoteTag = {
   guid: string;
@@ -8,13 +12,10 @@ export type EvernoteTag = {
 };
 
 export async function listTags(client: EvernoteClient): Promise<EvernoteTag[]> {
-  const raw = await withRateLimit(client, "listTags", () =>
-    client.noteStore.listTags()
-  );
-  return raw.map((t) => ({
+  const raw = await withRateLimit(client, "listTags", () => client.listTags());
+  return raw.map((t: ClientTag) => ({
     guid: t.guid ?? "",
     name: t.name ?? "",
-    parentGuid: t.parentGuid,
     updateSequenceNum: t.updateSequenceNum ?? 0,
   }));
 }

@@ -11,7 +11,6 @@ export type {
 export {
   findNotesMetadata,
   getNote,
-  getNotebook,
   getNoteContent,
   listAllNotes,
   listNotebooks,

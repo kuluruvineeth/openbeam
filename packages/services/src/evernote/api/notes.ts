@@ -1,4 +1,8 @@
-import { type EvernoteClient, withRateLimit } from "../client";
+import {
+  type EvernoteNote as ClientNote,
+  type EvernoteClient,
+  withRateLimit,
+} from "../client";
 
 export type EvernoteNote = {
   guid: string;
@@ -20,11 +24,6 @@ export type EvernoteNote = {
     sourceURL?: string;
     sourceApplication?: string;
     contentClass?: string;
-    reminderOrder?: number;
-    reminderDoneTime?: number;
-    reminderTime?: number;
-    latitude?: number;
-    longitude?: number;
   };
 };
 
@@ -63,26 +62,25 @@ export function findNotesMetadata(
   offset: number,
   maxNotes: number
 ): Promise<EvernoteNotesMetadataList> {
-  return withRateLimit(client, "findNotesMetadata", () =>
-    client.noteStore.findNotesMetadata(filter, offset, maxNotes, {
-      includeTitle: true,
-      includeUpdated: true,
-      includeCreated: true,
-      includeNotebookGuid: true,
-      includeTagGuids: true,
-      includeAttributes: true,
-      includeUpdateSequenceNum: true,
-    })
-  );
+  return withRateLimit(client, "findNotesMetadata", async () => {
+    const result = await client.findNotesMetadata(filter, offset, maxNotes);
+    return {
+      startIndex: offset,
+      totalNotes: result.totalNotes,
+      notes: (result.notes ?? []) as EvernoteNoteMetadata[],
+      updateCount: result.updateCount,
+    };
+  });
 }
 
-export function getNoteContent(
+export async function getNoteContent(
   client: EvernoteClient,
   noteGuid: string
 ): Promise<string> {
-  return withRateLimit(client, "getNoteContent", () =>
-    client.noteStore.getNoteContent(noteGuid)
+  const note = await withRateLimit(client, "getNoteContent", () =>
+    client.getNote(noteGuid)
   );
+  return note.content ?? "";
 }
 
 export async function getNote(
@@ -90,23 +88,21 @@ export async function getNote(
   noteGuid: string,
   withContent = false
 ): Promise<EvernoteNote> {
-  const raw = await withRateLimit(client, "getNote", () =>
-    client.noteStore.getNote(noteGuid, withContent, false, false, false)
+  const raw: ClientNote = await withRateLimit(client, "getNote", () =>
+    client.getNote(noteGuid)
   );
   return {
     guid: raw.guid ?? noteGuid,
     title: raw.title ?? "",
-    content: raw.content,
+    content: withContent ? raw.content : undefined,
     contentLength: raw.contentLength,
     created: raw.created ?? 0,
     updated: raw.updated ?? 0,
-    deleted: raw.deleted,
     active: raw.active ?? true,
     updateSequenceNum: raw.updateSequenceNum ?? 0,
     notebookGuid: raw.notebookGuid ?? "",
     tagGuids: raw.tagGuids,
-    tagNames: raw.tagNames,
-    attributes: raw.attributes,
+    attributes: raw.attributes as EvernoteNote["attributes"],
   };
 }
 

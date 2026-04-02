@@ -1,5 +1,8 @@
-import Evernote from "evernote";
-import { type EvernoteClient, withRateLimit } from "../client";
+import {
+  type EvernoteClient,
+  type EvernoteNote,
+  withRateLimit,
+} from "../client";
 
 export interface NoteActionResult {
   success: boolean;
@@ -20,26 +23,19 @@ export async function createNote(
   params: CreateNoteParams
 ): Promise<NoteActionResult> {
   try {
-    const note = new Evernote.Types.Note();
-    note.title = params.title;
-    note.content = wrapInEnml(params.content);
-    if (params.notebookGuid) {
-      note.notebookGuid = params.notebookGuid;
-    }
-    if (params.tagNames && params.tagNames.length > 0) {
-      note.tagNames = params.tagNames;
-    }
+    const note: EvernoteNote = {
+      title: params.title,
+      content: wrapInEnml(params.content),
+      notebookGuid: params.notebookGuid,
+      tagNames: params.tagNames?.length ? params.tagNames : undefined,
+    };
 
     const created = await withRateLimit(client, "createNote", () =>
-      client.noteStore.createNote(note)
+      client.createNote(note)
     );
 
     const guid = created.guid ?? "";
-    return {
-      success: true,
-      noteGuid: guid,
-      url: buildNoteUrl(guid),
-    };
+    return { success: true, noteGuid: guid, url: buildNoteUrl(guid) };
   } catch (error) {
     return {
       success: false,
@@ -60,26 +56,16 @@ export async function updateNote(
   params: UpdateNoteParams
 ): Promise<NoteActionResult> {
   try {
-    const note = new Evernote.Types.Note();
-    note.guid = params.noteGuid;
-    if (params.title) {
-      note.title = params.title;
-    }
-    if (params.content) {
-      note.content = wrapInEnml(params.content);
-    }
-    if (params.tagNames) {
-      note.tagNames = params.tagNames;
-    }
-
-    await withRateLimit(client, "updateNote", () =>
-      client.noteStore.updateNote(note)
-    );
-
-    return {
-      success: true,
-      noteGuid: params.noteGuid,
+    const note: EvernoteNote = {
+      guid: params.noteGuid,
+      title: params.title,
+      content: params.content ? wrapInEnml(params.content) : undefined,
+      tagNames: params.tagNames,
     };
+
+    await withRateLimit(client, "updateNote", () => client.updateNote(note));
+
+    return { success: true, noteGuid: params.noteGuid };
   } catch (error) {
     return {
       success: false,
@@ -94,13 +80,9 @@ export async function deleteNote(
 ): Promise<NoteActionResult> {
   try {
     await withRateLimit(client, "deleteNote", () =>
-      client.noteStore.deleteNote(noteGuid)
+      client.deleteNote(noteGuid)
     );
-
-    return {
-      success: true,
-      noteGuid,
-    };
+    return { success: true, noteGuid };
   } catch (error) {
     return {
       success: false,

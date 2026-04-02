@@ -14,13 +14,79 @@ const MAX_RETRY_ATTEMPTS = 3;
 const BASE_RETRY_DELAY_MS = 1000;
 const MAX_RETRY_DELAY_MS = 30_000;
 
-type EvernoteNoteStore = ReturnType<
-  InstanceType<typeof Evernote.Client>["getNoteStore"]
->;
+export interface EvernoteNote {
+  guid?: string;
+  title?: string;
+  content?: string;
+  notebookGuid?: string;
+  tagNames?: string[];
+  tagGuids?: string[];
+  created?: number;
+  updated?: number;
+  active?: boolean;
+  updateSequenceNum?: number;
+  contentLength?: number;
+  attributes?: {
+    sourceURL?: string;
+    source?: string;
+    author?: string;
+  };
+}
+
+export interface EvernoteNotebook {
+  guid?: string;
+  name?: string;
+  updateSequenceNum?: number;
+  defaultNotebook?: boolean;
+  serviceCreated?: number;
+  serviceUpdated?: number;
+  stack?: string;
+  sharedNotebookIds?: string[];
+}
+
+export interface EvernoteTag {
+  guid?: string;
+  name?: string;
+  updateSequenceNum?: number;
+}
+
+export interface EvernoteNoteMetadata {
+  guid?: string;
+  title?: string;
+  created?: number;
+  updated?: number;
+  updateSequenceNum?: number;
+  notebookGuid?: string;
+  tagGuids?: string[];
+  contentLength?: number;
+  attributes?: {
+    sourceURL?: string;
+    source?: string;
+    author?: string;
+  };
+}
 
 export type EvernoteClient = {
   readonly connectorId: string;
-  readonly noteStore: EvernoteNoteStore;
+  createNote(note: EvernoteNote): Promise<EvernoteNote>;
+  updateNote(note: EvernoteNote): Promise<EvernoteNote>;
+  deleteNote(guid: string): Promise<void>;
+  getNote(guid: string): Promise<EvernoteNote>;
+  findNotesMetadata(
+    filter: {
+      words?: string;
+      notebookGuid?: string;
+      updateSequenceNumMin?: number;
+    },
+    offset: number,
+    maxNotes: number
+  ): Promise<{
+    notes: EvernoteNoteMetadata[];
+    totalNotes: number;
+    updateCount: number;
+  }>;
+  listNotebooks(): Promise<EvernoteNotebook[]>;
+  listTags(): Promise<EvernoteTag[]>;
   healthCheck(): Promise<boolean>;
 };
 
@@ -36,16 +102,58 @@ export function createEvernoteClient(
 
   const noteStore = sdkClient.getNoteStore();
 
-  async function healthCheck(): Promise<boolean> {
-    try {
-      await noteStore.listNotebooks();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  return { connectorId, noteStore, healthCheck };
+  return {
+    connectorId,
+    createNote: (note) => noteStore.createNote(note) as Promise<EvernoteNote>,
+    updateNote: (note) => noteStore.updateNote(note) as Promise<EvernoteNote>,
+    deleteNote: (guid) =>
+      noteStore.deleteNote(guid).then(Function.prototype as () => void),
+    getNote: (guid) =>
+      noteStore.getNote(
+        guid,
+        true,
+        false,
+        false,
+        false
+      ) as Promise<EvernoteNote>,
+    async findNotesMetadata(noteFilter, startOffset, limit) {
+      const result = await (
+        noteStore as unknown as {
+          findNotesMetadata(
+            filter: unknown,
+            offset: number,
+            maxNotes: number,
+            spec: unknown
+          ): Promise<{
+            notes: EvernoteNoteMetadata[];
+            totalNotes: number;
+            updateCount: number;
+          }>;
+        }
+      ).findNotesMetadata(noteFilter, startOffset, limit, {
+        includeTitle: true,
+        includeCreated: true,
+        includeUpdated: true,
+        includeUpdateSequenceNum: true,
+        includeNotebookGuid: true,
+        includeTagGuids: true,
+        includeContentLength: true,
+        includeAttributes: true,
+      });
+      return result;
+    },
+    listNotebooks: () =>
+      noteStore.listNotebooks() as Promise<EvernoteNotebook[]>,
+    listTags: () => noteStore.listTags() as Promise<EvernoteTag[]>,
+    async healthCheck() {
+      try {
+        await noteStore.listNotebooks();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  };
 }
 
 export async function withRateLimit<T>(

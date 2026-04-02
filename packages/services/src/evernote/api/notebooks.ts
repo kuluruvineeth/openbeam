@@ -1,4 +1,8 @@
-import { type EvernoteClient, withRateLimit } from "../client";
+import {
+  type EvernoteNotebook as ClientNotebook,
+  type EvernoteClient,
+  withRateLimit,
+} from "../client";
 
 export type EvernoteNotebook = {
   guid: string;
@@ -9,22 +13,9 @@ export type EvernoteNotebook = {
   serviceUpdated: number;
   stack?: string;
   sharedNotebookIds?: string[];
-  recipientSettings?: {
-    reminderNotifyEmail?: boolean;
-    reminderNotifyInApp?: boolean;
-  };
 };
 
-function mapNotebook(raw: {
-  guid?: string;
-  name?: string;
-  updateSequenceNum?: number;
-  defaultNotebook?: boolean;
-  serviceCreated?: number;
-  serviceUpdated?: number;
-  stack?: string;
-  sharedNotebookIds?: string[];
-}): EvernoteNotebook {
+function mapNotebook(raw: ClientNotebook): EvernoteNotebook {
   return {
     guid: raw.guid ?? "",
     name: raw.name ?? "",
@@ -41,17 +32,7 @@ export async function listNotebooks(
   client: EvernoteClient
 ): Promise<EvernoteNotebook[]> {
   const raw = await withRateLimit(client, "listNotebooks", () =>
-    client.noteStore.listNotebooks()
+    client.listNotebooks()
   );
   return raw.map(mapNotebook);
-}
-
-export async function getNotebook(
-  client: EvernoteClient,
-  notebookGuid: string
-): Promise<EvernoteNotebook> {
-  const raw = await withRateLimit(client, "getNotebook", () =>
-    client.noteStore.getNotebook(notebookGuid)
-  );
-  return mapNotebook(raw);
 }

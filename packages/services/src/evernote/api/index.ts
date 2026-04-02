@@ -1,5 +1,5 @@
 export type { EvernoteNotebook } from "./notebooks";
-export { getNotebook, listNotebooks } from "./notebooks";
+export { listNotebooks } from "./notebooks";
 export type {
   EvernoteNote,
   EvernoteNoteFilter,
