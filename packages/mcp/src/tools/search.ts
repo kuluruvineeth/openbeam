@@ -98,6 +98,12 @@ export const searchTools: Tool[] = [
   },
 ];
 
+const YQL_ESCAPE_RE = /["\\]/g;
+
+function escapeYql(value: string): string {
+  return value.replace(YQL_ESCAPE_RE, "\\$&");
+}
+
 function parseDateToEpoch(dateStr: string | undefined): number | undefined {
   if (!dateStr) {
     return;
@@ -192,7 +198,7 @@ export async function handleSearchTool(
           team_id: string;
           updated_at: number;
         }>({
-          yql: `select * from openbeam_entity where team_id contains "${authContext.teamId}" and entity_type contains "person" and (name contains "${parsed.query}" or email contains "${parsed.query}")`,
+          yql: `select * from openbeam_entity where team_id contains "${escapeYql(authContext.teamId)}" and entity_type contains "person" and (name contains "${escapeYql(parsed.query)}" or email contains "${escapeYql(parsed.query)}")`,
           hits: parsed.limit,
           offset: 0,
           timeout: "5s",

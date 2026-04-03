@@ -5,7 +5,6 @@ import {
   getConnectorStats,
   getConnectorSyncTrend,
   getTeamConnectorsSummary,
-  listTeamsWithConnectors,
 } from "@openbeam/db";
 
 export const statsTools: Tool[] = [
@@ -20,32 +19,22 @@ export const statsTools: Tool[] = [
           type: "string",
           description: "Connector ID",
         },
-        teamId: {
-          type: "string",
-          description: "Team ID (for authorization)",
-        },
         syncHistoryDays: {
           type: "number",
           description: "Number of days of sync history to analyze",
           default: 30,
         },
       },
-      required: ["connectorId", "teamId"],
+      required: ["connectorId"],
     },
   },
   {
     name: "get_team_summary",
     description:
-      "Get summary statistics for all connectors in a team including document counts and health",
+      "Get summary statistics for all connectors in the authenticated team",
     inputSchema: {
       type: "object",
-      properties: {
-        teamId: {
-          type: "string",
-          description: "Team ID",
-        },
-      },
-      required: ["teamId"],
+      properties: {},
     },
   },
   {
@@ -59,17 +48,13 @@ export const statsTools: Tool[] = [
           type: "string",
           description: "Connector ID",
         },
-        teamId: {
-          type: "string",
-          description: "Team ID",
-        },
         days: {
           type: "number",
           description: "Number of days to analyze",
           default: 14,
         },
       },
-      required: ["connectorId", "teamId"],
+      required: ["connectorId"],
     },
   },
   {
@@ -83,27 +68,8 @@ export const statsTools: Tool[] = [
           type: "string",
           description: "Connector ID",
         },
-        teamId: {
-          type: "string",
-          description: "Team ID",
-        },
       },
-      required: ["connectorId", "teamId"],
-    },
-  },
-  {
-    name: "list_teams_with_connectors",
-    description:
-      "List all teams that have at least one connector configured, optionally filtered by connector status",
-    inputSchema: {
-      type: "object",
-      properties: {
-        status: {
-          type: "string",
-          enum: ["ACTIVE", "INACTIVE", "ERROR", "SYNCING", "PENDING_AUTH"],
-          description: "Filter by connector status (optional)",
-        },
-      },
+      required: ["connectorId"],
     },
   },
 ];
@@ -116,26 +82,30 @@ function mapToObject<K, V>(map: Map<K, V>): Record<string, V> {
   return obj;
 }
 
-export async function handleStatsTool(
-  db: Database,
-  name: string,
-  args: Record<string, unknown> | undefined
-): Promise<{
+type ToolResult = {
   content: Array<{ type: string; text: string }>;
   isError?: boolean;
-}> {
+};
+
+export async function handleStatsTool(
+  db: Database,
+  teamId: string,
+  name: string,
+  args: Record<string, unknown> | undefined
+): Promise<ToolResult> {
   try {
     switch (name) {
       case "get_connector_stats": {
         const connectorId = args?.connectorId as string;
-        const teamId = args?.teamId as string;
         const syncHistoryDays = (args?.syncHistoryDays as number) ?? 30;
         const stats = await getConnectorStats(db, connectorId, teamId, {
           syncHistoryDays,
         });
         if (!stats) {
           return {
-            content: [{ type: "text", text: "Connector not found" }],
+            content: [
+              { type: "text", text: "Connector not found or access denied" },
+            ],
             isError: true,
           };
         }
@@ -145,7 +115,6 @@ export async function handleStatsTool(
       }
 
       case "get_team_summary": {
-        const teamId = args?.teamId as string;
         const summary = await getTeamConnectorsSummary(db, teamId);
         const serializable = {
           ...summary,
@@ -160,7 +129,6 @@ export async function handleStatsTool(
 
       case "get_sync_trend": {
         const connectorId = args?.connectorId as string;
-        const teamId = args?.teamId as string;
         const days = (args?.days as number) ?? 14;
         const trend = await getConnectorSyncTrend(
           db,
@@ -175,7 +143,6 @@ export async function handleStatsTool(
 
       case "get_health_score": {
         const connectorId = args?.connectorId as string;
-        const teamId = args?.teamId as string;
         const score = await calculateConnectorHealthScore(
           db,
           connectorId,
@@ -183,25 +150,14 @@ export async function handleStatsTool(
         );
         if (!score) {
           return {
-            content: [{ type: "text", text: "Connector not found" }],
+            content: [
+              { type: "text", text: "Connector not found or access denied" },
+            ],
             isError: true,
           };
         }
         return {
           content: [{ type: "text", text: JSON.stringify(score, null, 2) }],
-        };
-      }
-
-      case "list_teams_with_connectors": {
-        const status = args?.status as
-          | "ACTIVE"
-          | "INACTIVE"
-          | "ERROR"
-          | "SYNCING"
-          | undefined;
-        const teams = await listTeamsWithConnectors(db, status);
-        return {
-          content: [{ type: "text", text: JSON.stringify(teams, null, 2) }],
         };
       }
 

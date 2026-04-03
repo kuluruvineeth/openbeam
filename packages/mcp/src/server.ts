@@ -100,7 +100,7 @@ export function createProductionMcpServer(
 
       const connectorToolNames = connectorTools.map((t) => t.name);
       if (connectorToolNames.includes(name)) {
-        return handleConnectorTool(prisma, name, args);
+        return handleConnectorTool(prisma, authContext.teamId, name, args);
       }
 
       const documentToolNames = documentTools.map((t) => t.name);
@@ -120,7 +120,7 @@ export function createProductionMcpServer(
 
       const statsToolNames = statsTools.map((t) => t.name);
       if (statsToolNames.includes(name)) {
-        return handleStatsTool(prisma, name, args);
+        return handleStatsTool(prisma, authContext.teamId, name, args);
       }
 
       return Promise.resolve({

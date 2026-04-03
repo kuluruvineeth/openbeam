@@ -12,21 +12,15 @@ export const connectorTools: Tool[] = [
   {
     name: "list_connectors",
     description:
-      "List all connectors for a team with their OAuth provider info",
+      "List all connectors for the authenticated team with their OAuth provider info",
     inputSchema: {
       type: "object",
-      properties: {
-        teamId: {
-          type: "string",
-          description: "Team ID to list connectors for",
-        },
-      },
-      required: ["teamId"],
+      properties: {},
     },
   },
   {
     name: "get_connector",
-    description: "Get a specific connector by ID",
+    description: "Get a specific connector by ID (must belong to your team)",
     inputSchema: {
       type: "object",
       properties: {
@@ -46,14 +40,10 @@ export const connectorTools: Tool[] = [
   {
     name: "get_connectors_with_stats",
     description:
-      "Get connectors with document counts and last sync info for a team",
+      "Get connectors with document counts and last sync info for the authenticated team",
     inputSchema: {
       type: "object",
       properties: {
-        teamId: {
-          type: "string",
-          description: "Team ID",
-        },
         statusFilter: {
           type: "array",
           items: { type: "string" },
@@ -61,13 +51,12 @@ export const connectorTools: Tool[] = [
             "Filter by connector status (ACTIVE, INACTIVE, SYNCING, ERROR)",
         },
       },
-      required: ["teamId"],
     },
   },
   {
     name: "get_connector_health",
     description:
-      "Get health information for a connector including token expiry and error state",
+      "Get health information for a connector (must belong to your team)",
     inputSchema: {
       type: "object",
       properties: {
@@ -81,7 +70,8 @@ export const connectorTools: Tool[] = [
   },
   {
     name: "get_connector_sync_history",
-    description: "Get sync job history for a connector",
+    description:
+      "Get sync job history for a connector (must belong to your team)",
     inputSchema: {
       type: "object",
       properties: {
@@ -100,25 +90,38 @@ export const connectorTools: Tool[] = [
   },
 ];
 
-export async function handleConnectorTool(
-  db: Database,
-  name: string,
-  args: Record<string, unknown> | undefined
-): Promise<{
+type ToolResult = {
   content: Array<{ type: string; text: string }>;
   isError?: boolean;
-}> {
+};
+
+const PERMISSION_DENIED: ToolResult = {
+  content: [{ type: "text", text: "Connector not found or access denied" }],
+  isError: true,
+};
+
+async function verifyConnectorOwnership(
+  db: Database,
+  connectorId: string,
+  teamId: string
+): Promise<boolean> {
+  const connector = await findConnectorById(db, connectorId);
+  return connector?.teamId === teamId;
+}
+
+export async function handleConnectorTool(
+  db: Database,
+  teamId: string,
+  name: string,
+  args: Record<string, unknown> | undefined
+): Promise<ToolResult> {
   try {
     switch (name) {
       case "list_connectors": {
-        const teamId = args?.teamId as string;
         const connectors = await listConnectorsByTeam(db, teamId);
         return {
           content: [
-            {
-              type: "text",
-              text: JSON.stringify(connectors, null, 2),
-            },
+            { type: "text", text: JSON.stringify(connectors, null, 2) },
           ],
         };
       }
@@ -131,11 +134,8 @@ export async function handleConnectorTool(
           connectorId,
           includeOAuth
         );
-        if (!connector) {
-          return {
-            content: [{ type: "text", text: "Connector not found" }],
-            isError: true,
-          };
+        if (!connector || connector.teamId !== teamId) {
+          return PERMISSION_DENIED;
         }
         return {
           content: [{ type: "text", text: JSON.stringify(connector, null, 2) }],
@@ -143,7 +143,6 @@ export async function handleConnectorTool(
       }
 
       case "get_connectors_with_stats": {
-        const teamId = args?.teamId as string;
         const statusFilter = args?.statusFilter as string[] | undefined;
         const connectors = await getConnectorsWithStats(
           db,
@@ -152,22 +151,19 @@ export async function handleConnectorTool(
         );
         return {
           content: [
-            {
-              type: "text",
-              text: JSON.stringify(connectors, null, 2),
-            },
+            { type: "text", text: JSON.stringify(connectors, null, 2) },
           ],
         };
       }
 
       case "get_connector_health": {
         const connectorId = args?.connectorId as string;
+        if (!(await verifyConnectorOwnership(db, connectorId, teamId))) {
+          return PERMISSION_DENIED;
+        }
         const health = await getConnectorHealth(db, connectorId);
         if (!health) {
-          return {
-            content: [{ type: "text", text: "Connector not found" }],
-            isError: true,
-          };
+          return PERMISSION_DENIED;
         }
         return {
           content: [{ type: "text", text: JSON.stringify(health, null, 2) }],
@@ -176,6 +172,9 @@ export async function handleConnectorTool(
 
       case "get_connector_sync_history": {
         const connectorId = args?.connectorId as string;
+        if (!(await verifyConnectorOwnership(db, connectorId, teamId))) {
+          return PERMISSION_DENIED;
+        }
         const limit = (args?.limit as number) ?? 10;
         const history = await getConnectorSyncHistory(db, connectorId, limit);
         return {
