@@ -1,3 +1,4 @@
+import type { Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
 export function markMcpNotificationsRead(
@@ -34,7 +35,12 @@ export function createMcpNotification(
   db: Database,
   data: CreateNotificationData
 ) {
-  return db.mcpNotification.create({ data });
+  return db.mcpNotification.create({
+    data: {
+      ...data,
+      metadata: data.metadata as Prisma.InputJsonValue,
+    },
+  });
 }
 
 export function upsertMcpNotificationPreference(
