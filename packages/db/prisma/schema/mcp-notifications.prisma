@@ -1,0 +1,37 @@
+model McpNotification {
+  id          String   @id @default(cuid())
+  teamId      String
+  userId      String?
+  type        String
+  title       String
+  body        String?
+  sourceType  String?
+  sourceId    String?
+  connectorId String?
+  metadata    Json?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector? @relation(fields: [connectorId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, createdAt(sort: Desc)])
+  @@index([teamId, read, createdAt(sort: Desc)])
+  @@index([teamId, type, createdAt(sort: Desc)])
+  @@map("mcp_notification")
+}
+
+model McpNotificationPreference {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  channel   String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId, channel])
+  @@map("mcp_notification_preference")
+}

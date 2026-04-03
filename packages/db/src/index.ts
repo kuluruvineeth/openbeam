@@ -64,6 +64,12 @@ export * from "./mutations/indexed-documents";
 export * from "./mutations/indexed-files";
 export * from "./mutations/indexed-media";
 export * from "./mutations/knowledge-changes";
+export {
+  createMcpNotification,
+  markAllMcpNotificationsRead,
+  markMcpNotificationsRead,
+  upsertMcpNotificationPreference,
+} from "./mutations/mcp-notifications";
 export * from "./mutations/oauth";
 export * from "./mutations/oauth-server";
 export * from "./mutations/payments";
@@ -105,6 +111,11 @@ export * from "./queries/indexed-files";
 export * from "./queries/indexed-media";
 export * from "./queries/knowledge-changes";
 export * from "./queries/ltr";
+export {
+  getMcpNotificationPreferences,
+  getUnreadNotificationCount,
+  listMcpNotifications,
+} from "./queries/mcp-notifications";
 export * from "./queries/oauth-server";
 export * from "./queries/payments";
 export * from "./queries/permissions";

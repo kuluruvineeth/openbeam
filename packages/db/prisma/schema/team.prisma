@@ -92,6 +92,9 @@ model Team {
   contextSessions          ContextSession[]
   connectorSetupSessions   ConnectorSetupSession[]
 
+  mcpNotifications           McpNotification[]
+  mcpNotificationPreferences McpNotificationPreference[]
+
   @@map("team")
 }
 

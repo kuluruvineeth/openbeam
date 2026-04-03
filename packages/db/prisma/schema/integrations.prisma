@@ -315,6 +315,7 @@ model Connector {
   connectorScopes              ConnectorScope[]
   permissionSyncStatus         PermissionSyncStatus?
   customConnectorDefinition    CustomConnectorDefinition?
+  mcpNotifications             McpNotification[]
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])
