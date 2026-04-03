@@ -70,7 +70,9 @@ export function formatSyncStatus(r: SyncStatusResult): string {
       parts.push(`Error: ${ls.errorMessage}`);
     }
   } else {
-    parts.push("No sync history available.");
+    parts.push(
+      "No sync history available. Trigger a sync with sync_trigger to start indexing."
+    );
   }
 
   parts.push("");
@@ -90,7 +92,14 @@ export function formatSyncHistory(
   total: number
 ): string {
   if (entries.length === 0) {
-    return "No sync history found for this connector.";
+    return [
+      "No sync history found for this connector.",
+      "",
+      "Next steps:",
+      "- Trigger a sync: sync_trigger with this connector ID.",
+      "- Check connector details: connector_get with this connector ID.",
+      "- View all connectors: connector_list to verify the connector exists.",
+    ].join("\n");
   }
 
   const rows = entries.map((e) => {

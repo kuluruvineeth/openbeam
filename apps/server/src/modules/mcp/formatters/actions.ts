@@ -22,7 +22,13 @@ export function formatActionsList(
 ): string {
   if (actions.length === 0) {
     const scope = connectorType ? ` for ${connectorType}` : "";
-    return `No actions available${scope}.`;
+    return [
+      `No actions available${scope}.`,
+      "",
+      "Next steps:",
+      "• List all actions: connector_actions_list without filters to see all available actions.",
+      "• Check connectors: connector_list to see which data sources are connected.",
+    ].join("\n");
   }
 
   const types = [...new Set(actions.map((a) => a.connectorType))];
@@ -60,4 +66,40 @@ export function formatActionsList(
   ].join("\n");
 
   return `${header}\n\n${sections.join("\n\n")}${hints}`;
+}
+
+export function formatActionExecute(
+  actionId: string,
+  success: boolean,
+  data: unknown,
+  error?: string | null
+): string {
+  if (!success) {
+    return [
+      `Action "${actionId}" failed: ${error ?? "unknown error"}`,
+      "",
+      "Next steps:",
+      "• Check parameters: connector_actions_list to verify required inputs for this action.",
+      "• Retry with corrections if a required parameter was missing or invalid.",
+    ].join("\n");
+  }
+
+  const parts: string[] = [`Action "${actionId}" executed successfully.`];
+
+  if (data != null) {
+    const formatted =
+      typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    const preview =
+      formatted.length > 500 ? `${formatted.slice(0, 500)}...` : formatted;
+    parts.push("", `Result:\n${preview}`);
+  }
+
+  parts.push(
+    "",
+    "Next steps:",
+    "• Run another action: connector_actions_list to discover more actions.",
+    "• Search related docs: search_documents with keywords from the result."
+  );
+
+  return parts.join("\n");
 }

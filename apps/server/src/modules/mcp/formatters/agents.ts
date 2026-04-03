@@ -20,7 +20,14 @@ type AgentRunResult = {
 
 export function formatAgentList(agents: AgentTemplate[]): string {
   if (agents.length === 0) {
-    return "No agent templates available.";
+    return [
+      "No agent templates available.",
+      "",
+      "Next steps:",
+      "- Search documents directly: search_documents with a query.",
+      "- Ask a question: ask_question for AI-powered answers.",
+      "- Check agent status: agent_status for availability details.",
+    ].join("\n");
   }
 
   const rows = agents.map(

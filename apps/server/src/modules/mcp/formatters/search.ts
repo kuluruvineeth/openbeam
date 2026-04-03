@@ -55,7 +55,14 @@ export function formatSearchResults(
   results: SearchResult[]
 ): string {
   if (results.length === 0) {
-    return `No results found for "${meta.query}". Try broadening your search, removing filters, or checking if the relevant data has been synced.`;
+    return [
+      `No results found for "${meta.query}".`,
+      "",
+      "Next steps:",
+      "- Broaden your query or remove filters and try search_documents again.",
+      "- Try semantic search: search_semantic for conceptual matches.",
+      "- Check if data is synced: connector_list to see connected sources.",
+    ].join("\n");
   }
 
   const parts: string[] = [];
@@ -152,7 +159,14 @@ export function formatPeopleResults(
   query: string
 ): string {
   if (people.length === 0) {
-    return `No people found matching "${query}". Try a partial name, email address, or check connected directories.`;
+    return [
+      `No people found matching "${query}".`,
+      "",
+      "Next steps:",
+      "- Try a partial name or email address with search_people.",
+      "- Search documents instead: search_documents to find content by that person.",
+      "- Check connected directories: connector_list to see synced sources.",
+    ].join("\n");
   }
 
   const rows = numbered(
@@ -183,7 +197,14 @@ export function formatRecentResults(
   hours: number
 ): string {
   if (results.length === 0) {
-    return `No documents created or updated in the last ${plural(hours, "hour")}. Try increasing the hours parameter or checking sync status with connector_list.`;
+    return [
+      `No documents created or updated in the last ${plural(hours, "hour")}.`,
+      "",
+      "Next steps:",
+      "- Increase the hours parameter and try search_recent again.",
+      "- Check sync status: connector_list to verify sources are active.",
+      "- Search all documents: search_documents with a query.",
+    ].join("\n");
   }
 
   const parts: string[] = [];
@@ -235,7 +256,14 @@ export function formatSemanticResults(
   total: number
 ): string {
   if (results.length === 0) {
-    return `No semantic matches found for "${query}". Try rephrasing with more descriptive language, or use search_documents for keyword-based search.`;
+    return [
+      `No semantic matches found for "${query}".`,
+      "",
+      "Next steps:",
+      "- Rephrase with more descriptive language and try search_semantic again.",
+      "- Try keyword search: search_documents for exact term matching.",
+      "- Check connected sources: connector_list to verify data is synced.",
+    ].join("\n");
   }
 
   const header = `Found ${num(total)} semantic matches for "${query}":`;
@@ -287,7 +315,14 @@ export function formatSimilarResults(
   total: number
 ): string {
   if (results.length === 0) {
-    return `No similar documents found for document "${sourceDocumentId}". The source document may lack sufficient content for similarity matching.`;
+    return [
+      `No similar documents found for document "${sourceDocumentId}".`,
+      "",
+      "Next steps:",
+      "- Verify the document ID: context_read to check if it exists.",
+      "- Try semantic search: search_semantic with keywords from the document.",
+      "- Search broadly: search_documents with a related query.",
+    ].join("\n");
   }
 
   const header = `Found ${num(total)} documents similar to "${sourceDocumentId}":`;
@@ -329,7 +364,14 @@ export function formatAuthorDocuments(
 ): string {
   if (results.length === 0) {
     const suffix = query ? ` matching "${query}"` : "";
-    return `No documents found for author "${authorId}"${suffix}. Verify the author ID from search_people, or try a broader query.`;
+    return [
+      `No documents found for author "${authorId}"${suffix}.`,
+      "",
+      "Next steps:",
+      "- Verify the author ID: search_people to find the correct person.",
+      "- Broaden the query or remove it and try search_by_author again.",
+      "- Search all documents: search_documents with the person's name.",
+    ].join("\n");
   }
 
   const qualifier = query ? ` matching "${query}"` : "";

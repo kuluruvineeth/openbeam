@@ -1,4 +1,4 @@
-export { formatActionsList } from "./actions";
+export { formatActionExecute, formatActionsList } from "./actions";
 export {
   formatApiKeyCreated,
   formatApiKeyList,

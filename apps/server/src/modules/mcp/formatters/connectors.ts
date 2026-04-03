@@ -35,6 +35,17 @@ function statusLabel(status: string | null | undefined, docs: number): string {
 }
 
 export function formatConnectorList(items: ConnectorItem[]): string {
+  if (items.length === 0) {
+    return [
+      "No connectors found.",
+      "",
+      "Next steps:",
+      "- Set up a new connector: connector_setup to connect a data source.",
+      "- View available connectors: connector_available to see supported integrations.",
+      "- Check team info: team_info for an overview of your team.",
+    ].join("\n");
+  }
+
   const totalDocs = items.reduce((s, c) => s + (c.documentCount ?? 0), 0);
   const header = `Found ${plural(items.length, "connector")} (${num(totalDocs)} total documents):`;
 

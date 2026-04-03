@@ -1,7 +1,7 @@
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
 import { dispatchAction } from "@openbeam/services";
 import { z } from "zod";
-import { formatActionsList } from "../formatters";
+import { formatActionExecute, formatActionsList } from "../formatters";
 import { sanitizeArray } from "../mcp.sanitize";
 import {
   hasScope,
@@ -162,12 +162,18 @@ export const registerActionTools: RegisterTools = (server, ctx) => {
         source: "mcp",
       });
 
-      const text = result.success
-        ? `Action "${actionId}" executed successfully.${result.data ? `\n${JSON.stringify(result.data)}` : ""}`
-        : `Action "${actionId}" failed: ${result.error}`;
-
       return {
-        content: [{ type: "text" as const, text }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatActionExecute(
+              actionId,
+              result.success,
+              result.data,
+              result.error
+            ),
+          },
+        ],
         structuredContent: {
           success: result.success,
           data: result.data,

@@ -13,7 +13,14 @@ type ApiKeySummary = {
 
 export function formatApiKeyList(keys: ApiKeySummary[]): string {
   if (keys.length === 0) {
-    return "No API keys found.\n\nTo create one: apikey_create with a name.";
+    return [
+      "No API keys found.",
+      "",
+      "Next steps:",
+      "- Create a new key: apikey_create with a name and scopes.",
+      "- Generate MCP config: mcp_config_generate for client setup instructions.",
+      "- View team info: team_info for an overview of your team.",
+    ].join("\n");
   }
 
   const active = keys.filter((k) => !k.revoked);

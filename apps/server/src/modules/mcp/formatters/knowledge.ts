@@ -55,7 +55,14 @@ export function formatEntitySearch(
   entities: EntityResult[]
 ): string {
   if (entities.length === 0) {
-    return `No entities found matching "${query}". Try a broader name, check spelling, or search across all types by omitting the type filter.`;
+    return [
+      `No entities found matching "${query}".`,
+      "",
+      "Next steps:",
+      "- Broaden the name or omit the type filter and try entity_search again.",
+      "- Search documents instead: search_documents with the same query.",
+      "- Browse topics: topic_list to discover known entities.",
+    ].join("\n");
   }
 
   const rows = numbered(
@@ -170,7 +177,14 @@ export function formatEntityRelations(
 ): string {
   const total = outgoing.length + incoming.length;
   if (total === 0) {
-    return `No relationships found for entity "${entityId}". This entity may be isolated or newly created.`;
+    return [
+      `No relationships found for entity "${entityId}".`,
+      "",
+      "Next steps:",
+      "- Get entity details: entity_get with this entity ID.",
+      "- Search for related content: search_documents with the entity name.",
+      "- Browse all topics: topic_list to explore the knowledge graph.",
+    ].join("\n");
   }
 
   const parts: string[] = [];
@@ -216,7 +230,14 @@ export function formatTopicExperts(
   experts: ExpertResult[]
 ): string {
   if (experts.length === 0) {
-    return `No experts found for topic "${topicId}". The topic may have no EXPERT_IN relations yet, or the topicId may be incorrect.`;
+    return [
+      `No experts found for topic "${topicId}".`,
+      "",
+      "Next steps:",
+      "- Verify the topic: entity_get with this ID to confirm it exists.",
+      "- Search for people: search_people with the topic name.",
+      "- Browse all topics: topic_list to find related topics with experts.",
+    ].join("\n");
   }
 
   const rows = numbered(
@@ -243,7 +264,14 @@ export function formatPersonExpertise(
   expertise: ExpertiseEntry[]
 ): string {
   if (expertise.length === 0) {
-    return `No expertise found for person "${personId}". They may not have enough document activity to establish expertise areas.`;
+    return [
+      `No expertise found for person "${personId}".`,
+      "",
+      "Next steps:",
+      "- Get person details: entity_get with this person's ID.",
+      "- Search their documents: search_by_author with this person's ID.",
+      "- Browse topics: topic_list to explore known expertise areas.",
+    ].join("\n");
   }
 
   const rows = numbered(
@@ -267,7 +295,14 @@ export function formatPersonExpertise(
 
 export function formatTopicList(topics: TopicCluster[]): string {
   if (topics.length === 0) {
-    return "No topic clusters found. Topics are automatically generated from synced documents — ensure connectors are active and synced.";
+    return [
+      "No topic clusters found.",
+      "",
+      "Next steps:",
+      "- Check connector status: connector_list to ensure sources are active and synced.",
+      "- Trigger a sync: sync_trigger to refresh data and generate topics.",
+      "- Search documents: search_documents to verify content exists.",
+    ].join("\n");
   }
 
   function renderCluster(cluster: TopicCluster, indent: number): string {
