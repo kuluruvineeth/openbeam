@@ -20,8 +20,10 @@ export {
 } from "./connectors";
 export {
   formatAnswer,
+  formatContextBrowse,
   formatContextDetail,
   formatContextSearch,
+  formatContextStore,
 } from "./context";
 export {
   formatEntityPanel,
@@ -32,6 +34,17 @@ export {
   formatTopicList,
 } from "./knowledge";
 export {
+  formatMemoryDelete,
+  formatMemoryList,
+  formatMemoryRecall,
+  formatMemoryStore,
+} from "./memory";
+export {
+  formatActivityFeed,
+  formatNotificationList,
+  formatNotificationMark,
+} from "./notifications";
+export {
   formatAuthorDocuments,
   formatPeopleResults,
   formatRecentResults,
@@ -39,6 +52,12 @@ export {
   formatSemanticResults,
   formatSimilarResults,
 } from "./search";
+export {
+  formatSessionCommit,
+  formatSessionCreate,
+  formatSessionHistory,
+  formatSessionMessage,
+} from "./session";
 export { formatSyncHistory, formatSyncStatus, formatSyncTrigger } from "./sync";
 export { formatSyncControl, formatSyncTriggerAll } from "./sync-control";
 export {

@@ -17,6 +17,17 @@ type ContextDetail = ContextEntry & {
   relations?: Array<{ targetUri: string; reason?: string | null }> | null;
 };
 
+type BrowseEntry = {
+  uri: string;
+  abstract?: string | null;
+  contextType?: string | null;
+  category?: string | null;
+  isLeaf?: boolean | null;
+  isDirectory?: boolean | null;
+  activeCount?: number | null;
+  updatedAt?: string | null;
+};
+
 type AnswerResult = {
   answer: string;
   confidence?: number | null;
@@ -50,8 +61,8 @@ export function formatContextSearch(
     "",
     "Next steps:",
     "• Read full content: context_read with the URI from above.",
+    "• Browse hierarchy: context_browse to explore the directory tree.",
     "• Ask a question grounded in these results: ask_question with your query.",
-    "• Search documents: search_documents for broader results across all connectors.",
   ].join("\n");
 }
 
@@ -92,11 +103,73 @@ export function formatContextDetail(e: ContextDetail): string {
   }
   parts.push("• Search for more context: context_search with a related query.");
   parts.push("• Ask a question grounded in this content: ask_question.");
-  parts.push(
-    "• Find related documents: search_documents with keywords from this entry."
-  );
 
   return parts.join("\n");
+}
+
+export function formatContextBrowse(
+  parentUri: string | null,
+  entries: BrowseEntry[]
+): string {
+  const location = parentUri ?? "root";
+
+  if (entries.length === 0) {
+    return `No entries at ${location}.`;
+  }
+
+  const dirs = entries.filter((e) => e.isDirectory);
+  const leaves = entries.filter((e) => !e.isDirectory);
+
+  const parts: string[] = [`Browsing: ${location}`, ""];
+
+  if (dirs.length > 0) {
+    parts.push(`Directories (${dirs.length}):`);
+    for (const d of dirs) {
+      const type = d.contextType ?? "";
+      parts.push(`  📁 ${d.uri}  [${type}]`);
+      if (d.abstract) {
+        parts.push(`     ${d.abstract}`);
+      }
+    }
+    parts.push("");
+  }
+
+  if (leaves.length > 0) {
+    parts.push(`Entries (${leaves.length}):`);
+    for (const l of leaves) {
+      const cat = l.category ? ` (${l.category})` : "";
+      parts.push(`  📄 ${l.uri}${cat}`);
+      if (l.abstract) {
+        parts.push(`     ${l.abstract}`);
+      }
+    }
+    parts.push("");
+  }
+
+  parts.push("Next steps:");
+  if (dirs.length > 0) {
+    parts.push(
+      "• Drill down: context_browse with a directory URI above as parentUri."
+    );
+  }
+  if (leaves.length > 0) {
+    parts.push("• Read an entry: context_read with a leaf URI above.");
+  }
+
+  return parts.join("\n");
+}
+
+export function formatContextStore(entry: ContextEntry): string {
+  return [
+    "Context entry stored:",
+    `  URI: ${entry.uri}`,
+    `  Type: ${entry.contextType ?? "unknown"}${entry.category ? ` / ${entry.category}` : ""}`,
+    "",
+    "Next steps:",
+    "• Read it back: context_read with the URI above.",
+    "• Create a relation: context_relate to link it to another entry.",
+    "• Store a memory: memory_store for user/agent-scoped knowledge.",
+  ].join("\n");
 }
 
 export function formatAnswer(r: AnswerResult): string {

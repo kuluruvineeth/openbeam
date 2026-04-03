@@ -7,6 +7,7 @@ import { ragAnswer } from "@openbeam/services";
 import { z } from "zod";
 import {
   formatAnswer,
+  formatContextBrowse,
   formatContextDetail,
   formatContextSearch,
 } from "../formatters";
@@ -55,6 +56,17 @@ const mcpContextDetailSchema = mcpContextEntrySchema.extend({
     .optional(),
 });
 
+const mcpBrowseEntrySchema = z.object({
+  uri: z.string(),
+  abstract: z.string().nullable().optional(),
+  contextType: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  isLeaf: z.boolean().nullable().optional(),
+  isDirectory: z.boolean().nullable().optional(),
+  activeCount: z.number().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
 const mcpAnswerSchema = z.object({
   answer: z.string(),
   confidence: z.number().nullable().optional(),
@@ -71,6 +83,32 @@ const mcpAnswerSchema = z.object({
     .optional(),
 });
 
+function buildRootDirectories(teamId: string, userId: string) {
+  return [
+    {
+      uri: `openbeam://user/${teamId}/${userId}/memories/`,
+      abstract: "Your accumulated memories — preferences, entities, events",
+      contextType: "memory",
+      isDirectory: true,
+      isLeaf: false,
+    },
+    {
+      uri: `openbeam://context/resources/${teamId}/`,
+      abstract: "Enterprise data synced from connected sources",
+      contextType: "resource",
+      isDirectory: true,
+      isLeaf: false,
+    },
+    {
+      uri: `openbeam://tools/${teamId}/definitions/`,
+      abstract: "Available tool definitions and execution stats",
+      contextType: "tool",
+      isDirectory: true,
+      isLeaf: false,
+    },
+  ];
+}
+
 export const registerContextTools: RegisterTools = (server, ctx) => {
   if (!hasScope(ctx, "context.read")) {
     return;
@@ -81,34 +119,36 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     {
       title: "Search Context Database",
       description:
-        "Search the OpenBeam context database — a hierarchical knowledge store containing memories (user preferences, learned patterns), resources (synced enterprise documents), skills (agent-learned workflows), and tools (tool definitions and execution stats). Use this to find previously stored knowledge, recall user preferences, retrieve agent learnings, or locate specific enterprise resources by content.\n\nReturns entries ranked by relevance and usage frequency, each containing: openbeam:// URI (unique identifier for context_read), abstract text (L0 one-sentence summary, ~100 tokens), overview (L1 core information, ~2K tokens), context type ('resource', 'memory', 'skill', 'tool'), category (e.g. 'preferences', 'entities', 'cases', 'patterns' for memories), and last updated timestamp. Results are token-efficient — L0/L1 summaries are included so you can assess relevance without loading full content.\n\nFilter by contextType to narrow scope (e.g. 'memory' for user preferences and learnings, 'resource' for synced documents, 'skill' for agent workflows) or by category for finer granularity. After finding a relevant entry, use context_read with the returned URI to load the full L2 content when you need complete details.\n\nDo NOT use this for general document search across connected data sources — use search_documents for that. Do NOT use this when the user wants a synthesized answer — use ask_question instead. The context database stores curated, summarized knowledge, while search_documents searches raw indexed content.",
+        "Search the OpenBeam context database — a hierarchical knowledge store containing memories, resources, skills, and tools. " +
+        "Use this to find previously stored knowledge, recall user preferences, retrieve agent learnings, or locate enterprise resources by content. " +
+        "Returns entries ranked by relevance and usage frequency with L0/L1 summaries for token efficiency. " +
+        "After finding a relevant entry, use context_read with the returned URI to load full L2 content. " +
+        "Do NOT use this for general document search — use search_documents instead. Do NOT use for synthesized answers — use ask_question.",
       inputSchema: {
         query: z
           .string()
           .min(1)
           .describe(
-            "Natural language search query to match against context entry abstracts and overviews. Examples: 'deployment preferences', 'Jira workflow patterns', 'user communication style'."
+            "Natural language search query. Examples: 'deployment preferences', 'Jira workflow patterns'."
           ),
         contextType: z
           .enum(["resource", "memory", "skill", "tool"])
           .optional()
           .describe(
-            "Filter by context type. 'resource' = synced enterprise documents and uploads. 'memory' = user preferences, entities, events, and agent learnings. 'skill' = agent-learned workflow patterns. 'tool' = tool definitions and execution statistics. Omit to search all types."
+            "Filter by context type. 'resource' = synced docs. 'memory' = user/agent learnings. 'skill' = agent workflows. 'tool' = tool definitions."
           ),
         category: z
           .string()
           .optional()
           .describe(
-            "Filter by subcategory within a context type. For memories: 'preferences', 'entities', 'events', 'cases', 'patterns'. For tools: tool category names. Case-insensitive."
+            "Subcategory filter. For memories: 'preferences', 'entities', 'events', 'cases', 'patterns'."
           ),
         limit: z.coerce
           .number()
           .min(1)
           .max(50)
           .optional()
-          .describe(
-            "Maximum number of results to return, between 1 and 50. Defaults to 20. Use lower values (5-10) for targeted lookups, higher for broad exploration."
-          ),
+          .describe("Max results (default 20, max 50)."),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
@@ -117,7 +157,11 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
 
       const where: Record<string, unknown> = {
         teamId: ctx.teamId,
-        abstractText: { contains: params.query, mode: "insensitive" },
+        OR: [
+          { abstractText: { contains: params.query, mode: "insensitive" } },
+          { overview: { contains: params.query, mode: "insensitive" } },
+          { content: { contains: params.query, mode: "insensitive" } },
+        ],
       };
 
       if (params.contextType) {
@@ -133,6 +177,10 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
         orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
         take,
       });
+
+      for (const entry of entries) {
+        await incrementActiveCount(db, ctx.teamId, entry.uri);
+      }
 
       const results = entries.map((e) => ({
         uri: e.uri,
@@ -173,19 +221,23 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     {
       title: "Read Context Entry",
       description:
-        "Read a specific context entry by its openbeam:// URI, with configurable detail level for token efficiency. Use this after context_search or search_documents when you need the full content of a specific entry, or when you have a known URI from a citation or relation link.\n\nReturns the entry's content at the requested level: level 0 returns only the abstract (~100 tokens, for quick relevance checks), level 1 returns the abstract plus overview (~2K tokens, for understanding without full detail), level 2 (default) returns everything including the complete original content (unbounded size). Also returns: URI, context type, category, parent URI (for hierarchical navigation), owner type ('user' or 'agent'), usage count (how often this entry has been accessed), last updated timestamp, and a list of related entries with their URIs and relationship reasons.\n\nThe URI comes from context_search results, search_documents results (as openbeam:// URIs), or from the relations list of another context_read response (for graph traversal). Request level 0 or 1 when you only need a summary — this significantly reduces token consumption for large documents. Each read increments the entry's usage count, which improves its ranking in future context_search results.\n\nDo NOT use this for general search — use context_search or search_documents to find entries first, then use this to read specific ones.",
+        "Read a specific context entry by its openbeam:// URI at configurable detail levels (L0/L1/L2) for token efficiency. " +
+        "Use after context_search or context_browse when you need full content. " +
+        "Level 0 = abstract (~100 tokens), level 1 = overview (~2K tokens), level 2 = full content (default). " +
+        "Each read increments usage count, improving future search ranking. " +
+        "Do NOT use for general search — use context_search or search_documents first.",
       inputSchema: {
         uri: z
           .string()
           .min(1)
           .describe(
-            "The openbeam:// URI of the context entry to read. Get this from context_search results, search_documents results, or from related entry URIs in a previous context_read response. Examples: 'openbeam://resources/team123/doc456', 'openbeam://user/team123/user456/memories/preferences/search-defaults'."
+            "The openbeam:// URI from context_search, context_browse, or a related entry."
           ),
         level: z
           .enum(["0", "1", "2"])
           .optional()
           .describe(
-            "Content detail level controlling token consumption. '0' = abstract only (~100 tokens, cheapest). '1' = abstract + overview (~2K tokens, good balance). '2' = full content (default, unbounded — can be very large for documents). Use '0' or '1' when scanning multiple entries for relevance before committing to reading full content."
+            "Detail level: '0' = abstract only, '1' = abstract + overview, '2' = full content (default)."
           ),
       },
       annotations: READ_ONLY_ANNOTATIONS,
@@ -233,23 +285,129 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
   );
 
   server.registerTool(
+    "context_browse",
+    {
+      title: "Browse Context Hierarchy",
+      description:
+        "Browse the openbeam:// namespace like a filesystem. Returns child entries at the given URI prefix. " +
+        "Use without arguments to list root directories, or provide a parentUri to drill down. " +
+        "Each result includes L0 abstract for quick scanning. " +
+        "After browsing, use context_read with a leaf entry's URI for full content.",
+      inputSchema: {
+        parentUri: z
+          .string()
+          .optional()
+          .describe(
+            "Parent URI to list children of (e.g. 'openbeam://user/{teamId}/{userId}/memories/'). Omit to list root directories."
+          ),
+        contextType: z
+          .enum(["resource", "memory", "skill", "tool"])
+          .optional()
+          .describe("Filter children by context type."),
+        limit: z.coerce
+          .number()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe("Max entries to return (default 50)."),
+      },
+      annotations: READ_ONLY_ANNOTATIONS,
+    },
+    withErrorHandling(async (params) => {
+      const limit = params.limit ?? 50;
+
+      if (!params.parentUri) {
+        const roots = buildRootDirectories(ctx.teamId, ctx.userId);
+        const data = sanitizeArray(mcpBrowseEntrySchema, roots);
+        return {
+          content: [
+            { type: "text" as const, text: formatContextBrowse(null, data) },
+          ],
+          structuredContent: { data },
+        };
+      }
+
+      const where: Record<string, unknown> = {
+        teamId: ctx.teamId,
+        parentUri: params.parentUri,
+      };
+
+      if (params.contextType) {
+        where.contextType = params.contextType;
+      }
+
+      const children = await db.contextEntry.findMany({
+        where,
+        orderBy: [{ isLeaf: "asc" }, { activeCount: "desc" }],
+        take: limit,
+        select: {
+          uri: true,
+          abstractText: true,
+          contextType: true,
+          category: true,
+          isLeaf: true,
+          activeCount: true,
+          updatedAt: true,
+        },
+      });
+
+      const entries = children.map((e) => ({
+        uri: e.uri,
+        abstract: e.abstractText,
+        contextType: e.contextType,
+        category: e.category,
+        isLeaf: e.isLeaf,
+        isDirectory: !e.isLeaf,
+        activeCount: e.activeCount,
+        updatedAt: e.updatedAt.toISOString(),
+      }));
+
+      const data = sanitizeArray(mcpBrowseEntrySchema, entries);
+      const response = {
+        meta: {
+          parentUri: params.parentUri,
+          totalResults: data.length,
+          hasNextPage: false,
+        },
+        data,
+      };
+
+      const { structuredContent } = truncateListResponse(response);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formatContextBrowse(params.parentUri, data),
+          },
+        ],
+        structuredContent,
+      };
+    }, "Failed to browse context hierarchy")
+  );
+
+  server.registerTool(
     "ask_question",
     {
       title: "Ask a Question",
       description:
-        "Ask a natural language question and receive an AI-generated answer grounded in the team's enterprise data, complete with source citations. This uses retrieval-augmented generation (RAG) to search across all connected data sources, retrieve the most relevant documents, synthesize a coherent answer, and provide traceable source references. Use this when the user wants a DIRECT ANSWER to a question rather than a list of documents to browse.\n\nReturns: the synthesized answer text, a confidence score (0-1, based on average citation relevance — higher means the answer is better supported by source data), and an array of citations each containing an openbeam:// URI (for follow-up with context_read), document title, relevant snippet, and source connector type (e.g. 'slack', 'notion', 'google-drive'). If no relevant sources are found, the confidence score will be null.\n\nFilter sources with connectorTypes when the question is domain-specific (e.g. pass ['slack'] to only answer from Slack messages, or ['confluence', 'notion'] for wiki-based answers). Increase maxSources (up to 20) for complex questions that require synthesizing information from many documents.\n\nFor exploratory research where the user wants to browse all matching documents themselves, use search_documents instead. Use context_read to retrieve the full content of any citation's URI when the snippet is insufficient. Do NOT use this for non-question queries like 'show me recent Slack messages' — use search_documents for browsing and listing.",
+        "Ask a natural language question and receive an AI-generated answer grounded in enterprise data with source citations. " +
+        "Uses RAG to search connected sources, retrieve relevant documents, and synthesize a coherent answer. " +
+        "Returns: answer text, confidence score (0-1), and citations with URIs for follow-up via context_read. " +
+        "Filter with connectorTypes for domain-specific questions. " +
+        "For browsing documents yourself, use search_documents instead.",
       inputSchema: {
         question: z
           .string()
           .min(1)
           .describe(
-            "The natural language question to answer. Be specific and include context for better results. Examples: 'What is our deployment process for production?', 'What were the key decisions from last week\\'s engineering sync?', 'How do we handle customer data deletion requests?'."
+            "Natural language question. Be specific for better results. Examples: 'What is our deployment process?', 'How do we handle data deletion?'."
           ),
         connectorTypes: z
           .array(z.string())
           .optional()
           .describe(
-            "Limit answer sources to specific connector types. Use lowercase slugs, e.g. ['slack', 'notion', 'confluence', 'google-drive']. Useful for domain-specific questions — e.g. ['slack'] for recent discussions, ['confluence', 'notion'] for documented processes. Omit to search all connected sources."
+            "Limit sources to specific connector types, e.g. ['slack', 'notion']. Omit to search all."
           ),
         maxSources: z.coerce
           .number()
@@ -257,7 +415,7 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
           .max(20)
           .optional()
           .describe(
-            "Maximum number of source documents to retrieve and consider for the answer, between 1 and 20. Defaults to 5. Use higher values (10-20) for complex questions requiring synthesis across many documents, lower values (1-3) for simple factual lookups."
+            "Max source documents to consider (default 5, max 20). Higher for complex synthesis questions."
           ),
       },
       annotations: READ_ONLY_ANNOTATIONS,

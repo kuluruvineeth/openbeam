@@ -7,6 +7,7 @@ import type { McpContext } from "./mcp.types";
 import { getDateContext } from "./mcp.utils";
 import {
   registerActionTools,
+  registerActivityTools,
   registerAdminTeamTools,
   registerAgentTools,
   registerApiKeyTools,
@@ -14,9 +15,13 @@ import {
   registerConnectorSetupTools,
   registerConnectorTools,
   registerContextTools,
+  registerContextWriteTools,
   registerKnowledgeTools,
+  registerMemoryTools,
+  registerNotificationTools,
   registerSearchAdvancedTools,
   registerSearchTools,
+  registerSessionTools,
   registerSyncControlTools,
   registerSyncMonitorTools,
   registerSyncTools,
@@ -65,7 +70,11 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 - connector_* — Manage connected data sources (list, details, health)
 - connector_actions_* — Discover and execute write actions (send messages, create issues, etc.)
 - sync_* — Trigger and monitor sync operations (full, incremental)
-- context_* — Search and read the context database (memories, resources, skills)
+- context_* — Search, read, browse, store, and relate entries in the context database
+- memory_* — Store and recall persistent memories (preferences, entities, events, patterns)
+- session_* — Create sessions, add messages, commit for memory extraction
+- notifications_* — List and manage team notifications (sync events, connector changes)
+- activity_* — Activity feed across all data sources (sync history, changes)
 - ask_question — AI-powered question answering with citations from enterprise data
 - agent_* — AI agent templates and execution (research, analysis, content generation)
 - team_* — Team metadata and members
@@ -76,8 +85,10 @@ The user's locale is "${userLocale}". Format dates and numbers according to this
 2. **Research a topic:** search_documents -> context_read (for full content) -> search_people (for experts)
 3. **Diagnose sync issues:** connector_list(status: 'error') -> connector_health -> sync_history -> sync_trigger
 4. **Execute an action:** connector_actions_list(connectorType) -> connector_list (to get connector ID) -> connector_action_execute
-5. **Explore context:** context_search -> context_read(level: '2')
-6. **Deep concept search:** search_semantic -> search_similar -> context_read
+5. **Explore context:** context_browse -> context_read(level: '2')
+6. **Remember something:** memory_store -> memory_recall later
+7. **Track a conversation:** session_create -> session_message (repeat) -> session_commit
+8. **Deep concept search:** search_semantic -> search_similar -> context_read
 7. **Author research:** search_people -> search_by_author -> context_read
 8. **Daily digest:** search_recent(hours: 24) -> search_documents for topics of interest
 
@@ -114,12 +125,17 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerSyncControlTools(server, ctx);
   registerSyncMonitorTools(server, ctx);
   registerContextTools(server, ctx);
+  registerContextWriteTools(server, ctx);
+  registerMemoryTools(server, ctx);
+  registerSessionTools(server, ctx);
   registerKnowledgeTools(server, ctx);
   registerTeamTools(server, ctx);
   registerActionTools(server, ctx);
   registerAgentTools(server, ctx);
   registerApiKeyTools(server, ctx);
   registerAdminTeamTools(server, ctx);
+  registerNotificationTools(server, ctx);
+  registerActivityTools(server, ctx);
 
   registerResources(server, ctx);
   registerPrompts(server, ctx);
