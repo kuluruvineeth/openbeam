@@ -35,7 +35,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nicholasgriffintn/openbeam.git",
+    "url": "https://github.com/kuluruvineeth/openbeam.git",
     "directory": "packages/sdk"
   },
   "homepage": "https://openbeam.work",
