@@ -1,0 +1,142 @@
+---
+title: Connectors
+description: List, inspect, and manage connected enterprise data sources.
+---
+
+# Connectors
+
+The `connectors` resource manages data source connections. List active connectors, check health, view details, and disconnect.
+
+## list
+
+List connected data sources with optional filtering.
+
+```typescript
+const connectors = await ob.connectors.list({ status: "active" });
+
+for (const c of connectors.data) {
+  console.log(c.name, c.type, c.documentCount);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.status` | `string` | No | `"active"`, `"error"`, `"pending"`, `"disabled"` |
+| `options.type` | `string` | No | Connector type (e.g. `"SLACK"`) |
+| `options.cursor` | `string` | No | Pagination cursor |
+| `options.pageSize` | `number` | No | Results per page |
+
+**Returns:** `ConnectorListResponse`
+
+```typescript
+{
+  meta: { cursor: string | null; hasNextPage: boolean };
+  data: Connector[];
+}
+```
+
+## get
+
+Get detailed information about a specific connector.
+
+```typescript
+const detail = await ob.connectors.get("conn_abc");
+console.log(detail.data.config, detail.data.health);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes | Connector ID (from `list`) |
+
+**Returns:** `{ data: ConnectorDetail }`
+
+## health
+
+Get health status and sync statistics for a connector.
+
+```typescript
+const health = await ob.connectors.health("conn_abc");
+console.log(health.data.score, health.data.errorCount);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes | Connector ID |
+
+**Returns:** `{ data: ConnectorHealth }`
+
+## available
+
+List connector types available for setup.
+
+```typescript
+const available = await ob.connectors.available({ authType: "OAUTH" });
+
+for (const app of available.data) {
+  console.log(app.name, app.authType, app.category);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.authType` | `string` | No | `"OAUTH"` or `"API_KEY"` |
+| `options.category` | `string` | No | Filter by category |
+
+**Returns:** `ConnectorAvailableResponse`
+
+## disconnect
+
+Remove a connector and its synced data.
+
+```typescript
+await ob.connectors.disconnect("conn_abc");
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID |
+
+**Returns:** `{ connectorId: string; name: string; status: string }`
+
+## Types
+
+### Connector
+
+```typescript
+interface Connector {
+  id: string;
+  name: string | null;
+  type: string | null;
+  status: string | null;
+  lastSyncAt: string | null;
+  createdAt?: string | null;
+  documentCount: number | null;
+}
+```
+
+### ConnectorDetail
+
+Extends `Connector` with configuration and health data:
+
+```typescript
+interface ConnectorDetail extends Connector {
+  config?: Record<string, unknown> | null;
+  syncSchedule?: string | null;
+  errorMessage?: string | null;
+  health?: {
+    score: number | null;
+    status: string | null;
+    lastCheckedAt: string | null;
+  } | null;
+}
+```

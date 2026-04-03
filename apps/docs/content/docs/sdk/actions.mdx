@@ -1,0 +1,117 @@
+---
+title: Actions
+description: Discover and execute write actions across 88+ connectors — send messages, create issues, update records.
+---
+
+# Actions
+
+The `actions` resource enables write operations across connected data sources. Send Slack messages, create Linear issues, update Notion pages, and more — all through a unified two-step pattern.
+
+## Workflow
+
+1. **Discover** available actions with `list`
+2. **Execute** an action with `execute`
+
+For actions that require IDs (e.g. a team ID for creating a Linear issue), the action's `description` tells you which lookup action to call first.
+
+## list
+
+Discover available actions, optionally filtered by connector type or category.
+
+```typescript
+const actions = await ob.actions.list({ connectorType: "LINEAR" });
+
+for (const action of actions.data) {
+  console.log(action.id, action.name, action.stakes);
+  for (const input of action.inputs) {
+    console.log(`  ${input.name} (${input.type}) ${input.required ? "required" : "optional"}`);
+  }
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.connectorType` | `string` | No | Filter by connector type (e.g. `"SLACK"`, `"LINEAR"`) |
+| `options.category` | `string` | No | `"create"`, `"read"`, `"update"`, `"delete"`, `"search"`, `"list"`, `"notify"` |
+
+**Returns:** `ActionsListResponse`
+
+```typescript
+{
+  meta: { totalActions: number; connectorTypes: string[]; hasNextPage: boolean };
+  data: ConnectorAction[];
+}
+```
+
+## execute
+
+Execute an action on a connected data source.
+
+```typescript
+const result = await ob.actions.execute("conn_abc", "issue_create", {
+  title: "Fix login bug",
+  teamId: "team_123",
+  priority: 1,
+});
+console.log(result.success, result.data);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID (from `ob.connectors.list()`) |
+| `actionId` | `string` | Yes | Action ID (from `ob.actions.list()`) |
+| `params` | `Record<string, unknown>` | Yes | Action-specific parameters (see action `inputs`) |
+
+**Returns:** `ActionExecuteResponse`
+
+```typescript
+{ success: boolean; data: unknown; error?: string }
+```
+
+## Example: Send a Slack Message
+
+```typescript
+// 1. Find Slack connector
+const connectors = await ob.connectors.list({ type: "SLACK" });
+const slack = connectors.data[0];
+
+// 2. Discover channel_list action to find the channel ID
+const actions = await ob.actions.list({ connectorType: "SLACK" });
+const channelList = actions.data.find(a => a.id === "channel_list");
+
+// 3. List channels
+const channels = await ob.actions.execute(slack.id, "channel_list", {});
+
+// 4. Send message
+await ob.actions.execute(slack.id, "message_send", {
+  channel_id: "C01234567",
+  text: "Deployment complete",
+});
+```
+
+## Types
+
+### ConnectorAction
+
+```typescript
+interface ConnectorAction {
+  id: string;
+  name: string;
+  description: string;
+  connectorType: string;
+  category: string;
+  stakes: string;         // "low", "medium", "high"
+  reversible: boolean;
+  inputs: Array<{
+    id: string;
+    name: string;
+    type: string;
+    required: boolean;
+    description: string | null;
+  }>;
+}
+```

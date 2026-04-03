@@ -1,0 +1,179 @@
+---
+title: Agents
+description: Run AI agents, ask RAG-powered questions, and query the context database.
+---
+
+# Agents
+
+The `agents` resource provides access to AI agents, RAG-powered Q&A with citations, and the context database.
+
+## list
+
+List available agent templates.
+
+```typescript
+const agents = await ob.agents.list({ category: "analysis" });
+
+for (const agent of agents.data) {
+  console.log(agent.name, agent.description, agent.estimatedDuration);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.category` | `string` | No | `"analysis"` or `"content"` |
+
+**Returns:** `{ data: AgentTemplate[] }`
+
+## run
+
+Execute an agent with a task input.
+
+```typescript
+const result = await ob.agents.run("research", "Analyze our API latency trends", {
+  maxSources: 10,
+});
+
+console.log(result.data.output);
+console.log(`Steps: ${result.data.stepsUsed}, Duration: ${result.data.durationMs}ms`);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `agentName` | `string` | Yes | Agent template name (from `list`) |
+| `input` | `string` | Yes | Task description |
+| `options.maxSources` | `number` | No | Max sources to consult |
+
+**Returns:** `AgentRunResponse`
+
+```typescript
+{
+  data: {
+    agentName: string;
+    output: string;
+    stepsUsed: number;
+    durationMs: number;
+    citations: Array<{ title: string | null; source: string | null }> | null;
+  };
+}
+```
+
+## ask
+
+Ask a question and get a RAG-powered answer with citations.
+
+```typescript
+const answer = await ob.agents.ask("What is our SLA for search latency?", {
+  connectorTypes: ["NOTION", "CONFLUENCE"],
+  maxSources: 5,
+});
+
+console.log(answer.data.answer);
+console.log("Confidence:", answer.data.confidence);
+
+for (const cite of answer.data.citations ?? []) {
+  console.log(`  [${cite.source}] ${cite.title}`);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `question` | `string` | Yes | Natural language question |
+| `options.connectorTypes` | `string[]` | No | Limit sources to specific connector types |
+| `options.maxSources` | `number` | No | Max source documents to use |
+
+**Returns:** `AnswerResponse`
+
+```typescript
+{
+  data: {
+    answer: string;
+    confidence: number | null;
+    citations: Array<{
+      uri: string | null;
+      title: string | null;
+      snippet: string | null;
+      source: string | null;
+    }> | null;
+  };
+}
+```
+
+## contextSearch
+
+Search the context database for resources, memories, skills, and tools.
+
+```typescript
+const context = await ob.agents.contextSearch("deployment procedures", {
+  contextType: "resource",
+  limit: 10,
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | `string` | Yes | Search query |
+| `options.contextType` | `string` | No | `"resource"`, `"memory"`, `"skill"`, `"tool"` |
+| `options.category` | `string` | No | Category filter |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `ContextSearchResponse`
+
+## contextRead
+
+Read a specific context entry by URI at different detail levels.
+
+```typescript
+// L0 abstract only
+const l0 = await ob.agents.contextRead("openbeam://resources/team_1/docs/123");
+
+// Full content (L2)
+const l2 = await ob.agents.contextRead("openbeam://resources/team_1/docs/123", {
+  level: "2",
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `uri` | `string` | Yes | Context entry URI (`openbeam://...`) |
+| `options.level` | `string` | No | Detail level: `"0"` (abstract), `"1"` (overview), `"2"` (full) |
+
+**Returns:** `{ data: ContextDetail }`
+
+## Types
+
+### AgentTemplate
+
+```typescript
+interface AgentTemplate {
+  name: string;
+  description: string;
+  category: string;
+  estimatedDuration: string;
+}
+```
+
+### ContextEntry
+
+```typescript
+interface ContextEntry {
+  uri: string;
+  title?: string | null;
+  abstract: string | null;
+  overview?: string | null;
+  contextType: string | null;
+  category: string | null;
+  score?: number | null;
+  updatedAt: string | null;
+}
+```

@@ -107,6 +107,7 @@ agents_engine_core/
 *.md
 !apps/video/README.md
 !packages/mcp/README.md
+!packages/sdk/README.md
 !docs/observability/
 !docs/observability/*.md
 !docs/observability/runbooks/

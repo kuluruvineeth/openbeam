@@ -1,0 +1,14 @@
+{
+  "title": "TypeScript SDK",
+  "pages": [
+    "index",
+    "search",
+    "connectors",
+    "sync",
+    "actions",
+    "knowledge",
+    "agents",
+    "team",
+    "errors"
+  ]
+}

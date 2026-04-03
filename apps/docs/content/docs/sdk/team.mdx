@@ -1,0 +1,108 @@
+---
+title: Team
+description: Manage team information, members, invitations, and roles.
+---
+
+# Team
+
+The `team` resource provides team management — info, members, invitations, and role updates.
+
+## info
+
+Get information about the authenticated team.
+
+```typescript
+const team = await ob.team.info();
+console.log(team.data.name, team.data.plan, team.data.connectorCount);
+```
+
+**Returns:** `{ data: Team }`
+
+```typescript
+interface Team {
+  id: string;
+  name: string | null;
+  slug: string | null;
+  plan: string | null;
+  connectorCount: number | null;
+  memberCount: number | null;
+  documentCount: number | null;
+  createdAt: string | null;
+}
+```
+
+## members
+
+List all team members.
+
+```typescript
+const members = await ob.team.members();
+
+for (const member of members.data) {
+  console.log(member.name, member.email, member.role);
+}
+```
+
+**Returns:** `{ data: TeamMember[] }`
+
+```typescript
+interface TeamMember {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string | null;
+  avatarUrl: string | null;
+  joinedAt: string | null;
+}
+```
+
+## inviteMember
+
+Send an invitation to join the team.
+
+```typescript
+const invite = await ob.team.inviteMember("new@example.com", "MEMBER");
+console.log(invite.data.code); // Invitation code
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `email` | `string` | Yes | Invitee email |
+| `role` | `string` | No | `"ADMIN"` or `"MEMBER"` (default: `"MEMBER"`) |
+
+**Returns:** `{ data: { id: string; email: string; role: string; code: string; createdAt: string | null } }`
+
+## updateRole
+
+Change a team member's role.
+
+```typescript
+await ob.team.updateRole("user_abc", "ADMIN");
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `userId` | `string` | Yes | User ID |
+| `role` | `string` | Yes | `"OWNER"`, `"ADMIN"`, or `"MEMBER"` |
+
+**Returns:** `{ data: { userId: string; role: string } }`
+
+## removeMember
+
+Remove a member from the team.
+
+```typescript
+await ob.team.removeMember("user_abc");
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `userId` | `string` | Yes | User ID |
+
+**Returns:** `{ data: { userId: string; removed: boolean } }`

@@ -1,0 +1,144 @@
+---
+title: TypeScript SDK
+description: Install and configure the @openbeam/sdk TypeScript client for enterprise search, knowledge graph, and AI agents.
+---
+
+# TypeScript SDK
+
+The `@openbeam/sdk` package provides a typed TypeScript client for the OpenBeam platform. It wraps the MCP protocol over HTTP, giving you programmatic access to search, connectors, sync, knowledge graph, agents, and team management.
+
+## Install
+
+<Tabs items={["npm", "bun", "pnpm", "yarn"]}>
+<Tab value="npm">
+
+```bash
+npm i @openbeam/sdk
+```
+
+</Tab>
+<Tab value="bun">
+
+```bash
+bun add @openbeam/sdk
+```
+
+</Tab>
+<Tab value="pnpm">
+
+```bash
+pnpm add @openbeam/sdk
+```
+
+</Tab>
+<Tab value="yarn">
+
+```bash
+yarn add @openbeam/sdk
+```
+
+</Tab>
+</Tabs>
+
+## Quick Start
+
+```typescript
+import OpenBeam from "@openbeam/sdk";
+
+const ob = new OpenBeam({ apiKey: "op_live_..." });
+
+// Search across all connected data sources
+const results = await ob.search.documents("quarterly revenue report");
+
+// Ask a question with RAG-powered citations
+const answer = await ob.agents.ask("Who owns the authentication service?");
+```
+
+## Configuration
+
+```typescript
+const ob = new OpenBeam({
+  apiKey: "op_live_...",                        // Required
+  baseUrl: "https://api.openbeam.work",         // Optional (default shown)
+  timeout: 30_000,                              // Optional — ms (default: 30s)
+  maxRetries: 2,                                // Optional (default: 2)
+});
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `apiKey` | `string` | — | API key from Settings > API Keys. Required. |
+| `baseUrl` | `string` | `https://api.openbeam.work` | API endpoint. Override for self-hosted. |
+| `timeout` | `number` | `30000` | Request timeout in milliseconds. |
+| `maxRetries` | `number` | `2` | Retry count for transient errors (408, 429, 5xx). |
+
+## Resources
+
+The client exposes eight resource namespaces:
+
+| Resource | Access | Description |
+|----------|--------|-------------|
+| [`search`](/docs/sdk/search) | `ob.search` | Hybrid semantic + keyword search, people search |
+| [`connectors`](/docs/sdk/connectors) | `ob.connectors` | Manage connected data sources |
+| [`sync`](/docs/sdk/sync) | `ob.sync` | Trigger and monitor sync operations |
+| [`actions`](/docs/sdk/actions) | `ob.actions` | Execute write actions across 88+ connectors |
+| [`knowledge`](/docs/sdk/knowledge) | `ob.knowledge` | Knowledge graph — entities, relations, experts |
+| [`agents`](/docs/sdk/agents) | `ob.agents` | AI agents, RAG Q&A, context database |
+| [`team`](/docs/sdk/team) | `ob.team` | Team info, members, invites, roles |
+| `apiKeys` | `ob.apiKeys` | Create, list, and revoke API keys |
+
+## Request Options
+
+Every method accepts an optional `RequestOptions` parameter:
+
+```typescript
+interface RequestOptions {
+  signal?: AbortSignal;  // Abort the request
+  timeout?: number;      // Override default timeout (ms)
+}
+```
+
+Example with abort:
+
+```typescript
+const controller = new AbortController();
+setTimeout(() => controller.abort(), 5000);
+
+await ob.search.documents("query", { signal: controller.signal });
+```
+
+## Retries
+
+The SDK automatically retries on transient failures:
+
+- HTTP 408 (Request Timeout)
+- HTTP 429 (Rate Limit) — respects `Retry-After` header
+- HTTP 5xx (Server Errors)
+- Network errors (connection reset, fetch failed)
+
+Retries use exponential backoff starting at 500ms. Set `maxRetries: 0` to disable.
+
+## Error Handling
+
+All errors extend `OpenBeamError` with typed subclasses. See [Error Handling](/docs/sdk/errors) for the full reference.
+
+```typescript
+import OpenBeam, { RateLimitError } from "@openbeam/sdk";
+
+try {
+  await ob.search.documents("test");
+} catch (error) {
+  if (error instanceof RateLimitError) {
+    console.log(`Retry after ${error.retryAfter}s`);
+  }
+}
+```
+
+<Cards>
+  <Card title="Search" href="/docs/sdk/search" description="Hybrid, semantic, and people search" />
+  <Card title="Connectors" href="/docs/sdk/connectors" description="Manage data source connections" />
+  <Card title="Sync" href="/docs/sdk/sync" description="Trigger and monitor sync operations" />
+  <Card title="Knowledge" href="/docs/sdk/knowledge" description="Knowledge graph queries" />
+  <Card title="Agents" href="/docs/sdk/agents" description="AI agents, RAG, and context" />
+  <Card title="Errors" href="/docs/sdk/errors" description="Error types and handling" />
+</Cards>

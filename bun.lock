@@ -798,22 +798,6 @@
         "vite-plugin-singlefile": "^2.3.0",
       },
     },
-    "packages/mcp-server": {
-      "name": "@openbeam/mcp-server-proxy",
-      "version": "0.1.0",
-      "bin": {
-        "openbeam-mcp": "./bin/openbeam-mcp.js",
-      },
-      "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.28.0",
-      },
-      "devDependencies": {
-        "@openbeam/config": "workspace:*",
-        "@types/node": "catalog:",
-        "tsx": "^4.19.0",
-        "typescript": "catalog:",
-      },
-    },
     "packages/media": {
       "name": "@openbeam/media",
       "version": "0.0.1",
@@ -934,6 +918,7 @@
       "version": "0.1.0",
       "devDependencies": {
         "@openbeam/config": "workspace:*",
+        "tsdown": "catalog:",
         "typescript": "catalog:",
       },
     },
@@ -2327,8 +2312,6 @@
     "@openbeam/mcp-apps": ["@openbeam/mcp-apps@workspace:packages/mcp-apps"],
 
     "@openbeam/mcp-server": ["@openbeam/mcp-server@workspace:packages/mcp"],
-
-    "@openbeam/mcp-server-proxy": ["@openbeam/mcp-server-proxy@workspace:packages/mcp-server"],
 
     "@openbeam/media": ["@openbeam/media@workspace:packages/media"],
 

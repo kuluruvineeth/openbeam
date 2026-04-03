@@ -1,0 +1,165 @@
+---
+title: Sync
+description: Trigger, monitor, and control sync operations across connected data sources.
+---
+
+# Sync
+
+The `sync` resource provides full control over data synchronization — trigger syncs, monitor progress, view history, and manage running operations.
+
+## trigger
+
+Start an incremental or full sync for a connector.
+
+```typescript
+const job = await ob.sync.trigger("conn_abc", "incremental");
+console.log(job.syncJobId, job.workflowId);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID |
+| `type` | `string` | No | `"full"` or `"incremental"` (default: `"incremental"`) |
+
+**Returns:** `SyncTriggerResponse`
+
+## triggerAll
+
+Trigger sync across all connectors (or a filtered subset).
+
+```typescript
+const result = await ob.sync.triggerAll({
+  type: "incremental",
+  connectorTypes: ["SLACK", "NOTION"],
+});
+console.log(`Triggered: ${result.triggered}, Already running: ${result.alreadyRunning}`);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.type` | `string` | No | `"full"` or `"incremental"` |
+| `options.connectorTypes` | `string[]` | No | Filter by connector type |
+
+**Returns:** `SyncTriggerAllResponse`
+
+## status
+
+Get current sync status for a connector including latest sync job details.
+
+```typescript
+const status = await ob.sync.status("conn_abc");
+console.log(status.latestSync?.status, status.latestSync?.durationMs);
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID |
+
+**Returns:** `SyncStatusResponse`
+
+## history
+
+View sync job history for a connector.
+
+```typescript
+const history = await ob.sync.history("conn_abc", { limit: 10 });
+for (const job of history.data) {
+  console.log(job.status, job.documentsProcessed, job.completedAt);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID |
+| `options.limit` | `number` | No | Max results (default 10) |
+| `options.offset` | `number` | No | Pagination offset |
+
+**Returns:** `SyncHistoryResponse`
+
+## progress
+
+Get live progress of active sync operations for a connector.
+
+```typescript
+const progress = await ob.sync.progress("conn_abc");
+for (const entry of progress.activeSyncs) {
+  console.log(entry.stage, entry.processed, entry.indexed, entry.errors);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `connectorId` | `string` | Yes | Connector ID |
+
+**Returns:** `SyncProgressResponse`
+
+## health
+
+Get fleet-wide sync health overview across all connectors.
+
+```typescript
+const fleet = await ob.sync.health();
+console.log(`Healthy: ${fleet.healthy}, Warning: ${fleet.warning}, Error: ${fleet.error}`);
+```
+
+**Returns:** `SyncHealthResponse`
+
+## errors
+
+Get recent sync errors across all or a specific connector.
+
+```typescript
+const errors = await ob.sync.errors({ limit: 20 });
+for (const err of errors.errors) {
+  console.log(err.connectorType, err.errorMessage);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.connectorId` | `string` | No | Filter to specific connector |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `SyncErrorsResponse`
+
+## pause
+
+Pause active sync operations for a connector.
+
+```typescript
+await ob.sync.pause("conn_abc");
+```
+
+## resume
+
+Resume paused sync operations.
+
+```typescript
+await ob.sync.resume("conn_abc");
+```
+
+## cancel
+
+Cancel all active sync operations for a connector.
+
+```typescript
+await ob.sync.cancel("conn_abc");
+```
+
+All control methods return `SyncControlResponse`:
+
+```typescript
+{ connectorId: string; action: string; affected: number }
+```

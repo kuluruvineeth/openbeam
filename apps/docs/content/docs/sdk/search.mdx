@@ -1,0 +1,198 @@
+---
+title: Search
+description: Search documents, people, and content across all connected enterprise data sources.
+---
+
+# Search
+
+The `search` resource provides hybrid semantic + keyword search across all connected data sources. Results are filtered by team permissions automatically.
+
+## documents
+
+Search across all indexed documents with filtering and ranking options.
+
+```typescript
+const results = await ob.search.documents("quarterly revenue report", {
+  limit: 20,
+  connectorTypes: ["NOTION", "CONFLUENCE"],
+  ranking: "hybrid",
+  dateFrom: "2026-01-01",
+});
+
+for (const doc of results.data) {
+  console.log(doc.title, doc.score, doc.url);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | `string` | Yes | Search query text |
+| `options.limit` | `number` | No | Max results (1-50, default 10) |
+| `options.cursor` | `string` | No | Pagination cursor from previous response |
+| `options.connectorTypes` | `string[]` | No | Filter by connector type (e.g. `["SLACK", "NOTION"]`) |
+| `options.documentTypes` | `string[]` | No | Filter by document type (e.g. `["message", "page"]`) |
+| `options.authorIds` | `string[]` | No | Filter by author person IDs |
+| `options.ranking` | `string` | No | Ranking mode: `"hybrid"`, `"semantic"`, `"bm25"`, `"recency"` |
+| `options.dateFrom` | `string` | No | Start date (ISO 8601) |
+| `options.dateTo` | `string` | No | End date (ISO 8601) |
+
+**Returns:** `SearchDocumentsResponse`
+
+```typescript
+{
+  meta: {
+    query: string;
+    totalResults: number;
+    returned: number;
+    hasNextPage: boolean;
+    nextCursor: string | null;
+    ranking: string;
+    queryTimeMs?: number;
+    connectorFacets?: Record<string, number>;
+  };
+  data: SearchResult[];
+}
+```
+
+## semantic
+
+Pure semantic (embedding-based) search. Best for conceptual queries where exact keywords may not appear in the document.
+
+```typescript
+const results = await ob.search.semantic("how does our auth system work", {
+  limit: 10,
+  connectorTypes: ["GITHUB", "CONFLUENCE"],
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | `string` | Yes | Natural language query |
+| `options.limit` | `number` | No | Max results (default 10) |
+| `options.connectorTypes` | `string[]` | No | Filter by connector type |
+
+**Returns:** `SearchSemanticResponse`
+
+## similar
+
+Find documents semantically similar to a known document.
+
+```typescript
+const results = await ob.search.similar("doc_abc123", { limit: 5 });
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `documentId` | `string` | Yes | Source document ID |
+| `options.limit` | `number` | No | Max results (default 10) |
+
+**Returns:** `SearchSimilarResponse`
+
+## recent
+
+Get recently created or updated documents.
+
+```typescript
+const results = await ob.search.recent({
+  hours: 24,
+  connectorTypes: ["SLACK"],
+  limit: 20,
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.hours` | `number` | No | Lookback window in hours (default 24) |
+| `options.connectorTypes` | `string[]` | No | Filter by connector type |
+| `options.limit` | `number` | No | Max results (default 10) |
+
+**Returns:** `SearchRecentResponse`
+
+## byAuthor
+
+Get all documents authored by a specific person.
+
+```typescript
+const results = await ob.search.byAuthor("person_xyz", {
+  query: "deployment",
+  limit: 10,
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `authorId` | `string` | Yes | Person ID (from `search.people`) |
+| `options.query` | `string` | No | Optional query to filter within author's docs |
+| `options.limit` | `number` | No | Max results (default 10) |
+
+**Returns:** `SearchByAuthorResponse`
+
+## people
+
+Search for people across connected data sources.
+
+```typescript
+const results = await ob.search.people("engineering manager", {
+  limit: 10,
+  connectorTypes: ["GOOGLE_WORKSPACE"],
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | `string` | Yes | Name, email, title, or department |
+| `options.limit` | `number` | No | Max results (default 10) |
+| `options.connectorTypes` | `string[]` | No | Filter by connector type |
+
+**Returns:** `SearchPeopleResponse`
+
+```typescript
+{
+  data: Array<{
+    id: string;
+    name: string | null;
+    email: string | null;
+    title: string | null;
+    department: string | null;
+    avatarUrl: string | null;
+    connectorType: string | null;
+    documentCount?: number;
+  }>;
+}
+```
+
+## Types
+
+### SearchResult
+
+```typescript
+interface SearchResult {
+  id: string;
+  title: string | null;
+  snippet: string | null;
+  source: string | null;
+  connectorType: string | null;
+  documentType: string | null;
+  sourceName: string | null;
+  sourceType: string | null;
+  authorName: string | null;
+  authorEmail: string | null;
+  authorAvatarUrl: string | null;
+  url: string | null;
+  score: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+```

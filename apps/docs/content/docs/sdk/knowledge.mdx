@@ -1,0 +1,166 @@
+---
+title: Knowledge Graph
+description: Query the knowledge graph — search entities, traverse relations, and find topic experts.
+---
+
+# Knowledge Graph
+
+The `knowledge` resource provides access to OpenBeam's knowledge graph — entities (people, topics, projects), their relationships, and expertise mapping.
+
+## searchEntities
+
+Search for entities by name with optional type filtering.
+
+```typescript
+const results = await ob.knowledge.searchEntities("authentication", {
+  type: "TOPIC",
+  limit: 10,
+});
+
+for (const entity of results.data) {
+  console.log(entity.name, entity.type, entity.mentionCount);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | `string` | Yes | Search query |
+| `options.type` | `string` | No | Entity type: `"PERSON"`, `"TOPIC"`, `"PROJECT"`, etc. |
+| `options.limit` | `number` | No | Max results (default 10) |
+
+**Returns:** `EntitySearchResponse`
+
+## getEntity
+
+Get detailed information about an entity including relations, expertise, and recent mentions.
+
+```typescript
+const panel = await ob.knowledge.getEntity("entity_abc");
+const { entity, relations, expertise, recentMentions } = panel.data;
+
+console.log(entity.name, entity.type);
+console.log("Relations:", relations.outgoing.length, "outgoing,", relations.incoming.length, "incoming");
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `entityId` | `string` | Yes | Entity ID |
+
+**Returns:** `EntityPanelResponse`
+
+## getRelations
+
+Get relations for an entity with direction and type filtering.
+
+```typescript
+const relations = await ob.knowledge.getRelations("entity_abc", {
+  direction: "both",
+  relationType: "WORKS_ON",
+  limit: 20,
+});
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `entityId` | `string` | Yes | Entity ID |
+| `options.direction` | `string` | No | `"incoming"`, `"outgoing"`, `"both"` |
+| `options.relationType` | `string` | No | Filter by relation type |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `{ data: { outgoing: KnowledgeRelation[]; incoming: KnowledgeRelation[] } }`
+
+## topicExperts
+
+Find people with expertise on a given topic, ranked by expertise score.
+
+```typescript
+const experts = await ob.knowledge.topicExperts("topic_abc", { limit: 5 });
+
+for (const { person, score } of experts.data) {
+  console.log(person.name, score);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `topicId` | `string` | Yes | Topic entity ID |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `TopicExpertsResponse`
+
+## personExpertise
+
+Get the topics a person has expertise in.
+
+```typescript
+const expertise = await ob.knowledge.personExpertise("person_abc");
+
+for (const { topic, score } of expertise.data) {
+  console.log(topic.name, score);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `personId` | `string` | Yes | Person entity ID |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `{ data: Array<{ topic: { id: string; name: string | null }; score: number | null }> }`
+
+## topics
+
+Browse the topic hierarchy.
+
+```typescript
+const topics = await ob.knowledge.topics({ limit: 20 });
+
+for (const topic of topics.data) {
+  console.log(topic.name, topic.documentCount);
+}
+```
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `options.parentId` | `string` | No | Parent topic ID (for children) |
+| `options.limit` | `number` | No | Max results |
+
+**Returns:** `{ data: Array<{ id: string; name: string; documentCount: number | null }> }`
+
+## Types
+
+### KnowledgeEntity
+
+```typescript
+interface KnowledgeEntity {
+  id: string;
+  name: string | null;
+  type: string | null;
+  aliases?: string[] | null;
+  expertiseScore?: number | null;
+  mentionCount?: number | null;
+}
+```
+
+### KnowledgeRelation
+
+```typescript
+interface KnowledgeRelation {
+  id: string;
+  relationType: string;
+  weight?: number | null;
+  fromEntity?: KnowledgeEntity | null;
+  toEntity?: KnowledgeEntity | null;
+}
+```

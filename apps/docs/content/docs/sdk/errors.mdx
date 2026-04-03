@@ -1,0 +1,106 @@
+---
+title: Error Handling
+description: Error types, status codes, and handling patterns for the OpenBeam SDK.
+---
+
+# Error Handling
+
+All SDK errors extend `OpenBeamError` and include a typed `status` code and `code` string. The SDK exports specific error classes for common failure modes.
+
+## Error Hierarchy
+
+```
+OpenBeamError (base)
+├── AuthenticationError   (401)
+├── PermissionError       (403)
+├── NotFoundError         (404)
+├── RateLimitError        (429)
+├── ToolError             (422)
+└── ServerError           (500)
+```
+
+## Catching Errors
+
+```typescript
+import OpenBeam, {
+  OpenBeamError,
+  AuthenticationError,
+  PermissionError,
+  NotFoundError,
+  RateLimitError,
+  ToolError,
+  ServerError,
+} from "@openbeam/sdk";
+
+try {
+  await ob.search.documents("test");
+} catch (error) {
+  if (error instanceof RateLimitError) {
+    // Wait and retry
+    const waitMs = (error.retryAfter ?? 5) * 1000;
+    await new Promise(r => setTimeout(r, waitMs));
+    // retry...
+  } else if (error instanceof AuthenticationError) {
+    // Invalid or expired API key
+  } else if (error instanceof PermissionError) {
+    // API key lacks required scope
+  } else if (error instanceof NotFoundError) {
+    // Resource does not exist
+  } else if (error instanceof ToolError) {
+    // MCP tool execution failed (bad input, server-side logic error)
+  } else if (error instanceof ServerError) {
+    // 5xx — transient, auto-retried by SDK
+  } else if (error instanceof OpenBeamError) {
+    // Other HTTP error
+    console.log(error.status, error.code, error.message);
+  }
+}
+```
+
+## Error Properties
+
+### OpenBeamError
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `message` | `string` | Human-readable error description |
+| `status` | `number` | HTTP status code |
+| `code` | `string` | Machine-readable error code |
+| `name` | `string` | Error class name |
+
+### RateLimitError
+
+Extends `OpenBeamError` with:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `retryAfter` | `number \| null` | Seconds until rate limit resets |
+
+## Error Codes
+
+| Status | Error Class | Code | Common Causes |
+|--------|-------------|------|---------------|
+| 401 | `AuthenticationError` | `authentication_error` | Missing/invalid API key |
+| 403 | `PermissionError` | `permission_error` | API key lacks required scope |
+| 404 | `NotFoundError` | `not_found` | Connector/document does not exist |
+| 422 | `ToolError` | `tool_error` | Invalid parameters, tool execution failure |
+| 429 | `RateLimitError` | `rate_limit_error` | Too many requests (100/min) |
+| 500 | `ServerError` | `server_error` | Internal server error |
+
+## Automatic Retries
+
+The SDK retries transient errors automatically:
+
+| Error Type | Retried? | Notes |
+|------------|----------|-------|
+| 408 Request Timeout | Yes | Up to `maxRetries` |
+| 429 Rate Limited | Yes | Respects `Retry-After` header |
+| 500-504 Server Error | Yes | Exponential backoff from 500ms |
+| Network Error | Yes | Connection reset, fetch failed |
+| 401/403/404/422 | No | Client errors are not retried |
+
+Disable retries:
+
+```typescript
+const ob = new OpenBeam({ apiKey: "...", maxRetries: 0 });
+```
