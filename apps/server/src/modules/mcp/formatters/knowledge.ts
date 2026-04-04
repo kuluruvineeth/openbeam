@@ -67,7 +67,9 @@ export function formatEntitySearch(
 
   const rows = numbered(
     entities.map((e) => {
-      const parts = [`${e.name ?? "Unknown"} [${e.type ?? "UNKNOWN"}]`];
+      const parts = [
+        `${e.name ?? "Unknown"} [${e.type ?? "UNKNOWN"}] (id: ${e.id})`,
+      ];
       if (e.aliases && e.aliases.length > 0) {
         parts.push(`aliases: ${e.aliases.join(", ")}`);
       }
@@ -101,7 +103,7 @@ export function formatEntityPanel(panel: EntityPanel): string {
   const e = panel.entity;
   const parts: string[] = [];
 
-  parts.push(`${e.name ?? "Unknown"} [${e.type ?? "UNKNOWN"}]`);
+  parts.push(`${e.name ?? "Unknown"} [${e.type ?? "UNKNOWN"}] (id: ${e.id})`);
   if (e.aliases && e.aliases.length > 0) {
     parts.push(`Aliases: ${e.aliases.join(", ")}`);
   }
@@ -244,7 +246,7 @@ export function formatTopicExperts(
     experts.map((exp) => {
       const score =
         exp.score != null ? ` (score: ${exp.score.toFixed(2)})` : "";
-      return `${exp.person.name ?? "Unknown"}${score}`;
+      return `${exp.person.name ?? "Unknown"} (id: ${exp.person.id})${score}`;
     })
   );
 
@@ -278,7 +280,7 @@ export function formatPersonExpertise(
     expertise.map((exp) => {
       const score =
         exp.score != null ? ` (score: ${exp.score.toFixed(2)})` : "";
-      return `${exp.topic.name ?? "Unknown"} [${exp.topic.type ?? "TOPIC"}]${score}`;
+      return `${exp.topic.name ?? "Unknown"} [${exp.topic.type ?? "TOPIC"}] (id: ${exp.topic.id})${score}`;
     })
   );
 
