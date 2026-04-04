@@ -51,11 +51,11 @@ const actions: Record<string, Handler> = {
 
   async page_create(client, p) {
     const parentType =
-      typeof p.parent_type === "string"
-        ? (p.parent_type as "page" | "database")
+      typeof p.parentType === "string"
+        ? (p.parentType as "page" | "database")
         : "page";
     const r = await createPage(client, {
-      parentId: str(p, "parent_id"),
+      parentId: str(p, "parentId"),
       parentType,
       title: str(p, "title"),
       content: typeof p.content === "string" ? p.content : undefined,
@@ -68,7 +68,7 @@ const actions: Record<string, Handler> = {
   },
 
   async page_update(client, p) {
-    const r = await updatePage(client, str(p, "page_id"), {
+    const r = await updatePage(client, str(p, "pageId"), {
       properties: (p.properties as Record<string, unknown>) ?? undefined,
     });
     if (!r.success) {
@@ -78,7 +78,7 @@ const actions: Record<string, Handler> = {
   },
 
   async page_archive(client, p) {
-    const r = await archivePage(client, str(p, "page_id"));
+    const r = await archivePage(client, str(p, "pageId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -86,7 +86,7 @@ const actions: Record<string, Handler> = {
   },
 
   async page_restore(client, p) {
-    const r = await restorePage(client, str(p, "page_id"));
+    const r = await restorePage(client, str(p, "pageId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -96,7 +96,7 @@ const actions: Record<string, Handler> = {
   async database_entry_create(client, p) {
     const r = await createDatabaseEntry(
       client,
-      str(p, "database_id"),
+      str(p, "databaseId"),
       (p.properties as Record<string, unknown>) ?? {}
     );
     if (!r.success) {
@@ -111,7 +111,7 @@ const actions: Record<string, Handler> = {
   async database_entry_update(client, p) {
     const r = await updateDatabaseEntry(
       client,
-      str(p, "page_id"),
+      str(p, "pageId"),
       (p.properties as Record<string, unknown>) ?? {}
     );
     if (!r.success) {
@@ -121,11 +121,7 @@ const actions: Record<string, Handler> = {
   },
 
   async block_append(client, p) {
-    const r = await appendParagraph(
-      client,
-      str(p, "parent_id"),
-      str(p, "text")
-    );
+    const r = await appendParagraph(client, str(p, "parentId"), str(p, "text"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -135,7 +131,7 @@ const actions: Record<string, Handler> = {
   async block_update(client, p) {
     const r = await updateBlock(
       client,
-      str(p, "block_id"),
+      str(p, "blockId"),
       (p.content as Record<string, unknown>) ?? {}
     );
     if (!r.success) {
@@ -145,7 +141,7 @@ const actions: Record<string, Handler> = {
   },
 
   async block_delete(client, p) {
-    const r = await deleteBlock(client, str(p, "block_id"));
+    const r = await deleteBlock(client, str(p, "blockId"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -153,11 +149,7 @@ const actions: Record<string, Handler> = {
   },
 
   async comment_add_page(client, p) {
-    const r = await addPageComment(
-      client,
-      str(p, "page_id"),
-      str(p, "content")
-    );
+    const r = await addPageComment(client, str(p, "pageId"), str(p, "content"));
     if (!r.success) {
       return { success: false, data: {}, error: r.error };
     }
@@ -167,8 +159,8 @@ const actions: Record<string, Handler> = {
   async comment_add_block(client, p) {
     const r = await addBlockComment(
       client,
-      str(p, "block_id"),
-      str(p, "discussion_id"),
+      str(p, "blockId"),
+      str(p, "discussionId"),
       str(p, "content")
     );
     if (!r.success) {
