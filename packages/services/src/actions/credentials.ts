@@ -3,6 +3,7 @@ import db, {
   findConnectorById,
   getOAuthProvider,
 } from "@openbeam/db";
+import { getValidAccessToken } from "../lib/token-refresh";
 import { ActionAuthError } from "./errors";
 import type { ActionCredentials } from "./types";
 
@@ -38,8 +39,9 @@ export async function resolveCredentials(
     };
   }
 
-  const accessToken =
-    decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv) ?? "";
+  const accessToken = await getValidAccessToken(connectorId).catch(
+    () => decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv) ?? ""
+  );
 
   const syncToken = decryptIfEncrypted(
     oauth.syncAccessToken,
