@@ -15,6 +15,7 @@ export const showpadActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "name", name: "Name", type: "string", required: true },
         {
@@ -39,6 +40,7 @@ export const showpadActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "assetId", name: "Asset ID", type: "string", required: true },
         {

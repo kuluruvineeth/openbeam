@@ -15,6 +15,7 @@ export const samsaraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "alert_id", name: "Alert ID", type: "string", required: true },
       ],
@@ -30,6 +31,7 @@ export const samsaraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "driver_id", name: "Driver ID", type: "string", required: true },
         { id: "message", name: "Message", type: "string", required: true },

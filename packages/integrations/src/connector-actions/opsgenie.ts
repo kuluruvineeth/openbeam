@@ -15,6 +15,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "message",
@@ -57,6 +58,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "alert_id",
@@ -85,6 +87,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "alert_id",
@@ -113,6 +116,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "alert_id",
@@ -141,6 +145,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "message",
@@ -190,6 +195,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "incident_id",

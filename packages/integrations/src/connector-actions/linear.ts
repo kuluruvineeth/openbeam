@@ -16,6 +16,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "title",
@@ -123,6 +124,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "issueId",
@@ -198,6 +200,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "query",
@@ -250,6 +253,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "issueId",
@@ -288,6 +292,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "issueId",
@@ -326,6 +331,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "issueId",
@@ -363,6 +369,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "projectId",
@@ -394,6 +401,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "name",
@@ -461,6 +469,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "cycleId",
@@ -491,6 +500,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "issueId",
@@ -528,6 +538,7 @@ export const linearActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [],
       outputs: [
         {

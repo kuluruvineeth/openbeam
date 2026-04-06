@@ -15,6 +15,7 @@ export const dropboxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "path",
@@ -41,6 +42,7 @@ export const dropboxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "from_path",
@@ -73,6 +75,7 @@ export const dropboxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "path",

@@ -15,6 +15,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "name", name: "Name", type: "string", required: true },
         {
@@ -48,6 +49,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "contentId", name: "Content ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
@@ -75,6 +77,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "email", name: "Email", type: "string", required: true },
         {
@@ -104,6 +107,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "userId", name: "User ID", type: "string", required: true },
       ],

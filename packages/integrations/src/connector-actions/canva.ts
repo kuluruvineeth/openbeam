@@ -15,6 +15,7 @@ export const canvaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "design_type",
@@ -60,6 +61,7 @@ export const canvaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "name",

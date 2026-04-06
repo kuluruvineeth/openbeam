@@ -16,6 +16,7 @@ export const googleChatActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [],
       outputs: [{ id: "spaces", name: "Spaces", type: "array" }],
     },
@@ -30,6 +31,7 @@ export const googleChatActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "space_name",

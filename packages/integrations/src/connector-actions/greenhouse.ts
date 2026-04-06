@@ -15,6 +15,7 @@ export const greenhouseActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "candidate_id",

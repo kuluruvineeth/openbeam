@@ -15,6 +15,7 @@ export const insidedActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         { id: "content", name: "Content", type: "string", required: true },
@@ -40,6 +41,7 @@ export const insidedActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "ideaId", name: "Idea ID", type: "string", required: true },
       ],
@@ -55,6 +57,7 @@ export const insidedActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         { id: "content", name: "Content", type: "string", required: true },
@@ -80,6 +83,7 @@ export const insidedActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "postId", name: "Post ID", type: "string", required: true },
         { id: "content", name: "Content", type: "string", required: true },

@@ -16,6 +16,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -77,6 +78,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -130,6 +132,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -167,6 +170,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -211,6 +215,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -256,6 +261,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "query",
@@ -308,6 +314,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "name",
@@ -360,6 +367,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -390,6 +398,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -427,6 +436,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: true,
+      idempotent: false,
       inputs: [
         {
           id: "channel",
@@ -464,6 +474,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "email",
@@ -503,6 +514,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channels",
@@ -556,6 +568,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "user",
@@ -599,6 +612,7 @@ export const slackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "channel",

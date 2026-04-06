@@ -15,6 +15,7 @@ export const freshserviceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "email",
@@ -51,6 +52,7 @@ export const freshserviceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "ticket_id",
@@ -86,6 +88,7 @@ export const freshserviceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "ticket_id",
@@ -107,6 +110,7 @@ export const freshserviceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "ticket_id",

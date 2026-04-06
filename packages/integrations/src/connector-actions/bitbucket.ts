@@ -15,6 +15,7 @@ export const bitbucketActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "repoSlug",
@@ -77,6 +78,7 @@ export const bitbucketActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "repoSlug",
@@ -119,6 +121,7 @@ export const bitbucketActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "repoSlug",
@@ -175,6 +178,7 @@ export const bitbucketActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "repoSlug",

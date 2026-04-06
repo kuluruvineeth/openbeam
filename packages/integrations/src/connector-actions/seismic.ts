@@ -15,6 +15,7 @@ export const seismicActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "content_id",

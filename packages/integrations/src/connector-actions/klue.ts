@@ -15,6 +15,7 @@ export const klueActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         { id: "content", name: "Content", type: "string", required: true },
@@ -49,6 +50,7 @@ export const klueActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "intelId", name: "Intel ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },

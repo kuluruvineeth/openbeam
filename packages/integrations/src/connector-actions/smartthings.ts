@@ -16,6 +16,7 @@ export const smartThingsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "device_id", name: "Device ID", type: "string", required: true },
         {

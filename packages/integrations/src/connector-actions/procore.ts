@@ -15,6 +15,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "projectId", name: "Project ID", type: "number", required: true },
         {
@@ -40,6 +41,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "projectId", name: "Project ID", type: "number", required: true },
         { id: "rfiId", name: "RFI ID", type: "string", required: true },
@@ -65,6 +67,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "projectId", name: "Project ID", type: "number", required: true },
         {

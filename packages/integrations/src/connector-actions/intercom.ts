@@ -16,6 +16,7 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [],
       outputs: [
         {
@@ -37,6 +38,7 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [],
       outputs: [
         {
@@ -58,6 +60,7 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "conversation_id",
@@ -96,6 +99,7 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "conversation_id",
@@ -131,6 +135,7 @@ export const intercomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "title",

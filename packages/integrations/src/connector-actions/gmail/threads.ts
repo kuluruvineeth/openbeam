@@ -12,6 +12,7 @@ export const threadActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
     inputs: [
       {
@@ -44,6 +45,7 @@ export const threadActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {

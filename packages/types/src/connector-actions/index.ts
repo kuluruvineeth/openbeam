@@ -105,6 +105,7 @@ export const ConnectorActionDefinitionSchema = z.object({
   stakes: ConnectorActionStakesSchema.default("medium"),
   reversible: z.boolean().default(false),
   batchSupport: z.boolean().default(false),
+  idempotent: z.boolean().default(false),
   rateLimit: z
     .object({
       requests: z.number(),

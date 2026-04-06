@@ -16,6 +16,7 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [],
       outputs: [
         {
@@ -37,6 +38,7 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "service_id",
@@ -74,6 +76,7 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "incident_id",
@@ -100,6 +103,7 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "incident_id",
@@ -126,6 +130,7 @@ export const pagerdutyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "incident_id",

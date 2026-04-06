@@ -15,6 +15,7 @@ export const phabricatorActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         {
@@ -52,6 +53,7 @@ export const phabricatorActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "taskId", name: "Task ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
@@ -76,6 +78,7 @@ export const phabricatorActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         { id: "content", name: "Content", type: "markdown", required: true },
@@ -102,6 +105,7 @@ export const phabricatorActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "slug", name: "Slug", type: "string", required: true },
         { id: "content", name: "Content", type: "markdown", required: true },

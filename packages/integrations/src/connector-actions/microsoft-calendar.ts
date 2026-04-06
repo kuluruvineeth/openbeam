@@ -15,6 +15,7 @@ export const microsoftCalendarActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "subject",
@@ -71,6 +72,7 @@ export const microsoftCalendarActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "event_id",
@@ -124,6 +126,7 @@ export const microsoftCalendarActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "event_id",

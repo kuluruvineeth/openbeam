@@ -15,6 +15,7 @@ export const lessonlyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "assigneeId",
@@ -57,6 +58,7 @@ export const lessonlyActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "lessonId", name: "Lesson ID", type: "number", required: true },
         { id: "title", name: "Title", type: "string", required: false },

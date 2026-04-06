@@ -15,6 +15,7 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "templateId",
@@ -46,6 +47,7 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "workflowId",
@@ -75,6 +77,7 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "workflowId",

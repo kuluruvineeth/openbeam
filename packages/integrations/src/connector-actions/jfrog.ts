@@ -15,6 +15,7 @@ export const jfrogActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "srcRepo",
@@ -51,6 +52,7 @@ export const jfrogActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "repo", name: "Repository", type: "string", required: true },
         { id: "path", name: "Artifact Path", type: "string", required: true },
@@ -67,6 +69,7 @@ export const jfrogActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "repo", name: "Repository", type: "string", required: true },
         { id: "path", name: "Artifact Path", type: "string", required: true },

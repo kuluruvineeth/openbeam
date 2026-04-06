@@ -15,6 +15,7 @@ export const lookerStudioActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "reportId", name: "Report ID", type: "string", required: true },
       ],

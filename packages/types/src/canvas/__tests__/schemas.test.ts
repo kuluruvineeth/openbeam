@@ -748,6 +748,30 @@ describe("canvas type schemas", () => {
         expect(parsed.id).toBe("slack_send_message");
         expect(parsed.stakes).toBe("medium");
         expect(parsed.reversible).toBe(false);
+        expect(parsed.idempotent).toBe(false);
+      });
+
+      it("accepts explicit idempotent value", () => {
+        const definition = {
+          id: "slack_get_message",
+          name: "Get Message",
+          description: "Get a Slack message by ID",
+          connectorType: "slack",
+          resource: "message",
+          category: "read",
+          idempotent: true,
+          inputs: [
+            {
+              id: "messageId",
+              name: "Message ID",
+              type: "string",
+              required: true,
+            },
+          ],
+          outputs: [],
+        };
+        const parsed = ConnectorActionDefinitionSchema.parse(definition);
+        expect(parsed.idempotent).toBe(true);
       });
     });
 

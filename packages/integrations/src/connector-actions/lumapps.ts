@@ -16,6 +16,7 @@ export const lumappsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         {
@@ -76,6 +77,7 @@ export const lumappsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "contentId", name: "Content ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
@@ -112,6 +114,7 @@ export const lumappsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "communityId",

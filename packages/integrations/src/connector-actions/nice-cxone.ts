@@ -15,6 +15,7 @@ export const niceCxoneActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "contactId", name: "Contact ID", type: "string", required: true },
         { id: "note", name: "Note", type: "string", required: true },
@@ -34,6 +35,7 @@ export const niceCxoneActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "skillId",
@@ -65,6 +67,7 @@ export const niceCxoneActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "agentId", name: "Agent ID", type: "string", required: true },
         {

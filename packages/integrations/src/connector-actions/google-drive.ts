@@ -16,6 +16,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: true,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -55,6 +56,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "query",
@@ -107,6 +109,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "name",
@@ -174,6 +177,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -225,6 +229,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -276,6 +281,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -318,6 +324,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -348,6 +355,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -402,6 +410,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "fileId",
@@ -438,6 +447,7 @@ export const googleDriveActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "name",

@@ -15,6 +15,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "properties",
@@ -37,6 +38,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "entryId", name: "Entry ID", type: "string", required: true },
         {
@@ -58,6 +60,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "entryId", name: "Entry ID", type: "string", required: true },
       ],
@@ -73,6 +76,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "entryId", name: "Entry ID", type: "string", required: true },
       ],
@@ -88,6 +92,7 @@ export const harvestActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         {
           id: "properties",

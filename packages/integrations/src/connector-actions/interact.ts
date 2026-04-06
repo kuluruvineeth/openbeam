@@ -16,6 +16,7 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "title", name: "Title", type: "string", required: true },
         {
@@ -89,6 +90,7 @@ export const interactActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
+      idempotent: false,
       inputs: [
         { id: "pageId", name: "Page ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },

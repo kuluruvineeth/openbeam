@@ -12,6 +12,7 @@ export const labelActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.labels"],
     inputs: [],
     outputs: [
@@ -35,6 +36,7 @@ export const labelActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.labels"],
     inputs: [
       {

@@ -12,6 +12,7 @@ export const draftActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.compose"],
     inputs: [
       {
@@ -63,6 +64,7 @@ export const draftActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: false,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.compose"],
     inputs: [
       {
@@ -93,6 +95,7 @@ export const draftActions: ConnectorActionDefinition[] = [
     stakes: "high",
     reversible: false,
     batchSupport: false,
+    idempotent: false,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.send"],
     inputs: [
       {
