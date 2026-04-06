@@ -14,6 +14,7 @@ wellKnown.get("/.well-known/oauth-protected-resource", (c) =>
     resource: API_URL,
     authorization_servers: [API_URL],
     scopes_supported: allScopes,
+    bearer_methods_supported: ["header"],
     resource_documentation: "https://docs.openbeam.work",
   })
 );

@@ -4,6 +4,11 @@ import db, {
   refreshOAuthAccessToken,
 } from "@openbeam/db";
 
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store",
+  Pragma: "no-cache",
+} as const;
+
 const ERROR_MAP: Record<string, string> = {
   "Invalid authorization code": "invalid_grant",
   "Authorization code expired": "invalid_grant",
@@ -123,7 +128,8 @@ router.openapi(tokenRoute, async (c) => {
           refresh_token: result.refreshToken,
           scope: result.scope,
         },
-        200
+        200,
+        NO_STORE_HEADERS
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -161,7 +167,8 @@ router.openapi(tokenRoute, async (c) => {
           refresh_token: result.refreshToken,
           scope: result.scope,
         },
-        200
+        200,
+        NO_STORE_HEADERS
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
