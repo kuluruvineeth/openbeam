@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/connector-actions";
 import { ahaActionsRegistry } from "./aha";
 import { airtableActionsRegistry } from "./airtable";
 import { amplitudeActionsRegistry } from "./amplitude";

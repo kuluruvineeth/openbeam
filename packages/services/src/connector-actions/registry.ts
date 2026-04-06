@@ -1,7 +1,7 @@
 import type {
   ConnectorActionDefinition,
   ConnectorActionsRegistry,
-} from "@openbeam/types/canvas";
+} from "@openbeam/types/connector-actions";
 
 const registries = new Map<string, ConnectorActionsRegistry>();
 

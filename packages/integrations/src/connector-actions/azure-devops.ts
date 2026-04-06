@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/connector-actions";
 
 export const azureDevOpsActionsRegistry: ConnectorActionsRegistry = {
   connectorType: "azure-devops",

@@ -1,12 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import {
+  ConnectorActionCategorySchema,
+  ConnectorActionDefinitionSchema,
+} from "../../connector-actions";
+import {
   type CompiledAgentConfig,
   CompiledAgentConfigSchema,
 } from "../compiler";
 import {
-  ConnectorActionCategorySchema,
-  ConnectorActionDefinitionSchema,
-  ConnectorActionExecuteParamsSchema,
   ConnectorActionExecuteResultSchema,
   ConnectorActionNodeConfigSchema,
 } from "../connector-actions";
@@ -762,25 +763,6 @@ describe("canvas type schemas", () => {
         };
         const parsed = ConnectorActionNodeConfigSchema.parse(config);
         expect(parsed.continueOnError).toBe(false);
-      });
-    });
-
-    describe("ConnectorActionExecuteParamsSchema", () => {
-      it("parses execution params", () => {
-        const params = {
-          connectorId: "conn_123",
-          actionId: "send_message",
-          inputs: { channel: "#general", message: "Hello" },
-          context: {
-            teamId: "team_123",
-            userId: "user_123",
-            runId: "run_123",
-            nodeId: "node_123",
-          },
-        };
-        const parsed = ConnectorActionExecuteParamsSchema.parse(params);
-        expect(parsed.connectorId).toBe("conn_123");
-        expect(parsed.context.teamId).toBe("team_123");
       });
     });
 

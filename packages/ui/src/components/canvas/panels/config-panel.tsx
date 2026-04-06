@@ -10,7 +10,6 @@ import type {
   CodeNodeConfig,
   ConditionNodeConfig,
   ConnectorActionNodeConfig,
-  ConnectorActionsRegistry,
   ConnectorNodeConfig,
   DatabaseQueryNodeConfig,
   ExtractNodeConfig,
@@ -37,6 +36,7 @@ import type {
   ToolNodeConfig,
   VideoNodeConfig,
 } from "@openbeam/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/connector-actions";
 import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useCallback } from "react";

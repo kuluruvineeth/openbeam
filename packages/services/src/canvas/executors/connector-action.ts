@@ -6,10 +6,8 @@ import prisma, {
 } from "@openbeam/db";
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
 import type {
-  ConnectorActionDefinition,
   ConnectorActionError,
   ConnectorActionExecuteResult,
-  ConnectorActionInput,
   ConnectorActionNodeConfig,
   RetryConfig,
 } from "@openbeam/types/canvas";
@@ -17,6 +15,10 @@ import {
   ConnectorActionExecuteResultSchema,
   ConnectorActionNodeConfigSchema,
 } from "@openbeam/types/canvas";
+import type {
+  ConnectorActionDefinition,
+  ConnectorActionInput,
+} from "@openbeam/types/connector-actions";
 import { normalizeToConnectorType } from "@openbeam/types/services/connectors/events";
 import type { GmailListMessagesResponse } from "@openbeam/types/services/connectors/gmail";
 import { GmailListMessagesResponseSchema } from "@openbeam/types/services/connectors/gmail";

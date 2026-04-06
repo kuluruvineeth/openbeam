@@ -1,12 +1,12 @@
 "use client";
 
+import type { ConnectorNodeConfig } from "@openbeam/types/canvas";
 import type {
   ConnectorActionDefinition,
   ConnectorActionInput,
   ConnectorActionStakes,
   ConnectorActionsRegistry,
-  ConnectorNodeConfig,
-} from "@openbeam/types/canvas";
+} from "@openbeam/types/connector-actions";
 import {
   CONNECTOR_TYPES,
   type ConnectorType,

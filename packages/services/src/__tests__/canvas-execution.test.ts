@@ -393,8 +393,21 @@ mock.module("ai", () => ({
   generateImage: generateImageMock,
 }));
 
-mock.module("@openbeam/integrations/connector-actions", () => ({
-  ALL_CONNECTOR_ACTION_REGISTRIES: [connectorRegistry],
+const noopRegister: () => void = Function.prototype as () => void;
+
+mock.module("../connector-actions/registry", () => ({
+  registerConnectorActions: noopRegister,
+  getActionDefinition: (connectorType: string, actionId: string) => {
+    if (connectorType !== "slack") {
+      return;
+    }
+    return connectorRegistry.actions.find((a) => a.id === actionId);
+  },
+  getConnectorActions: (connectorType: string) =>
+    connectorType === "slack" ? connectorRegistry : undefined,
+  getAllConnectorActions: () => [connectorRegistry],
+  getResourcesForConnector: () => ["message"],
+  getOperationsForResource: () => connectorRegistry.actions,
 }));
 
 mock.module("@openbeam/db", () => ({

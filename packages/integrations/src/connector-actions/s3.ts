@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/connector-actions";
 
 export const s3ActionsRegistry: ConnectorActionsRegistry = {
   connectorType: "s3",

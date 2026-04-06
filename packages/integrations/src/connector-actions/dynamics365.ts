@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/connector-actions";
 
 export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
   connectorType: "dynamics365",

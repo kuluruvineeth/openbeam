@@ -40,6 +40,10 @@
       "types": "./dist/connectors/index.d.ts",
       "default": "./src/connectors/index.ts"
     },
+    "./connector-actions": {
+      "types": "./dist/connector-actions/index.d.ts",
+      "default": "./src/connector-actions/index.ts"
+    },
     "./db": {
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
