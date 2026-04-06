@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { useApiKeyModal } from "../hooks/use-api-key-modal";
 import type { McpClient } from "../lib/mcp-configs";
 import { MCP_SERVER_URL } from "../lib/mcp-configs";
 
@@ -72,6 +73,7 @@ export function McpConfigCard({
   onToggle,
 }: McpConfigCardProps) {
   const [apiKey, setApiKey] = useState("");
+  const openApiKeyModal = useApiKeyModal((state) => state.open);
 
   const generatedConfig = useMemo(
     () => client.configGenerator(apiKey || "YOUR_API_KEY", MCP_SERVER_URL),
@@ -128,6 +130,19 @@ export function McpConfigCard({
                   type="password"
                   value={apiKey}
                 />
+                {!apiKey && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Paste the API key you received when creating one, or{" "}
+                    <button
+                      className="text-primary underline-offset-2 hover:underline"
+                      onClick={() => openApiKeyModal("create")}
+                      type="button"
+                    >
+                      create a new key
+                    </button>
+                    .
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -141,6 +156,21 @@ export function McpConfigCard({
                   {generatedConfig}
                 </pre>
               </div>
+
+              {client.configPath && (
+                <div className="space-y-1.5">
+                  <span className="font-medium text-muted-foreground text-xs">
+                    Config path
+                  </span>
+                  <div className="flex items-center gap-2 rounded-sm bg-muted px-3 py-1.5">
+                    <Icons.Folder className="text-muted-foreground" size={12} />
+                    <span className="flex-1 truncate font-mono text-foreground text-xs">
+                      {client.configPath}
+                    </span>
+                    <CopyButton value={client.configPath} />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <span className="font-medium text-muted-foreground text-xs">

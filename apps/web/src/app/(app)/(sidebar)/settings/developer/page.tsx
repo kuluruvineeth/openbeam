@@ -1,3 +1,4 @@
+import { Separator } from "@openbeam/ui";
 import { Suspense } from "react";
 import { ApiKeyTable } from "@/features/settings/developer/components/api-key-table";
 import { CreateApiKeyModal } from "@/features/settings/developer/components/create-api-key-modal";
@@ -50,7 +51,11 @@ export default function DeveloperSettingsPage() {
         <ApiKeyTable />
       </Suspense>
 
+      <Separator className="bg-border/50" />
+
       <McpSetupSection />
+
+      <Separator className="bg-border/50" />
 
       <Suspense fallback={<TableSkeleton />}>
         <OAuthAppTable />

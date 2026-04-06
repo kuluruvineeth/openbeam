@@ -23,11 +23,48 @@ import { scopesToDisplayName } from "../lib/scopes";
 import { API_KEY_COLUMNS, type ApiKeyRow } from "./api-key-columns";
 import { ApiKeyEmptyState } from "./api-key-empty-state";
 
+function isExpired(date: Date | null): boolean {
+  return date !== null && date < new Date();
+}
+
+function isExpiringSoon(date: Date | null): date is Date {
+  if (date === null || isExpired(date)) {
+    return false;
+  }
+  const threshold = new Date();
+  threshold.setDate(threshold.getDate() + 7);
+  return date < threshold;
+}
+
 function RelativeDate({ date }: { date: Date | null }) {
   if (!date) {
     return <span className="text-muted-foreground">Never</span>;
   }
   return <>{formatDistanceToNow(date, { addSuffix: true })}</>;
+}
+
+function ExpirationBadge({ date }: { date: Date | null }) {
+  if (isExpired(date)) {
+    return (
+      <Badge
+        className="border-destructive/30 text-[10px] text-destructive"
+        variant="outline"
+      >
+        Expired
+      </Badge>
+    );
+  }
+  if (isExpiringSoon(date)) {
+    return (
+      <Badge
+        className="border-amber-500/30 text-[10px] text-amber-500"
+        variant="outline"
+      >
+        Expires {formatDistanceToNow(date, { addSuffix: true })}
+      </Badge>
+    );
+  }
+  return null;
 }
 
 function ActionsCell({ row }: { row: ApiKeyRow }) {
@@ -106,7 +143,12 @@ export function ApiKeyTable() {
           <TableBody>
             {activeKeys.map((row) => (
               <TableRow key={row.id}>
-                <TableCell className="font-medium">{row.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {row.name}
+                    <ExpirationBadge date={row.expiresAt ?? null} />
+                  </div>
+                </TableCell>
                 <TableCell className="font-mono text-muted-foreground text-xs">
                   {row.prefix}...
                 </TableCell>
