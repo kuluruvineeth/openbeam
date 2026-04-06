@@ -44,6 +44,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "fifteen-five",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials) {
     const handler = actions[actionId];
     if (!handler) {

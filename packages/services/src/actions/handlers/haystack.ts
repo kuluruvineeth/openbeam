@@ -2,6 +2,7 @@ import { registerHandler } from "../handler-registry";
 
 registerHandler({
   connectorType: "haystack",
+  supportedActions: [],
   execute(_actionId) {
     return Promise.resolve({
       success: false,

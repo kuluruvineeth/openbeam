@@ -12,6 +12,7 @@ export interface ActionExecutionResult {
 
 export interface ConnectorHandler {
   readonly connectorType: string;
+  readonly supportedActions: readonly string[];
   execute(
     actionId: string,
     params: Record<string, unknown>,

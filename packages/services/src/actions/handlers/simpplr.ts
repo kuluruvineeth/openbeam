@@ -80,6 +80,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "simpplr",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, _connectorId) {
     const handler = actions[actionId];
     if (!handler) {

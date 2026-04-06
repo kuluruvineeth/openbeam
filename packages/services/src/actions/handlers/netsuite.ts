@@ -69,6 +69,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "netsuite",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials) {
     const handler = actions[actionId];
     if (!handler) {

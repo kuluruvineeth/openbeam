@@ -3,6 +3,7 @@ import { registerHandler } from "../handler-registry";
 
 registerHandler({
   connectorType: "workday",
+  supportedActions: ["worker_update"],
   execute(actionId, params) {
     if (actionId === "worker_update") {
       const workerId =

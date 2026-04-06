@@ -73,6 +73,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "servicenow",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, connectorId) {
     const handler = actions[actionId];
     if (!handler) {

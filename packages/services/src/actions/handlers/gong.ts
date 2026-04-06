@@ -2,6 +2,7 @@ import { registerHandler } from "../handler-registry";
 
 registerHandler({
   connectorType: "gong",
+  supportedActions: [],
   execute(actionId) {
     return Promise.resolve({
       success: false,

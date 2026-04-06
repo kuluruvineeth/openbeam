@@ -104,6 +104,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "jira",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, connectorId) {
     const handler = actions[actionId];
     if (!handler) {

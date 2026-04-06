@@ -67,6 +67,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "coupa",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, connectorId) {
     const handler = actions[actionId];
     if (!handler) {

@@ -31,6 +31,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "looker-studio",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, connectorId) {
     const handler = actions[actionId];
     if (!handler) {

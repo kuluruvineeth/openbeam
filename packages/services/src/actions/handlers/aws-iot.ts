@@ -11,6 +11,7 @@ function str(p: Record<string, unknown>, key: string): string {
 
 registerHandler({
   connectorType: "aws-iot",
+  supportedActions: ["shadow_update"],
   async execute(actionId, params) {
     if (actionId === "shadow_update") {
       const desiredState =

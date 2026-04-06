@@ -15,6 +15,7 @@ function str(p: Record<string, unknown>, key: string): string {
 
 registerHandler({
   connectorType: "onenote",
+  supportedActions: ["section_list", "page_create", "page_update"],
   async execute(actionId, params, credentials) {
     const token = credentials.accessToken || "";
 

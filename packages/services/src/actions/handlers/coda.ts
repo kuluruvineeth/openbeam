@@ -100,6 +100,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "coda",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials) {
     const handler = actions[actionId];
     if (!handler) {

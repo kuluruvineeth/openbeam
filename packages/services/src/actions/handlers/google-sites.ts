@@ -31,6 +31,7 @@ const actions: Record<string, Handler> = {
 
 registerHandler({
   connectorType: "google-sites",
+  supportedActions: Object.keys(actions),
   async execute(actionId, params, credentials, connectorId) {
     const handler = actions[actionId];
     if (!handler) {

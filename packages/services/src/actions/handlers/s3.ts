@@ -13,6 +13,7 @@ function str(p: Record<string, unknown>, key: string): string {
 
 registerHandler({
   connectorType: "s3",
+  supportedActions: ["delete_object"],
   execute(actionId, params, credentials, connectorId) {
     if (actionId !== "delete_object") {
       return Promise.resolve({
