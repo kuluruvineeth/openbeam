@@ -1,13 +1,13 @@
 "use client";
 
 import { Button, Input } from "@openbeam/ui";
+import { MCP_CLIENT_LOGOS } from "@openbeam/ui/components/mcp-client-logo";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { McpClient } from "../lib/mcp-configs";
 import { MCP_SERVER_URL } from "../lib/mcp-configs";
-import { MCP_CLIENT_LOGOS } from "./mcp-client-logos";
 
 type McpConfigCardProps = {
   client: McpClient;

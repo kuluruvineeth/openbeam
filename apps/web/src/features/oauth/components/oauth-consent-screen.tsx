@@ -34,7 +34,7 @@ type OAuthConsentProps = {
   codeChallenge?: string;
 };
 
-import { resolveLogo } from "@/features/settings/developer/components/mcp-client-logos";
+import { resolveLogo } from "@openbeam/ui/components/mcp-client-logo";
 
 function AppLogo({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
   if (logoUrl) {

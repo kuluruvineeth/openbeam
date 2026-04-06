@@ -14,13 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from "@openbeam/ui";
+import { resolveLogo } from "@openbeam/ui/components/mcp-client-logo";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
 import { useTRPC } from "@/trpc/client";
 import { useOAuthAppModal } from "../hooks/use-oauth-app-modal";
 import { scopesToDisplayName } from "../lib/scopes";
-import { resolveLogo } from "./mcp-client-logos";
 import { OAuthAppStatusBadge } from "./oauth-app-status-badge";
 
 type OAuthAppRow = {
