@@ -10,16 +10,49 @@ import { OAuthAppTable } from "@/features/settings/developer/components/oauth-ap
 import { OAuthSecretModal } from "@/features/settings/developer/components/oauth-secret-modal";
 import { RevokeApiKeyModal } from "@/features/settings/developer/components/revoke-api-key-modal";
 
+function TableSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="h-4 w-48 animate-pulse rounded-sm bg-muted" />
+      <div className="rounded-sm border border-border/50">
+        <div className="flex items-center gap-4 border-border/50 border-b px-4 py-3">
+          <div className="h-3 w-24 animate-pulse rounded-sm bg-muted" />
+          <div className="h-3 w-20 animate-pulse rounded-sm bg-muted" />
+          <div className="h-3 w-16 animate-pulse rounded-sm bg-muted" />
+        </div>
+        {Array.from({ length: 3 }, (_, i) => (
+          <div
+            className="flex items-center gap-4 border-border/50 border-b px-4 py-3 last:border-b-0"
+            key={i}
+          >
+            <div className="h-3 w-32 animate-pulse rounded-sm bg-muted" />
+            <div className="h-3 w-24 animate-pulse rounded-sm bg-muted" />
+            <div className="h-3 w-16 animate-pulse rounded-sm bg-muted" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DeveloperSettingsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-12 py-8">
-      <Suspense>
+      <div>
+        <h2 className="font-medium text-lg">Developer Settings</h2>
+        <p className="text-muted-foreground text-sm">
+          Manage API keys, configure MCP clients, and register OAuth
+          applications.
+        </p>
+      </div>
+
+      <Suspense fallback={<TableSkeleton />}>
         <ApiKeyTable />
       </Suspense>
 
       <McpSetupSection />
 
-      <Suspense>
+      <Suspense fallback={<TableSkeleton />}>
         <OAuthAppTable />
       </Suspense>
 

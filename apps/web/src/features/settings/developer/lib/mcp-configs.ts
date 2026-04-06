@@ -179,6 +179,55 @@ const MCP_CLIENTS: McpClient[] = [
     ],
     docsUrl: "https://developers.openai.com/api/docs/mcp",
   },
+  {
+    id: "continue",
+    name: "Continue",
+    configGenerator: (apiKey, url) =>
+      JSON.stringify(
+        {
+          experimental: {
+            modelContextProtocolServers: [
+              {
+                transport: {
+                  type: "sse",
+                  url,
+                  headers: { Authorization: `Bearer ${apiKey}` },
+                },
+              },
+            ],
+          },
+        },
+        null,
+        2
+      ),
+    setupSteps: [
+      "Add to ~/.continue/config.json",
+      "Continue uses an array under experimental.modelContextProtocolServers",
+      "Restart the Continue extension after saving",
+    ],
+    configPath: "~/.continue/config.json",
+    docsUrl: "https://docs.continue.dev",
+  },
+  {
+    id: "opencode",
+    name: "OpenCode",
+    configGenerator: (apiKey, url) =>
+      [
+        "[mcp.openbeam]",
+        'type = "remote"',
+        `url = "${url}"`,
+        "",
+        "[mcp.openbeam.headers]",
+        `Authorization = "Bearer ${apiKey}"`,
+      ].join("\n"),
+    setupSteps: [
+      "Add to ~/.config/opencode/config.toml",
+      "OpenCode uses TOML format for MCP configuration",
+      "Restart OpenCode after saving",
+    ],
+    configPath: "~/.config/opencode/config.toml",
+    docsUrl: "https://opencode.ai",
+  },
 ];
 
 export { MCP_CLIENTS, MCP_SERVER_URL, type McpClient };

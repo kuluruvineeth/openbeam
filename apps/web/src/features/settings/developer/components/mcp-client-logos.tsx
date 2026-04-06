@@ -183,6 +183,60 @@ function CodexLogo({ size = 36 }: LogoProps) {
   );
 }
 
+function ContinueLogo({ size = 36 }: LogoProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="rounded-lg"
+      height={size}
+      viewBox="0 0 36 36"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect fill="#1E1E1E" height="36" rx="8" width="36" />
+      <path
+        d="M10 12l6 6-6 6M18 24h8"
+        fill="none"
+        stroke="#E06C75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.5"
+      />
+    </svg>
+  );
+}
+
+function OpenCodeLogo({ size = 36 }: LogoProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="rounded-lg"
+      height={size}
+      viewBox="0 0 36 36"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect fill="#0F172A" height="36" rx="8" width="36" />
+      <path
+        d="M14 12l-4 6 4 6M22 12l4 6-4 6"
+        fill="none"
+        stroke="#38BDF8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.5"
+      />
+      <path
+        d="M19 10l-2 16"
+        fill="none"
+        stroke="#38BDF8"
+        strokeLinecap="round"
+        strokeOpacity="0.5"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 const MCP_CLIENT_LOGOS: Record<
   string,
   (props: LogoProps) => React.ReactElement
@@ -195,6 +249,8 @@ const MCP_CLIENT_LOGOS: Record<
   cline: ClineLogo,
   chatgpt: ChatGPTLogo,
   codex: CodexLogo,
+  continue: ContinueLogo,
+  opencode: OpenCodeLogo,
 };
 
 const APP_NAME_TO_LOGO_KEY: Record<string, string> = {
@@ -213,6 +269,9 @@ const APP_NAME_TO_LOGO_KEY: Record<string, string> = {
   "visual studio code": "vscode",
   "vs code": "vscode",
   "github copilot": "vscode",
+  continue: "continue",
+  "continue-dev": "continue",
+  opencode: "opencode",
 };
 
 function resolveLogoKey(name: string): string | undefined {
