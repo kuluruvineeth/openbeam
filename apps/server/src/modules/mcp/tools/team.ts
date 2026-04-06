@@ -30,6 +30,51 @@ const mcpTeamMemberSchema = z.object({
   joinedAt: z.string().nullable().optional(),
 });
 
+type RawTeamResult = Awaited<ReturnType<typeof getTeamWithCounts>>;
+type RawMemberResult = Record<string, unknown>;
+
+function sanitizeTeam(result: NonNullable<RawTeamResult>) {
+  return sanitize(mcpTeamSchema, {
+    id: result.id,
+    name: result.name,
+    slug: result.slug,
+    plan: result.subscriptionTier,
+    connectorCount: result.connectorCount,
+    memberCount: result.memberCount,
+    documentCount: result.documentCount,
+    createdAt: result.createdAt.toISOString(),
+  });
+}
+
+function sanitizeMembers(results: RawMemberResult[]) {
+  return sanitizeArray(
+    mcpTeamMemberSchema,
+    results.map((m) => ({
+      id: m.userId,
+      name: m.name,
+      email: m.email,
+      role: m.role,
+      avatarUrl: m.image,
+      joinedAt:
+        m.createdAt instanceof Date
+          ? m.createdAt.toISOString()
+          : String(m.createdAt ?? ""),
+    }))
+  );
+}
+
+async function loadTeamAndMembers(teamId: string) {
+  const [teamResult, memberResults] = await Promise.all([
+    getTeamWithCounts(db, teamId),
+    listTeamMembers(db, teamId),
+  ]);
+
+  return {
+    team: teamResult ? sanitizeTeam(teamResult) : null,
+    members: sanitizeMembers(memberResults),
+  };
+}
+
 export const registerTeamTools: RegisterTools = (server, ctx) => {
   if (!hasScope(ctx, "teams.read")) {
     return;
@@ -47,29 +92,18 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       _meta: { ui: { resourceUri: "ui://openbeam/team" } },
     },
     withErrorHandling(async () => {
-      const result = await getTeamWithCounts(db, ctx.teamId);
+      const { team, members } = await loadTeamAndMembers(ctx.teamId);
 
-      if (!result) {
+      if (!team) {
         return {
           content: [{ type: "text" as const, text: "Team not found" }],
           isError: true,
         };
       }
 
-      const clean = sanitize(mcpTeamSchema, {
-        id: result.id,
-        name: result.name,
-        slug: result.slug,
-        plan: result.subscriptionTier,
-        connectorCount: result.connectorCount,
-        memberCount: result.memberCount,
-        documentCount: result.documentCount,
-        createdAt: result.createdAt.toISOString(),
-      });
-
       return {
-        content: [{ type: "text" as const, text: formatTeamInfo(clean) }],
-        structuredContent: { data: clean },
+        content: [{ type: "text" as const, text: formatTeamInfo(team) }],
+        structuredContent: { team, members },
       };
     }, "Failed to get team info")
   );
@@ -86,26 +120,11 @@ export const registerTeamTools: RegisterTools = (server, ctx) => {
       _meta: { ui: { resourceUri: "ui://openbeam/team" } },
     },
     withErrorHandling(async () => {
-      const results = await listTeamMembers(db, ctx.teamId);
-
-      const clean = sanitizeArray(
-        mcpTeamMemberSchema,
-        results.map((m: Record<string, unknown>) => ({
-          id: m.userId,
-          name: m.name,
-          email: m.email,
-          role: m.role,
-          avatarUrl: m.image,
-          joinedAt:
-            m.createdAt instanceof Date
-              ? m.createdAt.toISOString()
-              : String(m.createdAt ?? ""),
-        }))
-      );
+      const { team, members } = await loadTeamAndMembers(ctx.teamId);
 
       return {
-        content: [{ type: "text" as const, text: formatTeamMembers(clean) }],
-        structuredContent: { data: clean },
+        content: [{ type: "text" as const, text: formatTeamMembers(members) }],
+        structuredContent: { team, members },
       };
     }, "Failed to list team members")
   );

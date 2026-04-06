@@ -8,20 +8,44 @@ import { TeamSkeleton } from "./skeleton";
 import { TeamView } from "./team-view";
 
 type ToolData = {
+  team?: TeamInfo | null;
+  members?: TeamMember[];
   data?: TeamInfo | TeamMember[];
 };
 
-function isTeamInfo(data: unknown): data is TeamInfo {
+function hasTeamShape(value: unknown): value is TeamInfo {
   return (
-    typeof data === "object" &&
-    data !== null &&
-    "memberCount" in data &&
-    "connectorCount" in data
+    typeof value === "object" &&
+    value !== null &&
+    "memberCount" in value &&
+    "connectorCount" in value
   );
 }
 
-function isTeamMembers(data: unknown): data is TeamMember[] {
-  return Array.isArray(data) && data.length > 0 && "email" in data[0];
+function hasMembersShape(value: unknown): value is TeamMember[] {
+  return Array.isArray(value) && (value.length === 0 || "email" in value[0]);
+}
+
+function extractTeamAndMembers(sc: ToolData | undefined): {
+  team: TeamInfo | null;
+  members: TeamMember[];
+} {
+  if (sc?.team || sc?.members) {
+    return {
+      team: sc.team ?? null,
+      members: sc.members ?? [],
+    };
+  }
+
+  const raw = sc?.data;
+  if (hasTeamShape(raw)) {
+    return { team: raw, members: [] };
+  }
+  if (hasMembersShape(raw)) {
+    return { team: null, members: raw };
+  }
+
+  return { team: null, members: [] };
 }
 
 function TeamApp() {
@@ -36,17 +60,7 @@ function TeamApp() {
     >
       {({ toolResult }) => {
         const sc = toolResult.structuredContent as ToolData | undefined;
-        const raw = sc?.data;
-
-        let team: TeamInfo | null = null;
-        let members: TeamMember[] = [];
-
-        if (isTeamInfo(raw)) {
-          team = raw;
-        } else if (isTeamMembers(raw)) {
-          members = raw;
-        }
-
+        const { team, members } = extractTeamAndMembers(sc);
         const title = team?.name ?? "Team";
 
         return (
