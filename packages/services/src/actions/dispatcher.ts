@@ -1,4 +1,5 @@
 import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
+import { logger } from "../lib/logger";
 import { resolveCredentials } from "./credentials";
 import "./handlers";
 import {
@@ -20,9 +21,55 @@ function normalizeType(type: string): string {
   return type.toLowerCase().trim().replace(/-/g, "_");
 }
 
-export async function dispatchAction(
+type DispatchOutcome =
+  | { kind: "success"; result: ActionExecutionResult; connectorType: string }
+  | { kind: "failure"; error: unknown; connectorType: string | null };
+
+function logDispatch(
+  request: DispatchRequest,
+  outcome: DispatchOutcome,
+  durationMs: number
+): void {
+  const base = {
+    actionId: request.actionId,
+    connectorId: request.connectorId,
+    teamId: request.teamId,
+    userId: request.userId,
+    source: request.source,
+    durationMs,
+  };
+
+  if (outcome.kind === "success") {
+    logger.info(
+      {
+        ...base,
+        connectorType: outcome.connectorType,
+        success: outcome.result.success,
+      },
+      "connector_action_dispatched"
+    );
+    return;
+  }
+
+  logger.error(
+    {
+      ...base,
+      connectorType: outcome.connectorType,
+      error:
+        outcome.error instanceof Error
+          ? {
+              name: outcome.error.name,
+              message: outcome.error.message,
+            }
+          : { message: String(outcome.error) },
+    },
+    "connector_action_dispatch_failed"
+  );
+}
+
+async function runDispatch(
   request: DispatchRequest
-): Promise<ActionExecutionResult> {
+): Promise<{ result: ActionExecutionResult; connectorType: string }> {
   const { credentials, connectorType: rawType } = await resolveCredentials(
     request.connectorId,
     request.teamId
@@ -33,9 +80,12 @@ export async function dispatchAction(
   const registry = actionsByConnector.get(connectorType);
   if (!registry) {
     return {
-      success: false,
-      data: {},
-      error: `No actions defined for connector type: ${connectorType}`,
+      connectorType,
+      result: {
+        success: false,
+        data: {},
+        error: `No actions defined for connector type: ${connectorType}`,
+      },
     };
   }
 
@@ -58,24 +108,53 @@ export async function dispatchAction(
   if (!handler) {
     const registered = getRegisteredTypes();
     return {
-      success: false,
-      data: { connectorType, actionId: request.actionId },
-      error: `No executor registered for "${connectorType}". ${registered.length} executors available: ${registered.join(", ")}`,
+      connectorType,
+      result: {
+        success: false,
+        data: { connectorType, actionId: request.actionId },
+        error: `No executor registered for "${connectorType}". ${registered.length} executors available: ${registered.join(", ")}`,
+      },
     };
   }
 
   try {
-    return await handler.execute(
+    const result = await handler.execute(
       request.actionId,
       request.params,
       credentials,
       request.connectorId
     );
+    return { connectorType, result };
   } catch (error) {
     if (error instanceof ActionExecutorError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : "Unknown error";
-    return { success: false, data: {}, error: message };
+    return {
+      connectorType,
+      result: { success: false, data: {}, error: message },
+    };
+  }
+}
+
+export async function dispatchAction(
+  request: DispatchRequest
+): Promise<ActionExecutionResult> {
+  const startedAt = Date.now();
+  try {
+    const { result, connectorType } = await runDispatch(request);
+    logDispatch(
+      request,
+      { kind: "success", result, connectorType },
+      Date.now() - startedAt
+    );
+    return result;
+  } catch (error) {
+    logDispatch(
+      request,
+      { kind: "failure", error, connectorType: null },
+      Date.now() - startedAt
+    );
+    throw error;
   }
 }
