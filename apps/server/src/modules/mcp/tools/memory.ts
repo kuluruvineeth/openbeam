@@ -1,9 +1,4 @@
-import { createHash } from "node:crypto";
-import db, {
-  deleteContextEntry,
-  incrementActiveCount,
-  upsertContextEntry,
-} from "@openbeam/db";
+import type { ContextType } from "@openbeam/types/context";
 import { z } from "zod";
 import {
   formatMemoryDelete,
@@ -12,6 +7,7 @@ import {
   formatMemoryStore,
 } from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
+import { getContextSearchService, getContextStore } from "../mcp.services";
 import {
   DESTRUCTIVE_ANNOTATIONS,
   hasScope,
@@ -45,23 +41,6 @@ const mcpMemoryDetailSchema = mcpMemorySchema.extend({
   overview: z.string().nullable().optional(),
 });
 
-interface MemoryUriParams {
-  teamId: string;
-  ownerId: string;
-  ownerType: string;
-  category: string;
-  slug: string;
-}
-
-function generateMemoryUri(params: MemoryUriParams): string {
-  const { teamId, ownerId, ownerType, category, slug } = params;
-  const base =
-    ownerType === "agent"
-      ? `openbeam://agent/${teamId}/${ownerId}/memories`
-      : `openbeam://user/${teamId}/${ownerId}/memories`;
-  return `${base}/${category}/${slug}`;
-}
-
 const TITLE_SPLIT_RE = /[.\n]/;
 const SLUG_REPLACE_RE = /[^a-z0-9]+/g;
 const SLUG_TRIM_RE = /^-|-$/g;
@@ -72,6 +51,19 @@ function slugify(text: string): string {
     .replace(SLUG_REPLACE_RE, "-")
     .replace(SLUG_TRIM_RE, "")
     .slice(0, 60);
+}
+
+interface MemoryUriParts {
+  teamId: string;
+  ownerId: string;
+  ownerType: string;
+  category: string;
+  slug: string;
+}
+
+function buildMemoryUri(parts: MemoryUriParts): string {
+  const prefix = parts.ownerType === "agent" ? "agent" : "user";
+  return `openbeam://${prefix}/${parts.teamId}/${parts.ownerId}/memories/${parts.category}/${parts.slug}`;
 }
 
 export const registerMemoryTools: RegisterTools = (server, ctx) => {
@@ -119,56 +111,28 @@ export const registerMemoryTools: RegisterTools = (server, ctx) => {
     withErrorHandling(async (params) => {
       const take = params.limit ?? 10;
       const scope = params.scope ?? "user";
+      const searchService = getContextSearchService();
+      const store = getContextStore();
 
-      const where: Record<string, unknown> = {
-        teamId: ctx.teamId,
-        contextType: "memory",
-        OR: [
-          { abstractText: { contains: params.query, mode: "insensitive" } },
-          { content: { contains: params.query, mode: "insensitive" } },
-        ],
-      };
-
-      if (scope === "user") {
-        where.ownerId = ctx.userId;
-        where.ownerType = "user";
-      } else if (scope === "agent") {
-        where.ownerType = "agent";
-      } else if (scope === "team") {
-        where.ownerType = "team";
-      }
-
-      if (params.category) {
-        where.category = params.category;
-      }
-
-      const memories = await db.contextEntry.findMany({
-        where,
-        orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
-        take,
-        select: {
-          uri: true,
-          abstractText: true,
-          content: true,
-          category: true,
-          ownerType: true,
-          activeCount: true,
-          updatedAt: true,
-        },
+      const entries = await searchService.find(params.query, ctx.teamId, {
+        contextType: "memory" as ContextType,
+        limit: take,
       });
 
-      for (const m of memories) {
-        await incrementActiveCount(db, ctx.teamId, m.uri);
-      }
+      const filtered = params.category
+        ? entries.filter((e) => e.category === params.category)
+        : entries;
 
-      const results = memories.map((m) => ({
-        uri: m.uri,
-        abstract: m.abstractText,
-        content: m.content,
-        category: m.category,
-        ownerType: m.ownerType,
-        activeCount: m.activeCount,
-        updatedAt: m.updatedAt.toISOString(),
+      await Promise.all(filtered.map((e) => store.touch(ctx.teamId, e.uri)));
+
+      const results = filtered.map((e) => ({
+        uri: e.uri,
+        abstract: e.abstractText,
+        content: null,
+        category: e.category,
+        ownerType: null,
+        activeCount: e.activeCount,
+        updatedAt: e.updatedAt.toISOString(),
       }));
 
       const data = sanitizeArray(mcpMemoryDetailSchema, results);
@@ -224,46 +188,24 @@ export const registerMemoryTools: RegisterTools = (server, ctx) => {
     withErrorHandling(async (params) => {
       const take = params.limit ?? 30;
       const scope = params.scope ?? "user";
+      const store = getContextStore();
+      const ownerId = scope === "user" ? ctx.userId : ctx.teamId;
+      const ownerType = scope === "team" ? "team" : scope;
 
-      const where: Record<string, unknown> = {
-        teamId: ctx.teamId,
-        contextType: "memory",
-      };
+      const parentUri = `openbeam://${ownerType === "agent" ? "agent" : "user"}/${ctx.teamId}/${ownerId}/memories/`;
+      const baseUri = params.category
+        ? `${parentUri}${params.category}/`
+        : parentUri;
 
-      if (scope === "user") {
-        where.ownerId = ctx.userId;
-        where.ownerType = "user";
-      } else if (scope === "agent") {
-        where.ownerType = "agent";
-      } else if (scope === "team") {
-        where.ownerType = "team";
-      }
+      const entries = await store.list(ctx.teamId, baseUri);
 
-      if (params.category) {
-        where.category = params.category;
-      }
-
-      const memories = await db.contextEntry.findMany({
-        where,
-        orderBy: [{ updatedAt: "desc" }],
-        take,
-        select: {
-          uri: true,
-          abstractText: true,
-          category: true,
-          ownerType: true,
-          activeCount: true,
-          updatedAt: true,
-        },
-      });
-
-      const results = memories.map((m) => ({
-        uri: m.uri,
-        abstract: m.abstractText,
-        category: m.category,
-        ownerType: m.ownerType,
-        activeCount: m.activeCount,
-        updatedAt: m.updatedAt.toISOString(),
+      const results = entries.slice(0, take).map((e) => ({
+        uri: e.uri,
+        abstract: e.abstractText,
+        category: e.category,
+        ownerType: e.ownerType,
+        activeCount: e.activeCount,
+        updatedAt: e.updatedAt.toISOString(),
       }));
 
       const data = sanitizeArray(mcpMemorySchema, results);
@@ -332,21 +274,18 @@ export const registerMemoryTools: RegisterTools = (server, ctx) => {
       const slug = slugify(title);
       const ownerType = scope === "team" ? "team" : scope;
       const ownerId = scope === "user" ? ctx.userId : ctx.teamId;
+      const store = getContextStore();
 
-      const uri = generateMemoryUri({
+      const uri = buildMemoryUri({
         teamId: ctx.teamId,
         ownerId,
         ownerType,
         category: params.category,
         slug,
       });
-      const parentUri = `openbeam://${ownerType === "agent" ? "agent" : "user"}/${ctx.teamId}/${ownerId}/memories/${params.category}/`;
-      const id = createHash("md5").update(`${ctx.teamId}:${uri}`).digest("hex");
 
-      const entry = await upsertContextEntry(db, {
-        id,
+      const entry = await store.create({
         uri,
-        parentUri,
         teamId: ctx.teamId,
         ownerId,
         ownerType,
@@ -392,9 +331,10 @@ export const registerMemoryTools: RegisterTools = (server, ctx) => {
       annotations: DESTRUCTIVE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const result = await deleteContextEntry(db, ctx.teamId, params.uri);
+      const store = getContextStore();
+      const entry = await store.read(ctx.teamId, params.uri);
 
-      if (result.count === 0) {
+      if (!entry) {
         return {
           content: [
             {
@@ -405,6 +345,8 @@ export const registerMemoryTools: RegisterTools = (server, ctx) => {
           isError: true,
         };
       }
+
+      await store.delete(ctx.teamId, params.uri);
 
       return {
         content: [

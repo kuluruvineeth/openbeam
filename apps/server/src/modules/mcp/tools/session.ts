@@ -1,11 +1,3 @@
-import db, {
-  addContextSessionMessage,
-  createContextSession,
-  findContextSession,
-  listContextSessions,
-  updateContextSessionStatus,
-  updateContextSessionTokens,
-} from "@openbeam/db";
 import { z } from "zod";
 import {
   formatSessionCommit,
@@ -14,6 +6,7 @@ import {
   formatSessionMessage,
 } from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
+import { getSessionManager } from "../mcp.services";
 import {
   hasScope,
   READ_ONLY_ANNOTATIONS,
@@ -31,10 +24,6 @@ const mcpSessionSchema = z.object({
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
 });
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
 
 export const registerSessionTools: RegisterTools = (server, ctx) => {
   if (!hasScope(ctx, "context.write")) {
@@ -60,11 +49,12 @@ export const registerSessionTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const session = await createContextSession(db, {
-        teamId: ctx.teamId,
-        userId: ctx.userId,
-        agentId: params.agentId,
-      });
+      const manager = getSessionManager();
+      const session = await manager.create(
+        ctx.teamId,
+        ctx.userId,
+        params.agentId
+      );
 
       const result = {
         id: session.id,
@@ -102,9 +92,14 @@ export const registerSessionTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const session = await findContextSession(db, params.sessionId);
+      const manager = getSessionManager();
 
-      if (!session || session.teamId !== ctx.teamId) {
+      await manager.addMessage(params.sessionId, params.role, params.content);
+
+      const messages = await manager.getMessages(params.sessionId);
+      const session = messages.length > 0 ? { totalTokens: 0 } : null;
+
+      if (!session) {
         return {
           content: [
             {
@@ -116,43 +111,22 @@ export const registerSessionTools: RegisterTools = (server, ctx) => {
         };
       }
 
-      if (session.status !== "active") {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Session is ${session.status} — only active sessions accept messages.`,
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      const tokenCount = estimateTokens(params.content);
-
-      await addContextSessionMessage(db, {
-        sessionId: params.sessionId,
-        role: params.role,
-        content: params.content,
-        tokenCount,
-      });
-
-      const newTotal = session.totalTokens + tokenCount;
-      await updateContextSessionTokens(db, params.sessionId, newTotal);
-
       return {
         content: [
           {
             type: "text" as const,
-            text: formatSessionMessage(params.sessionId, params.role, newTotal),
+            text: formatSessionMessage(
+              params.sessionId,
+              params.role,
+              messages.length
+            ),
           },
         ],
         structuredContent: {
           data: {
             sessionId: params.sessionId,
             role: params.role,
-            tokenCount,
-            totalTokens: newTotal,
+            messageCount: messages.length,
           },
         },
       };
@@ -177,53 +151,21 @@ export const registerSessionTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const session = await findContextSession(db, params.sessionId);
-
-      if (!session || session.teamId !== ctx.teamId) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "Session not found or access denied.",
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      if (session.status !== "active") {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Session is already ${session.status}.`,
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      await updateContextSessionStatus(db, params.sessionId, "committed");
-
-      const messageCount = session.messages?.length ?? 0;
+      const manager = getSessionManager();
+      const result = await manager.commit(params.sessionId);
 
       return {
         content: [
           {
             type: "text" as const,
-            text: formatSessionCommit(
-              params.sessionId,
-              messageCount,
-              session.totalTokens
-            ),
+            text: formatSessionCommit(params.sessionId, 0, 0),
           },
         ],
         structuredContent: {
           data: {
             sessionId: params.sessionId,
             status: "committed",
-            messageCount,
-            totalTokens: session.totalTokens,
+            workflowId: result?.workflowId ?? null,
           },
         },
       };
@@ -250,13 +192,8 @@ export const registerSessionTools: RegisterTools = (server, ctx) => {
     },
     withErrorHandling(async (params) => {
       const take = params.limit ?? 20;
-
-      const sessions = await listContextSessions(
-        db,
-        ctx.teamId,
-        ctx.userId,
-        take
-      );
+      const manager = getSessionManager();
+      const sessions = await manager.list(ctx.teamId, ctx.userId, take);
 
       const results = sessions.map((s) => ({
         id: s.id,
