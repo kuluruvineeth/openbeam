@@ -4,9 +4,9 @@ export interface ActionCredentials {
   config: Record<string, unknown>;
 }
 
-export interface ActionExecutionResult {
+export interface ActionExecutionResult<TData = Record<string, unknown>> {
   success: boolean;
-  data: Record<string, unknown>;
+  data: TData;
   error?: string;
 }
 

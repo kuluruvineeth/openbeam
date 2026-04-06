@@ -44,6 +44,26 @@
       "types": "./dist/connector-actions/index.d.ts",
       "default": "./src/connector-actions/index.ts"
     },
+    "./connector-actions/slack": {
+      "types": "./dist/connector-actions/slack.d.ts",
+      "default": "./src/connector-actions/slack.ts"
+    },
+    "./connector-actions/gmail": {
+      "types": "./dist/connector-actions/gmail.d.ts",
+      "default": "./src/connector-actions/gmail.ts"
+    },
+    "./connector-actions/notion": {
+      "types": "./dist/connector-actions/notion.d.ts",
+      "default": "./src/connector-actions/notion.ts"
+    },
+    "./connector-actions/google-drive": {
+      "types": "./dist/connector-actions/google-drive.d.ts",
+      "default": "./src/connector-actions/google-drive.ts"
+    },
+    "./connector-actions/linear": {
+      "types": "./dist/connector-actions/linear.d.ts",
+      "default": "./src/connector-actions/linear.ts"
+    },
     "./db": {
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
