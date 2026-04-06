@@ -1,16 +1,9 @@
-import { createHash } from "node:crypto";
-import db, {
-  createContextRelation,
-  findContextEntry,
-  upsertContextEntry,
-} from "@openbeam/db";
 import { z } from "zod";
 import { formatContextStore } from "../formatters";
 import { sanitize } from "../mcp.sanitize";
+import { getContextStore, getRelationService } from "../mcp.services";
 import { hasScope, type RegisterTools, WRITE_ANNOTATIONS } from "../mcp.types";
 import { withErrorHandling } from "../mcp.utils";
-
-const TRAILING_SLASHES_RE = /\/+$/;
 
 const mcpContextEntrySchema = z.object({
   uri: z.string(),
@@ -22,19 +15,6 @@ const mcpContextEntrySchema = z.object({
   score: z.number().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
 });
-
-function deriveParentUri(uri: string): string {
-  const trimmed = uri.replace(TRAILING_SLASHES_RE, "");
-  const lastSlash = trimmed.lastIndexOf("/");
-  if (lastSlash <= 0) {
-    return "";
-  }
-  return `${trimmed.slice(0, lastSlash)}/`;
-}
-
-function generateContextId(teamId: string, uri: string): string {
-  return createHash("md5").update(`${teamId}:${uri}`).digest("hex");
-}
 
 export const registerContextWriteTools: RegisterTools = (server, ctx) => {
   if (!hasScope(ctx, "context.write")) {
@@ -81,21 +61,18 @@ export const registerContextWriteTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const parentUri = params.parentUri ?? deriveParentUri(params.uri);
-      const abstractText = params.abstractText ?? params.content.slice(0, 200);
-      const id = generateContextId(ctx.teamId, params.uri);
+      const store = getContextStore();
 
-      const entry = await upsertContextEntry(db, {
-        id,
+      const entry = await store.create({
         uri: params.uri,
-        parentUri,
+        parentUri: params.parentUri,
         teamId: ctx.teamId,
         ownerId: ctx.userId,
         ownerType: "user",
         contextType: params.contextType,
         category: params.category,
         isLeaf: true,
-        abstractText,
+        abstractText: params.abstractText ?? params.content.slice(0, 200),
         content: params.content,
       });
 
@@ -147,16 +124,12 @@ export const registerContextWriteTools: RegisterTools = (server, ctx) => {
       annotations: WRITE_ANNOTATIONS,
     },
     withErrorHandling(async (params) => {
-      const sourceExists = await findContextEntry(
-        db,
-        ctx.teamId,
-        params.sourceUri
-      );
-      const targetExists = await findContextEntry(
-        db,
-        ctx.teamId,
-        params.targetUri
-      );
+      const store = getContextStore();
+
+      const [sourceExists, targetExists] = await Promise.all([
+        store.read(ctx.teamId, params.sourceUri),
+        store.read(ctx.teamId, params.targetUri),
+      ]);
 
       if (!(sourceExists && targetExists)) {
         return {
@@ -170,19 +143,19 @@ export const registerContextWriteTools: RegisterTools = (server, ctx) => {
         };
       }
 
-      const relation = await createContextRelation(db, {
-        sourceUri: params.sourceUri,
-        targetUri: params.targetUri,
-        teamId: ctx.teamId,
-        reason: params.reason,
-        relationType: params.relationType,
-      });
+      const relationService = getRelationService();
+      await relationService.link(
+        ctx.teamId,
+        params.sourceUri,
+        params.targetUri,
+        params.reason
+      );
 
       const text = [
         "Relation created:",
-        `  ${relation.sourceUri} → ${relation.targetUri}`,
-        relation.reason ? `  Reason: ${relation.reason}` : "",
-        relation.relationType ? `  Type: ${relation.relationType}` : "",
+        `  ${params.sourceUri} → ${params.targetUri}`,
+        params.reason ? `  Reason: ${params.reason}` : "",
+        params.relationType ? `  Type: ${params.relationType}` : "",
         "",
         "Next steps:",
         "  Use context_read on either URI to see this relation in the related entries list.",
@@ -194,10 +167,10 @@ export const registerContextWriteTools: RegisterTools = (server, ctx) => {
         content: [{ type: "text" as const, text }],
         structuredContent: {
           data: {
-            sourceUri: relation.sourceUri,
-            targetUri: relation.targetUri,
-            reason: relation.reason,
-            relationType: relation.relationType,
+            sourceUri: params.sourceUri,
+            targetUri: params.targetUri,
+            reason: params.reason,
+            relationType: params.relationType,
           },
         },
       };
