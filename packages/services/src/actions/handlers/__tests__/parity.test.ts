@@ -50,19 +50,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
     ],
   },
   gmail: {
-    definitionMissing: [
-      "draft_delete",
-      "draft_send",
-      "message_add_labels",
-      "message_archive",
-      "message_mark_read",
-      "message_mark_unread",
-      "message_remove_labels",
-      "message_star",
-      "message_trash",
-      "message_unstar",
-      "message_untrash",
-    ],
+    definitionMissing: [],
     handlerMissing: [
       "email_forward",
       "email_get",
