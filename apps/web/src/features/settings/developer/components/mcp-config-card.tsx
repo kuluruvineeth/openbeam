@@ -91,7 +91,7 @@ export function McpConfigCard({
         type="button"
       >
         <span className="flex items-center gap-3">
-          {MCP_CLIENT_LOGOS[client.id]?.({ size: 28 })}
+          {MCP_CLIENT_LOGOS[client.id]?.render({ size: 28 })}
           <span className="font-medium text-sm">{client.name}</span>
         </span>
         <Icons.ChevronDown
