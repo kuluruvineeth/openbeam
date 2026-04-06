@@ -9,4 +9,5 @@ paths = [
   '''monitoring/''',
   '''packages/temporal/src/__tests__/''',
   '''packages/integrations/src/connector-actions/''',
+  '''apps/web/src/features/settings/developer/lib/__tests__/''',
 ]
