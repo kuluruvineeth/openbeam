@@ -5,19 +5,12 @@ import {
 } from "../../interact/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { optStr, str } from "./shared/params";
 
 type Handler = (
   client: InteractClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
 
 function num(p: Record<string, unknown>, key: string): number {
   const v = p[key];
@@ -48,11 +41,6 @@ function numArray(p: Record<string, unknown>, key: string): number[] {
     });
   }
   throw new Error(`${key} is required and must be an array`);
-}
-
-function optStr(p: Record<string, unknown>, key: string): string | undefined {
-  const v = p[key];
-  return typeof v === "string" && v.trim() ? v.trim() : undefined;
 }
 
 const actions: Record<string, Handler> = {

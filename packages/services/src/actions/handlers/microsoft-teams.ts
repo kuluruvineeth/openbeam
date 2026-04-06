@@ -10,19 +10,12 @@ import {
 } from "../../microsoft-teams/actions";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { str } from "./shared/params";
 
 type Handler = (
   client: MicrosoftGraphClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
 
 const actions: Record<string, Handler> = {
   async team_list(client) {

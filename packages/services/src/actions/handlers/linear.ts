@@ -13,36 +13,12 @@ import {
 import { createLinearClient, type LinearClient } from "../../linear/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { optNum, optStr, str } from "./shared/params";
 
 type Handler = (
   client: LinearClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
-
-function optStr(p: Record<string, unknown>, key: string): string | undefined {
-  const v = p[key];
-  return typeof v === "string" && v.trim() ? v.trim() : undefined;
-}
-
-function optNum(p: Record<string, unknown>, key: string): number | undefined {
-  const v = p[key];
-  if (typeof v === "number") {
-    return v;
-  }
-  if (typeof v === "string") {
-    const n = Number.parseInt(v, 10);
-    return Number.isNaN(n) ? undefined : n;
-  }
-  return;
-}
 
 const actions: Record<string, Handler> = {
   async issue_create(client, p) {

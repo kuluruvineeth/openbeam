@@ -1,13 +1,6 @@
 import { updateDeviceShadow } from "../../aws-iot/actions";
 import { registerHandler } from "../handler-registry";
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
+import { str } from "./shared/params";
 
 registerHandler({
   connectorType: "aws-iot",

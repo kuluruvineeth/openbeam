@@ -20,27 +20,12 @@ import { replyToEmail, sendEmail } from "../../gmail/actions/send-email";
 import { createGmailClient, type GmailClient } from "../../gmail/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { str, strArr } from "./shared/params";
 
 type Handler = (
   client: GmailClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
-
-function strArr(p: Record<string, unknown>, key: string): string[] {
-  const v = p[key];
-  if (Array.isArray(v)) {
-    return v as string[];
-  }
-  throw new Error(`${key} is required`);
-}
 
 const actions: Record<string, Handler> = {
   async email_send(client, p) {

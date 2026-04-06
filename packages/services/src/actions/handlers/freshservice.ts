@@ -10,20 +10,13 @@ import {
 } from "../../freshservice/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { str } from "./shared/params";
 
 type Handler = (
   client: FreshserviceClient,
   p: Record<string, unknown>,
   domain: string
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
 
 const actions: Record<string, Handler> = {
   async ticket_create(client, p, domain) {

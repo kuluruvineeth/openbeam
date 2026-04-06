@@ -2,14 +2,7 @@ import { deleteObject } from "../../s3/actions";
 import { createS3Client } from "../../s3/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
+import { str } from "./shared/params";
 
 registerHandler({
   connectorType: "s3",

@@ -1,6 +1,7 @@
 import { createPage, updatePage } from "../../simpplr/actions";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { optStr, str } from "./shared/params";
 
 interface ActionClientConfig {
   accessToken: string;
@@ -11,19 +12,6 @@ type Handler = (
   config: ActionClientConfig,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
-
-function optStr(p: Record<string, unknown>, key: string): string | undefined {
-  const v = p[key];
-  return typeof v === "string" && v.trim() ? v.trim() : undefined;
-}
 
 const actions: Record<string, Handler> = {
   async page_create(config, p) {

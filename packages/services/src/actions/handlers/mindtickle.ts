@@ -10,24 +10,12 @@ import {
 } from "../../mindtickle/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
+import { optStr, str } from "./shared/params";
 
 type Handler = (
   client: MindtickleClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function str(p: Record<string, unknown>, key: string): string {
-  const v = p[key];
-  if (typeof v === "string" && v.trim()) {
-    return v.trim();
-  }
-  throw new Error(`${key} is required`);
-}
-
-function optStr(p: Record<string, unknown>, key: string): string | undefined {
-  const v = p[key];
-  return typeof v === "string" && v.trim() ? v.trim() : undefined;
-}
 
 function optArr(p: Record<string, unknown>, key: string): string[] | undefined {
   const v = p[key];
