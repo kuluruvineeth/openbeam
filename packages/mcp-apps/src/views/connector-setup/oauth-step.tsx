@@ -1,4 +1,5 @@
 import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
+import { Button } from "@openbeam/ui/components/button";
 import { OAuthLoading } from "@openbeam/ui/components/oauth-loading";
 import { useEffect, useRef, useState } from "react";
 import { ConnectorLogo } from "../../shared/connector-logo";
@@ -39,6 +40,10 @@ export function OAuthStep({
   const [oauthState, setOAuthState] = useState<OAuthState>("initial");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+  onCompleteRef.current = onComplete;
+  onErrorRef.current = onError;
 
   const handleOpenAuth = async () => {
     if (!setupData.oauthUrl) {
@@ -80,7 +85,8 @@ export function OAuthStep({
             clearInterval(intervalRef.current);
           }
           setOAuthState("success");
-          setTimeout(() => onComplete(sc.connectorId as string), 1000);
+          const id = sc.connectorId;
+          setTimeout(() => onCompleteRef.current(id), 1000);
         }
 
         if (s === "failed" || s === "expired") {
@@ -88,8 +94,9 @@ export function OAuthStep({
             clearInterval(intervalRef.current);
           }
           setOAuthState("error");
-          setErrorMsg(sc?.error ?? `Setup ${s}`);
-          setTimeout(() => onError(sc?.error ?? `Setup ${s}`), 2000);
+          const message = sc?.error ?? `Setup ${s}`;
+          setErrorMsg(message);
+          setTimeout(() => onErrorRef.current(message), 2000);
         }
       } catch {
         if (intervalRef.current) {
@@ -108,7 +115,7 @@ export function OAuthStep({
         clearInterval(intervalRef.current);
       }
     };
-  }, [oauthState, setupData.setupId, app, onComplete, onError]);
+  }, [oauthState, setupData.setupId, app]);
 
   const appName = setupData.app?.name ?? "connector";
   const appId = setupData.app?.id ?? "";
@@ -149,13 +156,14 @@ export function OAuthStep({
         </p>
       </div>
 
-      <button
-        className="rounded-sm bg-foreground px-4 py-2 font-medium text-background text-xs transition-colors hover:bg-foreground/90"
+      <Button
+        className="rounded-sm"
         onClick={handleOpenAuth}
+        size="sm"
         type="button"
       >
         Authorize {appName}
-      </button>
+      </Button>
 
       <p className="text-[10px] text-foreground/30">
         Data encrypted in transit · Revoke access anytime

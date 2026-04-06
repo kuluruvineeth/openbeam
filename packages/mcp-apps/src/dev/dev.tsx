@@ -4,17 +4,38 @@ import { createRoot } from "react-dom/client";
 import { AppShell } from "../shared/app-shell";
 import { DashboardView } from "../views/connector-dashboard/dashboard-view";
 import { MOCK_CONNECTOR_DATA } from "../views/connector-dashboard/mock-data";
+import { BrowseStep } from "../views/connector-setup/browse-step";
+import { MOCK_CONNECTORS } from "../views/connector-setup/mock-data";
 import { MOCK_DOCUMENT_DATA } from "../views/document-preview/mock-data";
 import { PreviewView } from "../views/document-preview/preview-view";
+import { MOCK_PEOPLE_DATA } from "../views/people/mock-data";
+import { PeopleView } from "../views/people/people-view";
 import { MOCK_SEARCH_DATA } from "../views/search/mock-data";
 import { SearchView } from "../views/search/search-view";
+import { MOCK_SYNC_DATA } from "../views/sync-status/mock-data";
+import { SyncView } from "../views/sync-status/sync-view";
+import { MOCK_MEMBERS, MOCK_TEAM } from "../views/team/mock-data";
+import { TeamView } from "../views/team/team-view";
 
-type ViewId = "search" | "connector-dashboard" | "document-preview";
+const noop: () => void = Function.prototype as () => void;
+
+type ViewId =
+  | "search"
+  | "connector-dashboard"
+  | "document-preview"
+  | "people"
+  | "sync-status"
+  | "team"
+  | "connector-setup";
 
 const VIEWS: { id: ViewId; label: string }[] = [
-  { id: "search", label: "Search Results" },
-  { id: "connector-dashboard", label: "Connector Dashboard" },
-  { id: "document-preview", label: "Document Preview" },
+  { id: "search", label: "Search" },
+  { id: "connector-dashboard", label: "Connectors" },
+  { id: "document-preview", label: "Document" },
+  { id: "people", label: "People" },
+  { id: "sync-status", label: "Sync" },
+  { id: "team", label: "Team" },
+  { id: "connector-setup", label: "Setup" },
 ];
 
 function DevApp() {
@@ -42,7 +63,7 @@ function DevApp() {
         <h1 style={{ fontSize: "0.875rem", fontWeight: 600 }}>
           MCP Apps — Dev Preview
         </h1>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           {VIEWS.map((view) => (
             <button
               key={view.id}
@@ -96,6 +117,14 @@ function DevApp() {
         )}
         {activeView === "document-preview" && (
           <PreviewView document={MOCK_DOCUMENT_DATA.document} />
+        )}
+        {activeView === "people" && <PeopleView people={MOCK_PEOPLE_DATA} />}
+        {activeView === "sync-status" && <SyncView jobs={MOCK_SYNC_DATA} />}
+        {activeView === "team" && (
+          <TeamView members={MOCK_MEMBERS} team={MOCK_TEAM} />
+        )}
+        {activeView === "connector-setup" && (
+          <BrowseStep connectors={MOCK_CONNECTORS} onSelect={noop} />
         )}
       </AppShell>
     </div>

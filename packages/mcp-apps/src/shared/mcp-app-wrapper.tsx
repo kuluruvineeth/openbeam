@@ -3,7 +3,7 @@
 import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { ErrorBoundary } from "./error-boundary";
 import { ErrorState } from "./error-state";
 
@@ -18,6 +18,10 @@ function applyTheme(theme: "light" | "dark" | undefined) {
     return;
   }
   document.documentElement.setAttribute("data-theme", theme);
+}
+
+function reloadWindow() {
+  window.location.reload();
 }
 
 export function McpAppWrapper({ name, children, skeleton }: Props) {
@@ -47,8 +51,10 @@ export function McpAppWrapper({ name, children, skeleton }: Props) {
     applyTheme(hostCtx?.theme);
   }, [app]);
 
+  const handleRetry = useCallback(reloadWindow, []);
+
   if (error) {
-    return <ErrorState message={error.message} />;
+    return <ErrorState message={error.message} onRetry={handleRetry} />;
   }
 
   if (!(isConnected && toolResult && app)) {
@@ -57,7 +63,13 @@ export function McpAppWrapper({ name, children, skeleton }: Props) {
 
   return (
     <ErrorBoundary
-      fallback={<ErrorState message="An unexpected error occurred" />}
+      fallback={
+        <ErrorState
+          message="An unexpected error occurred"
+          onRetry={handleRetry}
+        />
+      }
+      onRetry={handleRetry}
     >
       {children({ toolResult, app })}
     </ErrorBoundary>

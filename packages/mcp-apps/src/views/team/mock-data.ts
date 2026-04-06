@@ -28,12 +28,14 @@ export const MOCK_MEMBERS: TeamMember[] = [
     name: "Sarah Chen",
     email: "sarah.chen@acme.dev",
     role: "admin",
+    avatarUrl: "https://i.pravatar.cc/64?u=sarah.chen",
   },
   {
     id: "usr_02",
     name: "Marcus Rivera",
     email: "marcus.r@acme.dev",
     role: "member",
+    avatarUrl: "https://i.pravatar.cc/64?u=marcus.rivera",
   },
   {
     id: "usr_03",
@@ -46,6 +48,7 @@ export const MOCK_MEMBERS: TeamMember[] = [
     name: "Alex Kim",
     email: "alex.kim@acme.dev",
     role: "admin",
+    avatarUrl: "https://i.pravatar.cc/64?u=alex.kim",
   },
   {
     id: "usr_05",

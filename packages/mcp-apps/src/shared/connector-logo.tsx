@@ -1,8 +1,5 @@
-import {
-  appLogos,
-  connectorLogos,
-  type LogoComponent,
-} from "@openbeam/integrations/logos";
+import type { LogoComponent } from "@openbeam/integrations";
+import { appLogos, connectorLogos } from "@openbeam/integrations/logos";
 import { SourceIcon } from "@openbeam/ui/components/source-icon";
 
 type ConnectorLogoProps = {

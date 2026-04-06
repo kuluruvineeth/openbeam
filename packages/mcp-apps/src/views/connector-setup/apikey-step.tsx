@@ -1,19 +1,15 @@
 import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
+import { Button } from "@openbeam/ui/components/button";
+import { Input } from "@openbeam/ui/components/input";
+import { Label } from "@openbeam/ui/components/label";
 import { useState } from "react";
 import { ConnectorLogo } from "../../shared/connector-logo";
-
-type Field = {
-  id: string;
-  label: string;
-  type: string;
-  required: boolean;
-  placeholder?: string | null;
-};
+import type { ConnectorField } from "./types";
 
 type ApiKeyStepProps = {
   app: McpApp;
   connector: { id: string; name: string; category?: string };
-  fields: Field[];
+  fields: ConnectorField[];
   onComplete: (connectorId: string) => void;
   onError: (message: string) => void;
 };
@@ -30,14 +26,14 @@ export function ApiKeyStep({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    for (const f of fields) {
-      if (f.required && !values[f.id]?.trim()) {
-        newErrors[f.id] = `${f.label} is required`;
+    const nextErrors: Record<string, string> = {};
+    for (const field of fields) {
+      if (field.required && !values[field.id]?.trim()) {
+        nextErrors[field.id] = `${field.label} is required`;
       }
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -56,10 +52,7 @@ export function ApiKeyStep({
       });
 
       const sc = result.structuredContent as
-        | {
-            connectorId?: string;
-            status?: string;
-          }
+        | { connectorId?: string; status?: string }
         | undefined;
 
       if (result.isError || !sc?.connectorId) {
@@ -77,6 +70,10 @@ export function ApiKeyStep({
     setSubmitting(false);
   };
 
+  const setFieldValue = (id: string, value: string) => {
+    setValues((prev) => ({ ...prev, [id]: value }));
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 border-border/50 border-b pb-3">
@@ -92,31 +89,29 @@ export function ApiKeyStep({
       <div className="flex flex-col gap-4">
         {fields.map((field) => (
           <div className="flex flex-col gap-1.5" key={field.id}>
-            <label
-              className="font-medium text-foreground/70 text-xs"
-              htmlFor={field.id}
-            >
+            <Label className="text-foreground/70 text-xs" htmlFor={field.id}>
               {field.label}
               {field.required && <span className="text-destructive"> *</span>}
-            </label>
+            </Label>
             {field.type === "select" ? (
               <select
-                className="rounded-sm border border-border/50 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                className="h-9 rounded-sm border border-border/50 bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/10"
                 id={field.id}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, [field.id]: e.target.value }))
-                }
+                onChange={(e) => setFieldValue(field.id, e.target.value)}
                 value={values[field.id] ?? ""}
               >
                 <option value="">Select...</option>
+                {field.options?.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             ) : (
-              <input
-                className="rounded-sm border border-border/50 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/10"
+              <Input
+                className="h-9 rounded-sm border-border/50"
                 id={field.id}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, [field.id]: e.target.value }))
-                }
+                onChange={(e) => setFieldValue(field.id, e.target.value)}
                 placeholder={field.placeholder ?? undefined}
                 type={field.type === "password" ? "password" : "text"}
                 value={values[field.id] ?? ""}
@@ -130,14 +125,14 @@ export function ApiKeyStep({
       </div>
 
       <div className="flex flex-col gap-2 border-border/50 border-t pt-3">
-        <button
-          className="w-full rounded-sm bg-foreground px-4 py-2 font-medium text-background text-xs transition-colors hover:bg-foreground/90 disabled:opacity-50"
+        <Button
+          className="w-full rounded-sm"
           disabled={submitting}
           onClick={handleSubmit}
           type="button"
         >
           {submitting ? "Connecting..." : `Connect ${connector.name}`}
-        </button>
+        </Button>
         <p className="text-center text-[10px] text-foreground/30">
           Credentials encrypted at rest · Revoke access anytime
         </p>

@@ -8,16 +8,18 @@ type DashboardViewProps = {
 };
 
 export function DashboardView({ connectors }: DashboardViewProps) {
-  const active = connectors.filter(
+  const healthy = connectors.filter(
     (c) => c.status === "ACTIVE" || c.status === "SYNCING"
   ).length;
+  const errored = connectors.filter((c) => c.status === "ERROR").length;
   const totalDocs = connectors.reduce((sum, c) => sum + c.documentCount, 0);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-6">
-        <Stat label="Connected" value={active} />
-        <Stat label="Active" value={connectors.length} />
+        <Stat label="Sources" value={connectors.length} />
+        <Stat label="Healthy" value={healthy} />
+        {errored > 0 && <Stat label="Errors" value={errored} />}
         <Stat label="Documents" value={totalDocs.toLocaleString()} />
       </div>
 

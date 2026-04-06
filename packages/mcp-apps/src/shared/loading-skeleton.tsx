@@ -1,13 +1,13 @@
-import { cn } from "@openbeam/ui/utils";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
 
 type BoneProps = {
   className?: string;
 };
 
 export function Bone({ className }: BoneProps) {
-  return <div className={cn("animate-pulse rounded-sm bg-muted", className)} />;
+  return <Skeleton className={className} />;
 }
 
 export function LoadingSkeleton({ className }: BoneProps) {
-  return <Bone className={className} />;
+  return <Skeleton className={className} />;
 }

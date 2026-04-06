@@ -1,8 +1,10 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { ErrorState } from "./error-state";
 
 type Props = {
   children: ReactNode;
   fallback?: ReactNode;
+  onRetry?: () => void;
 };
 
 type State = {
@@ -20,6 +22,11 @@ export class ErrorBoundary extends Component<Props, State> {
     return;
   }
 
+  private readonly handleReset = () => {
+    this.setState({ error: null });
+    this.props.onRetry?.();
+  };
+
   render() {
     if (this.state.error) {
       if (this.props.fallback) {
@@ -28,7 +35,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="p-4">
-          <p className="text-red-500 text-sm">{this.state.error.message}</p>
+          <ErrorState
+            message={this.state.error.message}
+            onRetry={this.handleReset}
+          />
         </div>
       );
     }

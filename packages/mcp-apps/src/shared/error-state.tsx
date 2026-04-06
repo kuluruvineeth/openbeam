@@ -1,3 +1,5 @@
+import { Button } from "@openbeam/ui/components/button";
+
 type ErrorStateProps = {
   message: string;
   onRetry?: () => void;
@@ -27,13 +29,15 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
       <span className="font-medium text-sm">Something went wrong</span>
       <span className="max-w-xs text-muted-foreground text-xs">{message}</span>
       {onRetry && (
-        <button
-          className="mt-1 rounded-sm border border-border/50 px-3 py-1.5 font-medium text-xs transition-colors hover:bg-muted/50"
+        <Button
+          className="mt-1 rounded-sm"
           onClick={onRetry}
+          size="sm"
           type="button"
+          variant="outline"
         >
           Try again
-        </button>
+        </Button>
       )}
     </div>
   );

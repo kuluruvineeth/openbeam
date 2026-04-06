@@ -5,5 +5,7 @@ export { ErrorBoundary } from "./error-boundary";
 export { ErrorState } from "./error-state";
 export { Bone, LoadingSkeleton } from "./loading-skeleton";
 export { McpAppWrapper } from "./mcp-app-wrapper";
+export type { LiteSearchResult } from "./search-result-row-lite";
+export { SearchResultRowLite } from "./search-result-row-lite";
 export { SectionHeader } from "./section-header";
 export { StatCard } from "./stat-card";

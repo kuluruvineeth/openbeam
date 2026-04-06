@@ -99,6 +99,17 @@ export const MOCK_CONNECTORS: AvailableConnector[] = [
         required: true,
         placeholder: "Your Atlassian API token",
       },
+      {
+        id: "region",
+        label: "Region",
+        type: "select",
+        required: true,
+        options: [
+          { label: "United States", value: "us" },
+          { label: "Europe", value: "eu" },
+          { label: "Asia Pacific", value: "ap" },
+        ],
+      },
     ],
   },
 ];

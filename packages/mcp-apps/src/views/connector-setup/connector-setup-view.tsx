@@ -1,5 +1,5 @@
 import type { App as McpApp } from "@modelcontextprotocol/ext-apps";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ErrorState } from "../../shared/error-state";
 import { ApiKeyStep } from "./apikey-step";
 import { BrowseStep } from "./browse-step";
@@ -66,23 +66,23 @@ export function ConnectorSetupView({
     }
   };
 
-  const handleComplete = (id: string) => {
+  const handleComplete = useCallback((id: string) => {
     setConnectorId(id);
     setStep("success");
-  };
+  }, []);
 
-  const handleError = (message: string) => {
+  const handleError = useCallback((message: string) => {
     setErrorMessage(message);
     setStep("error");
-  };
+  }, []);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setStep("browse");
     setSetupData({});
     setConnectorId(null);
     setSelectedConnector(null);
     setErrorMessage(null);
-  };
+  }, []);
 
   if (step === "browse") {
     return (
@@ -102,23 +102,11 @@ export function ConnectorSetupView({
   }
 
   if (step === "apikey" && selectedConnector) {
-    const fields =
-      (
-        selectedConnector as AvailableConnector & {
-          requiredFields?: Array<{
-            id: string;
-            label: string;
-            type: string;
-            required: boolean;
-            placeholder?: string | null;
-          }>;
-        }
-      ).requiredFields ?? [];
     return (
       <ApiKeyStep
         app={app}
         connector={{ id: selectedConnector.id, name: selectedConnector.name }}
-        fields={fields}
+        fields={selectedConnector.requiredFields ?? []}
         onComplete={handleComplete}
         onError={handleError}
       />

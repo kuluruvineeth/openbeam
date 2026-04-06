@@ -16,6 +16,7 @@ export const MOCK_PEOPLE_DATA: Person[] = [
     title: "Staff Engineer",
     department: "Engineering",
     connectorType: "GOOGLE_WORKSPACE",
+    avatarUrl: "https://i.pravatar.cc/64?u=sarah.chen",
   },
   {
     id: "p2",
@@ -24,6 +25,7 @@ export const MOCK_PEOPLE_DATA: Person[] = [
     title: "Product Manager",
     department: "Product",
     connectorType: "SLACK",
+    avatarUrl: "https://i.pravatar.cc/64?u=marcus.rivera",
   },
   {
     id: "p3",
@@ -40,6 +42,7 @@ export const MOCK_PEOPLE_DATA: Person[] = [
     title: "Design Director",
     department: "Design",
     connectorType: "NOTION",
+    avatarUrl: "https://i.pravatar.cc/64?u=james.okonkwo",
   },
   {
     id: "p5",

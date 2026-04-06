@@ -1,5 +1,19 @@
 export type SetupStep = "browse" | "oauth" | "apikey" | "success" | "error";
 
+export type ConnectorFieldOption = {
+  label: string;
+  value: string;
+};
+
+export type ConnectorField = {
+  id: string;
+  label: string;
+  type: string;
+  required: boolean;
+  placeholder?: string | null;
+  options?: ConnectorFieldOption[];
+};
+
 export type AvailableConnector = {
   id: string;
   name: string;
@@ -8,13 +22,7 @@ export type AvailableConnector = {
   authType: string;
   active: boolean;
   installed: boolean;
-  requiredFields?: Array<{
-    id: string;
-    label: string;
-    type: string;
-    required: boolean;
-    placeholder?: string | null;
-  }>;
+  requiredFields?: ConnectorField[];
 };
 
 export type SetupData = {
