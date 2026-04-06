@@ -8,6 +8,7 @@ import {
   ActionValidationError,
 } from "./errors";
 import { getHandler, getRegisteredTypes } from "./handler-registry";
+import { composeDispatchMiddlewares } from "./middleware";
 import type { ActionExecutionResult, DispatchRequest } from "./types";
 
 const actionsByConnector = new Map(
@@ -22,8 +23,8 @@ function normalizeType(type: string): string {
 }
 
 type DispatchOutcome =
-  | { kind: "success"; result: ActionExecutionResult; connectorType: string }
-  | { kind: "failure"; error: unknown; connectorType: string | null };
+  | { kind: "success"; result: ActionExecutionResult }
+  | { kind: "failure"; error: unknown };
 
 function logDispatch(
   request: DispatchRequest,
@@ -41,11 +42,7 @@ function logDispatch(
 
   if (outcome.kind === "success") {
     logger.info(
-      {
-        ...base,
-        connectorType: outcome.connectorType,
-        success: outcome.result.success,
-      },
+      { ...base, success: outcome.result.success },
       "connector_action_dispatched"
     );
     return;
@@ -54,7 +51,6 @@ function logDispatch(
   logger.error(
     {
       ...base,
-      connectorType: outcome.connectorType,
       error:
         outcome.error instanceof Error
           ? {
@@ -69,7 +65,7 @@ function logDispatch(
 
 async function runDispatch(
   request: DispatchRequest
-): Promise<{ result: ActionExecutionResult; connectorType: string }> {
+): Promise<ActionExecutionResult> {
   const { credentials, connectorType: rawType } = await resolveCredentials(
     request.connectorId,
     request.teamId
@@ -80,12 +76,9 @@ async function runDispatch(
   const registry = actionsByConnector.get(connectorType);
   if (!registry) {
     return {
-      connectorType,
-      result: {
-        success: false,
-        data: {},
-        error: `No actions defined for connector type: ${connectorType}`,
-      },
+      success: false,
+      data: {},
+      error: `No actions defined for connector type: ${connectorType}`,
     };
   }
 
@@ -108,32 +101,25 @@ async function runDispatch(
   if (!handler) {
     const registered = getRegisteredTypes();
     return {
-      connectorType,
-      result: {
-        success: false,
-        data: { connectorType, actionId: request.actionId },
-        error: `No executor registered for "${connectorType}". ${registered.length} executors available: ${registered.join(", ")}`,
-      },
+      success: false,
+      data: { connectorType, actionId: request.actionId },
+      error: `No executor registered for "${connectorType}". ${registered.length} executors available: ${registered.join(", ")}`,
     };
   }
 
   try {
-    const result = await handler.execute(
+    return await handler.execute(
       request.actionId,
       request.params,
       credentials,
       request.connectorId
     );
-    return { connectorType, result };
   } catch (error) {
     if (error instanceof ActionExecutorError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : "Unknown error";
-    return {
-      connectorType,
-      result: { success: false, data: {}, error: message },
-    };
+    return { success: false, data: {}, error: message };
   }
 }
 
@@ -141,20 +127,13 @@ export async function dispatchAction(
   request: DispatchRequest
 ): Promise<ActionExecutionResult> {
   const startedAt = Date.now();
+  const chain = composeDispatchMiddlewares(request, () => runDispatch(request));
   try {
-    const { result, connectorType } = await runDispatch(request);
-    logDispatch(
-      request,
-      { kind: "success", result, connectorType },
-      Date.now() - startedAt
-    );
+    const result = await chain();
+    logDispatch(request, { kind: "success", result }, Date.now() - startedAt);
     return result;
   } catch (error) {
-    logDispatch(
-      request,
-      { kind: "failure", error, connectorType: null },
-      Date.now() - startedAt
-    );
+    logDispatch(request, { kind: "failure", error }, Date.now() - startedAt);
     throw error;
   }
 }

@@ -7,4 +7,10 @@ export {
   ActionRateLimitError,
   ActionValidationError,
 } from "./errors";
-export type { ActionExecutionResult } from "./types";
+export type { DispatchMiddleware, DispatchNext } from "./middleware";
+export {
+  clearDispatchMiddlewares,
+  getDispatchMiddlewares,
+  registerDispatchMiddleware,
+} from "./middleware";
+export type { ActionExecutionResult, DispatchRequest } from "./types";
