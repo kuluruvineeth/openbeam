@@ -1,9 +1,5 @@
-import db, {
-  findContextEntry,
-  findContextRelations,
-  incrementActiveCount,
-} from "@openbeam/db";
 import { ragAnswer } from "@openbeam/services";
+import type { ContextType } from "@openbeam/types/context";
 import { z } from "zod";
 import {
   formatAnswer,
@@ -12,6 +8,7 @@ import {
   formatContextSearch,
 } from "../formatters";
 import { sanitize, sanitizeArray } from "../mcp.sanitize";
+import { getContextSearchService, getContextStore } from "../mcp.services";
 import {
   hasScope,
   READ_ONLY_ANNOTATIONS,
@@ -154,40 +151,23 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
     },
     withErrorHandling(async (params) => {
       const take = params.limit ?? 20;
+      const store = getContextStore();
+      const searchService = getContextSearchService();
 
-      const where: Record<string, unknown> = {
-        teamId: ctx.teamId,
-        OR: [
-          { abstractText: { contains: params.query, mode: "insensitive" } },
-          { overview: { contains: params.query, mode: "insensitive" } },
-          { content: { contains: params.query, mode: "insensitive" } },
-        ],
-      };
-
-      if (params.contextType) {
-        where.contextType = params.contextType;
-      }
-
-      if (params.category) {
-        where.category = params.category;
-      }
-
-      const entries = await db.contextEntry.findMany({
-        where,
-        orderBy: [{ activeCount: "desc" }, { updatedAt: "desc" }],
-        take,
+      const entries = await searchService.find(params.query, ctx.teamId, {
+        contextType: params.contextType as ContextType | undefined,
+        limit: take,
       });
 
-      for (const entry of entries) {
-        await incrementActiveCount(db, ctx.teamId, entry.uri);
-      }
+      await Promise.all(entries.map((e) => store.touch(ctx.teamId, e.uri)));
 
       const results = entries.map((e) => ({
         uri: e.uri,
         abstract: e.abstractText,
-        overview: e.overview,
+        overview: null,
         contextType: e.contextType,
         category: e.category,
+        score: e.score,
         updatedAt: e.updatedAt.toISOString(),
       }));
 
@@ -243,7 +223,10 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       annotations: READ_ONLY_ANNOTATIONS,
     },
     withErrorHandling(async ({ uri, level }) => {
-      const entry = await findContextEntry(db, ctx.teamId, uri);
+      const store = getContextStore();
+      const resolvedLevel = level ?? "2";
+
+      const entry = await store.read(ctx.teamId, uri);
 
       if (!entry) {
         return {
@@ -252,11 +235,9 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
         };
       }
 
-      await incrementActiveCount(db, ctx.teamId, uri);
+      await store.touch(ctx.teamId, uri);
 
-      const relations = await findContextRelations(db, ctx.teamId, uri);
-
-      const resolvedLevel = level ?? "2";
+      const relations = await store.relations(ctx.teamId, uri);
 
       const result = {
         uri: entry.uri,
@@ -327,31 +308,15 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
         };
       }
 
-      const where: Record<string, unknown> = {
-        teamId: ctx.teamId,
-        parentUri: params.parentUri,
-      };
+      const store = getContextStore();
 
-      if (params.contextType) {
-        where.contextType = params.contextType;
-      }
+      const children = await store.list(ctx.teamId, params.parentUri);
 
-      const children = await db.contextEntry.findMany({
-        where,
-        orderBy: [{ isLeaf: "asc" }, { activeCount: "desc" }],
-        take: limit,
-        select: {
-          uri: true,
-          abstractText: true,
-          contextType: true,
-          category: true,
-          isLeaf: true,
-          activeCount: true,
-          updatedAt: true,
-        },
-      });
+      const filtered = params.contextType
+        ? children.filter((e) => e.contextType === params.contextType)
+        : children;
 
-      const entries = children.map((e) => ({
+      const entries = filtered.slice(0, limit).map((e) => ({
         uri: e.uri,
         abstract: e.abstractText,
         contextType: e.contextType,
