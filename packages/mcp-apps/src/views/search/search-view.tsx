@@ -1,6 +1,5 @@
-import { SearchResultRow } from "@openbeam/ui/components/search-result-row";
-import type { SearchResultDocument } from "@openbeam/ui/components/search-result-types";
 import { EmptyState } from "../../shared/empty-state";
+import { SearchResultRowLite } from "../../shared/search-result-row-lite";
 import type { SearchResult } from "./mock-data";
 
 type SearchViewProps = {
@@ -8,32 +7,6 @@ type SearchViewProps = {
   results: SearchResult[];
   total: number;
 };
-
-function toSearchDoc(result: SearchResult): SearchResultDocument {
-  const updatedAtMs = result.updatedAt
-    ? new Date(result.updatedAt).getTime() / 1000
-    : Date.now() / 1000;
-
-  return {
-    id: result.id,
-    connector_id: "",
-    connector_type: result.source ?? result.connectorType ?? "",
-    team_id: "",
-    workspace_id: "",
-    external_id: "",
-    document_type: result.documentType ?? "message",
-    title: result.title ?? "",
-    content: result.snippet ?? "",
-    source_name: result.sourceName,
-    source_type: result.sourceType,
-    author_name: result.authorName,
-    author_avatar_url: result.authorAvatarUrl,
-    created_at: updatedAtMs,
-    updated_at: updatedAtMs,
-    is_public: false,
-    url: result.url,
-  };
-}
 
 export function SearchView({ query, results, total }: SearchViewProps) {
   if (results.length === 0) {
@@ -57,14 +30,14 @@ export function SearchView({ query, results, total }: SearchViewProps) {
       </div>
       <div className="flex flex-col divide-y divide-border/30">
         {results.map((result) => (
-          <SearchResultRow
-            document={toSearchDoc(result)}
+          <SearchResultRowLite
             key={result.id}
             onSelect={
               result.url
                 ? () => window.open(result.url, "_blank", "noopener")
                 : undefined
             }
+            result={result}
           />
         ))}
       </div>
