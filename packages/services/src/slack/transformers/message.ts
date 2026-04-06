@@ -78,7 +78,12 @@ export async function transformMessage(
     metadata,
   });
 
-  const accessControl = channel.is_private ? channelMembers : undefined;
+  const accessControl = channel.is_private
+    ? [
+        `team:${teamId}`,
+        ...(channelMembers ?? []).map((id) => `slack_user:${id}`),
+      ]
+    : undefined;
 
   return {
     id: documentId,

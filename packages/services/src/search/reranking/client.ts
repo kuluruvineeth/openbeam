@@ -37,7 +37,7 @@ interface EngineStatsResponse {
   };
 }
 
-const RERANK_TIMEOUT_MS = 120_000;
+const RERANK_TIMEOUT_MS = 3000;
 
 export async function callRerank(
   query: string,
