@@ -119,6 +119,22 @@ export async function getUserInfo(
   return parsed.success ? parsed.data : null;
 }
 
+export async function lookupUserByEmail(
+  client: SlackClient,
+  email: string
+): Promise<SlackUser | null> {
+  const response = await client.call<UsersInfoResponse>("users.lookupByEmail", {
+    email,
+  });
+
+  if (!response.user) {
+    return null;
+  }
+
+  const parsed = SlackUserSchema.safeParse(response.user);
+  return parsed.success ? parsed.data : null;
+}
+
 export async function getUsersInfo(
   client: SlackClient,
   userIds: string[]

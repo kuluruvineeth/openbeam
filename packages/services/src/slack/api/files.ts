@@ -126,3 +126,28 @@ export function hasDownloadUrl(file: SlackFile): boolean {
 export function getDownloadUrl(file: SlackFile): string | undefined {
   return file.url_private_download || file.url_private;
 }
+
+export interface UploadFileParams {
+  channels: string[];
+  filename: string;
+  content: string;
+  title?: string;
+}
+
+export interface UploadFileResponse {
+  ok: boolean;
+  file?: SlackFile;
+  error?: string;
+}
+
+export function uploadFile(
+  client: SlackClient,
+  params: UploadFileParams
+): Promise<UploadFileResponse> {
+  return client.call<UploadFileResponse>("files.upload", {
+    channels: params.channels.join(","),
+    content: params.content,
+    filename: params.filename,
+    title: params.title,
+  });
+}

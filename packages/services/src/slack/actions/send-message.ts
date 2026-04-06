@@ -130,3 +130,24 @@ export async function updateMessage(
     };
   }
 }
+
+export async function deleteMessage(
+  client: SlackClient,
+  params: { channel: string; ts: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await client.call<{ ok: boolean; error?: string }>(
+      "chat.delete",
+      { channel: params.channel, ts: params.ts }
+    );
+    if (!response.ok) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

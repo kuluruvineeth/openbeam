@@ -19,6 +19,7 @@ export {
 } from "./reactions";
 export { type SendDMParams, sendDM, sendDMToMultiple } from "./send-dm";
 export {
+  deleteMessage,
   type SendMessageParams,
   type SendMessageResult,
   sendEphemeralMessage,

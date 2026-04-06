@@ -142,13 +142,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
   },
   slack: {
     definitionMissing: [],
-    handlerMissing: [
-      "bookmark_add",
-      "file_upload",
-      "message_delete",
-      "message_search",
-      "user_lookup",
-    ],
+    handlerMissing: [],
   },
   zendesk: {
     definitionMissing: ["ticket_comment"],

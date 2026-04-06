@@ -524,6 +524,7 @@ mock.module("../slack/actions", () => ({
   sendMessage: sendSlackMessageMock,
   updateMessage: () =>
     Promise.resolve({ success: true, messageTs: "1711.22", channelId: "C123" }),
+  deleteMessage: () => Promise.resolve({ success: true }),
   addReaction: () => Promise.resolve({ success: true }),
   createChannel: () => Promise.resolve({ success: true, channelId: "C123" }),
   archiveChannel: () => Promise.resolve({ success: true }),
