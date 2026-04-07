@@ -20,13 +20,15 @@ import {
   transferOwnership,
   updateRole,
 } from "../../google-drive/actions/permissions";
+import { getFile, searchFiles } from "../../google-drive/api/files";
 import {
   createGoogleDriveClient,
   type GoogleDriveClient,
 } from "../../google-drive/client";
+import { ActionExecutorError } from "../errors";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str, strArr } from "./shared/params";
+import { optNum, str, strArr } from "./shared/params";
 
 type Handler = (
   client: GoogleDriveClient,
@@ -34,6 +36,39 @@ type Handler = (
 ) => Promise<ActionExecutionResult>;
 
 const actions: Record<string, Handler> = {
+  async file_get(client, p) {
+    const file = await getFile(client, str(p, "fileId"));
+    if (!file) {
+      throw new ActionExecutorError({
+        code: "DRIVE_NOT_FOUND",
+        message: "File not found",
+        retryable: false,
+        statusCode: 404,
+      });
+    }
+    return {
+      success: true,
+      data: { fileId: file.id, name: file.name, mimeType: file.mimeType },
+    };
+  },
+
+  async file_search(client, p) {
+    const query = str(p, "query");
+    const maxResults = optNum(p, "maxResults") ?? 50;
+    const files = await searchFiles(client, query, { pageSize: maxResults });
+    return {
+      success: true,
+      data: {
+        files: files.map((f) => ({
+          id: f.id,
+          name: f.name,
+          mimeType: f.mimeType,
+        })),
+        total: files.length,
+      },
+    };
+  },
+
   async file_create(client, p) {
     const r = await createFile(client, {
       name: str(p, "name"),

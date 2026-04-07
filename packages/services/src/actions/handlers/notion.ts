@@ -6,7 +6,9 @@ import {
   createDatabaseEntry,
   createPage,
   deleteBlock,
+  getPage,
   listDatabases,
+  queryDatabase,
   restorePage,
   searchPages,
   updateBlock,
@@ -14,9 +16,10 @@ import {
   updatePage,
 } from "../../notion/actions";
 import { createNotionClient, type NotionClient } from "../../notion/client";
+import { ActionExecutorError } from "../errors";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str } from "./shared/params";
+import { optNum, str } from "./shared/params";
 
 type Handler = (
   client: NotionClient,
@@ -40,6 +43,19 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { pages: r.pages } };
+  },
+
+  async page_get(client, p) {
+    const page = await getPage(client, str(p, "pageId"));
+    if (!page) {
+      throw new ActionExecutorError({
+        code: "NOTION_NOT_FOUND",
+        message: "Page not found",
+        retryable: false,
+        statusCode: 404,
+      });
+    }
+    return { success: true, data: { pageId: page.id, url: page.url } };
   },
 
   async page_create(client, p) {
@@ -84,6 +100,27 @@ const actions: Record<string, Handler> = {
       return { success: false, data: {}, error: r.error };
     }
     return { success: true, data: { pageId: r.pageId } };
+  },
+
+  async database_query(client, p) {
+    const databaseId = str(p, "databaseId");
+    const pageSize = optNum(p, "pageSize") ?? 50;
+    const results = await queryDatabase(client, databaseId, {
+      filter:
+        (p.filter as { property?: string; [key: string]: unknown }) ??
+        undefined,
+      sorts: Array.isArray(p.sorts)
+        ? (p.sorts as {
+            property?: string;
+            direction: "ascending" | "descending";
+          }[])
+        : undefined,
+      pageSize,
+    });
+    return {
+      success: true,
+      data: { results, total: results.length },
+    };
   },
 
   async database_entry_create(client, p) {
