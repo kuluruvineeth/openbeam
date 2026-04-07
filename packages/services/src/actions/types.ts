@@ -27,5 +27,5 @@ export interface DispatchRequest {
   params: Record<string, unknown>;
   teamId: string;
   userId: string;
-  source: "mcp" | "canvas" | "api" | "agent";
+  source: "mcp" | "canvas" | "api" | "agent" | "bot" | "worker";
 }
