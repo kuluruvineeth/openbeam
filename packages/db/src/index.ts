@@ -44,6 +44,7 @@ export * from "./mutations/ai-usage";
 export * from "./mutations/api-keys";
 export * from "./mutations/audit-logs";
 export * from "./mutations/background-agents";
+export * from "./mutations/bot";
 export * from "./mutations/composition";
 export * from "./mutations/connector-resources";
 export {
@@ -96,6 +97,7 @@ export * from "./queries/ai-usage";
 export * from "./queries/api-keys";
 export * from "./queries/audit-logs";
 export * from "./queries/background-agents";
+export * from "./queries/bot";
 export * from "./queries/composition";
 export * from "./queries/connector-resources";
 export * from "./queries/connector-stats";

@@ -28,6 +28,8 @@ model User {
   voiceSettings VoiceSettings?
   voiceSessions VoiceSession[]
 
+  botUserLinks BotUserLink[]
+
   @@unique([email])
   @@index([teamId])
   @@map("user")

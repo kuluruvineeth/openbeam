@@ -1,0 +1,62 @@
+model BotUserLink {
+  id               String   @id @default(cuid()) @map("_id")
+  teamId           String   @map("team_id")
+  userId           String   @map("user_id")
+  platform         String
+  platformUserId   String   @map("platform_user_id")
+  platformTeamId   String   @map("platform_team_id")
+  platformUsername  String?  @map("platform_username")
+  linkedAt         DateTime @default(now()) @map("linked_at")
+  lastActiveAt     DateTime @default(now()) @map("last_active_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, platformUserId, platformTeamId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([platform, platformTeamId])
+  @@map("bot_user_link")
+}
+
+model BotInstallation {
+  id                String    @id @default(cuid()) @map("_id")
+  teamId            String    @map("team_id")
+  platform          String
+  platformTeamId    String    @map("platform_team_id")
+  platformTeamName  String?   @map("platform_team_name")
+  installedBy       String    @map("installed_by")
+  botToken          String    @map("bot_token")
+  accessToken       String?   @map("access_token")
+  refreshToken      String?   @map("refresh_token")
+  tokenExpiresAt    DateTime? @map("token_expires_at")
+  scopes            String[]  @default([])
+  webhookUrl        String?   @map("webhook_url")
+  active            Boolean   @default(true)
+  installedAt       DateTime  @default(now()) @map("installed_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, platformTeamId])
+  @@index([teamId])
+  @@index([platform, active])
+  @@map("bot_installation")
+}
+
+model BotLinkRequest {
+  id              String   @id @default(cuid()) @map("_id")
+  platform        String
+  platformUserId  String   @map("platform_user_id")
+  platformTeamId  String   @map("platform_team_id")
+  token           String   @unique
+  teamId          String?  @map("team_id")
+  userId          String?  @map("user_id")
+  expiresAt       DateTime @map("expires_at")
+  consumed        Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("bot_link_request")
+}
