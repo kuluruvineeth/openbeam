@@ -1,0 +1,14 @@
+import type { BotResponse, UnifiedMessage } from "./messages";
+import type { BotPlatform, PlatformConfig } from "./platforms";
+
+export interface PlatformAdapter {
+  readonly platform: BotPlatform;
+  readonly config: PlatformConfig;
+  parseEvent(
+    rawBody: unknown,
+    headers: Record<string, string>
+  ): Promise<UnifiedMessage | null>;
+  verifySignature(rawBody: string, headers: Record<string, string>): boolean;
+  sendResponse(message: UnifiedMessage, response: BotResponse): Promise<void>;
+  sendTypingIndicator(channelId: string, threadId?: string): Promise<void>;
+}

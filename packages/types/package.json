@@ -36,6 +36,10 @@
       "types": "./dist/sync/index.d.ts",
       "default": "./src/sync/index.ts"
     },
+    "./bot": {
+      "types": "./dist/bot/index.d.ts",
+      "default": "./src/bot/index.ts"
+    },
     "./connectors": {
       "types": "./dist/connectors/index.d.ts",
       "default": "./src/connectors/index.ts"
