@@ -12,7 +12,7 @@ export const databaseActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "limit",
@@ -43,7 +43,7 @@ export const databaseActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "databaseId",

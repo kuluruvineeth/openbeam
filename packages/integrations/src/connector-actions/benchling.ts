@@ -75,7 +75,7 @@ export const benchlingActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "entryId",

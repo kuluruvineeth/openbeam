@@ -68,7 +68,7 @@ export const zendeskActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "ticket_id",

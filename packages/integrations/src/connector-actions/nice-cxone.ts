@@ -67,7 +67,7 @@ export const niceCxoneActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "agentId", name: "Agent ID", type: "string", required: true },
         {

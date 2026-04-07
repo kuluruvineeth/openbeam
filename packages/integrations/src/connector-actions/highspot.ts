@@ -15,7 +15,7 @@ export const highspotActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "item_id", name: "Item ID", type: "string", required: true },
         {

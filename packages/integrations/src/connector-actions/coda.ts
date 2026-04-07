@@ -16,7 +16,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [
         {
@@ -38,7 +38,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "doc_id",
@@ -138,7 +138,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "doc_id",
@@ -182,7 +182,7 @@ export const codaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "doc_id",

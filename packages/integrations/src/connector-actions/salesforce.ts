@@ -48,7 +48,7 @@ export const salesforceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "sobject",
@@ -85,7 +85,7 @@ export const salesforceActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "soql",

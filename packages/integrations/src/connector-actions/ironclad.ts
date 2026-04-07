@@ -47,7 +47,7 @@ export const ironcladActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "workflowId",

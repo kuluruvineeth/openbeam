@@ -16,7 +16,7 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "folder_id",
@@ -73,7 +73,7 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "item_type",
@@ -113,7 +113,7 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "item_type",
@@ -142,7 +142,7 @@ export const boxActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "item_type",

@@ -41,7 +41,7 @@ export const procoreActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "projectId", name: "Project ID", type: "number", required: true },
         { id: "rfiId", name: "RFI ID", type: "string", required: true },

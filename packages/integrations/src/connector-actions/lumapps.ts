@@ -77,7 +77,7 @@ export const lumappsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "contentId", name: "Content ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },

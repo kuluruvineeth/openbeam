@@ -16,7 +16,7 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [
         {
@@ -39,7 +39,7 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "teamId",
@@ -71,7 +71,7 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "spaceId",
@@ -102,7 +102,7 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "spaceId",
@@ -210,7 +210,7 @@ export const clickUpActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "taskId",

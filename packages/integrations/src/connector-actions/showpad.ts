@@ -40,7 +40,7 @@ export const showpadActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "assetId", name: "Asset ID", type: "string", required: true },
         {

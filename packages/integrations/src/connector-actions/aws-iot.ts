@@ -15,7 +15,7 @@ export const awsIotActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "thing_name",

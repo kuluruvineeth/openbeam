@@ -40,7 +40,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "accountId", name: "Account ID", type: "string", required: true },
         {
@@ -90,7 +90,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "contactId", name: "Contact ID", type: "string", required: true },
         {
@@ -140,7 +140,7 @@ export const dynamics365ActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "opportunityId",

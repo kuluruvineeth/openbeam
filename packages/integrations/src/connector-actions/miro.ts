@@ -16,7 +16,7 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [
         {
@@ -124,7 +124,7 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "board_id",
@@ -171,7 +171,7 @@ export const miroActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "board_id",

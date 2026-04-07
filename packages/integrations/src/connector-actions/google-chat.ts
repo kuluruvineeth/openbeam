@@ -16,7 +16,7 @@ export const googleChatActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [{ id: "spaces", name: "Spaces", type: "array" }],
     },

@@ -58,7 +58,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "alert_id",
@@ -87,7 +87,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "alert_id",
@@ -195,7 +195,7 @@ export const opsgenieActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "incident_id",

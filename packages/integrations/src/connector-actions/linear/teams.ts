@@ -12,7 +12,7 @@ export const teamActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [],
     outputs: [
       {

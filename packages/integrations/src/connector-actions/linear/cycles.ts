@@ -12,7 +12,7 @@ export const cycleActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "cycleId",
@@ -43,7 +43,7 @@ export const cycleActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "issueId",

@@ -51,7 +51,7 @@ export const blockActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "blockId",

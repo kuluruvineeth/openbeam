@@ -67,7 +67,7 @@ export const permissionActions: ConnectorActionDefinition[] = [
     stakes: "high",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "fileId",

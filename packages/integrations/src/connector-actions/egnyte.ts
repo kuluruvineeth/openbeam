@@ -40,7 +40,7 @@ export const egnyteActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "path",

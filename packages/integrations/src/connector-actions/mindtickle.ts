@@ -49,7 +49,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "contentId", name: "Content ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
@@ -107,7 +107,7 @@ export const mindtickleActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "userId", name: "User ID", type: "string", required: true },
       ],

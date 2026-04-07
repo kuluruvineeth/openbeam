@@ -65,7 +65,7 @@ export const channelActions: ConnectorActionDefinition[] = [
     stakes: "high",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "channel",
@@ -96,7 +96,7 @@ export const channelActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "channel",
@@ -134,7 +134,7 @@ export const channelActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "channel",

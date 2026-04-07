@@ -108,7 +108,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "issue_key",
@@ -170,7 +170,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "issue_key",
@@ -209,7 +209,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "issue_key",
@@ -285,7 +285,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "issue_key",
@@ -323,7 +323,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "issue_key",
@@ -354,7 +354,7 @@ export const jiraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "jql",

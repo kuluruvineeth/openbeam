@@ -16,7 +16,7 @@ export const zoomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [
         {
@@ -98,7 +98,7 @@ export const zoomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "meeting_id",
@@ -144,7 +144,7 @@ export const zoomActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "meeting_id",

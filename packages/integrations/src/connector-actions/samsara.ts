@@ -15,7 +15,7 @@ export const samsaraActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "alert_id", name: "Alert ID", type: "string", required: true },
       ],

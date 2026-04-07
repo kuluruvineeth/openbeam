@@ -41,7 +41,7 @@ export const insidedActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "ideaId", name: "Idea ID", type: "string", required: true },
       ],

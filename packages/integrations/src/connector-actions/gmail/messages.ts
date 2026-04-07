@@ -12,7 +12,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -43,7 +43,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -74,7 +74,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -105,7 +105,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -136,7 +136,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -167,7 +167,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -198,7 +198,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -229,7 +229,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {
@@ -268,7 +268,7 @@ export const messageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
     inputs: [
       {

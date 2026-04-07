@@ -42,7 +42,7 @@ export const mindtouchActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "pageId", name: "Page ID", type: "string", required: true },
         { id: "content", name: "Content", type: "html", required: true },
@@ -62,7 +62,7 @@ export const mindtouchActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "pageId", name: "Page ID", type: "string", required: true },
         {

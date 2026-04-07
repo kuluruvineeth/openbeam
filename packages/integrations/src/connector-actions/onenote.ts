@@ -16,7 +16,7 @@ export const onenoteActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [],
       outputs: [
         {
@@ -77,7 +77,7 @@ export const onenoteActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: false,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         {
           id: "page_id",

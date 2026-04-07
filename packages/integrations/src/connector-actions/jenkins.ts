@@ -40,7 +40,7 @@ export const jenkinsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "jobPath", name: "Job Path", type: "string", required: true },
       ],
@@ -56,7 +56,7 @@ export const jenkinsActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "jobPath", name: "Job Path", type: "string", required: true },
       ],

@@ -55,7 +55,7 @@ export const evernoteActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "noteGuid", name: "Note GUID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },
@@ -74,7 +74,7 @@ export const evernoteActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "noteGuid", name: "Note GUID", type: "string", required: true },
       ],

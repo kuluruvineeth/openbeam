@@ -120,7 +120,7 @@ export const issueActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "issueId",
@@ -196,7 +196,7 @@ export const issueActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "query",
@@ -249,7 +249,7 @@ export const issueActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "issueId",
@@ -327,7 +327,7 @@ export const issueActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "issueId",

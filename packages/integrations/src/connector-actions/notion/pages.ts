@@ -12,7 +12,7 @@ export const pageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "query",
@@ -127,7 +127,7 @@ export const pageActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "pageId",
@@ -159,7 +159,7 @@ export const pageActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "pageId",
@@ -212,7 +212,7 @@ export const pageActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "pageId",

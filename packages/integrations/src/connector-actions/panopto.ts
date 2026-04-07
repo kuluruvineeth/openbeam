@@ -40,7 +40,7 @@ export const panoptoActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "sessionId", name: "Session ID", type: "string", required: true },
         {
@@ -66,7 +66,7 @@ export const panoptoActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "sessionId", name: "Session ID", type: "string", required: true },
         {

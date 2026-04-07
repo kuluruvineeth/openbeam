@@ -40,7 +40,7 @@ export const doceboActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "courseId", name: "Course ID", type: "string", required: true },
         {

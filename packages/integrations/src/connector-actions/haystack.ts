@@ -15,7 +15,7 @@ export const haystackActionsRegistry: ConnectorActionsRegistry = {
       stakes: "low",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "personId", name: "Person ID", type: "string", required: true },
         { id: "title", name: "Title", type: "string", required: false },

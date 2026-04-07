@@ -64,7 +64,7 @@ export const draftActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     requiredScopes: ["https://www.googleapis.com/auth/gmail.compose"],
     inputs: [
       {

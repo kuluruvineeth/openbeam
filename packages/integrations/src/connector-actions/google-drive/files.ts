@@ -12,7 +12,7 @@ export const fileActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: true,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "fileId",
@@ -52,7 +52,7 @@ export const fileActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: false,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "query",
@@ -225,7 +225,7 @@ export const fileActions: ConnectorActionDefinition[] = [
     stakes: "medium",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "fileId",
@@ -277,7 +277,7 @@ export const fileActions: ConnectorActionDefinition[] = [
     stakes: "low",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "fileId",
@@ -320,7 +320,7 @@ export const fileActions: ConnectorActionDefinition[] = [
     stakes: "high",
     reversible: true,
     batchSupport: false,
-    idempotent: false,
+    idempotent: true,
     inputs: [
       {
         id: "fileId",

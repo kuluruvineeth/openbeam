@@ -15,7 +15,7 @@ export const verkadaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "high",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "door_id", name: "Door ID", type: "string", required: true },
       ],
@@ -31,7 +31,7 @@ export const verkadaActionsRegistry: ConnectorActionsRegistry = {
       stakes: "medium",
       reversible: true,
       batchSupport: false,
-      idempotent: false,
+      idempotent: true,
       inputs: [
         { id: "door_id", name: "Door ID", type: "string", required: true },
       ],
