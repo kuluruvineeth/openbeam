@@ -36,6 +36,7 @@ import { SlideTeam } from "./compositions/slides/slide-team";
 import { SlideTitle } from "./compositions/slides/slide-title";
 import { SlideVision } from "./compositions/slides/slide-vision";
 import { SlideWhyNow } from "./compositions/slides/slide-why-now";
+import { LAUNCH_TOTAL_FRAMES, LaunchVideo } from "./launch/launch-video";
 import "./index.css";
 
 const SLIDES = [
@@ -293,6 +294,15 @@ export const Root: React.FC = () => (
       fps={FPS}
       height={HEIGHT}
       id="Changelog-v2-5-0"
+      width={WIDTH}
+    />
+
+    <Composition
+      component={LaunchVideo}
+      durationInFrames={LAUNCH_TOTAL_FRAMES}
+      fps={FPS}
+      height={HEIGHT}
+      id="MCP-Launch"
       width={WIDTH}
     />
 

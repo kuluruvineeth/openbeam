@@ -15,6 +15,7 @@
     "upgrade": "bunx remotion upgrade"
   },
   "dependencies": {
+    "@openbeam/integrations": "workspace:*",
     "@remotion/cli": "4.0.435",
     "@remotion/google-fonts": "4.0.435",
     "@remotion/media-utils": "4.0.435",
@@ -29,6 +30,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "remotion": "4.0.435",
+    "simple-icons": "^16.14.0",
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
