@@ -51,17 +51,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
   },
   gmail: {
     definitionMissing: [],
-    handlerMissing: [
-      "email_forward",
-      "email_get",
-      "email_modify_labels",
-      "email_search",
-      "email_trash",
-      "label_create",
-      "label_list",
-      "thread_get",
-      "thread_trash",
-    ],
+    handlerMissing: [],
   },
   google_drive: {
     definitionMissing: [
@@ -76,12 +66,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
       "permission_transfer_ownership",
       "permission_update",
     ],
-    handlerMissing: [
-      "file_get",
-      "file_search",
-      "permission_create",
-      "permission_remove",
-    ],
+    handlerMissing: ["permission_create", "permission_remove"],
   },
   greenhouse: {
     definitionMissing: ["candidate_note_add"],
@@ -108,13 +93,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
       "database_entry_update",
       "page_restore",
     ],
-    handlerMissing: [
-      "comment_create",
-      "database_create",
-      "database_query",
-      "page_get",
-      "search",
-    ],
+    handlerMissing: ["comment_create", "database_create", "search"],
   },
   opsgenie: {
     definitionMissing: ["alert_note_add"],
