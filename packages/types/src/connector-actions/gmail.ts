@@ -8,6 +8,41 @@ export interface GmailEmailReplyResult {
   threadId: string | undefined;
 }
 
+export interface GmailEmailForwardResult {
+  messageId: string | undefined;
+}
+
+export interface GmailEmailSearchResult {
+  messages: unknown[];
+  total: number;
+}
+
+export interface GmailEmailGetResult {
+  id: string | undefined;
+  threadId: string | undefined;
+  subject: string;
+  from: string;
+  snippet: string;
+}
+
+export interface GmailEmailTrashResult {
+  messageId: string | undefined;
+}
+
+export interface GmailEmailModifyLabelsResult {
+  messageId: string | undefined;
+  labelIds: string[];
+}
+
+export interface GmailLabelListResult {
+  labels: unknown[];
+}
+
+export interface GmailLabelCreateResult {
+  id: string | undefined;
+  name: string | undefined;
+}
+
 export interface GmailDraftCreateResult {
   draftId: string | undefined;
   messageId: string | undefined;
@@ -19,6 +54,16 @@ export interface GmailDraftDeleteResult {
 
 export interface GmailDraftSendResult {
   messageId: string | undefined;
+}
+
+export interface GmailThreadGetResult {
+  id: string | undefined;
+  messages: unknown[];
+  snippet: string;
+}
+
+export interface GmailThreadTrashResult {
+  threadId: string | undefined;
 }
 
 export interface GmailMessageArchiveResult {
@@ -60,9 +105,18 @@ export interface GmailMessageRemoveLabelsResult {
 export interface GmailActionResults {
   email_send: GmailEmailSendResult;
   email_reply: GmailEmailReplyResult;
+  email_forward: GmailEmailForwardResult;
+  email_search: GmailEmailSearchResult;
+  email_get: GmailEmailGetResult;
+  email_trash: GmailEmailTrashResult;
+  email_modify_labels: GmailEmailModifyLabelsResult;
+  label_list: GmailLabelListResult;
+  label_create: GmailLabelCreateResult;
   draft_create: GmailDraftCreateResult;
   draft_delete: GmailDraftDeleteResult;
   draft_send: GmailDraftSendResult;
+  thread_get: GmailThreadGetResult;
+  thread_trash: GmailThreadTrashResult;
   message_archive: GmailMessageArchiveResult;
   message_trash: GmailMessageTrashResult;
   message_untrash: GmailMessageUntrashResult;
