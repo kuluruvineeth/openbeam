@@ -128,9 +128,9 @@ function resetMocks() {
 describe("notion handler", () => {
   beforeEach(resetMocks);
 
-  it("registers with 15 actions", () => {
+  it("registers with 18 actions", () => {
     expect(handler).toBeDefined();
-    expect(handler?.supportedActions).toHaveLength(15);
+    expect(handler?.supportedActions).toHaveLength(18);
   });
 
   it("rejects unknown action", async () => {

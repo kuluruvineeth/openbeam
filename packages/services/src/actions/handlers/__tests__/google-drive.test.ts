@@ -132,9 +132,9 @@ describe("google-drive handler", () => {
     }
   });
 
-  it("registers with 18 actions", () => {
+  it("registers with 20 actions", () => {
     expect(handler).toBeDefined();
-    expect(handler?.supportedActions).toHaveLength(18);
+    expect(handler?.supportedActions).toHaveLength(20);
   });
 
   it("rejects unknown action", async () => {

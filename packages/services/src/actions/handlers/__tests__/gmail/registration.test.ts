@@ -46,7 +46,7 @@ describe("gmail handler registration", () => {
       { accessToken: "t", config: { userEmail: "me@co.com" } },
       "conn_1"
     );
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Unsupported");
+    expect(result?.success).toBe(false);
+    expect(result?.error).toContain("Unsupported");
   });
 });

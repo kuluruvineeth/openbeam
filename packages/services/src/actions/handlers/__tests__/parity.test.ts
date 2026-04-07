@@ -66,7 +66,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
       "permission_transfer_ownership",
       "permission_update",
     ],
-    handlerMissing: ["permission_create", "permission_remove"],
+    handlerMissing: [],
   },
   greenhouse: {
     definitionMissing: ["candidate_note_add"],
@@ -93,7 +93,7 @@ const KNOWN_GAPS: Record<string, Gap> = {
       "database_entry_update",
       "page_restore",
     ],
-    handlerMissing: ["comment_create", "database_create", "search"],
+    handlerMissing: [],
   },
   opsgenie: {
     definitionMissing: ["alert_note_add"],
