@@ -209,6 +209,28 @@ const actions: Record<string, Handler> = {
       error: r.error,
     };
   },
+
+  async permission_create(client, p) {
+    const r = await shareWithUser(client, str(p, "fileId"), {
+      email: str(p, "email"),
+      role: str(p, "role") as "reader" | "commenter" | "writer",
+      sendNotification: p.sendNotification !== false,
+    });
+    return {
+      success: r.success,
+      data: { permissionId: r.permissionId },
+      error: r.error,
+    };
+  },
+
+  async permission_remove(client, p) {
+    const r = await revokeAccess(
+      client,
+      str(p, "fileId"),
+      str(p, "permissionId")
+    );
+    return { success: r.success, data: { revoked: true }, error: r.error };
+  },
 };
 
 registerHandler({

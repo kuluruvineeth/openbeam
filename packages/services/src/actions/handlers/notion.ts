@@ -15,11 +15,15 @@ import {
   updateDatabaseEntry,
   updatePage,
 } from "../../notion/actions";
+import { createDatabase } from "../../notion/api/databases";
+import { search as notionSearch } from "../../notion/api/search";
 import { createNotionClient, type NotionClient } from "../../notion/client";
+import { extractPageTitle } from "../../notion/utils/content-extractor";
+import { createTextRichText } from "../../notion/utils/rich-text";
 import { ActionExecutorError } from "../errors";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { optNum, str } from "./shared/params";
+import { optNum, optStr, str } from "./shared/params";
 
 type Handler = (
   client: NotionClient,
@@ -121,6 +125,47 @@ const actions: Record<string, Handler> = {
       success: true,
       data: { results, total: results.length },
     };
+  },
+
+  async database_create(client, p) {
+    const parentId = str(p, "parentId");
+    const title = str(p, "title");
+    const properties = (p.properties as Record<string, unknown>) ?? {
+      Name: { title: {} },
+    };
+    const db = await createDatabase(client, {
+      parent: { type: "page_id", page_id: parentId },
+      title: createTextRichText(title),
+      properties,
+    });
+    return {
+      success: true,
+      data: { databaseId: db.id, url: db.url },
+    };
+  },
+
+  async search(client, p) {
+    const query = optStr(p, "query") ?? "";
+    const limit = optNum(p, "limit") ?? 20;
+    const response = await notionSearch(client, {
+      query: query || undefined,
+      pageSize: Math.min(limit, 100),
+    });
+    const results = response.results.map((r) => ({
+      id: r.id,
+      object: r.object,
+      title: r.object === "page" ? extractPageTitle(r) : "",
+      url: "url" in r ? r.url : "",
+    }));
+    return { success: true, data: { results, total: results.length } };
+  },
+
+  async comment_create(client, p) {
+    const r = await addPageComment(client, str(p, "pageId"), str(p, "text"));
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { commentId: r.commentId } };
   },
 
   async database_entry_create(client, p) {
