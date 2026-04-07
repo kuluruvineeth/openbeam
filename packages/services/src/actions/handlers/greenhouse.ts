@@ -5,21 +5,12 @@ import {
 } from "../../greenhouse/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str } from "./shared/params";
+import { num, str } from "./shared/params";
 
 type Handler = (
   client: GreenhouseClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function num(p: Record<string, unknown>, key: string): number {
-  const v = p[key];
-  const n = typeof v === "number" ? v : Number(v);
-  if (Number.isNaN(n)) {
-    throw new Error(`${key} must be a number`);
-  }
-  return n;
-}
 
 const actions: Record<string, Handler> = {
   async candidate_note_add(client, p) {

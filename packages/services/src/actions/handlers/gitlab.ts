@@ -8,24 +8,12 @@ import {
 import { createGitLabClient, type GitLabClient } from "../../gitlab/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str } from "./shared/params";
+import { num, str } from "./shared/params";
 
 type Handler = (
   client: GitLabClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function num(p: Record<string, unknown>, key: string): number {
-  const v = p[key];
-  if (typeof v === "number") {
-    return v;
-  }
-  const parsed = Number(str(p, key));
-  if (Number.isNaN(parsed)) {
-    throw new Error(`${key} must be a number`);
-  }
-  return parsed;
-}
 
 const actions: Record<string, Handler> = {
   async issue_create(client, p) {

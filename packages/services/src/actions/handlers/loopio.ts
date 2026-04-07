@@ -1,5 +1,6 @@
 import { createLibraryEntry, updateLibraryEntry } from "../../loopio/actions";
 import { createLoopioClient, type LoopioClient } from "../../loopio/client";
+import { ActionValidationError } from "../errors";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
 import { optStr, str } from "./shared/params";
@@ -20,7 +21,7 @@ function int(p: Record<string, unknown>, key: string): number {
       return n;
     }
   }
-  throw new Error(`${key} is required and must be an integer`);
+  throw new ActionValidationError(`${key} must be an integer`, key);
 }
 
 function optInt(p: Record<string, unknown>, key: string): number | undefined {

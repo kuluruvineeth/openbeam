@@ -6,24 +6,12 @@ import {
 import { createProcoreClient, type ProcoreClient } from "../../procore/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str } from "./shared/params";
+import { num, str } from "./shared/params";
 
 type Handler = (
   client: ProcoreClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function num(p: Record<string, unknown>, key: string): number {
-  const v = p[key];
-  if (typeof v === "number") {
-    return v;
-  }
-  const parsed = Number(str(p, key));
-  if (Number.isNaN(parsed)) {
-    throw new Error(`${key} must be a number`);
-  }
-  return parsed;
-}
 
 function props(p: Record<string, unknown>): Record<string, unknown> {
   return (

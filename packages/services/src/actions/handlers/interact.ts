@@ -3,28 +3,15 @@ import {
   createInteractClient,
   type InteractClient,
 } from "../../interact/client";
+import { ActionValidationError } from "../errors";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { optStr, str } from "./shared/params";
+import { num, optStr, str } from "./shared/params";
 
 type Handler = (
   client: InteractClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function num(p: Record<string, unknown>, key: string): number {
-  const v = p[key];
-  if (typeof v === "number") {
-    return v;
-  }
-  if (typeof v === "string") {
-    const n = Number.parseInt(v, 10);
-    if (!Number.isNaN(n)) {
-      return n;
-    }
-  }
-  throw new Error(`${key} is required and must be a number`);
-}
 
 function numArray(p: Record<string, unknown>, key: string): number[] {
   const v = p[key];
@@ -35,12 +22,12 @@ function numArray(p: Record<string, unknown>, key: string): number[] {
       }
       const n = Number.parseInt(String(item), 10);
       if (Number.isNaN(n)) {
-        throw new Error(`${key} must contain numbers`);
+        throw new ActionValidationError(`${key} must contain numbers`, key);
       }
       return n;
     });
   }
-  throw new Error(`${key} is required and must be an array`);
+  throw new ActionValidationError(`${key} is required`, key);
 }
 
 const actions: Record<string, Handler> = {

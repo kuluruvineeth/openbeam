@@ -7,21 +7,12 @@ import {
 import { createZoomClient, type ZoomClient } from "../../zoom/client";
 import { registerHandler } from "../handler-registry";
 import type { ActionExecutionResult } from "../types";
-import { str } from "./shared/params";
+import { num, str } from "./shared/params";
 
 type Handler = (
   client: ZoomClient,
   p: Record<string, unknown>
 ) => Promise<ActionExecutionResult>;
-
-function num(p: Record<string, unknown>, key: string): number {
-  const v = p[key];
-  const n = typeof v === "number" ? v : Number(v);
-  if (Number.isNaN(n)) {
-    throw new Error(`${key} must be a number`);
-  }
-  return n;
-}
 
 const actions: Record<string, Handler> = {
   async user_list(client) {
