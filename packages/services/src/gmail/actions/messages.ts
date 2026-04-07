@@ -99,3 +99,20 @@ export async function batchTrash(
 
   return { success: true };
 }
+
+export interface ThreadResult {
+  success: boolean;
+  threadId?: string;
+  error?: string;
+}
+
+export async function trashThread(
+  client: GmailClient,
+  threadId: string
+): Promise<ThreadResult> {
+  const response = await client.post<{ id: string }>(
+    `/users/me/threads/${threadId}/trash`,
+    {}
+  );
+  return { success: true, threadId: response.id ?? threadId };
+}

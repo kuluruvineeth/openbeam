@@ -132,3 +132,34 @@ export async function batchModifyLabels(
 
   return { success: true };
 }
+
+export type LabelVisibility = "labelShow" | "labelShowIfUnread" | "labelHide";
+export type MessageVisibility = "show" | "hide";
+
+export interface CreateLabelParams {
+  name: string;
+  labelListVisibility?: LabelVisibility;
+  messageListVisibility?: MessageVisibility;
+}
+
+export interface CreateLabelResult {
+  success: boolean;
+  id?: string;
+  name?: string;
+  error?: string;
+}
+
+export async function createLabel(
+  client: GmailClient,
+  params: CreateLabelParams
+): Promise<CreateLabelResult> {
+  const response = await client.post<{ id: string; name: string }>(
+    "/users/me/labels",
+    {
+      name: params.name,
+      labelListVisibility: params.labelListVisibility,
+      messageListVisibility: params.messageListVisibility ?? "show",
+    }
+  );
+  return { success: true, id: response.id, name: response.name };
+}
