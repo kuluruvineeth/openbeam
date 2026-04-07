@@ -13,4 +13,5 @@ export {
   getDispatchMiddlewares,
   registerDispatchMiddleware,
 } from "./middleware";
+export { idempotentRetryMiddleware } from "./retry-middleware";
 export type { ActionExecutionResult, DispatchRequest } from "./types";

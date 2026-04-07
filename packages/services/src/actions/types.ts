@@ -23,6 +23,7 @@ export interface ConnectorHandler {
 
 export interface DispatchRequest {
   connectorId: string;
+  connectorType?: string;
   actionId: string;
   params: Record<string, unknown>;
   teamId: string;
