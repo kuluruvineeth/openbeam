@@ -444,7 +444,12 @@ mock.module("@openbeam/db", () => ({
   },
   getConnectorsNeedingRefresh: () => Promise.resolve([]),
   findConnectorById: () =>
-    Promise.resolve({ id: "connector-1", status: "ACTIVE", app: "SLACK" }),
+    Promise.resolve({
+      id: "connector-1",
+      status: "ACTIVE",
+      app: "SLACK",
+      teamId: "team-1",
+    }),
   recordRefreshFailure: () => Promise.resolve(),
   updateConnector: () => Promise.resolve(),
   updateOAuthTokens: () => Promise.resolve(),
