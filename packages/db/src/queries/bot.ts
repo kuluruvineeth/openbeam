@@ -5,9 +5,16 @@ import type {
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
+export type BotPlatformId =
+  | "SLACK"
+  | "TEAMS"
+  | "DISCORD"
+  | "TELEGRAM"
+  | "WHATSAPP";
+
 export const findBotUserLink = async (
   db: Database,
-  platform: string,
+  platform: BotPlatformId,
   platformUserId: string,
   platformTeamId: string
 ): Promise<BotUserLink | null> =>
@@ -23,7 +30,7 @@ export const findBotUserLink = async (
 
 export const findBotInstallation = async (
   db: Database,
-  platform: string,
+  platform: BotPlatformId,
   platformTeamId: string
 ): Promise<BotInstallation | null> =>
   db.botInstallation.findUnique({

@@ -4,6 +4,7 @@ const USER_WINDOW_MS = 60_000;
 const USER_MAX_REQUESTS = 30;
 const TEAM_WINDOW_MS = 60_000;
 const TEAM_MAX_REQUESTS = 500;
+const CLEANUP_INTERVAL_MS = 60_000;
 
 interface RateBucket {
   count: number;
@@ -11,6 +12,19 @@ interface RateBucket {
 }
 
 const buckets = new Map<string, RateBucket>();
+
+const cleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of buckets) {
+    if (now >= bucket.resetAt) {
+      buckets.delete(key);
+    }
+  }
+}, CLEANUP_INTERVAL_MS);
+
+if (typeof cleanupTimer === "object" && "unref" in cleanupTimer) {
+  cleanupTimer.unref();
+}
 
 function checkBucket(
   key: string,
@@ -46,4 +60,12 @@ export function checkUserRateLimit(
 
 export function checkTeamRateLimit(teamId: string): boolean {
   return checkBucket(`team:${teamId}`, TEAM_MAX_REQUESTS, TEAM_WINDOW_MS);
+}
+
+export function resetBuckets(): void {
+  buckets.clear();
+}
+
+export function stopCleanup(): void {
+  clearInterval(cleanupTimer);
 }

@@ -84,35 +84,30 @@ export class TelegramAdapter implements PlatformAdapter {
   verifySignature(_rawBody: string, headers: Record<string, string>): boolean {
     const secret = env.TELEGRAM_WEBHOOK_SECRET;
     if (!secret) {
-      return true;
+      return false;
     }
     return headers["x-telegram-bot-api-secret-token"] === secret;
   }
 
-  async parseEvent(
+  parseEvent(
     rawBody: unknown,
     _headers: Record<string, string>
   ): Promise<UnifiedMessage | null> {
-    await Promise.resolve();
     const parsed = TelegramUpdateSchema.safeParse(rawBody);
     if (!parsed.success) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const update = parsed.data;
     const message = extractMessage(update);
-    if (!message) {
-      return null;
-    }
-
-    if (!message.from) {
-      return null;
+    if (!message?.from) {
+      return Promise.resolve(null);
     }
 
     const text = message.text ?? "";
     const { command, body } = parseText(text);
 
-    return {
+    return Promise.resolve({
       id: String(update.update_id),
       platform: "TELEGRAM",
       platformUserId: String(message.from.id),
@@ -124,7 +119,7 @@ export class TelegramAdapter implements PlatformAdapter {
       isMention: false,
       timestamp: new Date(message.date * 1000),
       rawEvent: update,
-    };
+    });
   }
 
   async sendResponse(

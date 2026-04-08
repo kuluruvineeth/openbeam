@@ -1,8 +1,8 @@
 import { dispatchAction } from "@openbeam/services";
 import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
+import { stripCommandPrefix } from "./utils";
 
-const COMMAND_PREFIX_RE = /^\/?\w+\s*/;
 const WHITESPACE_RE = /\s+/;
 
 export async function handleAction(
@@ -47,7 +47,7 @@ interface ParsedAction {
 }
 
 function parseActionCommand(text: string): ParsedAction | null {
-  const cleaned = text.replace(COMMAND_PREFIX_RE, "").trim();
+  const cleaned = stripCommandPrefix(text, "action");
   const parts = cleaned.split(WHITESPACE_RE);
 
   if (parts.length < 2) {

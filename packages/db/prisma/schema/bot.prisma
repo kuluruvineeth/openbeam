@@ -56,7 +56,6 @@ model BotLinkRequest {
   consumed        Boolean  @default(false)
   createdAt       DateTime @default(now()) @map("created_at")
 
-  @@index([token])
   @@index([expiresAt])
   @@map("bot_link_request")
 }

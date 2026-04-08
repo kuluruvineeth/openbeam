@@ -4,17 +4,20 @@ import type {
   BotUserLink,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
+import type { BotPlatformId } from "../queries/bot";
+
+export interface CreateBotUserLinkData {
+  teamId: string;
+  userId: string;
+  platform: BotPlatformId;
+  platformUserId: string;
+  platformTeamId: string;
+  platformUsername?: string;
+}
 
 export const createBotUserLink = async (
   db: Database,
-  data: {
-    teamId: string;
-    userId: string;
-    platform: string;
-    platformUserId: string;
-    platformTeamId: string;
-    platformUsername?: string;
-  }
+  data: CreateBotUserLinkData
 ): Promise<BotUserLink> => db.botUserLink.create({ data });
 
 export const updateBotUserLinkActivity = async (
@@ -26,35 +29,39 @@ export const updateBotUserLinkActivity = async (
     data: { lastActiveAt: new Date() },
   });
 
+export interface CreateBotInstallationData {
+  teamId: string;
+  platform: BotPlatformId;
+  platformTeamId: string;
+  platformTeamName?: string;
+  installedBy: string;
+  botToken: string;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date;
+  scopes?: string[];
+  webhookUrl?: string;
+}
+
 export const createBotInstallation = async (
   db: Database,
-  data: {
-    teamId: string;
-    platform: string;
-    platformTeamId: string;
-    platformTeamName?: string;
-    installedBy: string;
-    botToken: string;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiresAt?: Date;
-    scopes?: string[];
-    webhookUrl?: string;
-  }
+  data: CreateBotInstallationData
 ): Promise<BotInstallation> => db.botInstallation.create({ data });
+
+export interface UpdateBotInstallationData {
+  botToken?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiresAt?: Date;
+  scopes?: string[];
+  webhookUrl?: string;
+  active?: boolean;
+}
 
 export const updateBotInstallation = async (
   db: Database,
   id: string,
-  data: {
-    botToken?: string;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiresAt?: Date;
-    scopes?: string[];
-    webhookUrl?: string;
-    active?: boolean;
-  }
+  data: UpdateBotInstallationData
 ): Promise<BotInstallation> =>
   db.botInstallation.update({ where: { id }, data });
 
@@ -67,15 +74,17 @@ export const deactivateBotInstallation = async (
     data: { active: false },
   });
 
+export interface CreateBotLinkRequestData {
+  platform: BotPlatformId;
+  platformUserId: string;
+  platformTeamId: string;
+  token: string;
+  expiresAt: Date;
+}
+
 export const createBotLinkRequest = async (
   db: Database,
-  data: {
-    platform: string;
-    platformUserId: string;
-    platformTeamId: string;
-    token: string;
-    expiresAt: Date;
-  }
+  data: CreateBotLinkRequestData
 ): Promise<BotLinkRequest> => db.botLinkRequest.create({ data });
 
 export const consumeBotLinkRequest = async (

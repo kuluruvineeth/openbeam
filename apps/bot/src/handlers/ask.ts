@@ -1,8 +1,7 @@
 import { ragAnswer } from "@openbeam/services";
 import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
-
-const COMMAND_PREFIX_RE = /^\/?\w+\s*/;
+import { stripCommandPrefix } from "./utils";
 
 export async function handleAsk(
   message: UnifiedMessage,
@@ -44,8 +43,5 @@ export async function handleAsk(
 }
 
 function extractQuestion(text: string, command?: string): string {
-  if (command === "ask") {
-    return text.replace(COMMAND_PREFIX_RE, "").trim();
-  }
-  return text.trim();
+  return stripCommandPrefix(text, command === "ask" ? command : undefined);
 }

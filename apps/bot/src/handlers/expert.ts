@@ -1,8 +1,7 @@
 import db, { getExpertsForTopic, searchEntities } from "@openbeam/db";
 import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
-
-const COMMAND_PREFIX_RE = /^\/?\w+\s*/;
+import { stripCommandPrefix } from "./utils";
 
 export async function handleExpert(
   message: UnifiedMessage,
@@ -55,8 +54,5 @@ export async function handleExpert(
 }
 
 function extractTopic(text: string, command?: string): string {
-  if (command === "expert") {
-    return text.replace(COMMAND_PREFIX_RE, "").trim();
-  }
-  return text.trim();
+  return stripCommandPrefix(text, command === "expert" ? command : undefined);
 }

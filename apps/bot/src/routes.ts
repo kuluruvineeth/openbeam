@@ -81,15 +81,20 @@ export function createBotRoutes(): Hono {
   });
 
   routes.post("/webhooks/teams", async (c) => {
-    const rawBody = await c.req.text();
-    const headers = extractHeaders(c.req.raw.headers);
-    await teamsAdapter.processActivity(rawBody, headers, async (message) => {
-      const response = await resolveAndRoute(teamsAdapter, message);
-      if (response) {
-        await teamsAdapter.sendResponse(message, response);
-      }
-    });
-    return c.json({ ok: true });
+    try {
+      const rawBody = await c.req.text();
+      const headers = extractHeaders(c.req.raw.headers);
+      await teamsAdapter.processActivity(rawBody, headers, async (message) => {
+        const response = await resolveAndRoute(teamsAdapter, message);
+        if (response) {
+          await teamsAdapter.sendResponse(message, response);
+        }
+      });
+      return c.json({ ok: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "internal error";
+      return c.json({ ok: false, error: message }, 500);
+    }
   });
 
   routes.post("/webhooks/discord", async (c) => {

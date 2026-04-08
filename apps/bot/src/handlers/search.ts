@@ -1,8 +1,8 @@
 import { hybridSearch } from "@openbeam/services";
 import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
+import { stripCommandPrefix } from "./utils";
 
-const COMMAND_PREFIX_RE = /^\/?\w+\s*/;
 const MAX_RESULTS = 5;
 
 export async function handleSearch(
@@ -46,8 +46,5 @@ export async function handleSearch(
 }
 
 function extractQuery(text: string, command?: string): string {
-  if (command === "search") {
-    return text.replace(COMMAND_PREFIX_RE, "").trim();
-  }
-  return text.trim();
+  return stripCommandPrefix(text, command === "search" ? command : undefined);
 }

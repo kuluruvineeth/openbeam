@@ -121,16 +121,18 @@ export class TeamsAdapter implements PlatformAdapter {
 
   private readonly cloudAdapter = buildAdapter();
 
-  verifySignature(_rawBody: string, _headers: Record<string, string>): boolean {
-    return true;
+  verifySignature(
+    _rawBody: string,
+    _headers: Record<string, string>
+  ): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
-  async parseEvent(
+  parseEvent(
     _rawBody: unknown,
     _headers: Record<string, string>
   ): Promise<UnifiedMessage | null> {
-    await Promise.resolve();
-    return null;
+    return Promise.resolve(null);
   }
 
   async processActivity(

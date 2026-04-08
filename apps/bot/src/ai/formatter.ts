@@ -42,7 +42,7 @@ const markdownRenderer: Renderer = {
 const telegramRenderer: Renderer = {
   bold: (t) => `*${escapeMarkdownV2(t)}*`,
   link: (url, text) => `[${escapeMarkdownV2(text)}](${url})`,
-  italic: (t) => `_${escapeMarkdownV2(t)}_`,
+  italic: (t) => `_${t}_`,
   escape: escapeMarkdownV2,
 };
 
