@@ -11,12 +11,17 @@
     "test:watch": "bun test --watch"
   },
   "dependencies": {
+    "@discordjs/rest": "^2.6.1",
     "@openbeam/ai": "workspace:*",
     "@openbeam/db": "workspace:*",
     "@openbeam/redis": "workspace:*",
     "@openbeam/services": "workspace:*",
     "@openbeam/types": "workspace:*",
+    "botbuilder": "~4.23.0",
+    "discord-api-types": "^0.37.119",
+    "discord-interactions": "^4.1.0",
     "dotenv": "catalog:",
+    "grammy": "^1.36.0",
     "hono": "catalog:",
     "zod": "catalog:"
   },
