@@ -52,7 +52,13 @@ async function standardWebhook(
     return { ok: false, error: "invalid signature", status: 401 };
   }
 
-  const parsed = JSON.parse(rawBody);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return { ok: false, error: "invalid json", status: 400 };
+  }
+
   const message = await adapter.parseEvent(parsed, headers);
   if (!message) {
     return { ok: true, status: 200 };
@@ -72,6 +78,11 @@ function extractHeaders(raw: Headers): Record<string, string> {
 
 export function createBotRoutes(): Hono {
   const routes = new Hono();
+
+  routes.onError((error, c) => {
+    console.error("unhandled route error", error);
+    return c.json({ ok: false, error: "internal error" }, 500);
+  });
 
   routes.post("/webhooks/slack", async (c) => {
     const rawBody = await c.req.text();
@@ -105,7 +116,12 @@ export function createBotRoutes(): Hono {
       return c.json({ error: "invalid signature" }, 401);
     }
 
-    const parsed = JSON.parse(rawBody);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(rawBody);
+    } catch {
+      return c.json({ error: "invalid json" }, 400);
+    }
 
     if (parsed.type === InteractionType.Ping) {
       return c.json(DISCORD_PING_RESPONSE);

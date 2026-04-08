@@ -29,19 +29,17 @@ async function shutdown(): Promise<void> {
   process.exit(0);
 }
 
-process.on("SIGTERM", () => {
-  shutdown();
-});
-process.on("SIGINT", () => {
-  shutdown();
-});
+const noop = Function.prototype as () => void;
+
+process.on("SIGTERM", () => shutdown().catch(noop));
+process.on("SIGINT", () => shutdown().catch(noop));
 process.on("uncaughtException", (error) => {
   console.error("uncaught exception", error);
-  process.exit(1);
+  shutdown().catch(noop);
 });
 process.on("unhandledRejection", (reason) => {
   console.error("unhandled rejection", reason);
-  process.exit(1);
+  shutdown().catch(noop);
 });
 
 console.log(`Bot server running on ${server.hostname}:${server.port}`);
