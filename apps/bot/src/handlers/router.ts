@@ -24,7 +24,7 @@ const INTENT_PATTERNS: [RegExp, string][] = [
   [/\?$/i, "ask"],
 ];
 
-export function routeMessage(
+export async function routeMessage(
   message: UnifiedMessage,
   identity: ResolvedIdentity
 ): Promise<BotResponse> {
@@ -34,12 +34,12 @@ export function routeMessage(
     }
     const handler = COMMAND_HANDLERS[message.command];
     if (handler) {
-      return handler(message, identity);
+      return await handler(message, identity);
     }
   }
 
   if (message.isDirectMessage || message.isMention) {
-    return detectAndRoute(message, identity);
+    return await detectAndRoute(message, identity);
   }
 
   return { type: "text", text: "Mention me or use a command to get started." };
