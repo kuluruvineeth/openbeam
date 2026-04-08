@@ -1,0 +1,110 @@
+---
+title: Quickstart
+description: Get the OpenBeam bot running locally in 5 minutes.
+---
+
+# Quickstart
+
+## Prerequisites
+
+- Bun 1.3.3+
+- PostgreSQL running locally (or via Docker)
+- Redis running locally (or via Docker)
+- At least one platform configured (Slack is recommended for local dev)
+
+## 1. Install Dependencies
+
+```bash
+bun install
+```
+
+## 2. Set Environment Variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp apps/bot/.env.example apps/bot/.env
+```
+
+Required for any platform:
+
+```bash
+BOT_PORT=3005
+DATABASE_URL=postgresql://user:pass@localhost:5432/openbeam
+REDIS_URL=redis://localhost:6379
+```
+
+Platform-specific variables (add the ones you need):
+
+```bash
+# Slack
+SLACK_BOT_TOKEN=xoxb-...
+SLACK_SIGNING_SECRET=...
+SLACK_APP_ID=...
+
+# Microsoft Teams
+TEAMS_APP_ID=...
+TEAMS_APP_PASSWORD=...
+
+# Discord
+DISCORD_APPLICATION_ID=...
+DISCORD_PUBLIC_KEY=...
+DISCORD_BOT_TOKEN=...
+
+# Telegram
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_WEBHOOK_SECRET=...
+
+# WhatsApp
+WHATSAPP_PHONE_NUMBER_ID=...
+WHATSAPP_ACCESS_TOKEN=...
+WHATSAPP_VERIFY_TOKEN=...
+WHATSAPP_APP_SECRET=...
+```
+
+## 3. Run Database Migration
+
+```bash
+cd packages/db && bun run db:migrate
+```
+
+## 4. Start the Bot
+
+```bash
+bun run --hot apps/bot/src/index.ts
+```
+
+The bot starts on port 3005 (configurable via `BOT_PORT`).
+
+## 5. Expose Locally (for webhook testing)
+
+Platforms need a public URL to send webhooks. Use ngrok or cloudflared:
+
+```bash
+# ngrok
+ngrok http 3005
+
+# cloudflared
+cloudflared tunnel --url http://localhost:3005
+```
+
+Copy the public URL and configure it as the webhook URL in your platform's developer portal.
+
+## 6. Verify Health
+
+```bash
+curl http://localhost:3005/health
+# {"status":"ok","service":"bot"}
+```
+
+## 7. Run Tests
+
+```bash
+bun test apps/bot/__tests__/
+```
+
+## Next Steps
+
+- [Slack Setup](/docs/bot/slack) — Create a Slack App and connect it
+- [Architecture](/docs/bot/architecture) — Understand the codebase structure
+- [Testing](/docs/bot/testing) — Write and run tests

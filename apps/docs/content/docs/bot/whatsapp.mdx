@@ -1,0 +1,68 @@
+---
+title: WhatsApp
+description: Set up the OpenBeam bot for WhatsApp.
+---
+
+# WhatsApp Setup
+
+## Prerequisites
+
+WhatsApp Business API requires Meta Business verification (1-2 weeks). Start this process early.
+
+## 1. Create a Meta App
+
+1. Go to [developers.facebook.com](https://developers.facebook.com)
+2. Create a new app with **Business** type
+3. Add the **WhatsApp** product
+
+## 2. Configure WhatsApp Business
+
+1. In the WhatsApp product settings, note the **Phone Number ID**
+2. Generate a **Permanent Access Token**
+3. Set the **App Secret** from Basic Settings
+
+## 3. Configure Environment
+
+```bash
+WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
+WHATSAPP_ACCESS_TOKEN=your-permanent-access-token
+WHATSAPP_VERIFY_TOKEN=your-random-verify-token
+WHATSAPP_APP_SECRET=your-app-secret
+```
+
+## 4. Configure Webhook
+
+1. In the WhatsApp product settings, click **Configuration**
+2. Set the **Callback URL** to:
+
+```
+https://your-domain.com/webhooks/whatsapp
+```
+
+3. Set the **Verify Token** to match `WHATSAPP_VERIFY_TOKEN`
+4. Subscribe to the **messages** webhook field
+
+Meta sends a GET request with `hub.challenge` to verify — the bot handles this automatically.
+
+## 5. Test
+
+Send a message to your WhatsApp Business number. The bot responds with plain text and up to 3 interactive buttons when applicable.
+
+## Limitations
+
+- WhatsApp messages are always DMs (no channels or groups)
+- Max 3 interactive buttons per message
+- Button titles limited to 20 characters
+- No rich link formatting (URLs shown as plain text)
+- No typing indicators
+- Meta Business verification required for production
+
+## How It Works
+
+The WhatsApp adapter uses pure `fetch` (no SDK):
+
+- **Webhook verification**: GET handler returns `hub.challenge` for Meta's verification flow
+- **Signature verification**: HMAC-SHA256 on `x-hub-signature-256` header with timing-safe comparison
+- **Event parsing**: Zod schemas validate the Meta Cloud API webhook payload
+- **Response sending**: POST to `https://graph.facebook.com/v19.0/{phoneId}/messages`
+- **Interactive buttons**: Sent when response has 1-3 buttons, otherwise plain text

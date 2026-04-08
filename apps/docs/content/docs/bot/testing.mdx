@@ -1,0 +1,85 @@
+---
+title: Testing
+description: How to run and write tests for the bot app.
+---
+
+# Testing
+
+## Running Tests
+
+```bash
+# All bot tests
+bun test apps/bot/__tests__/
+
+# Specific test file
+bun test apps/bot/__tests__/ai/formatter.test.ts
+
+# Watch mode
+bun test --watch apps/bot/__tests__/
+```
+
+## Test Structure
+
+```
+apps/bot/__tests__/
+├── ai/
+│   └── formatter.test.ts       # Platform-native rendering (19 tests)
+├── handlers/
+│   └── router.test.ts          # Command dispatch + intent detection (9 tests)
+├── identity/
+│   ├── resolver.test.ts        # BotUserLink lookup (5 tests)
+│   └── linking.test.ts         # Magic link token generation (3 tests)
+└── lib/
+    └── rate-limit.test.ts      # Per-user + per-team rate limiting (6 tests)
+```
+
+## Test Coverage
+
+| Layer | Tests | What's Tested |
+|-------|-------|---------------|
+| Formatter | 19 | All 5 platforms x all response types, MarkdownV2 escaping, truncation |
+| Router | 9 | Command dispatch, intent detection, DM/mention routing, unknown commands |
+| Identity | 8 | Linked/unlinked users, activity updates, token generation, expiry |
+| Rate Limit | 6 | Per-user burst, per-team limits, cross-platform isolation |
+
+## Writing New Tests
+
+### Mocking Services
+
+The router tests mock `@openbeam/services` and `@openbeam/db` to avoid hitting real databases:
+
+```typescript
+mock.module("@openbeam/services", () => ({
+  hybridSearch: () => Promise.resolve({ documents: [], total: 0, queryTime: 0 }),
+  ragAnswer: () => Promise.resolve({ answer: "test", citations: [], context: {}, usage: {} }),
+}));
+```
+
+### Testing Adapters
+
+Adapter tests should mock the platform SDK and verify:
+
+1. Signature verification accepts valid / rejects invalid
+2. Event parsing produces correct `UnifiedMessage` fields
+3. Response sending calls the right platform API
+
+### Testing Formatters
+
+Formatter tests are pure functions with no mocks needed:
+
+```typescript
+const out = formatForPlatform("SLACK", searchResponse());
+expect(out).toContain("<https://x.co/1|Deploy Guide>");
+```
+
+## Typecheck
+
+```bash
+bun x tsc --noEmit -p apps/bot/tsconfig.json
+```
+
+## Lint
+
+```bash
+bunx biome check apps/bot/src/
+```

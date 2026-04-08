@@ -1,0 +1,103 @@
+---
+title: Slack
+description: Set up the OpenBeam bot for Slack.
+---
+
+# Slack Setup
+
+## 1. Create a Slack App
+
+1. Go to [api.slack.com/apps](https://api.slack.com/apps) and click **Create New App**
+2. Choose **From an app manifest** and select your workspace
+3. Use the manifest below or configure manually
+
+## 2. App Manifest
+
+```yaml
+display_information:
+  name: OpenBeam
+  description: Enterprise search and AI assistant
+  background_color: "#1a1a2e"
+
+features:
+  bot_user:
+    display_name: OpenBeam
+    always_online: true
+
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - chat:write
+      - commands
+      - groups:history
+      - im:history
+      - im:read
+      - im:write
+      - reactions:write
+      - users:read
+      - users:read.email
+
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+      - message.im
+    request_url: https://your-domain.com/webhooks/slack
+  interactivity:
+    is_enabled: true
+    request_url: https://your-domain.com/webhooks/slack
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+```
+
+## 3. Install to Workspace
+
+1. Navigate to **OAuth & Permissions** in your Slack App settings
+2. Click **Install to Workspace**
+3. Copy the **Bot User OAuth Token** (`xoxb-...`)
+
+## 4. Configure Environment
+
+```bash
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_SIGNING_SECRET=your-signing-secret
+SLACK_APP_ID=your-app-id
+```
+
+Find the signing secret in **Basic Information > App Credentials**.
+
+## 5. Set Webhook URL
+
+In **Event Subscriptions**, set the Request URL to:
+
+```
+https://your-domain.com/webhooks/slack
+```
+
+Slack will send a verification challenge — the bot handles this automatically.
+
+## 6. Test
+
+Mention the bot in a channel:
+
+```
+@OpenBeam search deployment runbook
+```
+
+Or send a direct message:
+
+```
+What is our deploy process?
+```
+
+## How It Works
+
+The Slack adapter delegates to existing `@openbeam/services` infrastructure:
+
+- **Signature verification**: `verifySlackSignature()` — HMAC-SHA256 with timing-safe comparison
+- **Event parsing**: `parseSlackEvent()` — Zod-validated event envelope with 20+ typed event schemas
+- **Message sending**: `createSlackClient()` → `client.call("chat.postMessage", ...)`
+
+The adapter does not reimplement any Slack logic — it is a thin HTTP layer on top of the existing services package.

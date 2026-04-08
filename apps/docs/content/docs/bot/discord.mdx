@@ -1,0 +1,68 @@
+---
+title: Discord
+description: Set up the OpenBeam bot for Discord.
+---
+
+# Discord Setup
+
+## 1. Create a Discord Application
+
+1. Go to [discord.com/developers/applications](https://discord.com/developers/applications)
+2. Click **New Application** and name it "OpenBeam"
+3. Note the **Application ID** and **Public Key**
+
+## 2. Create a Bot User
+
+1. Go to **Bot** section
+2. Click **Add Bot**
+3. Copy the **Bot Token**
+
+## 3. Configure Interactions Endpoint
+
+1. Go to **General Information**
+2. Set **Interactions Endpoint URL** to:
+
+```
+https://your-domain.com/webhooks/discord
+```
+
+Discord sends a PING request to verify — the bot handles this automatically.
+
+## 4. Configure Environment
+
+```bash
+DISCORD_APPLICATION_ID=your-app-id
+DISCORD_PUBLIC_KEY=your-public-key
+DISCORD_BOT_TOKEN=your-bot-token
+```
+
+## 5. Register Slash Commands
+
+Run the command registration script:
+
+```bash
+bun run apps/bot/scripts/register-discord-commands.ts
+```
+
+This registers `/search`, `/ask`, `/expert`, and `/link` as global slash commands.
+
+## 6. Invite Bot to Server
+
+Generate an invite URL with the `applications.commands` and `bot` scopes:
+
+```
+https://discord.com/api/oauth2/authorize?client_id=YOUR_APP_ID&scope=applications.commands+bot
+```
+
+## 7. Account Linking
+
+Discord users link via the `/link` command which generates a magic link URL. The user clicks through to authenticate on the OpenBeam web app.
+
+## How It Works
+
+The Discord adapter uses HTTP interactions (no WebSocket gateway):
+
+- **Signature verification**: Ed25519 via `discord-interactions` `verifyKey()`
+- **PING handling**: Responds with `{ type: 1 }` for endpoint verification
+- **Event parsing**: Zod schemas validate interaction payloads
+- **Response format**: Markdown text via interaction callback URL

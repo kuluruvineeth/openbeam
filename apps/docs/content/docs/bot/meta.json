@@ -1,0 +1,18 @@
+{
+  "title": "Bot",
+  "icon": "Bot",
+  "pages": [
+    "index",
+    "quickstart",
+    "---Platforms---",
+    "slack",
+    "teams",
+    "discord",
+    "telegram",
+    "whatsapp",
+    "---Development---",
+    "architecture",
+    "testing",
+    "deployment"
+  ]
+}

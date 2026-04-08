@@ -1,0 +1,68 @@
+---
+title: Microsoft Teams
+description: Set up the OpenBeam bot for Microsoft Teams.
+---
+
+# Microsoft Teams Setup
+
+## 1. Register a Bot in Azure
+
+1. Go to [Azure Portal](https://portal.azure.com) > **Azure Bot**
+2. Create a new Azure Bot resource
+3. Note the **Microsoft App ID** and create a **Client Secret**
+
+## 2. Configure Environment
+
+```bash
+TEAMS_APP_ID=your-microsoft-app-id
+TEAMS_APP_PASSWORD=your-client-secret
+```
+
+## 3. Set Messaging Endpoint
+
+In Azure Bot settings, set the messaging endpoint to:
+
+```
+https://your-domain.com/webhooks/teams
+```
+
+## 4. Create Teams App Package
+
+Create a `manifest.json` for Teams:
+
+```json
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "id": "your-app-id",
+  "name": { "short": "OpenBeam", "full": "OpenBeam Enterprise Search" },
+  "description": { "short": "Search across all your tools" },
+  "bots": [{
+    "botId": "your-app-id",
+    "scopes": ["personal", "team", "groupChat"],
+    "commandLists": [{
+      "scopes": ["personal", "team", "groupChat"],
+      "commands": [
+        { "title": "search", "description": "Search across connected data sources" },
+        { "title": "ask", "description": "Ask a question with AI-powered answers" },
+        { "title": "expert", "description": "Find topic experts" }
+      ]
+    }]
+  }],
+  "permissions": ["messageTeamMembers"],
+  "validDomains": ["your-domain.com"]
+}
+```
+
+## 5. Sideload or Publish
+
+- **Development**: Sideload the app package in Teams
+- **Production**: Submit to the Teams App Store or your org's app catalog
+
+## How It Works
+
+The Teams adapter uses Microsoft's `botbuilder` SDK:
+
+- **Authentication**: `CloudAdapter` + `ConfigurationBotFrameworkAuthentication` handles JWT verification automatically
+- **Message processing**: `CloudAdapter.process()` validates auth, parses the Activity, and provides a `TurnContext` for sending responses
+- **Response format**: Markdown text via `context.sendActivity()`

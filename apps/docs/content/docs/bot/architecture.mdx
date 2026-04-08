@@ -1,0 +1,82 @@
+---
+title: Architecture
+description: How the multi-platform bot app is structured.
+---
+
+# Architecture
+
+## Directory Structure
+
+```
+apps/bot/
+├── src/
+│   ├── index.ts              # Entry point — creates routes, starts Bun server
+│   ├── routes.ts             # All webhook routes + shared resolve/route logic
+│   ├── env.ts                # Zod-validated environment variables
+│   │
+│   ├── adapters/             # Platform-specific webhook handling
+│   │   ├── index.ts          # Instantiates and registers all adapters
+│   │   ├── registry.ts       # Plugin registry (registerAdapter/getAdapter)
+│   │   ├── slack.ts          # Delegates to @openbeam/services for verification + parsing
+│   │   ├── teams.ts          # CloudAdapter + BotFramework JWT auth
+│   │   ├── discord.ts        # Ed25519 verification + Zod interaction schemas
+│   │   ├── telegram.ts       # grammY Bot + Zod update schemas
+│   │   └── whatsapp.ts       # HMAC-SHA256 + Meta Cloud API + Zod payload schemas
+│   │
+│   ├── handlers/             # Platform-agnostic business logic
+│   │   ├── router.ts         # Intent detection + command dispatch
+│   │   ├── search.ts         # Calls hybridSearch from @openbeam/services
+│   │   ├── ask.ts            # Calls ragAnswer from @openbeam/services
+│   │   ├── expert.ts         # Calls knowledge graph from @openbeam/db
+│   │   ├── action.ts         # Calls dispatchAction from @openbeam/services
+│   │   └── help.ts           # Static help text
+│   │
+│   ├── identity/             # User ↔ OpenBeam account mapping
+│   │   ├── resolver.ts       # BotUserLink lookup + activity tracking
+│   │   └── linking.ts        # Magic link token generation + prompt
+│   │
+│   ├── ai/                   # AI orchestration
+│   │   ├── agent.ts          # LLM agent factory (createBotAgent)
+│   │   └── formatter.ts      # Per-platform response rendering (5 renderers)
+│   │
+│   └── lib/                  # Shared utilities
+│       ├── errors.ts         # Typed error classes
+│       └── rate-limit.ts     # Per-user + per-team rate limiting
+│
+└── __tests__/                # 44 tests across 5 files
+```
+
+## Request Flow
+
+```
+1. Platform sends webhook POST to /webhooks/{platform}
+2. Adapter verifies signature (HMAC, JWT, or Ed25519)
+3. Adapter parses raw event → UnifiedMessage
+4. resolveIdentity() looks up BotUserLink → teamId + userId
+5. If unlinked → sendLinkPrompt() with magic link
+6. Router detects intent (command prefix or pattern matching)
+7. Handler calls @openbeam/services (search, RAG, actions, knowledge)
+8. Formatter renders response in platform-native format
+9. Adapter sends response back to platform API
+```
+
+## Adding a New Platform
+
+1. Create `apps/bot/src/adapters/{platform}.ts` implementing `PlatformAdapter`
+2. Add platform to `BotPlatformSchema` in `packages/types/src/bot/platforms.ts`
+3. Add platform config to `PLATFORM_CONFIGS` with character limits and capabilities
+4. Add a `Renderer` entry in `apps/bot/src/ai/formatter.ts`
+5. Register the adapter in `apps/bot/src/adapters/index.ts`
+6. Add the webhook route in `apps/bot/src/routes.ts`
+
+## Key Design Decisions
+
+**Adapter Registry Pattern** — adapters register themselves via `registerAdapter()`. Adding a new platform doesn't modify existing adapter code.
+
+**Separate from apps/server** — the bot has different scaling needs, different dependencies (platform SDKs), and different deploy lifecycle than the main API server.
+
+**Delegates to existing services** — the Slack adapter calls `verifySlackSignature` and `parseSlackEvent` from `@openbeam/services` instead of reimplementing. Handlers call `hybridSearch`, `ragAnswer`, `dispatchAction` — no duplicated business logic.
+
+**Platform-native formatting** — each platform gets its own `Renderer` (Slack mrkdwn, Teams/Discord markdown, Telegram MarkdownV2, WhatsApp plain text). The formatter picks the right renderer based on platform.
+
+**Zod schemas for external data** — Discord, Telegram, and WhatsApp adapters validate incoming webhook payloads with Zod schemas. No `any` types, no unchecked casts on untrusted data.

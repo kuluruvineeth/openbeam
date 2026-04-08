@@ -3,6 +3,7 @@
   "icon": "BookOpen",
   "pages": [
     "getting-started",
+    "bot",
     "mcp",
     "architecture",
     "connectors",

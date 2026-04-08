@@ -1,0 +1,70 @@
+---
+title: Telegram
+description: Set up the OpenBeam bot for Telegram.
+---
+
+# Telegram Setup
+
+## 1. Create a Bot via BotFather
+
+1. Message [@BotFather](https://t.me/BotFather) on Telegram
+2. Send `/newbot` and follow the prompts
+3. Copy the **Bot Token**
+
+## 2. Set Bot Commands
+
+Send to BotFather:
+
+```
+/setcommands
+```
+
+Then paste:
+
+```
+search - Search across connected data sources
+ask - Ask a question with AI-powered answers
+expert - Find topic experts
+link - Link your Telegram account to OpenBeam
+help - Show available commands
+```
+
+## 3. Configure Environment
+
+```bash
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+TELEGRAM_WEBHOOK_SECRET=your-random-secret
+```
+
+## 4. Set Webhook
+
+After starting the bot, set the webhook URL:
+
+```bash
+curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://your-domain.com/webhooks/telegram", "secret_token": "your-random-secret"}'
+```
+
+## 5. Test
+
+Send a message to your bot:
+
+```
+/search deployment docs
+```
+
+Or send a plain message (routed to the ask handler):
+
+```
+What is our deploy process?
+```
+
+## How It Works
+
+The Telegram adapter uses grammY:
+
+- **Signature verification**: Compares `X-Telegram-Bot-Api-Secret-Token` header against configured secret
+- **Event parsing**: Zod schemas validate the Telegram Update payload
+- **Response format**: MarkdownV2 with escaped special characters
+- **Typing indicator**: `bot.api.sendChatAction(chatId, "typing")`

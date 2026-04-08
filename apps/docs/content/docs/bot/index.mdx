@@ -1,0 +1,60 @@
+---
+title: Multi-Platform Bot
+description: Bring OpenBeam search, RAG, and actions to Slack, Teams, Discord, Telegram, and WhatsApp.
+---
+
+# Multi-Platform Bot
+
+OpenBeam Bot brings enterprise search, AI-powered answers, expert discovery, and connector actions to the platforms where your team already works.
+
+## Supported Platforms
+
+| Platform | Auth | Rich Formatting | Threads | Typing Indicator |
+|----------|------|----------------|---------|-----------------|
+| Slack | HMAC-SHA256 | Block Kit (mrkdwn) | Yes | No |
+| Microsoft Teams | JWT (Bot Framework) | Adaptive Cards | Yes | Yes |
+| Discord | Ed25519 | Embeds (Markdown) | Yes | No |
+| Telegram | Secret Token | MarkdownV2 | No | Yes |
+| WhatsApp | HMAC-SHA256 | Plain text + Buttons | No | No |
+
+## Commands
+
+All platforms support the same core commands:
+
+| Command | Description |
+|---------|-------------|
+| `search <query>` | Search across all connected data sources |
+| `ask <question>` | Get an AI-powered answer with citations |
+| `expert <topic>` | Find topic experts in your organization |
+| `action <connector> <action> {params}` | Execute a connector action |
+| `help` | Show available commands |
+
+## Architecture
+
+```
+Platform Webhooks → Adapter Layer → Handler Layer → @openbeam/services
+                                                  → @openbeam/ai
+                                                  → @openbeam/db
+```
+
+Each platform has a dedicated adapter that:
+
+1. Verifies webhook signatures using the platform's native method
+2. Parses raw events into a `UnifiedMessage` format
+3. Sends responses in platform-native formatting
+
+The handler layer is platform-agnostic — it calls the same search, RAG, and action services regardless of which platform the message came from.
+
+## Identity Linking
+
+Users must link their platform account to their OpenBeam account:
+
+- **Slack/Teams**: Auto-linked during workspace installation via OAuth
+- **Discord/Telegram/WhatsApp**: Magic link flow — bot sends a link, user authenticates on the web app
+
+## Quick Links
+
+- [Quickstart](/docs/bot/quickstart) — Get the bot running locally in 5 minutes
+- [Slack Setup](/docs/bot/slack) — Configure Slack App and install to workspace
+- [Architecture](/docs/bot/architecture) — How the bot app is structured
+- [Testing](/docs/bot/testing) — How to run tests and add new ones
