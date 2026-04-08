@@ -34,6 +34,7 @@ import {
   ConfluenceIcon,
   CoupaIcon,
   DatadogIcon,
+  DiscordIcon,
   DoceboIcon,
   DocuSignIcon,
   DropboxIcon,
@@ -108,9 +109,11 @@ import {
   SmartsheetIcon,
   SmartThingsIcon,
   TeamsIcon,
+  TelegramIcon,
   ThingsBoardIcon,
   VerkadaIcon,
   ViamIcon,
+  WhatsAppIcon,
   WorkdayIcon,
   ZendeskIcon,
   ZoomIcon,
@@ -258,6 +261,9 @@ const customIconMap: Record<
   Phabricator: PhabricatorIcon,
   Simpplr: SimpplrIcon,
   Smartsheet: SmartsheetIcon,
+  Discord: DiscordIcon,
+  Telegram: TelegramIcon,
+  WhatsApp: WhatsAppIcon,
 };
 
 export const source = loader({
