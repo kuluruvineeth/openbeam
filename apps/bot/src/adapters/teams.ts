@@ -30,7 +30,7 @@ interface TeamsActivity {
 }
 
 interface TeamsRawEvent {
-  _turnContext: TurnContext;
+  _turnContext: TurnContext | null;
   activity: TeamsActivity;
 }
 
@@ -103,7 +103,7 @@ function activityToMessage(activity: TeamsActivity): UnifiedMessage | null {
     isDirectMessage: !isGroup,
     isMention,
     timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(),
-    rawEvent: { _turnContext: null, activity } as unknown as TeamsRawEvent,
+    rawEvent: { _turnContext: null, activity } satisfies TeamsRawEvent,
   };
 }
 

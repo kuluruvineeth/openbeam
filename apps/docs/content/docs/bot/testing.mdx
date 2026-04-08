@@ -22,21 +22,27 @@ bun test --watch apps/bot/__tests__/
 
 ```
 apps/bot/__tests__/
+├── adapters/
+│   ├── slack.test.ts           # HMAC verification, event parsing
+│   ├── discord.test.ts         # Ed25519 + interaction parsing
+│   ├── telegram.test.ts        # Secret token + update parsing
+│   └── whatsapp.test.ts        # HMAC-SHA256 + webhook payload parsing
 ├── ai/
-│   └── formatter.test.ts       # Platform-native rendering (19 tests)
+│   └── formatter.test.ts       # Platform-native rendering
 ├── handlers/
-│   └── router.test.ts          # Command dispatch + intent detection (9 tests)
+│   └── router.test.ts          # Command dispatch + intent detection
 ├── identity/
-│   ├── resolver.test.ts        # BotUserLink lookup (5 tests)
-│   └── linking.test.ts         # Magic link token generation (3 tests)
+│   ├── resolver.test.ts        # BotUserLink lookup
+│   └── linking.test.ts         # Magic link token generation
 └── lib/
-    └── rate-limit.test.ts      # Per-user + per-team rate limiting (6 tests)
+    └── rate-limit.test.ts      # Per-user + per-team rate limiting
 ```
 
 ## Test Coverage
 
 | Layer | Tests | What's Tested |
 |-------|-------|---------------|
+| Adapters | 20 | Signature verification, event parsing, edge cases per platform |
 | Formatter | 19 | All 5 platforms x all response types, MarkdownV2 escaping, truncation |
 | Router | 9 | Command dispatch, intent detection, DM/mention routing, unknown commands |
 | Identity | 8 | Linked/unlinked users, activity updates, token generation, expiry |

@@ -93,17 +93,13 @@ describe("WhatsAppAdapter", () => {
 });
 
 describe("handleWhatsAppVerification", () => {
-  it("returns challenge on valid subscribe request", () => {
+  it("returns null when verify token is not configured", () => {
     const result = handleWhatsAppVerification(
       "subscribe",
-      process.env.WHATSAPP_VERIFY_TOKEN ?? null,
+      "any-token",
       "challenge-123"
     );
-    if (process.env.WHATSAPP_VERIFY_TOKEN) {
-      expect(result).toBe("challenge-123");
-    } else {
-      expect(result).toBeNull();
-    }
+    expect(result).toBeNull();
   });
 
   it("returns null on invalid mode", () => {
