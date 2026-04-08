@@ -19,44 +19,21 @@ const WhatsAppMetadataSchema = z.object({
   phone_number_id: z.string(),
 });
 
-const WhatsAppTextMessageSchema = z.object({
-  type: z.literal("text"),
-  text: z.object({ body: z.string() }),
+const WhatsAppMessageBaseSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  timestamp: z.string(),
+  type: z.string(),
+  text: z.object({ body: z.string() }).optional(),
+  interactive: z.record(z.string(), z.unknown()).optional(),
 });
 
-const WhatsAppInteractiveReplySchema = z.object({
-  type: z.literal("interactive"),
-  interactive: z.object({
-    type: z.enum(["button_reply", "list_reply"]),
-    button_reply: z.object({ id: z.string(), title: z.string() }).optional(),
-    list_reply: z
-      .object({
-        id: z.string(),
-        title: z.string(),
-        description: z.string().optional(),
-      })
-      .optional(),
-  }),
-});
-
-const WhatsAppMessageSchema = z
-  .discriminatedUnion("type", [
-    WhatsAppTextMessageSchema,
-    WhatsAppInteractiveReplySchema,
-    z.object({ type: z.string() }),
-  ])
-  .and(
-    z.object({
-      id: z.string(),
-      from: z.string(),
-      timestamp: z.string(),
-    })
-  );
+type WhatsAppMessage = z.infer<typeof WhatsAppMessageBaseSchema>;
 
 const WhatsAppValueSchema = z.object({
   messaging_product: z.literal("whatsapp"),
   metadata: WhatsAppMetadataSchema,
-  messages: z.array(WhatsAppMessageSchema).optional(),
+  messages: z.array(WhatsAppMessageBaseSchema).optional(),
   statuses: z.array(z.unknown()).optional(),
 });
 
@@ -94,17 +71,15 @@ function verifySignature(
   }
 }
 
-function extractText(message: z.infer<typeof WhatsAppMessageSchema>): string {
-  if (message.type === "text") {
-    return (message as z.infer<typeof WhatsAppTextMessageSchema>).text.body;
+function extractText(message: WhatsAppMessage): string {
+  if (message.type === "text" && message.text) {
+    return message.text.body;
   }
-  if (message.type === "interactive") {
-    const msg = message as z.infer<typeof WhatsAppInteractiveReplySchema>;
-    return (
-      msg.interactive.button_reply?.title ??
-      msg.interactive.list_reply?.title ??
-      ""
-    );
+  if (message.type === "interactive" && message.interactive) {
+    const reply = message.interactive.button_reply as
+      | { title?: string }
+      | undefined;
+    return reply?.title ?? "";
   }
   return "";
 }
