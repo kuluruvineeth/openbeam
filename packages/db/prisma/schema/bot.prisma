@@ -1,8 +1,16 @@
+enum BotPlatform {
+  SLACK
+  TEAMS
+  DISCORD
+  TELEGRAM
+  WHATSAPP
+}
+
 model BotUserLink {
   id               String   @id @default(cuid()) @map("_id")
   teamId           String   @map("team_id")
   userId           String   @map("user_id")
-  platform         String
+  platform         BotPlatform
   platformUserId   String   @map("platform_user_id")
   platformTeamId   String   @map("platform_team_id")
   platformUsername  String?  @map("platform_username")
@@ -22,7 +30,7 @@ model BotUserLink {
 model BotInstallation {
   id                String    @id @default(cuid()) @map("_id")
   teamId            String    @map("team_id")
-  platform          String
+  platform          BotPlatform
   platformTeamId    String    @map("platform_team_id")
   platformTeamName  String?   @map("platform_team_name")
   installedBy       String    @map("installed_by")
@@ -46,7 +54,7 @@ model BotInstallation {
 
 model BotLinkRequest {
   id              String   @id @default(cuid()) @map("_id")
-  platform        String
+  platform        BotPlatform
   platformUserId  String   @map("platform_user_id")
   platformTeamId  String   @map("platform_team_id")
   token           String   @unique

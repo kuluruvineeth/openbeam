@@ -51,15 +51,9 @@ export function escapeMarkdownV2(text: string): string {
   return text.replace(MARKDOWNV2_ESCAPE_RE, "\\$1");
 }
 
-let botInstance: Bot | null = null;
-
-function getBot(): Bot | null {
+function createBot(): Bot | null {
   const token = env.TELEGRAM_BOT_TOKEN;
-  if (!token) {
-    return null;
-  }
-  botInstance ??= new Bot(token);
-  return botInstance;
+  return token ? new Bot(token) : null;
 }
 
 function extractMessage(update: TelegramUpdate) {
@@ -80,6 +74,7 @@ function parseText(text: string): {
 export class TelegramAdapter implements PlatformAdapter {
   readonly platform = "TELEGRAM" as const;
   readonly config: PlatformConfig = PLATFORM_CONFIGS.TELEGRAM;
+  private readonly bot = createBot();
 
   verifySignature(_rawBody: string, headers: Record<string, string>): boolean {
     const secret = env.TELEGRAM_WEBHOOK_SECRET;
@@ -126,7 +121,7 @@ export class TelegramAdapter implements PlatformAdapter {
     message: UnifiedMessage,
     response: BotResponse
   ): Promise<void> {
-    const bot = getBot();
+    const bot = this.bot;
     if (!bot) {
       return;
     }
@@ -140,7 +135,7 @@ export class TelegramAdapter implements PlatformAdapter {
   }
 
   async sendTypingIndicator(channelId: string): Promise<void> {
-    const bot = getBot();
+    const bot = this.bot;
     if (!bot) {
       return;
     }

@@ -44,12 +44,16 @@ export async function handleExpert(
     type: "expert_list",
     text: `Found ${experts.length} experts on "${topic}"`,
     title: `Experts: ${topic}`,
-    experts: experts.map((e) => ({
-      name: e.fromEntity?.name ?? "Unknown",
-      email: undefined,
-      expertise: [topic],
-      documentCount: 0,
-    })),
+    experts: experts.map((e) => {
+      const entity = e.fromEntity;
+      const meta = (entity?.metadata ?? {}) as Record<string, unknown>;
+      return {
+        name: entity?.name ?? "Unknown",
+        email: typeof meta.email === "string" ? meta.email : undefined,
+        expertise: [topic],
+        documentCount: entity?.documentCount ?? 0,
+      };
+    }),
   };
 }
 
