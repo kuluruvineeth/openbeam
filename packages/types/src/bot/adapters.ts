@@ -8,7 +8,10 @@ export interface PlatformAdapter {
     rawBody: unknown,
     headers: Record<string, string>
   ): Promise<UnifiedMessage | null>;
-  verifySignature(rawBody: string, headers: Record<string, string>): boolean;
+  verifySignature(
+    rawBody: string,
+    headers: Record<string, string>
+  ): boolean | Promise<boolean>;
   sendResponse(message: UnifiedMessage, response: BotResponse): Promise<void>;
   sendTypingIndicator(channelId: string, threadId?: string): Promise<void>;
 }
