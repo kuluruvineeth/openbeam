@@ -179,38 +179,37 @@ export class WhatsAppAdapter implements PlatformAdapter {
     return verifySignature(_rawBody, header, appSecret);
   }
 
-  async parseEvent(
+  parseEvent(
     rawBody: unknown,
     _headers: Record<string, string>
   ): Promise<UnifiedMessage | null> {
-    await Promise.resolve();
     const parsed = WhatsAppWebhookSchema.safeParse(rawBody);
     if (!parsed.success) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const entry = parsed.data.entry[0];
     if (!entry) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const change = entry.changes[0];
     if (!change) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const { value } = change;
     const message = value.messages?.[0];
     if (!message) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const text = extractText(message);
     if (!text) {
-      return null;
+      return Promise.resolve(null);
     }
 
-    return {
+    return Promise.resolve({
       id: message.id,
       platform: "WHATSAPP",
       platformUserId: message.from,
@@ -221,7 +220,7 @@ export class WhatsAppAdapter implements PlatformAdapter {
       isMention: false,
       timestamp: new Date(Number(message.timestamp) * 1000),
       rawEvent: rawBody,
-    };
+    });
   }
 
   async sendResponse(

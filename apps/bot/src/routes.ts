@@ -25,7 +25,7 @@ async function resolveAndRoute(
   message: UnifiedMessage
 ): Promise<BotResponse | null> {
   if (!checkUserRateLimit(message.platform, message.platformUserId)) {
-    return null;
+    return { type: "error", text: "Too many requests. Please wait a moment." };
   }
 
   const identity = await resolveIdentity(db, message);
@@ -36,7 +36,7 @@ async function resolveAndRoute(
   }
 
   if (!checkTeamRateLimit(identity.teamId)) {
-    return null;
+    return { type: "error", text: "Too many requests. Please wait a moment." };
   }
 
   await adapter.sendTypingIndicator(message.channelId, message.threadId);

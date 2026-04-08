@@ -1,3 +1,4 @@
+import type { BotPlatform } from "@openbeam/types/bot";
 import type {
   BotInstallation,
   BotLinkRequest,
@@ -5,16 +6,9 @@ import type {
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
-export type BotPlatformId =
-  | "SLACK"
-  | "TEAMS"
-  | "DISCORD"
-  | "TELEGRAM"
-  | "WHATSAPP";
-
 export const findBotUserLink = async (
   db: Database,
-  platform: BotPlatformId,
+  platform: BotPlatform,
   platformUserId: string,
   platformTeamId: string
 ): Promise<BotUserLink | null> =>
@@ -30,7 +24,7 @@ export const findBotUserLink = async (
 
 export const findBotInstallation = async (
   db: Database,
-  platform: BotPlatformId,
+  platform: BotPlatform,
   platformTeamId: string
 ): Promise<BotInstallation | null> =>
   db.botInstallation.findUnique({

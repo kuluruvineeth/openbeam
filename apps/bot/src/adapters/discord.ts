@@ -64,14 +64,13 @@ function extractCommandText(interaction: DiscordInteraction): string {
   return String(option.value ?? "");
 }
 
-async function verifySignature(
+function verifySignature(
   rawBody: string,
   signature: string,
   timestamp: string,
   publicKey: string
 ): Promise<boolean> {
-  await Promise.resolve();
-  return verifyKey(rawBody, signature, timestamp, publicKey);
+  return Promise.resolve(verifyKey(rawBody, signature, timestamp, publicKey));
 }
 
 async function postCallback(
@@ -93,40 +92,40 @@ export class DiscordAdapter implements PlatformAdapter {
   readonly platform = "DISCORD" as const;
   readonly config: PlatformConfig = PLATFORM_CONFIGS.DISCORD;
 
-  async verifySignature(
+  verifySignature(
     _rawBody: string,
     headers: Record<string, string>
   ): Promise<boolean> {
-    await Promise.resolve();
     const publicKey = env.DISCORD_PUBLIC_KEY;
     if (!publicKey) {
-      return false;
+      return Promise.resolve(false);
     }
     const signature = headers["x-signature-ed25519"] ?? "";
     const timestamp = headers["x-signature-timestamp"] ?? "";
-    return verifySignature(_rawBody, signature, timestamp, publicKey);
+    return Promise.resolve(
+      verifySignature(_rawBody, signature, timestamp, publicKey)
+    );
   }
 
-  async parseEvent(
+  parseEvent(
     rawBody: unknown,
     _headers: Record<string, string>
   ): Promise<UnifiedMessage | null> {
-    await Promise.resolve();
     const parsed = DiscordInteractionSchema.safeParse(rawBody);
     if (!parsed.success) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const interaction = parsed.data;
 
     if (interaction.type !== InteractionType.ApplicationCommand) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const command = interaction.data?.name ?? "";
     const text = extractCommandText(interaction);
 
-    return {
+    return Promise.resolve({
       id: interaction.id,
       platform: "DISCORD",
       platformUserId: extractUserId(interaction),
@@ -138,7 +137,7 @@ export class DiscordAdapter implements PlatformAdapter {
       isMention: false,
       timestamp: new Date(),
       rawEvent: interaction,
-    };
+    });
   }
 
   async sendResponse(

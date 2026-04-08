@@ -46,5 +46,5 @@ export async function handleSearch(
 }
 
 function extractQuery(text: string, command?: string): string {
-  return stripCommandPrefix(text, command === "search" ? command : undefined);
+  return stripCommandPrefix(text, command ?? "search");
 }

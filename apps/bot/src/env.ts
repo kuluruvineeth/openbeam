@@ -21,7 +21,11 @@ const EnvSchema = z
     WHATSAPP_ACCESS_TOKEN: z.string().optional(),
     WHATSAPP_VERIFY_TOKEN: z.string().optional(),
     WHATSAPP_APP_SECRET: z.string().optional(),
-    BOT_LINK_BASE_URL: z.string().default("https://app.openbeam.work"),
+    BOT_LINK_BASE_URL: z
+      .string()
+      .url()
+      .startsWith("https://")
+      .default("https://app.openbeam.work"),
   })
   .refine((e) => !e.SLACK_BOT_TOKEN || e.SLACK_SIGNING_SECRET, {
     message: "SLACK_SIGNING_SECRET required when SLACK_BOT_TOKEN is set",

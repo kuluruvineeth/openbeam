@@ -17,18 +17,31 @@ const server = Bun.serve({
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
-function shutdown(): void {
+async function shutdown(): Promise<void> {
   const timer = setTimeout(() => process.exit(1), SHUTDOWN_TIMEOUT_MS);
   if (typeof timer === "object" && "unref" in timer) {
     timer.unref();
   }
 
   stopCleanup();
-  server.stop();
-  db.$disconnect().finally(() => process.exit(0));
+  await server.stop();
+  await db.$disconnect();
+  process.exit(0);
 }
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+process.on("SIGTERM", () => {
+  shutdown();
+});
+process.on("SIGINT", () => {
+  shutdown();
+});
+process.on("uncaughtException", (error) => {
+  console.error("uncaught exception", error);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("unhandled rejection", reason);
+  process.exit(1);
+});
 
 console.log(`Bot server running on ${server.hostname}:${server.port}`);

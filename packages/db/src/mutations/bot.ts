@@ -1,15 +1,15 @@
+import type { BotPlatform } from "@openbeam/types/bot";
 import type {
   BotInstallation,
   BotLinkRequest,
   BotUserLink,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
-import type { BotPlatformId } from "../queries/bot";
 
 export interface CreateBotUserLinkData {
   teamId: string;
   userId: string;
-  platform: BotPlatformId;
+  platform: BotPlatform;
   platformUserId: string;
   platformTeamId: string;
   platformUsername?: string;
@@ -31,7 +31,7 @@ export const updateBotUserLinkActivity = async (
 
 export interface CreateBotInstallationData {
   teamId: string;
-  platform: BotPlatformId;
+  platform: BotPlatform;
   platformTeamId: string;
   platformTeamName?: string;
   installedBy: string;
@@ -75,7 +75,7 @@ export const deactivateBotInstallation = async (
   });
 
 export interface CreateBotLinkRequestData {
-  platform: BotPlatformId;
+  platform: BotPlatform;
   platformUserId: string;
   platformTeamId: string;
   token: string;
