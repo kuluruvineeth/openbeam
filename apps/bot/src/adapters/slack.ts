@@ -1,4 +1,8 @@
-import type { SlackClient } from "@openbeam/services";
+import type {
+  AppMentionEvent,
+  MessageEvent,
+  SlackClient,
+} from "@openbeam/services";
 import {
   createSlackClient,
   parseSlackEvent,
@@ -16,6 +20,41 @@ import { env } from "../env";
 
 function tsToDate(ts: string | undefined): Date {
   return new Date(Number.parseFloat(ts ?? "0") * 1000);
+}
+
+function mentionToMessage(
+  event: AppMentionEvent,
+  teamId: string
+): UnifiedMessage {
+  return {
+    id: event.ts,
+    platform: "SLACK",
+    platformUserId: event.user,
+    platformTeamId: teamId,
+    channelId: event.channel,
+    threadId: event.thread_ts,
+    text: event.text,
+    isDirectMessage: false,
+    isMention: true,
+    timestamp: tsToDate(event.ts),
+    rawEvent: event,
+  };
+}
+
+function messageToUnified(event: MessageEvent, teamId: string): UnifiedMessage {
+  return {
+    id: event.ts,
+    platform: "SLACK",
+    platformUserId: event.user ?? "",
+    platformTeamId: teamId,
+    channelId: event.channel,
+    threadId: event.thread_ts,
+    text: event.text ?? "",
+    isDirectMessage: false,
+    isMention: false,
+    timestamp: tsToDate(event.ts),
+    rawEvent: event,
+  };
 }
 
 export class SlackAdapter implements PlatformAdapter {
@@ -38,62 +77,33 @@ export class SlackAdapter implements PlatformAdapter {
     return result.valid;
   }
 
-  async parseEvent(
+  parseEvent(
     rawBody: unknown,
     _headers: Record<string, string>
   ): Promise<UnifiedMessage | null> {
-    const result = await Promise.resolve(parseSlackEvent(rawBody));
+    const result = parseSlackEvent(rawBody);
     if (!(result.success && result.event)) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const { envelope, event } = result;
+    const teamId = envelope.team_id ?? "";
 
     if (event.type === "app_mention") {
-      const mention = event as {
-        user: string;
-        text: string;
-        ts: string;
-        channel: string;
-        thread_ts?: string;
-      };
-      return {
-        id: mention.ts,
-        platform: "SLACK",
-        platformUserId: mention.user,
-        platformTeamId: envelope.team_id ?? "",
-        channelId: mention.channel,
-        threadId: mention.thread_ts,
-        text: mention.text,
-        isDirectMessage: false,
-        isMention: true,
-        timestamp: tsToDate(mention.ts),
-        rawEvent: event,
-      };
+      return Promise.resolve(
+        mentionToMessage(event as AppMentionEvent, teamId)
+      );
     }
 
     if (event.type === "message") {
-      const msg = event as Record<string, unknown>;
+      const msg = event as MessageEvent;
       if (msg.subtype) {
-        return null;
+        return Promise.resolve(null);
       }
-      const isDM = msg.channel_type === "im";
-      return {
-        id: String(msg.ts ?? ""),
-        platform: "SLACK",
-        platformUserId: String(msg.user ?? ""),
-        platformTeamId: envelope.team_id ?? "",
-        channelId: String(msg.channel ?? ""),
-        threadId: msg.thread_ts ? String(msg.thread_ts) : undefined,
-        text: String(msg.text ?? ""),
-        isDirectMessage: isDM,
-        isMention: false,
-        timestamp: tsToDate(String(msg.ts ?? "0")),
-        rawEvent: event,
-      };
+      return Promise.resolve(messageToUnified(msg, teamId));
     }
 
-    return null;
+    return Promise.resolve(null);
   }
 
   async sendResponse(
