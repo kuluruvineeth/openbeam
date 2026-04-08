@@ -33,11 +33,27 @@ export const BotInstallationSchema = z.object({
 });
 export type BotInstallation = z.infer<typeof BotInstallationSchema>;
 
-export const LinkRequestSchema = z.object({
+export const CreateLinkRequestInputSchema = z.object({
   platform: BotPlatformSchema,
   platformUserId: z.string(),
   platformTeamId: z.string(),
   token: z.string(),
   expiresAt: z.date(),
 });
-export type LinkRequest = z.infer<typeof LinkRequestSchema>;
+export type CreateLinkRequestInput = z.infer<
+  typeof CreateLinkRequestInputSchema
+>;
+
+export const BotLinkRequestSchema = z.object({
+  id: z.string(),
+  platform: BotPlatformSchema,
+  platformUserId: z.string(),
+  platformTeamId: z.string(),
+  token: z.string(),
+  teamId: z.string().optional(),
+  userId: z.string().optional(),
+  expiresAt: z.date(),
+  consumed: z.boolean(),
+  createdAt: z.date(),
+});
+export type BotLinkRequest = z.infer<typeof BotLinkRequestSchema>;

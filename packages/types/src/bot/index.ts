@@ -2,10 +2,12 @@ export type { PlatformAdapter } from "./adapters";
 export {
   type BotInstallation,
   BotInstallationSchema,
+  type BotLinkRequest,
+  BotLinkRequestSchema,
   type BotUserLink,
   BotUserLinkSchema,
-  type LinkRequest,
-  LinkRequestSchema,
+  type CreateLinkRequestInput,
+  CreateLinkRequestInputSchema,
 } from "./identity";
 export {
   type ActionResultItem,
