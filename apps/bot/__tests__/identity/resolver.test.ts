@@ -1,17 +1,31 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import type { UnifiedMessage } from "@openbeam/types/bot";
 
-const findBotUserLinkMock = mock(() =>
-  Promise.resolve({
-    id: "link_1",
-    teamId: "t1",
-    userId: "u1",
-    platform: "SLACK",
-    platformUserId: "U1",
-    platformTeamId: "T1",
-    linkedAt: new Date(),
-    lastActiveAt: new Date(),
-  })
+type LinkResult = {
+  id: string;
+  teamId: string;
+  userId: string;
+  platform: string;
+  platformUserId: string;
+  platformTeamId: string;
+  platformUsername: string | null;
+  linkedAt: Date;
+  lastActiveAt: Date;
+} | null;
+
+const findBotUserLinkMock = mock(
+  (): Promise<LinkResult> =>
+    Promise.resolve({
+      id: "link_1",
+      teamId: "t1",
+      userId: "u1",
+      platform: "SLACK",
+      platformUserId: "U1",
+      platformTeamId: "T1",
+      platformUsername: null,
+      linkedAt: new Date(),
+      lastActiveAt: new Date(),
+    })
 );
 const updateActivityMock = mock(() => Promise.resolve({}));
 

@@ -2,6 +2,7 @@ import "dotenv/config";
 import db from "@openbeam/db";
 import type { PlatformAdapter } from "@openbeam/types/bot";
 import { Hono } from "hono";
+import { SlackAdapter } from "./adapters/slack";
 import { env } from "./env";
 import { routeMessage } from "./handlers/router";
 import { sendLinkPrompt } from "./identity/linking";
@@ -9,6 +10,7 @@ import { resolveIdentity } from "./identity/resolver";
 import { checkTeamRateLimit, checkUserRateLimit } from "./lib/rate-limit";
 
 const app = new Hono();
+const slackAdapter = new SlackAdapter();
 
 function createWebhookRoute(adapter: PlatformAdapter) {
   return async (c: {
@@ -50,6 +52,8 @@ function createWebhookRoute(adapter: PlatformAdapter) {
     return c.json({ ok: true });
   };
 }
+
+app.post("/webhooks/slack", createWebhookRoute(slackAdapter));
 
 app.get("/health", (c) => c.json({ status: "ok", service: "bot" }));
 

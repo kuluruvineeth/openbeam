@@ -52,7 +52,7 @@ describe("createLinkToken", () => {
 
   it("sets expiry in the future", async () => {
     await createLinkToken(db, msg());
-    const call = createLinkRequestMock.mock.calls[0] as [
+    const call = createLinkRequestMock.mock.calls[0] as unknown as [
       unknown,
       { expiresAt: Date },
     ];
