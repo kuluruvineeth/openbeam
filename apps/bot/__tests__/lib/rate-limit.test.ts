@@ -1,55 +1,55 @@
-import { describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import {
   checkTeamRateLimit,
   checkUserRateLimit,
+  resetBuckets,
 } from "../../src/lib/rate-limit";
 
 describe("checkUserRateLimit", () => {
+  beforeEach(resetBuckets);
+
   it("allows first request", () => {
-    expect(checkUserRateLimit("SLACK", "unique-user-1")).toBe(true);
+    expect(checkUserRateLimit("SLACK", "u1")).toBe(true);
   });
 
   it("allows up to 30 requests per minute", () => {
-    const userId = "burst-test-user";
     for (let i = 0; i < 30; i += 1) {
-      expect(checkUserRateLimit("SLACK", userId)).toBe(true);
+      expect(checkUserRateLimit("SLACK", "burst-u")).toBe(true);
     }
   });
 
   it("blocks after 30 requests", () => {
-    const userId = "blocked-user";
     for (let i = 0; i < 30; i += 1) {
-      checkUserRateLimit("TELEGRAM", userId);
+      checkUserRateLimit("TELEGRAM", "blocked-u");
     }
-    expect(checkUserRateLimit("TELEGRAM", userId)).toBe(false);
+    expect(checkUserRateLimit("TELEGRAM", "blocked-u")).toBe(false);
   });
 
   it("tracks per platform independently", () => {
-    const userId = "cross-platform";
     for (let i = 0; i < 30; i += 1) {
-      checkUserRateLimit("DISCORD", userId);
+      checkUserRateLimit("DISCORD", "cross-u");
     }
-    expect(checkUserRateLimit("TEAMS", userId)).toBe(true);
+    expect(checkUserRateLimit("TEAMS", "cross-u")).toBe(true);
   });
 });
 
 describe("checkTeamRateLimit", () => {
+  beforeEach(resetBuckets);
+
   it("allows first request", () => {
-    expect(checkTeamRateLimit("unique-team-1")).toBe(true);
+    expect(checkTeamRateLimit("t1")).toBe(true);
   });
 
   it("allows up to 500 requests per minute", () => {
-    const teamId = "busy-team";
     for (let i = 0; i < 500; i += 1) {
-      expect(checkTeamRateLimit(teamId)).toBe(true);
+      expect(checkTeamRateLimit("busy-t")).toBe(true);
     }
   });
 
   it("blocks after 500 requests", () => {
-    const teamId = "overloaded-team";
     for (let i = 0; i < 500; i += 1) {
-      checkTeamRateLimit(teamId);
+      checkTeamRateLimit("over-t");
     }
-    expect(checkTeamRateLimit(teamId)).toBe(false);
+    expect(checkTeamRateLimit("over-t")).toBe(false);
   });
 });

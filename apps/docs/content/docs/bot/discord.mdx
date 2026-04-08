@@ -38,13 +38,13 @@ DISCORD_BOT_TOKEN=your-bot-token
 
 ## 5. Register Slash Commands
 
-Run the command registration script:
+Register slash commands using the Discord REST API. Use `@discordjs/rest` to PUT commands to `Routes.applicationCommands(appId)`:
 
 ```bash
-bun run apps/bot/scripts/register-discord-commands.ts
+DISCORD_BOT_TOKEN=... DISCORD_APPLICATION_ID=... bun run apps/bot/scripts/register-discord-commands.ts
 ```
 
-This registers `/search`, `/ask`, `/expert`, and `/link` as global slash commands.
+This registers `/search`, `/ask`, `/expert`, and `/link` as global slash commands. Global commands take up to 1 hour to propagate — use guild-specific commands for development.
 
 ## 6. Invite Bot to Server
 

@@ -11,11 +11,8 @@ export async function handleAction(
 ): Promise<BotResponse> {
   const parsed = parseActionCommand(message.text);
 
-  if (!parsed) {
-    return {
-      type: "error",
-      text: "Invalid action format. Use: action <connectorId> <actionId> [params as JSON]",
-    };
+  if (!parsed.ok) {
+    return { type: "error", text: parsed.error };
   }
 
   const result = await dispatchAction({
@@ -40,18 +37,24 @@ export async function handleAction(
   };
 }
 
-interface ParsedAction {
-  connectorId: string;
-  actionId: string;
-  params: Record<string, unknown>;
-}
+type ParseResult =
+  | {
+      ok: true;
+      connectorId: string;
+      actionId: string;
+      params: Record<string, unknown>;
+    }
+  | { ok: false; error: string };
 
-function parseActionCommand(text: string): ParsedAction | null {
+function parseActionCommand(text: string): ParseResult {
   const cleaned = stripCommandPrefix(text, "action");
   const parts = cleaned.split(WHITESPACE_RE);
 
   if (parts.length < 2) {
-    return null;
+    return {
+      ok: false,
+      error: "Usage: action <connectorId> <actionId> [params as JSON]",
+    };
   }
 
   const connectorId = parts[0] ?? "";
@@ -63,9 +66,9 @@ function parseActionCommand(text: string): ParsedAction | null {
     try {
       params = JSON.parse(cleaned.slice(jsonStart));
     } catch {
-      return null;
+      return { ok: false, error: "Invalid JSON in params" };
     }
   }
 
-  return { connectorId, actionId, params };
+  return { ok: true, connectorId, actionId, params };
 }
