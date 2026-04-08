@@ -115,6 +115,15 @@ jobs:
               - 'bun.lock'
             engine:
               - 'apps/engine/**'
+            bot:
+              - 'apps/bot/**'
+              - 'packages/services/**'
+              - 'packages/ai/**'
+              - 'packages/db/**'
+              - 'packages/redis/**'
+              - 'packages/types/**'
+              - 'package.json'
+              - 'bun.lock'
             types:
               - 'packages/types/**'
 
@@ -142,7 +151,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             INPUT="${{ inputs.services }}"
             if [[ "$INPUT" == "all" ]]; then
-              echo 'services=["server","web","worker","engine"]' >> $GITHUB_OUTPUT
+              echo 'services=["server","web","worker","engine","bot"]' >> $GITHUB_OUTPUT
             else
               echo "services=[\"${INPUT//,/\",\"}\"]" >> $GITHUB_OUTPUT
             fi
@@ -156,7 +165,7 @@ jobs:
 
             # types change = rebuild all
             if [[ "$TYPES" == "true" || "$BASE" == "true" ]]; then
-              echo 'services=["server","web","worker","engine"]' >> $GITHUB_OUTPUT
+              echo 'services=["server","web","worker","engine","bot"]' >> $GITHUB_OUTPUT
               echo "has_changes=true" >> $GITHUB_OUTPUT
               echo "base_changed=true" >> $GITHUB_OUTPUT
               exit 0
@@ -166,6 +175,7 @@ jobs:
             [[ "${{ steps.filter.outputs.web }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["web"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.worker }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["worker"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["engine"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.bot }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["bot"]') && HAS_CHANGES="true"
 
             echo "services=$SERVICES" >> $GITHUB_OUTPUT
             echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT

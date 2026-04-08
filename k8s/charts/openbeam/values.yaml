@@ -105,6 +105,43 @@ services:
       failureThreshold: 3
     extraEnv: []
 
+  bot:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: openbeam/bot-dev
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3005
+      targetPort: 3005
+      nodePort: null
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+    startupProbe:
+      path: /health
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 24
+      timeoutSeconds: 3
+    readinessProbe:
+      path: /health
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      path: /health
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
   web:
     enabled: true
     replicaCount: 1

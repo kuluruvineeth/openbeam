@@ -1,0 +1,79 @@
+{{- if .Values.services.bot.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openbeam.botName" . }}
+  labels:
+    {{- include "openbeam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bot
+spec:
+  replicas: {{ .Values.services.bot.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "openbeam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: bot
+  template:
+    metadata:
+      labels:
+        {{- include "openbeam.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bot
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.workloadIdentities.app.name | default "default" }}
+      containers:
+        - name: bot
+          image: {{ include "openbeam.image" (dict "global" .Values.global.image "image" .Values.services.bot.image) | quote }}
+          imagePullPolicy: {{ .Values.services.bot.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.bot.service.targetPort }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "openbeam.configMapName" . }}
+          {{- with .Values.services.bot.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.services.bot.startupProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.services.bot.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.bot.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.services.bot.startupProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.services.bot.startupProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.bot.readinessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.bot.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.bot.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.bot.livenessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.bot.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.bot.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.services.bot.livenessProbe.failureThreshold }}
+          resources:
+            {{- toYaml .Values.services.bot.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

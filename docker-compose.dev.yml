@@ -198,5 +198,23 @@ services:
           path: ./apps/engine/pyproject.toml
     restart: unless-stopped
 
+  bot-dev:
+    build:
+      context: .
+      dockerfile: apps/bot/Dockerfile
+      target: deps
+    container_name: openbeam-bot-dev
+    command: bun run --hot apps/bot/src/index.ts
+    environment:
+      NODE_ENV: development
+      BOT_PORT: "3005"
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./apps/bot:/app/apps/bot
+      - ./packages:/app/packages
+      - /app/node_modules
+    restart: unless-stopped
+
 volumes:
   daemon-data:
