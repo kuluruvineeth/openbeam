@@ -24,8 +24,15 @@ async function resolveAndRoute(
   adapter: PlatformAdapter,
   message: UnifiedMessage
 ): Promise<BotResponse | null> {
-  if (!checkUserRateLimit(message.platform, message.platformUserId)) {
-    return { type: "error", text: "Too many requests. Please wait a moment." };
+  const userLimit = checkUserRateLimit(
+    message.platform,
+    message.platformUserId
+  );
+  if (!userLimit.allowed) {
+    return {
+      type: "error",
+      text: `Too many requests. Try again in ${userLimit.retryAfterSeconds}s.`,
+    };
   }
 
   const identity = await resolveIdentity(db, message);
@@ -35,12 +42,25 @@ async function resolveAndRoute(
     return null;
   }
 
-  if (!checkTeamRateLimit(identity.teamId)) {
-    return { type: "error", text: "Too many requests. Please wait a moment." };
+  const teamLimit = checkTeamRateLimit(identity.teamId);
+  if (!teamLimit.allowed) {
+    return {
+      type: "error",
+      text: `Too many requests. Try again in ${teamLimit.retryAfterSeconds}s.`,
+    };
   }
 
   await adapter.sendTypingIndicator(message.channelId, message.threadId);
-  return await routeMessage(message, identity);
+
+  try {
+    return await routeMessage(message, identity);
+  } catch (error) {
+    console.error("handler error", error);
+    return {
+      type: "error" as const,
+      text: "Something went wrong processing your request. Please try again.",
+    };
+  }
 }
 
 async function standardWebhook(
