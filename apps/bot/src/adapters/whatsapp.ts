@@ -11,6 +11,7 @@ import { env } from "../env";
 import { renderWhatsApp, typingPayload } from "../renderers/whatsapp";
 
 const GRAPH_API_VERSION = "v19.0";
+const GRAPH_API_VERSION_TYPING = "v21.0";
 
 const WhatsAppMetadataSchema = z.object({
   display_phone_number: z.string(),
@@ -85,9 +86,10 @@ function extractText(message: WhatsAppMessage): string {
 async function postToGraphApi(
   phoneNumberId: string,
   accessToken: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  apiVersion = GRAPH_API_VERSION
 ): Promise<void> {
-  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -199,11 +201,15 @@ export class WhatsAppAdapter implements PlatformAdapter {
       return;
     }
 
-    const noop = Function.prototype as () => void;
     const payload = typingPayload(channelId);
-    await postToGraphApi(creds.phoneNumberId, creds.accessToken, payload).catch(
-      noop
-    );
+    await postToGraphApi(
+      creds.phoneNumberId,
+      creds.accessToken,
+      payload,
+      GRAPH_API_VERSION_TYPING
+    ).catch((err) => {
+      console.warn("typing indicator failed", err.message);
+    });
   }
 
   private getCredentials(): {
