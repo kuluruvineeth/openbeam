@@ -410,6 +410,26 @@ services:
           configMapKeyRef:
             name: openbeam-env
             key: REDIS_URL
+      - name: WHATSAPP_PHONE_NUMBER_ID
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-bot-secrets
+            key: WHATSAPP_PHONE_NUMBER_ID
+      - name: WHATSAPP_ACCESS_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-bot-secrets
+            key: WHATSAPP_ACCESS_TOKEN
+      - name: WHATSAPP_APP_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-bot-secrets
+            key: WHATSAPP_APP_SECRET
+      - name: WHATSAPP_VERIFY_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-bot-secrets
+            key: WHATSAPP_VERIFY_TOKEN
 
 sandboxGateway:
   enabled: false
