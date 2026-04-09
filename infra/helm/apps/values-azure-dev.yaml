@@ -402,13 +402,13 @@ services:
         value: "https://app.openbeam.work"
       - name: DATABASE_URL
         valueFrom:
-          configMapKeyRef:
-            name: openbeam-env
+          secretKeyRef:
+            name: openbeam-secrets
             key: DATABASE_URL
       - name: REDIS_URL
         valueFrom:
-          configMapKeyRef:
-            name: openbeam-env
+          secretKeyRef:
+            name: openbeam-bot-secrets
             key: REDIS_URL
       - name: WHATSAPP_PHONE_NUMBER_ID
         valueFrom:
