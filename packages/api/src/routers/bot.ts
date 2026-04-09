@@ -36,10 +36,18 @@ export const botRouter = createTRPCRouter({
   linkAccount: protectedProcedure
     .input(z.object({ token: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const teamId = ctx.session.user.teamId;
+      if (!teamId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No team selected",
+        });
+      }
+
       const { userLink } = await linkBotAccount(
         ctx.prisma,
         input.token,
-        ctx.session.user.teamId,
+        teamId,
         ctx.session.user.id
       );
 
