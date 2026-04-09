@@ -48,6 +48,12 @@ ingress:
           pathType: Prefix
           serviceName: openbeam-server
           servicePort: 3000
+    - host: bot.openbeam.work
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: openbeam-bot
+          servicePort: 3005
 
 env:
   DATABASE_URL: ""
@@ -350,6 +356,56 @@ services:
       failureThreshold: 5
     extraEnv:
       - name: CPU_REDIS_URL
+        valueFrom:
+          configMapKeyRef:
+            name: openbeam-env
+            key: REDIS_URL
+
+  bot:
+    enabled: true
+    replicaCount: 2
+    image:
+      repository: openbeam-bot
+      tag: latest
+      pullPolicy: Always
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3005
+      targetPort: 3005
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+    startupProbe:
+      path: /health
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 24
+      timeoutSeconds: 3
+    readinessProbe:
+      path: /health
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      path: /health
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv:
+      - name: BOT_PORT
+        value: "3005"
+      - name: BOT_LINK_BASE_URL
+        value: "https://app.openbeam.work"
+      - name: DATABASE_URL
+        valueFrom:
+          configMapKeyRef:
+            name: openbeam-env
+            key: DATABASE_URL
+      - name: REDIS_URL
         valueFrom:
           configMapKeyRef:
             name: openbeam-env
