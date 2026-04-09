@@ -108,4 +108,32 @@ describe("routeMessage", () => {
     expect(r.type).toBe("text");
     expect(r.text).toContain("Mention me");
   });
+
+  it("responds to greetings with welcome message", async () => {
+    const r = await routeMessage(
+      msg({ isDirectMessage: true, text: "hello" }),
+      identity
+    );
+    expect(r.type).toBe("text");
+    expect(r.text).toContain("OpenBeam");
+    expect(r.text).toContain("ask");
+    expect(r.text).toContain("search");
+  });
+
+  it("responds to greetings case-insensitively", async () => {
+    const r = await routeMessage(
+      msg({ isDirectMessage: true, text: "Hey!" }),
+      identity
+    );
+    expect(r.type).toBe("text");
+    expect(r.text).toContain("OpenBeam");
+  });
+
+  it("does not treat greeting-like questions as greetings", async () => {
+    const r = await routeMessage(
+      msg({ isDirectMessage: true, text: "hello world deploy docs?" }),
+      identity
+    );
+    expect(r.type).toBe("answer");
+  });
 });
