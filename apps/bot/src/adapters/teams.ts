@@ -14,8 +14,8 @@ import {
   ConfigurationBotFrameworkAuthentication,
   type TurnContext,
 } from "botbuilder";
-import { formatForPlatform } from "../ai/formatter";
 import { env } from "../env";
+import { renderTeams } from "../renderers/teams";
 
 interface TeamsActivity {
   type: string;
@@ -172,8 +172,8 @@ export class TeamsAdapter implements PlatformAdapter {
       return;
     }
 
-    const text = formatForPlatform("TEAMS", response);
-    await raw._turnContext.sendActivity(text);
+    const payload = renderTeams(response);
+    await raw._turnContext.sendActivity(payload);
   }
 
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {

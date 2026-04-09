@@ -11,8 +11,8 @@ import {
 } from "discord-api-types/v10";
 import { verifyKey } from "discord-interactions";
 import { z } from "zod";
-import { formatForPlatform } from "../ai/formatter";
 import { env } from "../env";
+import { renderDiscord } from "../renderers/discord";
 
 export const DISCORD_PING_RESPONSE = { type: InteractionResponseType.Pong };
 
@@ -150,12 +150,11 @@ export class DiscordAdapter implements PlatformAdapter {
     }
 
     const { id, token } = rawEvent.data;
-    const text = formatForPlatform("DISCORD", response);
-
-    await postCallback(id, token, {
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: { content: text },
-    });
+    const payload = renderDiscord(response) as unknown as Record<
+      string,
+      unknown
+    >;
+    await postCallback(id, token, payload);
   }
 
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {

@@ -15,8 +15,8 @@ import type {
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
-import { formatForPlatform } from "../ai/formatter";
 import { env } from "../env";
+import { renderSlack } from "../renderers/slack";
 
 function tsToDate(ts: string | undefined): Date {
   return new Date(Number.parseFloat(ts ?? "0") * 1000);
@@ -115,11 +115,12 @@ export class SlackAdapter implements PlatformAdapter {
       return;
     }
 
-    const text = formatForPlatform("SLACK", response);
+    const payload = renderSlack(response);
 
     await client.call("chat.postMessage", {
       channel: message.channelId,
-      text,
+      text: payload.text,
+      blocks: payload.blocks,
       thread_ts: message.threadId,
     });
   }

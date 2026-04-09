@@ -7,12 +7,10 @@ import type {
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
 import { z } from "zod";
-import { formatForPlatform } from "../ai/formatter";
 import { env } from "../env";
+import { renderWhatsApp, typingPayload } from "../renderers/whatsapp";
 
 const GRAPH_API_VERSION = "v19.0";
-const MAX_BUTTON_COUNT = 3;
-const MAX_BUTTON_TITLE_LENGTH = 20;
 
 const WhatsAppMetadataSchema = z.object({
   display_phone_number: z.string(),
@@ -52,7 +50,7 @@ const WhatsAppWebhookSchema = z.object({
   entry: z.array(WhatsAppEntrySchema),
 });
 
-function verifySignature(
+function verifySig(
   rawBody: string,
   header: string,
   appSecret: string
@@ -82,76 +80,6 @@ function extractText(message: WhatsAppMessage): string {
     return reply?.title ?? "";
   }
   return "";
-}
-
-function truncate(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return `${text.slice(0, maxLength - 3)}...`;
-}
-
-function isUrl(value: string): boolean {
-  return value.startsWith("http://") || value.startsWith("https://");
-}
-
-function buildInteractivePayload(
-  to: string,
-  text: string,
-  buttons: BotResponse["buttons"]
-): Record<string, unknown> {
-  const validButtons = (buttons ?? []).slice(0, MAX_BUTTON_COUNT);
-  const firstButton = validButtons[0];
-
-  if (firstButton && isUrl(firstButton.value)) {
-    return {
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to,
-      type: "interactive",
-      interactive: {
-        type: "cta_url",
-        body: { text: truncate(text, 1024) },
-        action: {
-          name: "cta_url",
-          parameters: {
-            display_text: truncate(firstButton.label, MAX_BUTTON_TITLE_LENGTH),
-            url: firstButton.value,
-          },
-        },
-      },
-    };
-  }
-
-  return {
-    messaging_product: "whatsapp",
-    recipient_type: "individual",
-    to,
-    type: "interactive",
-    interactive: {
-      type: "button",
-      body: { text: truncate(text, 1024) },
-      action: {
-        buttons: validButtons.map((btn) => ({
-          type: "reply",
-          reply: {
-            id: btn.value,
-            title: truncate(btn.label, MAX_BUTTON_TITLE_LENGTH),
-          },
-        })),
-      },
-    },
-  };
-}
-
-function buildTextPayload(to: string, text: string): Record<string, unknown> {
-  return {
-    messaging_product: "whatsapp",
-    recipient_type: "individual",
-    to,
-    type: "text",
-    text: { body: truncate(text, PLATFORM_CONFIGS.WHATSAPP.maxMessageLength) },
-  };
 }
 
 async function postToGraphApi(
@@ -202,7 +130,7 @@ export class WhatsAppAdapter implements PlatformAdapter {
     if (!header) {
       return false;
     }
-    return verifySignature(_rawBody, header, appSecret);
+    return verifySig(_rawBody, header, appSecret);
   }
 
   parseEvent(
@@ -253,23 +181,40 @@ export class WhatsAppAdapter implements PlatformAdapter {
     message: UnifiedMessage,
     response: BotResponse
   ): Promise<void> {
-    const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
-    const accessToken = env.WHATSAPP_ACCESS_TOKEN;
-    if (!(phoneNumberId && accessToken)) {
+    const creds = this.getCredentials();
+    if (!creds) {
       return;
     }
 
-    const text = formatForPlatform("WHATSAPP", response);
-    const hasButtons = response.buttons && response.buttons.length > 0;
-
-    const payload = hasButtons
-      ? buildInteractivePayload(message.channelId, text, response.buttons)
-      : buildTextPayload(message.channelId, text);
-
-    await postToGraphApi(phoneNumberId, accessToken, payload);
+    const payload = renderWhatsApp(message.channelId, response);
+    await postToGraphApi(creds.phoneNumberId, creds.accessToken, payload);
   }
 
-  sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {
-    return Promise.resolve();
+  async sendTypingIndicator(
+    channelId: string,
+    _threadId?: string
+  ): Promise<void> {
+    const creds = this.getCredentials();
+    if (!creds) {
+      return;
+    }
+
+    const noop = Function.prototype as () => void;
+    const payload = typingPayload(channelId);
+    await postToGraphApi(creds.phoneNumberId, creds.accessToken, payload).catch(
+      noop
+    );
+  }
+
+  private getCredentials(): {
+    phoneNumberId: string;
+    accessToken: string;
+  } | null {
+    const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
+    const accessToken = env.WHATSAPP_ACCESS_TOKEN;
+    if (!(phoneNumberId && accessToken)) {
+      return null;
+    }
+    return { phoneNumberId, accessToken };
   }
 }

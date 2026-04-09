@@ -7,12 +7,10 @@ import type {
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
 import { Bot } from "grammy";
 import { z } from "zod";
-import { formatForPlatform } from "../ai/formatter";
 import { env } from "../env";
+import { renderTelegram } from "../renderers/telegram";
 
 const COMMAND_RE = /^\/(\w+)(?:\s+(.*))?$/s;
-
-const MARKDOWNV2_ESCAPE_RE = /([_*[\]()~`>#+\-=|{}.!\\])/g;
 
 const TelegramUserSchema = z.object({
   id: z.number(),
@@ -46,10 +44,6 @@ const TelegramUpdateSchema = z.object({
 });
 
 type TelegramUpdate = z.infer<typeof TelegramUpdateSchema>;
-
-export function escapeMarkdownV2(text: string): string {
-  return text.replace(MARKDOWNV2_ESCAPE_RE, "\\$1");
-}
 
 function createBot(): Bot | null {
   const token = env.TELEGRAM_BOT_TOKEN;
@@ -126,11 +120,11 @@ export class TelegramAdapter implements PlatformAdapter {
       return;
     }
 
-    const text = formatForPlatform("TELEGRAM", response);
-    const escaped = escapeMarkdownV2(text);
+    const payload = renderTelegram(response);
 
-    await bot.api.sendMessage(message.channelId, escaped, {
-      parse_mode: "MarkdownV2",
+    await bot.api.sendMessage(message.channelId, payload.text, {
+      parse_mode: payload.parse_mode,
+      reply_markup: payload.reply_markup,
     });
   }
 
