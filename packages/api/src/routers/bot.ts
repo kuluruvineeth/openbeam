@@ -8,7 +8,7 @@ export const botRouter = createTRPCRouter({
   verifyLinkToken: publicProcedure
     .input(z.object({ token: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const request = await findBotLinkRequest(ctx.db, input.token);
+      const request = await findBotLinkRequest(ctx.prisma, input.token);
 
       if (!request) {
         throw new TRPCError({
@@ -37,10 +37,10 @@ export const botRouter = createTRPCRouter({
     .input(z.object({ token: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const { userLink } = await linkBotAccount(
-        ctx.db,
+        ctx.prisma,
         input.token,
-        ctx.session.teamId,
-        ctx.session.userId
+        ctx.session.user.teamId,
+        ctx.session.user.id
       );
 
       return {
