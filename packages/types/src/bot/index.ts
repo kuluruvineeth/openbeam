@@ -16,6 +16,8 @@ export {
   BotResponseSchema,
   type BotResponseType,
   BotResponseTypeSchema,
+  type Citation,
+  CitationSchema,
   type ExpertItem,
   ExpertItemSchema,
   type MessageAttachment,

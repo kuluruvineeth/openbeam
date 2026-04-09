@@ -63,6 +63,15 @@ export const ActionResultItemSchema = z.object({
 });
 export type ActionResultItem = z.infer<typeof ActionResultItemSchema>;
 
+export const CitationSchema = z.object({
+  index: z.number(),
+  title: z.string(),
+  url: z.string().optional(),
+  snippet: z.string().optional(),
+  source: z.string().optional(),
+});
+export type Citation = z.infer<typeof CitationSchema>;
+
 export const ResponseButtonSchema = z.object({
   label: z.string(),
   action: z.string(),
@@ -78,6 +87,9 @@ export const BotResponseSchema = z.object({
   results: z.array(SearchResultItemSchema).optional(),
   experts: z.array(ExpertItemSchema).optional(),
   actionResult: ActionResultItemSchema.optional(),
+  citations: z.array(CitationSchema).optional(),
+  followUps: z.array(z.string()).optional(),
+  confidence: z.number().min(0).max(1).optional(),
   buttons: z.array(ResponseButtonSchema).optional(),
   threadId: z.string().optional(),
   ephemeral: z.boolean().optional(),

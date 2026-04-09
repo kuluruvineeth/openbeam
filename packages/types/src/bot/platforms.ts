@@ -64,7 +64,7 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     webhookPath: "/webhooks/whatsapp",
     maxMessageLength: 4096,
     supportsThreads: false,
-    supportsRichFormatting: false,
+    supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
   },
