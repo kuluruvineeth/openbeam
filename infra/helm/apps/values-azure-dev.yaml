@@ -56,8 +56,6 @@ ingress:
           servicePort: 3005
 
 env:
-  DATABASE_URL: ""
-  REDIS_URL: ""
   VESPA_URL: "http://document-index-service.vespa.svc.cluster.local:8080"
   TEMPORAL_ADDRESS: "temporal-frontend.temporal.svc.cluster.local:7233"
   ENGINE_URL: "http://openbeam-engine.openbeam.svc.cluster.local:8000"
@@ -111,6 +109,16 @@ services:
       timeoutSeconds: 5
       failureThreshold: 3
     extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-secrets
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-secrets
+            key: REDIS_URL
       - name: GOOGLE_CLIENT_ID
         valueFrom:
           secretKeyRef:
@@ -208,6 +216,11 @@ services:
       timeoutSeconds: 5
       failureThreshold: 3
     extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-secrets
+            key: DATABASE_URL
       - name: ALLOWED_EMAILS
         value: "kuluruvineeth8623@gmail.com"
 
@@ -248,6 +261,16 @@ services:
       timeoutSeconds: 5
       failureThreshold: 3
     extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-secrets
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: openbeam-secrets
+            key: REDIS_URL
       - name: GOOGLE_CLIENT_ID
         valueFrom:
           secretKeyRef:
