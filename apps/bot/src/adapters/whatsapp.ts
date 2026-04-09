@@ -91,12 +91,38 @@ function truncate(text: string, maxLength: number): string {
   return `${text.slice(0, maxLength - 3)}...`;
 }
 
+function isUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
 function buildInteractivePayload(
   to: string,
   text: string,
   buttons: BotResponse["buttons"]
 ): Record<string, unknown> {
   const validButtons = (buttons ?? []).slice(0, MAX_BUTTON_COUNT);
+  const firstButton = validButtons[0];
+
+  if (firstButton && isUrl(firstButton.value)) {
+    return {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "cta_url",
+        body: { text: truncate(text, 1024) },
+        action: {
+          name: "cta_url",
+          parameters: {
+            display_text: truncate(firstButton.label, MAX_BUTTON_TITLE_LENGTH),
+            url: firstButton.value,
+          },
+        },
+      },
+    };
+  }
+
   return {
     messaging_product: "whatsapp",
     recipient_type: "individual",
