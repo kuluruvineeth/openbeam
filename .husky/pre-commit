@@ -29,3 +29,16 @@ if [ "$HAS_SERVICES" -gt 0 ] || [ "$HAS_TEMPORAL" -gt 0 ]; then
   echo "[pre-commit] Type checking packages/temporal..."
   bun x tsc --noEmit -p packages/temporal/tsconfig.json || exit 1
 fi
+
+HAS_API=$(echo "$STAGED_FILES" | grep -c "packages/api/\|packages/db/" || true)
+HAS_BOT=$(echo "$STAGED_FILES" | grep -c "apps/bot/" || true)
+
+if [ "$HAS_API" -gt 0 ]; then
+  echo "[pre-commit] Type checking packages/api..."
+  bun x tsc --noEmit -p packages/api/tsconfig.json || exit 1
+fi
+
+if [ "$HAS_BOT" -gt 0 ] || [ "$HAS_SERVICES" -gt 0 ]; then
+  echo "[pre-commit] Type checking apps/bot..."
+  bun x tsc --noEmit -p apps/bot/tsconfig.json || exit 1
+fi
