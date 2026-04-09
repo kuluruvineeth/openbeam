@@ -98,6 +98,51 @@ export const consumeBotLinkRequest = async (
     data: { consumed: true, teamId, userId },
   });
 
+export const linkBotAccount = async (
+  db: Database,
+  token: string,
+  teamId: string,
+  userId: string
+): Promise<{ linkRequest: BotLinkRequest; userLink: BotUserLink }> =>
+  db.$transaction(async (tx) => {
+    const request = await tx.botLinkRequest.findUnique({ where: { token } });
+
+    if (!request) {
+      throw new Error("Link token not found");
+    }
+    if (request.consumed) {
+      throw new Error("Link token already used");
+    }
+    if (request.expiresAt < new Date()) {
+      throw new Error("Link token expired");
+    }
+
+    const linkRequest = await tx.botLinkRequest.update({
+      where: { token },
+      data: { consumed: true, teamId, userId },
+    });
+
+    const userLink = await tx.botUserLink.upsert({
+      where: {
+        platform_platformUserId_platformTeamId: {
+          platform: request.platform,
+          platformUserId: request.platformUserId,
+          platformTeamId: request.platformTeamId,
+        },
+      },
+      create: {
+        teamId,
+        userId,
+        platform: request.platform,
+        platformUserId: request.platformUserId,
+        platformTeamId: request.platformTeamId,
+      },
+      update: { teamId, userId },
+    });
+
+    return { linkRequest, userLink };
+  });
+
 export const cleanupExpiredLinkRequests = async (
   db: Database
 ): Promise<{ count: number }> =>

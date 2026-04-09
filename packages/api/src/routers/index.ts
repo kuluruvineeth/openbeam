@@ -6,6 +6,7 @@ import { analyticsRouter } from "./analytics";
 import { apiKeysRouter } from "./api-keys";
 import { appsRouter } from "./apps";
 import { backgroundAgentsRouter } from "./background-agents";
+import { botRouter } from "./bot";
 import { connectorResourcesRouter } from "./connector-resources";
 import { contextRouter } from "./context";
 import { controlRouter } from "./control";
@@ -31,6 +32,7 @@ import { workspaceRouter } from "./workspace";
 export const appRouter = createTRPCRouter({
   apiKeys: apiKeysRouter,
   agentCanvas: agentCanvasRouter,
+  bot: botRouter,
   ai: aiRouter,
   analytics: analyticsRouter,
   apps: appsRouter,
