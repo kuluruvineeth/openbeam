@@ -42,6 +42,7 @@ export async function handleSearch(
       source: doc.connector_type ?? "unknown",
       score: doc.relevanceScore,
     })),
+    followUps: [`Ask about "${query}"`, `Find experts on ${query}`],
   };
 }
 

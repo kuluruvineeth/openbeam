@@ -54,6 +54,7 @@ export async function handleExpert(
         documentCount: entity?.documentCount ?? 0,
       };
     }),
+    followUps: [`Ask about ${topic}`, `Search for ${topic} docs`],
   };
 }
 

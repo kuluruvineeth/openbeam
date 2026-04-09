@@ -1,5 +1,9 @@
 import { ragAnswer } from "@openbeam/services";
-import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
+import type {
+  BotResponse,
+  Citation,
+  UnifiedMessage,
+} from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
 import { stripCommandPrefix } from "./utils";
 
@@ -25,13 +29,28 @@ export async function handleAsk(
     return {
       type: "text",
       text: "I couldn't find a relevant answer. Try rephrasing your question.",
+      followUps: [
+        `Search for "${question}"`,
+        `Find experts on ${question.split(" ").slice(0, 3).join(" ")}`,
+      ],
     };
   }
+
+  const citations: Citation[] = (result.citations ?? [])
+    .slice(0, 5)
+    .map((c, i) => ({
+      index: i + 1,
+      title: c.title ?? "Source",
+      url: c.url,
+      snippet: c.snippet ?? undefined,
+      source: c.connectorType ?? undefined,
+    }));
 
   return {
     type: "answer",
     text: result.answer,
     title: question,
+    citations,
     results: result.citations?.map((c) => ({
       title: c.title ?? "Source",
       snippet: c.snippet ?? "",
@@ -39,9 +58,22 @@ export async function handleAsk(
       source: c.connectorType ?? "unknown",
       score: c.relevanceScore ?? 0,
     })),
+    followUps: buildFollowUps(question, citations),
   };
 }
 
 function extractQuestion(text: string, command?: string): string {
   return stripCommandPrefix(text, command === "ask" ? command : undefined);
+}
+
+function buildFollowUps(question: string, citations: Citation[]): string[] {
+  const suggestions: string[] = [];
+  if (citations.length > 0) {
+    suggestions.push("Tell me more about this");
+  }
+  const words = question.split(" ").filter((w) => w.length > 3);
+  if (words.length > 0) {
+    suggestions.push(`Search for "${words.slice(0, 4).join(" ")}"`);
+  }
+  return suggestions.slice(0, 3);
 }

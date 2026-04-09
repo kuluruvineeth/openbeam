@@ -18,6 +18,9 @@ const COMMAND_HANDLERS: Record<string, Handler> = {
   action: handleAction,
 };
 
+const GREETING_RE =
+  /^(?:hi|hello|hey|howdy|yo|sup|hola|greetings|good\s+(?:morning|afternoon|evening))[\s!.,?]*$/i;
+
 const INTENT_PATTERNS: [RegExp, string][] = [
   [/^(?:search|find|look\s?up)\b/i, "search"],
   [/^(?:who\s+(?:is|knows|works\s+on))\b/i, "expert"],
@@ -51,6 +54,10 @@ function detectAndRoute(
 ): Promise<BotResponse> {
   const text = message.text.trim();
 
+  if (GREETING_RE.test(text)) {
+    return Promise.resolve(handleGreeting());
+  }
+
   for (const [pattern, intent] of INTENT_PATTERNS) {
     if (pattern.test(text)) {
       const handler = COMMAND_HANDLERS[intent];
@@ -61,4 +68,21 @@ function detectAndRoute(
   }
 
   return handleAsk(message, identity);
+}
+
+function handleGreeting(): BotResponse {
+  return {
+    type: "text",
+    text: [
+      "Hey! I'm OpenBeam — your enterprise search assistant.",
+      "",
+      "Try one of these:",
+      "  ask <question> — Get an AI answer with sources",
+      "  search <query> — Search across your tools",
+      "  expert <topic> — Find who knows what",
+      "  help — Full command list",
+      "",
+      "Or just ask me anything directly.",
+    ].join("\n"),
+  };
 }
