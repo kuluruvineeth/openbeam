@@ -453,6 +453,21 @@ services:
           secretKeyRef:
             name: openbeam-bot-secrets
             key: WHATSAPP_VERIFY_TOKEN
+      - name: ANTHROPIC_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: ANTHROPIC_API_KEY
+      - name: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_API_KEY
+      - name: GOOGLE_AI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_AI_API_KEY
 
 sandboxGateway:
   enabled: false
