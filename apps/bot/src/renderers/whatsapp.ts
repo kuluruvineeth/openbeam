@@ -32,12 +32,11 @@ export function renderWhatsApp(to: string, response: BotResponse): Payload {
   return textPayload(to, text);
 }
 
-export function typingPayload(to: string): Payload {
+export function typingPayload(messageId: string): Payload {
   return {
     messaging_product: "whatsapp",
-    recipient_type: "individual",
-    to,
-    type: "typing_indicator",
+    status: "read",
+    message_id: messageId,
     typing_indicator: { type: "text" },
   };
 }

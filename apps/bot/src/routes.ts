@@ -50,7 +50,11 @@ async function resolveAndRoute(
     };
   }
 
-  await adapter.sendTypingIndicator(message.channelId, message.threadId);
+  await adapter.sendTypingIndicator(
+    message.channelId,
+    message.threadId,
+    message.id
+  );
 
   try {
     return await routeMessage(message, identity);

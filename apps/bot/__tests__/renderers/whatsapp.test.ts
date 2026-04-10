@@ -69,10 +69,11 @@ describe("renderWhatsApp", () => {
 });
 
 describe("typingPayload", () => {
-  it("returns typing_indicator type", () => {
-    const payload = typingPayload("+1234");
-    expect(payload.type).toBe("typing_indicator");
-    expect(payload.to).toBe("+1234");
+  it("returns read status with typing_indicator and message_id", () => {
+    const payload = typingPayload("wamid.HBgNMTIz");
+    expect(payload.status).toBe("read");
+    expect(payload.message_id).toBe("wamid.HBgNMTIz");
     expect(payload.messaging_product).toBe("whatsapp");
+    expect(payload.typing_indicator).toEqual({ type: "text" });
   });
 });

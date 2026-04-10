@@ -13,5 +13,9 @@ export interface PlatformAdapter {
     headers: Record<string, string>
   ): boolean | Promise<boolean>;
   sendResponse(message: UnifiedMessage, response: BotResponse): Promise<void>;
-  sendTypingIndicator(channelId: string, threadId?: string): Promise<void>;
+  sendTypingIndicator(
+    channelId: string,
+    threadId?: string,
+    messageId?: string
+  ): Promise<void>;
 }

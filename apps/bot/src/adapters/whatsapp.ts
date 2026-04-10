@@ -193,15 +193,19 @@ export class WhatsAppAdapter implements PlatformAdapter {
   }
 
   async sendTypingIndicator(
-    channelId: string,
-    _threadId?: string
+    _channelId: string,
+    _threadId?: string,
+    messageId?: string
   ): Promise<void> {
+    if (!messageId) {
+      return;
+    }
     const creds = this.getCredentials();
     if (!creds) {
       return;
     }
 
-    const payload = typingPayload(channelId);
+    const payload = typingPayload(messageId);
     await postToGraphApi(
       creds.phoneNumberId,
       creds.accessToken,
