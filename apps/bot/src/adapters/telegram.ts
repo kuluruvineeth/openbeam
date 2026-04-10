@@ -128,6 +128,49 @@ export class TelegramAdapter implements PlatformAdapter {
     });
   }
 
+  async sendStreamPlaceholder(message: UnifiedMessage): Promise<number | null> {
+    const bot = this.bot;
+    if (!bot) {
+      return null;
+    }
+
+    const sent = await bot.api.sendMessage(message.channelId, "Searching...");
+    return sent.message_id;
+  }
+
+  async updateStreamMessage(
+    message: UnifiedMessage,
+    messageId: number,
+    text: string
+  ): Promise<void> {
+    const bot = this.bot;
+    if (!bot) {
+      return;
+    }
+
+    const noop = Function.prototype as () => void;
+    await bot.api
+      .editMessageText(message.channelId, messageId, text)
+      .catch(noop);
+  }
+
+  async finalizeStreamMessage(
+    message: UnifiedMessage,
+    messageId: number,
+    response: BotResponse
+  ): Promise<void> {
+    const bot = this.bot;
+    if (!bot) {
+      return;
+    }
+
+    const payload = renderTelegram(response);
+    await bot.api.editMessageText(message.channelId, messageId, payload.text, {
+      parse_mode: payload.parse_mode,
+      reply_markup: payload.reply_markup,
+    });
+  }
+
   async sendTypingIndicator(channelId: string): Promise<void> {
     const bot = this.bot;
     if (!bot) {

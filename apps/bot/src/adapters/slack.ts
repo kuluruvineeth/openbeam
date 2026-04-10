@@ -125,6 +125,57 @@ export class SlackAdapter implements PlatformAdapter {
     });
   }
 
+  async sendStreamPlaceholder(message: UnifiedMessage): Promise<string | null> {
+    const client = this.createClient();
+    if (!client) {
+      return null;
+    }
+
+    const result = await client.call<{ ts: string }>("chat.postMessage", {
+      channel: message.channelId,
+      text: "Searching...",
+      thread_ts: message.threadId,
+    });
+
+    return result.ts;
+  }
+
+  async updateStreamMessage(
+    message: UnifiedMessage,
+    messageTs: string,
+    text: string
+  ): Promise<void> {
+    const client = this.createClient();
+    if (!client) {
+      return;
+    }
+
+    await client.call("chat.update", {
+      channel: message.channelId,
+      ts: messageTs,
+      text,
+    });
+  }
+
+  async finalizeStreamMessage(
+    message: UnifiedMessage,
+    messageTs: string,
+    response: BotResponse
+  ): Promise<void> {
+    const client = this.createClient();
+    if (!client) {
+      return;
+    }
+
+    const payload = renderSlack(response);
+    await client.call("chat.update", {
+      channel: message.channelId,
+      ts: messageTs,
+      text: payload.text,
+      blocks: payload.blocks,
+    });
+  }
+
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {
     return Promise.resolve();
   }

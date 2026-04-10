@@ -157,6 +157,59 @@ export class DiscordAdapter implements PlatformAdapter {
     await postCallback(id, token, payload);
   }
 
+  async sendStreamPlaceholder(message: UnifiedMessage): Promise<string | null> {
+    const rawEvent = DiscordInteractionSchema.safeParse(message.rawEvent);
+    if (!rawEvent.success) {
+      return null;
+    }
+
+    const { id, token } = rawEvent.data;
+    await postCallback(id, token, { type: 5 });
+    return token;
+  }
+
+  async updateStreamMessage(
+    _message: UnifiedMessage,
+    interactionToken: string,
+    text: string
+  ): Promise<void> {
+    const appId = env.DISCORD_APPLICATION_ID;
+    if (!appId) {
+      return;
+    }
+
+    const url = `https://discord.com/api/v10/webhooks/${appId}/${interactionToken}/messages/@original`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: text }),
+    });
+
+    if (res.status === 429) {
+      const data = (await res.json()) as { retry_after: number };
+      await new Promise((r) => setTimeout(r, data.retry_after * 1000));
+    }
+  }
+
+  async finalizeStreamMessage(
+    _message: UnifiedMessage,
+    interactionToken: string,
+    response: BotResponse
+  ): Promise<void> {
+    const appId = env.DISCORD_APPLICATION_ID;
+    if (!appId) {
+      return;
+    }
+
+    const payload = renderDiscord(response);
+    const url = `https://discord.com/api/v10/webhooks/${appId}/${interactionToken}/messages/@original`;
+    await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload.data),
+    });
+  }
+
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {
     return Promise.resolve();
   }
