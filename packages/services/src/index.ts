@@ -1727,6 +1727,13 @@ export {
   incrementalSync as nodeRedIncrementalSync,
   NodeRedApiError,
 } from "./nodered";
+export {
+  emitNotification,
+  evaluateThrottle,
+  isInQuietHours,
+  recordPlatformActivity,
+  resolveTargetPlatforms,
+} from "./notifications";
 export type {
   NotificationResult as NotionNotificationResult,
   NotionClient,
