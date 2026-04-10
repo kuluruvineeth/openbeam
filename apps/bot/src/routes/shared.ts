@@ -6,9 +6,26 @@ import type {
 } from "@openbeam/types/bot";
 import { handleFeedback, parseWhatsAppFeedbackId } from "../handlers/feedback";
 import { routeMessage } from "../handlers/router";
+import { handleStreamAsk } from "../handlers/stream-ask";
 import { sendLinkPrompt } from "../identity/linking";
 import { resolveIdentity } from "../identity/resolver";
 import { checkTeamRateLimit, checkUserRateLimit } from "../lib/rate-limit";
+
+const STREAMING_PLATFORMS = new Set(["SLACK", "DISCORD", "TELEGRAM", "TEAMS"]);
+
+function isAskLikeQuery(message: UnifiedMessage): boolean {
+  if (message.command === "ask") {
+    return true;
+  }
+  if (message.command) {
+    return false;
+  }
+  if (message.isDirectMessage || message.isMention) {
+    const text = message.text.trim();
+    return text.endsWith("?") || text.length > 20;
+  }
+  return false;
+}
 
 export async function resolveAndRoute(
   adapter: PlatformAdapter,
@@ -59,6 +76,14 @@ export async function resolveAndRoute(
   );
 
   try {
+    if (STREAMING_PLATFORMS.has(message.platform) && isAskLikeQuery(message)) {
+      const streamResult = await handleStreamAsk(message, identity, adapter);
+      if (!streamResult) {
+        return null;
+      }
+      return streamResult;
+    }
+
     return await routeMessage(message, identity);
   } catch (error) {
     console.error("handler error", error);
