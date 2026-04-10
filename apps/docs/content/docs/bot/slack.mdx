@@ -6,13 +6,20 @@ icon: Slack
 
 # Slack Setup
 
-## 1. Create a Slack App
+## Prerequisites
+
+- A Slack workspace where you have admin permissions
+- OpenBeam bot running locally or deployed (see [Quickstart](/docs/bot/quickstart))
+
+## Step 1: Create a Slack App
 
 1. Go to [api.slack.com/apps](https://api.slack.com/apps) and click **Create New App**
-2. Choose **From an app manifest** and select your workspace
-3. Use the manifest below or configure manually
+2. Choose **From an app manifest**
+3. Select the workspace you want to install to
+4. Paste the manifest below (replace `your-domain.com` with your webhook URL)
+5. Click **Create**
 
-## 2. App Manifest
+## Step 2: App Manifest
 
 ```yaml
 display_information:
@@ -53,13 +60,28 @@ settings:
   socket_mode_enabled: false
 ```
 
-## 3. Install to Workspace
+<Callout type="info">
+If you prefer manual configuration instead of the manifest, create a new app "From scratch" and configure each section individually. The manifest method is faster and less error-prone.
+</Callout>
+
+## Step 3: Install to Workspace
 
 1. Navigate to **OAuth & Permissions** in your Slack App settings
 2. Click **Install to Workspace**
-3. Copy the **Bot User OAuth Token** (`xoxb-...`)
+3. Review the permissions and click **Allow**
+4. Copy the **Bot User OAuth Token** (`xoxb-...`)
 
-## 4. Configure Environment
+## Step 4: Get Your Credentials
+
+You need three values from the Slack App dashboard:
+
+| Credential | Where to Find |
+|------------|--------------|
+| **Bot Token** | OAuth & Permissions > Bot User OAuth Token (`xoxb-...`) |
+| **Signing Secret** | Basic Information > App Credentials > Signing Secret |
+| **App ID** | Basic Information > App Credentials > App ID |
+
+## Step 5: Configure Environment
 
 ```bash
 SLACK_BOT_TOKEN=xoxb-your-bot-token
@@ -67,21 +89,17 @@ SLACK_SIGNING_SECRET=your-signing-secret
 SLACK_APP_ID=your-app-id
 ```
 
-Find the signing secret in **Basic Information > App Credentials**.
+## Step 6: Verify Webhook
 
-## 5. Set Webhook URL
+In **Event Subscriptions**, the Request URL should show a green checkmark. If it doesn't:
 
-In **Event Subscriptions**, set the Request URL to:
+1. Ensure the bot is running and accessible at `https://your-domain.com/webhooks/slack`
+2. Slack sends a challenge request — the bot handles this automatically
+3. The response must arrive within 3 seconds
 
-```
-https://your-domain.com/webhooks/slack
-```
+## Step 7: Test
 
-Slack will send a verification challenge — the bot handles this automatically.
-
-## 6. Test
-
-Mention the bot in a channel:
+Mention the bot in any channel:
 
 ```
 @OpenBeam search deployment runbook
@@ -93,12 +111,38 @@ Or send a direct message:
 What is our deploy process?
 ```
 
+The bot responds with Block Kit formatted messages — headers, sections, citation blocks, and follow-up action buttons.
+
+## Scopes Explained
+
+| Scope | Why It's Needed |
+|-------|----------------|
+| `app_mentions:read` | Receive events when users mention @OpenBeam |
+| `channels:history` | Read messages in public channels (for context) |
+| `chat:write` | Send messages and Block Kit responses |
+| `commands` | Register and handle slash commands |
+| `groups:history` | Read messages in private channels |
+| `im:history` | Read direct message history |
+| `im:read` | Access DM channels |
+| `im:write` | Send DMs to users |
+| `reactions:write` | Add emoji reactions (for acknowledgments) |
+| `users:read` | Look up user profiles for identity resolution |
+| `users:read.email` | Match Slack users to OpenBeam accounts by email |
+
+## Response Format
+
+The Slack adapter produces Block Kit payloads:
+
+- **Search results**: Header block + Section per result (with clickable links) + Follow-up action buttons
+- **AI answers**: Section block with answer text + Context block with numbered citations + Action buttons
+- **Expert list**: Header + Section per expert with name, email, expertise
+- **Errors**: Section with warning emoji prefix
+
 ## How It Works
 
 The Slack adapter delegates to existing `@openbeam/services` infrastructure:
 
 - **Signature verification**: `verifySlackSignature()` — HMAC-SHA256 with timing-safe comparison
-- **Event parsing**: `parseSlackEvent()` — Zod-validated event envelope with 20+ typed event schemas
-- **Message sending**: `createSlackClient()` → `client.call("chat.postMessage", ...)`
-
-The adapter does not reimplement any Slack logic — it is a thin HTTP layer on top of the existing services package.
+- **Event parsing**: `parseSlackEvent()` — Zod-validated event envelope with typed event schemas
+- **Response rendering**: `renderSlack()` — produces Block Kit JSON (headers, sections, context, actions, dividers)
+- **Message sending**: `createSlackClient()` → `client.call("chat.postMessage", { blocks, text })`

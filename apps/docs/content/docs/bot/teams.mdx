@@ -6,64 +6,179 @@ icon: Teams
 
 # Microsoft Teams Setup
 
-## 1. Register a Bot in Azure
+Teams bots use the Microsoft Bot Framework. This guide covers Azure Bot creation, app manifest, and installation.
 
-1. Go to [Azure Portal](https://portal.azure.com) > **Azure Bot**
-2. Create a new Azure Bot resource
-3. Note the **Microsoft App ID** and create a **Client Secret**
+## Prerequisites
 
-## 2. Configure Environment
+- An Azure account with an active subscription
+- Admin access to a Microsoft 365 tenant (for sideloading)
+- OpenBeam bot running locally or deployed (see [Quickstart](/docs/bot/quickstart))
 
-```bash
-TEAMS_APP_ID=your-microsoft-app-id
-TEAMS_APP_PASSWORD=your-client-secret
-```
+## Step 1: Create an Azure Bot
 
-## 3. Set Messaging Endpoint
+1. Go to [portal.azure.com](https://portal.azure.com)
+2. Search for **Azure Bot** and click **Create**
+3. Fill in:
+   - **Bot handle**: `openbeam-bot`
+   - **Subscription**: Your Azure subscription
+   - **Resource group**: Create new or select existing
+   - **Pricing tier**: F0 (free) for development
+   - **Type of App**: Multi Tenant
+4. Click **Review + Create**, then **Create**
 
-In Azure Bot settings, set the messaging endpoint to:
+## Step 2: Get Your Credentials
+
+1. After the bot is created, go to **Configuration**
+2. Note the **Microsoft App ID**
+3. Click **Manage Password** (opens Azure AD > App registrations)
+4. Under **Certificates & Secrets**, click **New client secret**
+5. Copy the secret **Value** (not the Secret ID)
+
+<Callout type="warn">
+Copy the client secret immediately — you won't be able to see it again after leaving the page. If you lose it, create a new one.
+</Callout>
+
+## Step 3: Configure Messaging Endpoint
+
+In the Azure Bot's **Configuration** page, set the **Messaging endpoint** to:
 
 ```
 https://your-domain.com/webhooks/teams
 ```
 
-## 4. Create Teams App Package
+## Step 4: Enable Teams Channel
 
-Create a `manifest.json` for Teams:
+1. In the Azure Bot resource, go to **Channels**
+2. Click **Microsoft Teams**
+3. Accept the terms and click **Apply**
+
+## Step 5: Configure Environment
+
+```bash
+TEAMS_APP_ID=your-microsoft-app-id
+TEAMS_APP_PASSWORD=your-client-secret-value
+```
+
+## Step 6: Create the App Package
+
+Create a zip file containing three files:
+
+### manifest.json
 
 ```json
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
   "manifestVersion": "1.19",
-  "id": "your-app-id",
-  "name": { "short": "OpenBeam", "full": "OpenBeam Enterprise Search" },
-  "description": { "short": "Search across all your tools" },
-  "bots": [{
-    "botId": "your-app-id",
-    "scopes": ["personal", "team", "groupChat"],
-    "commandLists": [{
+  "id": "your-microsoft-app-id",
+  "version": "1.0.0",
+  "developer": {
+    "name": "Your Company",
+    "websiteUrl": "https://openbeam.work",
+    "privacyUrl": "https://openbeam.work/privacy",
+    "termsOfUseUrl": "https://openbeam.work/terms"
+  },
+  "name": {
+    "short": "OpenBeam",
+    "full": "OpenBeam Enterprise Search"
+  },
+  "description": {
+    "short": "Search across all your tools with AI",
+    "full": "OpenBeam brings enterprise search, AI-powered answers, expert discovery, and connector actions to Microsoft Teams."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#1a1a2e",
+  "bots": [
+    {
+      "botId": "your-microsoft-app-id",
       "scopes": ["personal", "team", "groupChat"],
-      "commands": [
-        { "title": "search", "description": "Search across connected data sources" },
-        { "title": "ask", "description": "Ask a question with AI-powered answers" },
-        { "title": "expert", "description": "Find topic experts" }
+      "commandLists": [
+        {
+          "scopes": ["personal", "team", "groupChat"],
+          "commands": [
+            { "title": "search", "description": "Search across connected data sources" },
+            { "title": "ask", "description": "Ask a question with AI-powered answers" },
+            { "title": "expert", "description": "Find topic experts" },
+            { "title": "help", "description": "Show available commands" }
+          ]
+        }
       ]
-    }]
-  }],
+    }
+  ],
   "permissions": ["messageTeamMembers"],
   "validDomains": ["your-domain.com"]
 }
 ```
 
-## 5. Sideload or Publish
+Replace `your-microsoft-app-id` with your actual App ID in both `id` and `botId`.
 
-- **Development**: Sideload the app package in Teams
-- **Production**: Submit to the Teams App Store or your org's app catalog
+### Icons
+
+Create two PNG icons:
+- `color.png` — 192x192px, full color app icon
+- `outline.png` — 32x32px, white icon on transparent background
+
+Zip all three files together:
+
+```bash
+zip openbeam-teams.zip manifest.json color.png outline.png
+```
+
+## Step 7: Install the App
+
+### For Development (Sideloading)
+
+1. Open Microsoft Teams
+2. Go to **Apps** > **Manage your apps**
+3. Click **Upload a custom app** > **Upload for me or my teams**
+4. Select your zip file
+5. Click **Add**
+
+### For Production
+
+Submit to your organization's app catalog or the Teams App Store via the [Teams Developer Portal](https://dev.teams.microsoft.com/).
+
+## Step 8: Test
+
+In Teams, open a chat with the OpenBeam bot:
+
+```
+search deployment runbook
+```
+
+The bot responds with an Adaptive Card containing the search results, follow-up action buttons, and direct links to source documents.
+
+## Features
+
+| Feature | Status |
+|---------|--------|
+| Adaptive Cards v1.5 | Supported — TextBlocks, ColumnSets, FactSets, ActionSets |
+| Follow-up actions | Supported — Action.Submit + Action.OpenUrl |
+| Bot commands menu | Supported — defined in manifest |
+| Personal chat | Supported |
+| Group chat | Supported (requires @mention) |
+| Channel messages | Supported (requires @mention) |
+| Proactive messaging | Not yet implemented |
+| Response streaming | Not yet implemented |
+| Task modules (forms) | Not yet implemented |
+
+## Response Format
+
+The Teams adapter produces Adaptive Card v1.5 payloads:
+
+- **Search results**: TextBlock header + ColumnSet per result + Action.OpenUrl buttons
+- **AI answers**: TextBlock with answer + FactSet for numbered citations + Action.Submit follow-ups
+- **Expert list**: TextBlock header + ColumnSet per expert (name, expertise)
+- **Errors**: TextBlock with `attention` color
+- **Actions**: All cards have `wrap: true` for mobile compatibility
 
 ## How It Works
 
 The Teams adapter uses Microsoft's `botbuilder` SDK:
 
-- **Authentication**: `CloudAdapter` + `ConfigurationBotFrameworkAuthentication` handles JWT verification automatically
-- **Message processing**: `CloudAdapter.process()` validates auth, parses the Activity, and provides a `TurnContext` for sending responses
-- **Response format**: Markdown text via `context.sendActivity()`
+- **Authentication**: `CloudAdapter` + `ConfigurationBotFrameworkAuthentication` handles JWT verification
+- **Message processing**: `CloudAdapter.process()` validates auth, parses the Activity, and provides a `TurnContext`
+- **Response rendering**: `renderTeams()` produces Adaptive Card JSON wrapped in a message attachment
+- **Message sending**: `context.sendActivity(payload)` where payload includes the Adaptive Card

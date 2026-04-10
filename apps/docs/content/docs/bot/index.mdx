@@ -9,52 +9,69 @@ OpenBeam Bot brings enterprise search, AI-powered answers, expert discovery, and
 
 ## Supported Platforms
 
-| Platform | Auth | Rich Formatting | Threads | Typing Indicator |
-|----------|------|----------------|---------|-----------------|
-| Slack | HMAC-SHA256 | Block Kit (mrkdwn) | Yes | No |
-| Microsoft Teams | JWT (Bot Framework) | Adaptive Cards | Yes | Yes |
-| Discord | Ed25519 | Embeds (Markdown) | Yes | No |
-| Telegram | Secret Token | MarkdownV2 | No | Yes |
-| WhatsApp | HMAC-SHA256 | Plain text + Buttons | No | No |
+| Platform | Auth Method | Rich Formatting | Follow-ups | Citations | Typing Indicator |
+|----------|------------|-----------------|-----------|----------|-----------------|
+| Slack | HMAC-SHA256 | Block Kit | Action buttons | Context blocks | — |
+| Microsoft Teams | JWT (Bot Framework) | Adaptive Cards v1.5 | Action.Submit | FactSet | — |
+| Discord | Ed25519 | Embeds (color-coded) | Component buttons | Footer | — |
+| Telegram | Secret Token | HTML | Inline keyboard | HTML links | `sendChatAction` |
+| WhatsApp | HMAC-SHA256 | Bold, italic, lists | Reply buttons | Inline URLs | `typing_indicator` (v21.0) |
 
 ## Commands
 
 All platforms support the same core commands:
 
-| Command | Description |
-|---------|-------------|
-| `search <query>` | Search across all connected data sources |
-| `ask <question>` | Get an AI-powered answer with citations |
-| `expert <topic>` | Find topic experts in your organization |
-| `action <connector> <action> {params}` | Execute a connector action |
-| `help` | Show available commands |
+| Command | Description | Example |
+|---------|-------------|---------|
+| `search <query>` | Search across all connected data sources | `search deployment runbook` |
+| `ask <question>` | Get an AI-powered answer with citations | `ask what is our deploy process?` |
+| `expert <topic>` | Find topic experts in your organization | `expert kubernetes` |
+| `action <connector> <action> {params}` | Execute a connector action | `action conn_1 issue_create {"title":"Bug"}` |
+| `help` | Show available commands | `help` |
+
+The bot also understands natural language — just send a question directly without a command prefix, and it routes to the `ask` handler automatically. Greetings like "hi" or "hello" return a friendly welcome with command suggestions.
 
 ## Architecture
 
 ```
-Platform Webhooks → Adapter Layer → Handler Layer → @openbeam/services
-                                                  → @openbeam/ai
-                                                  → @openbeam/db
+Platform Webhook → Adapter → Identity Resolution → Handler → Renderer → Platform API
+                     │              │                  │          │
+                     │              │                  │          └── Block Kit / Embeds / Adaptive Cards / HTML / Interactive
+                     │              │                  └── @openbeam/services (search, RAG, actions)
+                     │              └── @openbeam/db (BotUserLink lookup)
+                     └── Signature verification (per-platform)
 ```
 
-Each platform has a dedicated adapter that:
+Each platform has:
 
-1. Verifies webhook signatures using the platform's native method
-2. Parses raw events into a `UnifiedMessage` format
-3. Sends responses in platform-native formatting
-
-The handler layer is platform-agnostic — it calls the same search, RAG, and action services regardless of which platform the message came from.
+1. **Adapter** — verifies signatures, parses events into `UnifiedMessage`, sends responses
+2. **Renderer** — converts `BotResponse` into platform-native rich format (Block Kit, Embeds, Adaptive Cards, HTML+InlineKeyboard, Interactive Messages)
+3. **Shared handlers** — platform-agnostic business logic calling the same search, RAG, and action services
 
 ## Identity Linking
 
-Users must link their platform account to their OpenBeam account:
+Users must link their platform account to their OpenBeam account before using the bot:
 
-- **Slack/Teams**: Auto-linked during workspace installation via OAuth
-- **Discord/Telegram/WhatsApp**: Magic link flow — bot sends a link, user authenticates on the web app
+- **First message**: Bot sends an account linking prompt with a magic link
+- **User clicks link**: Authenticates on the OpenBeam web app
+- **Link persists**: Future messages resolve instantly to the user's team and permissions
+
+All search results respect the user's data access permissions — the bot never shows documents the user cannot see in the web app.
+
+## Response Features
+
+Every response includes:
+
+- **Inline citations** — numbered `[1] [2]` references linking to source documents
+- **Follow-up suggestions** — contextual action buttons for deeper exploration
+- **Confidence hedging** — uncertain answers are prefixed with a disclaimer
+- **Platform-native formatting** — each platform gets its best possible rendering, not lowest-common-denominator text
 
 ## Quick Links
 
 - [Quickstart](/docs/bot/quickstart) — Get the bot running locally in 5 minutes
-- [Slack Setup](/docs/bot/slack) — Configure Slack App and install to workspace
+- [Slack Setup](/docs/bot/slack) — Create a Slack App and connect it
+- [WhatsApp Setup](/docs/bot/whatsapp) — Configure Meta Business API
+- [Features](/docs/bot/features) — Full list of bot capabilities
 - [Architecture](/docs/bot/architecture) — How the bot app is structured
-- [Testing](/docs/bot/testing) — How to run tests and add new ones
+- [Troubleshooting](/docs/bot/troubleshooting) — Common issues and fixes

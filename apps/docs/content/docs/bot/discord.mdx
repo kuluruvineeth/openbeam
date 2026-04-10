@@ -6,19 +6,30 @@ icon: Discord
 
 # Discord Setup
 
-## 1. Create a Discord Application
+Discord uses HTTP-based interactions (no WebSocket gateway required). The bot receives slash commands via webhook and responds with rich embeds.
+
+## Prerequisites
+
+- A Discord account with a server where you have admin permissions
+- OpenBeam bot running locally or deployed (see [Quickstart](/docs/bot/quickstart))
+
+## Step 1: Create a Discord Application
 
 1. Go to [discord.com/developers/applications](https://discord.com/developers/applications)
 2. Click **New Application** and name it "OpenBeam"
-3. Note the **Application ID** and **Public Key**
+3. Note the **Application ID** and **Public Key** from the General Information page
 
-## 2. Create a Bot User
+## Step 2: Create a Bot User
 
-1. Go to **Bot** section
-2. Click **Add Bot**
-3. Copy the **Bot Token**
+1. Go to the **Bot** section in your application
+2. Click **Reset Token** (or **Add Bot** if first time)
+3. Copy the **Bot Token** — you won't be able to see it again
 
-## 3. Configure Interactions Endpoint
+<Callout type="warn">
+Never commit the bot token to source control. If it's leaked, reset it immediately in the Discord Developer Portal.
+</Callout>
+
+## Step 3: Configure Interactions Endpoint
 
 1. Go to **General Information**
 2. Set **Interactions Endpoint URL** to:
@@ -27,37 +38,87 @@ icon: Discord
 https://your-domain.com/webhooks/discord
 ```
 
-Discord sends a PING request to verify — the bot handles this automatically.
+3. Click **Save Changes**
 
-## 4. Configure Environment
+Discord sends a PING interaction to verify the endpoint. The bot responds with `{ type: 1 }` automatically. If verification fails, check that the bot is running and the URL is accessible.
+
+## Step 4: Configure Environment
 
 ```bash
-DISCORD_APPLICATION_ID=your-app-id
+DISCORD_APPLICATION_ID=your-application-id
 DISCORD_PUBLIC_KEY=your-public-key
 DISCORD_BOT_TOKEN=your-bot-token
 ```
 
-## 5. Register Slash Commands
+| Credential | Where to Find |
+|------------|--------------|
+| **Application ID** | General Information > Application ID |
+| **Public Key** | General Information > Public Key |
+| **Bot Token** | Bot > Token (click Reset Token to reveal) |
 
-Register slash commands using the Discord REST API. Use `@discordjs/rest` to PUT commands to `Routes.applicationCommands(appId)`:
+## Step 5: Register Slash Commands
+
+Register the bot's slash commands with Discord's API:
 
 ```bash
 DISCORD_BOT_TOKEN=... DISCORD_APPLICATION_ID=... bun run apps/bot/scripts/register-discord-commands.ts
 ```
 
-This registers `/search`, `/ask`, `/expert`, and `/link` as global slash commands. Global commands take up to 1 hour to propagate — use guild-specific commands for development.
+This registers the following global slash commands:
 
-## 6. Invite Bot to Server
+| Command | Description |
+|---------|-------------|
+| `/search <query>` | Search across connected data sources |
+| `/ask <question>` | Ask a question with AI-powered answers |
+| `/expert <topic>` | Find topic experts |
+| `/link` | Link your Discord account to OpenBeam |
 
-Generate an invite URL with the `applications.commands` and `bot` scopes:
+<Callout type="info">
+**Global commands take up to 1 hour to propagate.** For instant testing during development, register as guild-specific commands instead by passing a `guild_id` parameter. Guild commands are available immediately.
+</Callout>
+
+## Step 6: Invite the Bot to Your Server
+
+Construct the invite URL with the necessary scopes:
 
 ```
-https://discord.com/api/oauth2/authorize?client_id=YOUR_APP_ID&scope=applications.commands+bot
+https://discord.com/api/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=applications.commands+bot
 ```
 
-## 7. Account Linking
+Replace `YOUR_APPLICATION_ID` with your Application ID and open the URL in your browser. Select the server and click **Authorize**.
 
-Discord users link via the `/link` command which generates a magic link URL. The user clicks through to authenticate on the OpenBeam web app.
+## Step 7: Test
+
+In your Discord server, type:
+
+```
+/search deployment runbook
+```
+
+The bot responds with a color-coded embed (blue for search results) with follow-up component buttons.
+
+## Features
+
+| Feature | Status |
+|---------|--------|
+| Slash commands | Supported — `/search`, `/ask`, `/expert`, `/link` |
+| Rich embeds | Supported — color-coded by response type |
+| Component buttons | Supported — follow-up suggestions |
+| Semantic colors | Blue (info), Green (success), Red (error), Gray (muted) |
+| Ephemeral messages | Not yet implemented |
+| Thread creation | Not yet implemented |
+| Deferred replies | Not yet implemented (3-second timeout applies) |
+| Account linking | Magic link via `/link` command |
+
+## Response Format
+
+The Discord adapter produces embed objects with component action rows:
+
+- **Search results**: Blue embed with title, description (numbered results with links), footer
+- **AI answers**: Blue embed with answer text, footer with citation references
+- **Expert list**: Blue embed with inline fields (name + expertise per expert)
+- **Action results**: Green (success) or Red (error) embed
+- **Follow-ups**: Component row with secondary-style buttons
 
 ## How It Works
 
@@ -66,4 +127,5 @@ The Discord adapter uses HTTP interactions (no WebSocket gateway):
 - **Signature verification**: Ed25519 via `discord-interactions` `verifyKey()`
 - **PING handling**: Responds with `{ type: 1 }` for endpoint verification
 - **Event parsing**: Zod schemas validate interaction payloads
-- **Response format**: Markdown text via interaction callback URL
+- **Response rendering**: `renderDiscord()` produces embed + component payload
+- **Message sending**: POST to `https://discord.com/api/v10/interactions/{id}/{token}/callback`

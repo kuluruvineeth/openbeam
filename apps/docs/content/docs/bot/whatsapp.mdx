@@ -1,69 +1,193 @@
 ---
 title: WhatsApp
-description: Set up the OpenBeam bot for WhatsApp.
+description: Set up the OpenBeam bot for WhatsApp Business.
 icon: WhatsApp
 ---
 
 # WhatsApp Setup
 
+WhatsApp integration uses the Meta Cloud API. This guide walks you through every step from zero to a working bot.
+
 ## Prerequisites
 
-WhatsApp Business API requires Meta Business verification (1-2 weeks). Start this process early.
+- A [Meta for Developers](https://developers.facebook.com/) account
+- A Meta Business account (created automatically with your developer account, or link an existing one)
+- A phone number that can receive SMS or voice calls (for test number verification)
+- OpenBeam bot running locally or deployed (see [Quickstart](/docs/bot/quickstart))
 
-## 1. Create a Meta App
+<Callout type="info">
+Meta Business verification (for production) takes 1-2 weeks. You can start development immediately with the free test phone number.
+</Callout>
 
-1. Go to [developers.facebook.com](https://developers.facebook.com)
-2. Create a new app with **Business** type
-3. Add the **WhatsApp** product
+## Step 1: Create a Meta App
 
-## 2. Configure WhatsApp Business
+1. Go to [developers.facebook.com/apps](https://developers.facebook.com/apps/)
+2. Click **Create App**
+3. Select use case: **Other**
+4. Select app type: **Business**
+5. Enter app name (e.g., "OpenBeam Bot") and contact email
+6. Click **Create App**
 
-1. In the WhatsApp product settings, note the **Phone Number ID**
-2. Generate a **Permanent Access Token**
-3. Set the **App Secret** from Basic Settings
+## Step 2: Add the WhatsApp Product
 
-## 3. Configure Environment
+1. In your app dashboard, find **WhatsApp** in the product list and click **Set Up**
+2. Select or create a Meta Business Account when prompted
+3. You'll land on the **WhatsApp > API Setup** page
+
+## Step 3: Get Your Credentials
+
+On the **API Setup** page, you'll see:
+
+| Credential | Where to Find | Example |
+|------------|--------------|---------|
+| **Phone Number ID** | API Setup > "From" dropdown | `101234567890` |
+| **WhatsApp Business Account ID** | API Setup > header | `102234567890` |
+| **Temporary Access Token** | API Setup > "Temporary access token" | `EAAG...` (expires in 24 hours) |
+
+For production, you need a **permanent token**:
+
+### Getting a Permanent Access Token
+
+1. Go to [Business Settings](https://business.facebook.com/settings/) > **System Users**
+2. Click **Add** to create a new System User
+3. Set role to **Admin**
+4. Click **Generate Token** on the system user
+5. Select your WhatsApp app
+6. Grant these permissions:
+   - `whatsapp_business_management`
+   - `whatsapp_business_messaging`
+7. Click **Generate Token** and save it securely
+
+This token does not expire.
+
+### Getting the App Secret
+
+1. Go to your app's **Settings > Basic**
+2. Click **Show** next to **App Secret**
+3. Copy the value
+
+## Step 4: Configure Environment Variables
 
 ```bash
-WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
-WHATSAPP_ACCESS_TOKEN=your-permanent-access-token
-WHATSAPP_VERIFY_TOKEN=your-random-verify-token
-WHATSAPP_APP_SECRET=your-app-secret
+WHATSAPP_PHONE_NUMBER_ID=101234567890
+WHATSAPP_ACCESS_TOKEN=EAAG_your_permanent_token
+WHATSAPP_VERIFY_TOKEN=any-random-string-you-choose
+WHATSAPP_APP_SECRET=your-app-secret-from-basic-settings
 ```
 
-## 4. Configure Webhook
+The `WHATSAPP_VERIFY_TOKEN` is a string you invent — you'll enter the same value in the Meta webhook configuration. It proves you own the webhook endpoint.
 
-1. In the WhatsApp product settings, click **Configuration**
-2. Set the **Callback URL** to:
+## Step 5: Configure Webhook
+
+1. In your Meta App dashboard, go to **WhatsApp > Configuration**
+2. Under **Webhook**, click **Edit**
+3. Enter your webhook URL:
 
 ```
 https://your-domain.com/webhooks/whatsapp
 ```
 
-3. Set the **Verify Token** to match `WHATSAPP_VERIFY_TOKEN`
-4. Subscribe to the **messages** webhook field
+4. Enter your **Verify Token** (must match `WHATSAPP_VERIFY_TOKEN` from Step 4)
+5. Click **Verify and Save**
 
-Meta sends a GET request with `hub.challenge` to verify — the bot handles this automatically.
+Meta sends a GET request with `hub.challenge` — the bot verifies the token and responds with the challenge automatically.
 
-## 5. Test
+6. After verification, click **Manage** under Webhook fields
+7. Subscribe to the **messages** field
 
-Send a message to your WhatsApp Business number. The bot responds with plain text and up to 3 interactive buttons when applicable.
+<Callout type="warn">
+For local development, you need a public URL. Use ngrok or cloudflared:
 
-## Limitations
+```bash
+ngrok http 3005
+```
 
-- WhatsApp messages are always DMs (no channels or groups)
-- Max 3 interactive buttons per message
-- Button titles limited to 20 characters
-- No rich link formatting (URLs shown as plain text)
-- No typing indicators
-- Meta Business verification required for production
+Then use the ngrok URL as your webhook URL. You'll need to re-configure the webhook URL each time ngrok restarts (unless you use a paid ngrok plan with a stable domain).
+</Callout>
+
+## Step 6: Add a Test Phone Number
+
+1. On the **API Setup** page, click **Add phone number** under "To"
+2. Enter a phone number you want to test with
+3. Verify it via the SMS or voice call code
+
+You can now send test messages from this number to your WhatsApp Business test number.
+
+## Step 7: Test
+
+Send a message to your WhatsApp Business number:
+
+```
+hello
+```
+
+The bot should respond with a welcome message and command suggestions.
+
+Try a search:
+
+```
+search deployment docs
+```
+
+The bot shows a typing indicator (bubble animation), then responds with an interactive list message containing your search results.
+
+## Production Checklist
+
+Before going live, complete these steps:
+
+- [ ] **Meta Business Verification** — submit business documents in [Business Settings](https://business.facebook.com/settings/security/) (1-2 weeks)
+- [ ] **Display Name Approval** — request display name approval in WhatsApp Manager
+- [ ] **Permanent Access Token** — replace the temporary token with a System User token (Step 3)
+- [ ] **Production Phone Number** — add and verify a real business phone number
+- [ ] **Message Templates** — create and submit templates for proactive outreach (optional)
+- [ ] **HTTPS endpoint** — production webhook must use HTTPS with a valid certificate
+
+## Messaging Rules
+
+WhatsApp has a **24-hour customer service window**:
+
+| Scenario | What You Can Send |
+|----------|------------------|
+| User sent a message in the last 24 hours | Any message type (text, interactive, media) |
+| Outside the 24-hour window | Only pre-approved [Message Templates](https://developers.facebook.com/docs/whatsapp/business-management-api/message-templates/) |
+
+Each user message resets the 24-hour clock. Since the OpenBeam bot only responds to incoming messages (reactive), you're always within the service window.
+
+## Features
+
+| Feature | Status |
+|---------|--------|
+| Rich text formatting (`*bold*`, `_italic_`) | Supported |
+| Interactive list messages (up to 10 items) | Supported — used for search results |
+| Interactive reply buttons (up to 3) | Supported — used for follow-up suggestions |
+| Typing indicator (bubble animation) | Supported — Cloud API v21.0 |
+| CTA URL buttons | Supported — used for account linking |
+| Inline citations with URLs | Supported — URLs auto-link |
+| Account linking via magic link | Supported |
+| Group chats | Not supported — WhatsApp Business API is 1:1 only |
+| Threads | Not supported |
+| Media messages (images, documents) | Not yet implemented |
 
 ## How It Works
 
-The WhatsApp adapter uses pure `fetch` (no SDK):
+The WhatsApp adapter uses pure `fetch` calls to the Meta Cloud API (no SDK):
 
-- **Webhook verification**: GET handler returns `hub.challenge` for Meta's verification flow
+- **Webhook verification**: GET handler returns `hub.challenge` when the verify token matches
 - **Signature verification**: HMAC-SHA256 on `x-hub-signature-256` header with timing-safe comparison
 - **Event parsing**: Zod schemas validate the Meta Cloud API webhook payload
-- **Response sending**: POST to `https://graph.facebook.com/v19.0/{phoneId}/messages`
-- **Interactive buttons**: Sent when response has 1-3 buttons, otherwise plain text
+- **Typing indicator**: POST to Cloud API v21.0 with `{ status: "read", message_id, typing_indicator: { type: "text" } }`
+- **Response rendering**: `renderWhatsApp()` produces interactive payloads (list, button, or formatted text)
+- **Message sending**: POST to `https://graph.facebook.com/v19.0/{phoneId}/messages`
+
+## Rate Limits
+
+WhatsApp Business API has messaging tiers based on your account's quality rating:
+
+| Tier | Unique Contacts/Day |
+|------|-------------------|
+| Tier 1 (default) | 1,000 |
+| Tier 2 | 10,000 |
+| Tier 3 | 100,000 |
+| Tier 4 (unlimited) | No limit |
+
+These apply to business-initiated messages (templates). Replies within the 24-hour service window are not limited by tier.

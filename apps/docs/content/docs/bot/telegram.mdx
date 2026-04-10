@@ -6,13 +6,24 @@ icon: Telegram
 
 # Telegram Setup
 
-## 1. Create a Bot via BotFather
+Telegram has the simplest bot setup of all platforms — no business verification, no app review, just a conversation with BotFather.
 
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot` and follow the prompts
-3. Copy the **Bot Token**
+## Prerequisites
 
-## 2. Set Bot Commands
+- A Telegram account
+- OpenBeam bot running locally or deployed (see [Quickstart](/docs/bot/quickstart))
+
+## Step 1: Create a Bot via BotFather
+
+1. Open Telegram and search for [@BotFather](https://t.me/BotFather)
+2. Send `/newbot`
+3. Choose a display name (e.g., "OpenBeam")
+4. Choose a username (must end in `bot`, e.g., `openbeam_search_bot`)
+5. BotFather responds with your **Bot Token** — save it securely
+
+The token looks like: `123456789:ABCdefGHIjklMNO_pqrSTUvwxYZ`
+
+## Step 2: Set Bot Commands
 
 Send to BotFather:
 
@@ -20,7 +31,7 @@ Send to BotFather:
 /setcommands
 ```
 
-Then paste:
+Select your bot, then paste:
 
 ```
 search - Search across connected data sources
@@ -30,24 +41,59 @@ link - Link your Telegram account to OpenBeam
 help - Show available commands
 ```
 
-## 3. Configure Environment
+These commands appear in the menu button next to the message input field.
+
+## Step 3: Configure Environment
 
 ```bash
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
-TELEGRAM_WEBHOOK_SECRET=your-random-secret
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNO_pqrSTUvwxYZ
+TELEGRAM_WEBHOOK_SECRET=any-random-string-you-choose
 ```
 
-## 4. Set Webhook
+The `TELEGRAM_WEBHOOK_SECRET` is a string you invent — Telegram sends it in the `X-Telegram-Bot-Api-Secret-Token` header with every webhook request. The bot verifies it to prevent spoofed requests.
 
-After starting the bot, set the webhook URL:
+## Step 4: Set Webhook
+
+After starting the bot, register the webhook URL with Telegram:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://your-domain.com/webhooks/telegram", "secret_token": "your-random-secret"}'
+  -d '{
+    "url": "https://your-domain.com/webhooks/telegram",
+    "secret_token": "your-random-secret",
+    "allowed_updates": ["message", "edited_message"]
+  }'
 ```
 
-## 5. Test
+Verify it's set:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+You should see `"url": "https://your-domain.com/webhooks/telegram"` and `"pending_update_count": 0`.
+
+<Callout type="warn">
+You can only use **one** delivery method at a time — either webhooks or long polling. If another bot instance is polling, the webhook won't work. Delete conflicting webhooks with:
+
+```bash
+curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook"
+```
+</Callout>
+
+## Step 5: Configure Bot Settings (Optional)
+
+Send these commands to BotFather to customize your bot:
+
+| Command | Purpose |
+|---------|---------|
+| `/setdescription` | Short description shown when users open the bot profile |
+| `/setabouttext` | Bio text shown in the bot's profile |
+| `/setuserpic` | Bot avatar image |
+| `/setprivacy` | **Disable** to receive all messages in groups (default: only commands) |
+
+## Step 6: Test
 
 Send a message to your bot:
 
@@ -61,11 +107,37 @@ Or send a plain message (routed to the ask handler):
 What is our deploy process?
 ```
 
+The bot shows a "typing..." indicator, then responds with HTML-formatted text and inline keyboard buttons for follow-up suggestions.
+
+## Features
+
+| Feature | Status |
+|---------|--------|
+| HTML formatting (bold, italic, links) | Supported |
+| Inline keyboard buttons | Supported — used for follow-ups |
+| Typing indicator ("typing...") | Supported — `sendChatAction` |
+| Bot commands menu | Supported — via BotFather |
+| Private chats | Supported |
+| Group chats | Supported (send `/setprivacy` > Disable to BotFather) |
+| Inline mode (@bot query) | Not yet implemented |
+| Account linking | Magic link via `/link` command |
+| Media messages | Not yet implemented |
+
+## Response Format
+
+The Telegram adapter produces HTML-formatted text with inline keyboards:
+
+- **Search results**: `<b>title</b>` + numbered `<a href>` links + inline keyboard for follow-ups
+- **AI answers**: HTML text + `<i>Sources: ...</i>` with clickable citation links
+- **Expert list**: `<b>name</b>` with email and expertise
+- **Follow-ups**: Inline keyboard buttons (one per row)
+
 ## How It Works
 
-The Telegram adapter uses grammY:
+The Telegram adapter uses [grammY](https://grammy.dev/):
 
 - **Signature verification**: Compares `X-Telegram-Bot-Api-Secret-Token` header against configured secret
 - **Event parsing**: Zod schemas validate the Telegram Update payload
-- **Response format**: MarkdownV2 with escaped special characters
-- **Typing indicator**: `bot.api.sendChatAction(chatId, "typing")`
+- **Response rendering**: `renderTelegram()` produces HTML text with optional `InlineKeyboardMarkup`
+- **Typing indicator**: `bot.api.sendChatAction(chatId, "typing")` — auto-dismisses after 5 seconds
+- **Message sending**: `bot.api.sendMessage(chatId, text, { parse_mode: "HTML", reply_markup })`

@@ -33,39 +33,134 @@ HEALTHCHECK CMD curl -f http://localhost:3005/health || exit 1
 CMD ["bun", "run", "apps/bot/dist/index.js"]
 ```
 
+## Kubernetes (Helm)
+
+The bot is deployed to AKS via the existing Helm chart. Key configuration:
+
+```yaml
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3005
+  initialDelaySeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3005
+  initialDelaySeconds: 5
+```
+
 ## Environment Variables
 
 All variables are validated at startup via Zod. Missing required variables cause immediate failure with a clear error message.
 
-| Variable | Required | Platform |
-|----------|----------|----------|
-| `BOT_PORT` | No (default: 3005) | All |
-| `DATABASE_URL` | Yes | All |
-| `REDIS_URL` | No (default: redis://localhost:6379) | All |
-| `SLACK_BOT_TOKEN` | For Slack | Slack |
-| `SLACK_SIGNING_SECRET` | For Slack | Slack |
-| `SLACK_APP_ID` | For Slack | Slack |
-| `TEAMS_APP_ID` | For Teams | Teams |
-| `TEAMS_APP_PASSWORD` | For Teams | Teams |
-| `DISCORD_APPLICATION_ID` | For Discord | Discord |
-| `DISCORD_PUBLIC_KEY` | For Discord | Discord |
-| `DISCORD_BOT_TOKEN` | For Discord | Discord |
-| `TELEGRAM_BOT_TOKEN` | For Telegram | Telegram |
-| `TELEGRAM_WEBHOOK_SECRET` | For Telegram | Telegram |
-| `WHATSAPP_PHONE_NUMBER_ID` | For WhatsApp | WhatsApp |
-| `WHATSAPP_ACCESS_TOKEN` | For WhatsApp | WhatsApp |
-| `WHATSAPP_VERIFY_TOKEN` | For WhatsApp | WhatsApp |
-| `WHATSAPP_APP_SECRET` | For WhatsApp | WhatsApp |
+### Required (All Platforms)
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+
+### Optional (All Platforms)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BOT_PORT` | `3005` | HTTP server port |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
+| `BOT_LINK_BASE_URL` | `https://app.openbeam.work` | Web app URL for account linking |
+
+### Slack
+
+| Variable | Description |
+|----------|-------------|
+| `SLACK_BOT_TOKEN` | Bot User OAuth Token (`xoxb-...`) |
+| `SLACK_SIGNING_SECRET` | App Credentials > Signing Secret |
+| `SLACK_APP_ID` | App Credentials > App ID |
+
+### Microsoft Teams
+
+| Variable | Description |
+|----------|-------------|
+| `TEAMS_APP_ID` | Microsoft App ID from Azure Bot |
+| `TEAMS_APP_PASSWORD` | Client secret value from Azure AD |
+
+### Discord
+
+| Variable | Description |
+|----------|-------------|
+| `DISCORD_APPLICATION_ID` | Application ID from Discord Developer Portal |
+| `DISCORD_PUBLIC_KEY` | Public Key for signature verification |
+| `DISCORD_BOT_TOKEN` | Bot token for API calls |
+
+### Telegram
+
+| Variable | Description |
+|----------|-------------|
+| `TELEGRAM_BOT_TOKEN` | Token from BotFather (`123456:ABC...`) |
+| `TELEGRAM_WEBHOOK_SECRET` | Random secret for webhook verification |
+
+### WhatsApp
+
+| Variable | Description |
+|----------|-------------|
+| `WHATSAPP_PHONE_NUMBER_ID` | Phone Number ID from Meta API Setup |
+| `WHATSAPP_ACCESS_TOKEN` | Permanent System User token |
+| `WHATSAPP_VERIFY_TOKEN` | Random string for webhook verification |
+| `WHATSAPP_APP_SECRET` | App Secret from Basic Settings |
+
+## Secrets Management
+
+In production, store credentials in your cloud provider's secret manager:
+
+- **Azure**: Key Vault > secretKeyRef in Helm values
+- **AWS**: Secrets Manager or Parameter Store
+- **GCP**: Secret Manager
+
+Never commit credentials to source control. Use `.env` files for local development only.
 
 ## Rate Limits
 
-| Scope | Limit | Window |
-|-------|-------|--------|
-| Per user per platform | 30 requests | 1 minute |
-| Per team total | 500 requests | 1 minute |
+| Scope | Limit | Window | Behavior |
+|-------|-------|--------|----------|
+| Per user per platform | 30 requests | 1 minute | Returns "Try again in Xs" |
+| Per team total | 500 requests | 1 minute | Returns "Try again in Xs" |
+
+Rate limit state is in-memory (per pod). In a multi-pod deployment, each pod tracks independently. For shared rate limiting, migrate to Redis-backed counters.
 
 ## Health Check
 
 ```
 GET /health → {"status":"ok","service":"bot"}
 ```
+
+Use this for Kubernetes liveness/readiness probes, load balancer health checks, and monitoring.
+
+## Monitoring
+
+The bot logs to stdout. Key log patterns to monitor:
+
+| Log Pattern | Meaning |
+|-------------|---------|
+| `unhandled route error` | Uncaught exception in webhook handler |
+| `handler error` | AI provider or service failure |
+| `typing indicator failed` | WhatsApp typing API issue (non-critical) |
+| `WhatsApp API error` | Failed to send WhatsApp response |
+
+## Multi-Platform Deployment
+
+You can deploy a single bot instance that serves all 5 platforms simultaneously. Configure only the platforms you need — platforms without credentials are silently skipped.
+
+For high-traffic deployments, consider:
+- **Horizontal scaling**: 2+ replicas behind a load balancer
+- **Platform isolation**: Separate deployments per platform for independent scaling
+- **Regional deployment**: Deploy in the region closest to the platform's webhook servers

@@ -1,0 +1,257 @@
+---
+title: Troubleshooting
+description: Common issues and fixes when setting up the OpenBeam bot.
+---
+
+# Troubleshooting
+
+## General Issues
+
+### Bot doesn't respond to messages
+
+1. **Check health**: `curl https://your-domain.com/health` should return `{"status":"ok","service":"bot"}`
+2. **Check tunnel**: If using ngrok, verify the tunnel is still active and the URL matches your webhook config
+3. **Check logs**: Look for "unhandled route error" or signature verification failures in the bot logs
+4. **Check platform subscription**: Ensure you've subscribed to the correct webhook events (e.g., `messages` for WhatsApp, `app_mention` for Slack)
+
+### "Account not linked" on every message
+
+The user's platform account isn't linked to an OpenBeam account. Click the magic link the bot sends, authenticate on the web app, and try again. The link expires after 15 minutes — request a new one by messaging the bot again.
+
+If linking fails:
+- Verify `BOT_LINK_BASE_URL` points to your OpenBeam web app
+- Verify the database is accessible (linking creates a `BotUserLink` row)
+- Check that the user has an active OpenBeam account on the same team
+
+### Rate limited
+
+The bot responds with "Too many requests. Try again in Xs." Wait the indicated time. Limits:
+- 30 requests per user per minute
+- 500 requests per team per minute
+
+If you're hitting limits during development, restart the bot to clear the in-memory rate limit buckets.
+
+### "Something went wrong processing your request"
+
+An internal error occurred (AI provider timeout, database error, etc.). Check the bot logs for the full error. Common causes:
+- AI API key missing or expired (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
+- Database connection failed
+- Search service (Vespa) unavailable
+
+---
+
+## WhatsApp
+
+### Webhook verification fails
+
+**Symptom**: Meta shows "Callback URL or verify token couldn't be validated"
+
+**Fix**:
+1. Ensure the bot is running and accessible at the webhook URL
+2. Verify `WHATSAPP_VERIFY_TOKEN` in your `.env` matches exactly what you entered in Meta's dashboard
+3. Test the verification manually:
+```bash
+curl "https://your-domain.com/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=your-token&hub.challenge=test123"
+# Should return: test123
+```
+
+### Messages not received (webhook silent)
+
+**Symptom**: You send messages but the bot gets no webhook calls
+
+**Fix**:
+1. In Meta App Dashboard > WhatsApp > Configuration, verify the **messages** field is subscribed
+2. Check that your webhook URL uses HTTPS (Meta rejects HTTP)
+3. If using ngrok free tier, the URL may have changed — reconfigure in Meta dashboard
+4. Check the Meta App Dashboard > Webhooks > Activity Log for delivery failures
+
+### "Message failed to send" errors
+
+**Symptom**: Bot processes the message but can't respond
+
+**Fix**:
+1. Verify `WHATSAPP_ACCESS_TOKEN` is valid (temporary tokens expire in 24 hours)
+2. For production, use a System User permanent token (see [WhatsApp Setup](/docs/bot/whatsapp#getting-a-permanent-access-token))
+3. Verify `WHATSAPP_PHONE_NUMBER_ID` matches the "From" number in API Setup
+4. Check that the test phone number is verified (API Setup > "To" section)
+
+### Typing indicator not showing
+
+**Symptom**: No typing bubble appears before the response
+
+**Fix**: The typing indicator requires Cloud API v21.0+. The bot uses v21.0 for typing and v19.0 for messages. If you see "typing indicator failed" in logs:
+1. Verify the incoming `message.id` (WAMID) is being passed correctly
+2. The typing indicator is best-effort — it may not show if the user has closed the chat
+3. The indicator auto-dismisses after 25 seconds or when the response is sent
+
+### 24-hour window expired
+
+**Symptom**: Bot can't send messages to a user
+
+**Fix**: WhatsApp only allows free-form replies within 24 hours of the user's last message. If the window expired, you need a pre-approved Message Template. The OpenBeam bot is reactive (responds to user messages), so this typically doesn't apply.
+
+---
+
+## Slack
+
+### Event subscription challenge fails
+
+**Symptom**: Slack shows "Your URL didn't respond with the value of the challenge parameter"
+
+**Fix**:
+1. The bot automatically handles the challenge. Ensure the bot is running at the webhook URL
+2. Slack requires a response within 3 seconds — if your server is slow to start, retry after it's fully up
+3. Verify the URL is `https://your-domain.com/webhooks/slack` (not `/webhook/slack`)
+
+### "not_authed" or "invalid_auth" errors
+
+**Symptom**: Bot receives events but can't respond
+
+**Fix**:
+1. Verify `SLACK_BOT_TOKEN` starts with `xoxb-`
+2. Reinstall the app to your workspace (OAuth & Permissions > Install to Workspace)
+3. Check that the bot has `chat:write` scope
+
+### Bot doesn't respond to mentions
+
+**Symptom**: `@OpenBeam search docs` gets no response
+
+**Fix**:
+1. Verify `app_mention` is in the bot event subscriptions
+2. Ensure the bot is invited to the channel (`/invite @OpenBeam`)
+3. Check that `SLACK_SIGNING_SECRET` matches (Basic Information > App Credentials > Signing Secret)
+
+### Duplicate responses
+
+**Symptom**: Bot replies twice to the same message
+
+**Fix**: Slack sometimes retries webhook delivery if the response takes >3 seconds. The bot should respond to Slack's POST within 3 seconds, then process asynchronously. If you see duplicates, check your processing time and ensure you're not handling retry events.
+
+---
+
+## Discord
+
+### Interactions endpoint verification fails
+
+**Symptom**: Discord shows "Interactions Endpoint URL is not valid"
+
+**Fix**:
+1. Ensure the bot is running at `https://your-domain.com/webhooks/discord`
+2. Discord sends a PING interaction — the bot must respond with `{ type: 1 }` (handled automatically)
+3. The response must arrive within 3 seconds
+4. Verify `DISCORD_PUBLIC_KEY` matches (General Information > Public Key)
+
+### "This interaction failed"
+
+**Symptom**: Slash command shows "This interaction failed" error
+
+**Fix**: Discord requires a response within 3 seconds. If your processing takes longer, the interaction times out. Check:
+1. AI service response time — if RAG takes >3 seconds, consider implementing deferred replies
+2. Database connection latency
+3. Network issues between the bot and Discord's API
+
+### Slash commands not appearing
+
+**Symptom**: `/search`, `/ask`, `/expert` don't show in the command picker
+
+**Fix**:
+1. Run the command registration script:
+```bash
+DISCORD_BOT_TOKEN=... DISCORD_APPLICATION_ID=... bun run apps/bot/scripts/register-discord-commands.ts
+```
+2. **Global commands take up to 1 hour to propagate**. For instant testing, register as guild commands instead
+3. Verify the bot has the `applications.commands` scope in the invite URL
+
+### Bot not responding in server
+
+**Symptom**: Bot is in the server but slash commands don't work
+
+**Fix**:
+1. Verify the bot invite URL includes both `applications.commands` and `bot` scopes
+2. Check that the bot has the necessary permissions in the channel
+3. Verify `DISCORD_APPLICATION_ID` matches your app's Application ID
+
+---
+
+## Telegram
+
+### Webhook not receiving updates
+
+**Symptom**: Messages to the bot get no response
+
+**Fix**:
+1. Check webhook status:
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+Look for `pending_update_count`, `last_error_message`, and verify the `url` is correct.
+
+2. If `last_error_message` shows a certificate error, ensure your webhook URL uses a valid HTTPS certificate (self-signed certs require special configuration).
+
+3. Re-set the webhook:
+```bash
+curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://your-domain.com/webhooks/telegram", "secret_token": "your-secret"}'
+```
+
+### "Conflict: terminated by other getUpdates request"
+
+**Symptom**: Webhook stops working
+
+**Fix**: This happens when something is polling for updates (long polling) while a webhook is set. You can only use one method at a time. Delete any polling bots and re-set the webhook.
+
+### Bot doesn't respond in groups
+
+**Symptom**: Bot works in DMs but not in group chats
+
+**Fix**: By default, Telegram bots in groups only receive messages that are commands (`/search`) or mentions. To receive all messages, disable privacy mode:
+1. Message @BotFather
+2. Send `/setprivacy`
+3. Select your bot
+4. Choose **Disable**
+
+### MarkdownV2 parse errors
+
+**Symptom**: Bot crashes or sends garbled text
+
+**Fix**: The bot now uses HTML parse mode instead of MarkdownV2, which is more forgiving. If you see formatting issues, check that the renderer is escaping `<`, `>`, and `&` correctly.
+
+---
+
+## Microsoft Teams
+
+### Bot not appearing in Teams
+
+**Symptom**: After creating the Azure Bot, it doesn't show up in Teams
+
+**Fix**:
+1. Create a Teams app package (manifest.json + icons in a zip file)
+2. Sideload it in Teams: Apps > Manage your apps > Upload a custom app
+3. Verify the `botId` in manifest.json matches your `TEAMS_APP_ID`
+4. Ensure `validDomains` includes your webhook domain
+
+### Authentication failures
+
+**Symptom**: Bot logs show "Unauthorized" or "Authentication failed"
+
+**Fix**:
+1. Verify `TEAMS_APP_ID` matches the Microsoft App ID in Azure Bot settings
+2. Verify `TEAMS_APP_PASSWORD` is the client secret (not the secret ID)
+3. If the secret expired, create a new one in Azure AD > App registrations > Certificates & secrets
+4. Ensure the Azure Bot's messaging endpoint matches your webhook URL
+
+### "conversationNotFound" for proactive messages
+
+**Symptom**: Bot can't send messages to users who haven't messaged it first
+
+**Fix**: Teams requires the bot to be installed in the user's context before sending proactive messages. The user must have interacted with the bot at least once, and you must store the `conversationReference` from that interaction.
+
+### Manifest validation errors
+
+**Symptom**: Sideloading fails with validation errors
+
+**Fix**:
+1. Validate your manifest at [Teams Developer Portal](https://dev.teams.microsoft.com/home)
+2. Common issues: missing required fields, `id` not matching `botId`, invalid `manifestVersion`
+3. Ensure the zip file contains `manifest.json` + `color.png` (192x192) + `outline.png` (32x32) at the root level

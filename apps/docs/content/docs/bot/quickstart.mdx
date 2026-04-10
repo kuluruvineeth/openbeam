@@ -1,110 +1,142 @@
 ---
 title: Quickstart
-description: Get the OpenBeam bot running locally in 5 minutes.
+description: Get the OpenBeam bot running locally in under 10 minutes.
 ---
 
 # Quickstart
 
+This guide gets the bot running on your machine with one platform configured. WhatsApp and Telegram are the easiest to start with.
+
 ## Prerequisites
 
-- Bun 1.3.3+
-- PostgreSQL running locally (or via Docker)
-- Redis running locally (or via Docker)
-- At least one platform configured (Slack is recommended for local dev)
+| Requirement | Version | Check |
+|-------------|---------|-------|
+| Bun | 1.3.3+ | `bun --version` |
+| PostgreSQL | 14+ | `psql --version` |
+| Redis | 7+ | `redis-cli ping` |
+| ngrok or cloudflared | Latest | `ngrok version` |
 
-## 1. Install Dependencies
+Don't have PostgreSQL/Redis? Start them with Docker:
+
+```bash
+docker run -d --name pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16
+docker run -d --name redis -p 6379:6379 redis:7
+```
+
+## Step 1: Install Dependencies
 
 ```bash
 bun install
 ```
 
-## 2. Set Environment Variables
+## Step 2: Set Up the Database
 
-Copy the example env file and fill in your values:
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/openbeam bun run db:migrate
+```
+
+## Step 3: Create Environment File
 
 ```bash
 cp apps/bot/.env.example apps/bot/.env
 ```
 
-Required for any platform:
+Edit `apps/bot/.env` with your values:
 
 ```bash
 BOT_PORT=3005
-DATABASE_URL=postgresql://user:pass@localhost:5432/openbeam
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/openbeam
 REDIS_URL=redis://localhost:6379
+BOT_LINK_BASE_URL=http://localhost:3001
 ```
 
-Platform-specific variables (add the ones you need):
+Then add the credentials for your chosen platform. See the platform-specific guides for how to get these:
+
+- [Slack](/docs/bot/slack) — fastest for teams already on Slack
+- [Telegram](/docs/bot/telegram) — easiest setup (BotFather, no business verification)
+- [WhatsApp](/docs/bot/whatsapp) — richest consumer experience
+- [Discord](/docs/bot/discord) — best for developer communities
+- [Teams](/docs/bot/teams) — required for Microsoft-centric orgs
+
+## Step 4: Expose Your Local Server
+
+Platforms send webhooks to a public URL. Start a tunnel:
 
 ```bash
-# Slack
-SLACK_BOT_TOKEN=xoxb-...
-SLACK_SIGNING_SECRET=...
-SLACK_APP_ID=...
-
-# Microsoft Teams
-TEAMS_APP_ID=...
-TEAMS_APP_PASSWORD=...
-
-# Discord
-DISCORD_APPLICATION_ID=...
-DISCORD_PUBLIC_KEY=...
-DISCORD_BOT_TOKEN=...
-
-# Telegram
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_WEBHOOK_SECRET=...
-
-# WhatsApp
-WHATSAPP_PHONE_NUMBER_ID=...
-WHATSAPP_ACCESS_TOKEN=...
-WHATSAPP_VERIFY_TOKEN=...
-WHATSAPP_APP_SECRET=...
+ngrok http 3005
 ```
 
-## 3. Run Database Migration
+Copy the HTTPS URL (e.g., `https://abc123.ngrok-free.app`) — you'll need this for webhook configuration.
 
-```bash
-cd packages/db && bun run db:migrate
-```
+<Callout type="info">
+With a paid ngrok plan, you get a stable domain that doesn't change between restarts. For free ngrok, you'll need to reconfigure the webhook URL each time.
 
-## 4. Start the Bot
+Alternative: `cloudflared tunnel --url http://localhost:3005`
+</Callout>
+
+## Step 5: Start the Bot
 
 ```bash
 bun run --hot apps/bot/src/index.ts
 ```
 
-The bot starts on port 3005 (configurable via `BOT_PORT`).
-
-## 5. Expose Locally (for webhook testing)
-
-Platforms need a public URL to send webhooks. Use ngrok or cloudflared:
-
-```bash
-# ngrok
-ngrok http 3005
-
-# cloudflared
-cloudflared tunnel --url http://localhost:3005
-```
-
-Copy the public URL and configure it as the webhook URL in your platform's developer portal.
-
-## 6. Verify Health
+Verify it's running:
 
 ```bash
 curl http://localhost:3005/health
 # {"status":"ok","service":"bot"}
 ```
 
-## 7. Run Tests
+## Step 6: Configure Your Platform
+
+Follow the platform-specific guide to register webhooks and get credentials:
+
+| Platform | Webhook URL | Guide |
+|----------|------------|-------|
+| Slack | `https://{ngrok}/webhooks/slack` | [Slack Setup](/docs/bot/slack) |
+| Teams | `https://{ngrok}/webhooks/teams` | [Teams Setup](/docs/bot/teams) |
+| Discord | `https://{ngrok}/webhooks/discord` | [Discord Setup](/docs/bot/discord) |
+| Telegram | `https://{ngrok}/webhooks/telegram` | [Telegram Setup](/docs/bot/telegram) |
+| WhatsApp | `https://{ngrok}/webhooks/whatsapp` | [WhatsApp Setup](/docs/bot/whatsapp) |
+
+## Step 7: Send a Test Message
+
+On your configured platform, send:
+
+```
+hello
+```
+
+You should see a welcome message with available commands. Then try:
+
+```
+search deployment docs
+```
+
+If you get a response with search results, the bot is working end-to-end.
+
+## Step 8: Run Tests
 
 ```bash
 bun test apps/bot/__tests__/
 ```
 
+All 75 tests should pass.
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Bot doesn't respond | Check that the webhook URL is correct and the tunnel is running |
+| "invalid signature" errors | Verify your signing secret / app secret matches the platform config |
+| "Account not linked" prompt | Click the magic link to connect your platform account to OpenBeam |
+| Rate limit error | Wait the indicated number of seconds and try again |
+| Health check fails | Ensure `DATABASE_URL` and `REDIS_URL` are correct |
+
+See [Troubleshooting](/docs/bot/troubleshooting) for detailed platform-specific fixes.
+
 ## Next Steps
 
-- [Slack Setup](/docs/bot/slack) — Create a Slack App and connect it
-- [Architecture](/docs/bot/architecture) — Understand the codebase structure
-- [Testing](/docs/bot/testing) — Write and run tests
+- [Features](/docs/bot/features) — Explore all bot capabilities
+- [Architecture](/docs/bot/architecture) — Understand the codebase
+- [Deployment](/docs/bot/deployment) — Deploy to production

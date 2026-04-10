@@ -1,0 +1,121 @@
+---
+title: Features
+description: Complete list of OpenBeam bot capabilities across all platforms.
+---
+
+# Features
+
+## Search
+
+Search across all your connected data sources — Slack, Notion, Confluence, Google Drive, Jira, GitHub, and 100+ more.
+
+```
+search deployment runbook
+```
+
+Results appear as platform-native rich cards:
+- **Slack**: Block Kit sections with clickable links
+- **Discord**: Color-coded embed with fields
+- **Teams**: Adaptive Card with OpenUrl actions
+- **Telegram**: HTML links with inline keyboard
+- **WhatsApp**: Interactive list message (tap to expand)
+
+Each result includes the document title, a snippet, the source connector, and a direct link to the original document.
+
+## AI Answers
+
+Ask any question and get an AI-synthesized answer grounded in your enterprise data, with inline citations linking to source documents.
+
+```
+ask what is our deploy process?
+```
+
+Answers include:
+- **Numbered citations** — `[1] Deploy Guide [2] CI Pipeline` linking to real documents
+- **Confidence hedging** — uncertain answers are prefixed with a disclaimer
+- **Follow-up suggestions** — buttons like "Tell me more" or "Search for deploy"
+
+The RAG pipeline searches across all connected sources, retrieves relevant chunks, and synthesizes an answer with the AI model.
+
+## Expert Discovery
+
+Find the people in your organization who know the most about any topic.
+
+```
+expert kubernetes
+```
+
+Returns a ranked list of experts with their name, email, areas of expertise, and document count (how many documents they've contributed on the topic).
+
+## Connector Actions
+
+Execute write actions on your connected tools directly from chat.
+
+```
+action conn_123 issue_create {"title": "Bug report", "description": "Login fails"}
+```
+
+Supports 500+ actions across 88 connectors — create Jira tickets, send Slack messages, post to Notion, update Linear issues, and more.
+
+## Greeting and Help
+
+Say "hi", "hello", or "hey" and the bot responds with a friendly welcome message and a list of available commands. No more "question too short" errors for casual greetings.
+
+```
+hello
+```
+
+```
+help
+```
+
+## Identity Linking
+
+On first use, the bot prompts you to link your platform account to your OpenBeam account:
+
+1. Bot sends a button with a secure magic link (expires in 15 minutes)
+2. You click through to the OpenBeam web app and authenticate
+3. Your platform account is permanently linked
+
+After linking, all searches respect your data access permissions. You only see documents you have permission to view.
+
+## Rate Limiting
+
+The bot protects against abuse with per-user and per-team rate limits:
+
+| Scope | Limit | Window |
+|-------|-------|--------|
+| Per user | 30 requests | 1 minute |
+| Per team | 500 requests | 1 minute |
+
+When rate-limited, the bot tells you exactly how many seconds to wait: "Too many requests. Try again in 42s."
+
+## Platform-Native Rendering
+
+Every response is rendered using the platform's native rich format:
+
+| Platform | Format | Capabilities |
+|----------|--------|-------------|
+| Slack | Block Kit | Headers, sections, context blocks, action buttons, dividers |
+| Discord | Embeds | Semantic colors (blue/green/red), fields, footer, component rows |
+| Telegram | HTML + Inline Keyboard | Bold, italic, links, callback buttons |
+| Teams | Adaptive Cards v1.5 | TextBlocks, ColumnSets, FactSets, ActionSets |
+| WhatsApp | Interactive Messages | List messages (10 items), reply buttons (3 max), bold/italic text |
+
+## Typing Indicators
+
+The bot shows a typing indicator while processing your request:
+
+- **WhatsApp**: Native typing bubble via Cloud API v21.0 `typing_indicator` (lasts up to 25 seconds)
+- **Telegram**: Native "typing..." indicator via `sendChatAction`
+- **Slack/Discord/Teams**: Processing happens fast enough that indicators are not needed
+
+## Error Handling
+
+If the AI provider fails or an internal error occurs, the bot responds with a friendly error message instead of silence:
+
+```
+Something went wrong processing your request. Please try again.
+```
+
+Errors are logged server-side for debugging. The bot never exposes stack traces or internal details to users.

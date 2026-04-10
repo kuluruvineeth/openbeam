@@ -8,13 +8,10 @@ description: How to run and write tests for the bot app.
 ## Running Tests
 
 ```bash
-# All bot tests
 bun test apps/bot/__tests__/
 
-# Specific test file
-bun test apps/bot/__tests__/ai/formatter.test.ts
+bun test apps/bot/__tests__/renderers/slack.test.ts
 
-# Watch mode
 bun test --watch apps/bot/__tests__/
 ```
 
@@ -27,15 +24,19 @@ apps/bot/__tests__/
 │   ├── discord.test.ts         # Ed25519 + interaction parsing
 │   ├── telegram.test.ts        # Secret token + update parsing
 │   └── whatsapp.test.ts        # HMAC-SHA256 + webhook payload parsing
-├── ai/
-│   └── formatter.test.ts       # Platform-native rendering
+├── renderers/
+│   ├── slack.test.ts           # Block Kit output for all response types
+│   ├── discord.test.ts         # Embed colors, fields, components
+│   ├── telegram.test.ts        # HTML formatting + inline keyboards
+│   ├── teams.test.ts           # Adaptive Card structure + FactSet citations
+│   └── whatsapp.test.ts        # Interactive payloads + typing indicator format
 ├── handlers/
-│   └── router.test.ts          # Command dispatch + intent detection
+│   └── router.test.ts          # Command dispatch, intent detection, greetings
 ├── identity/
 │   ├── resolver.test.ts        # BotUserLink lookup
 │   └── linking.test.ts         # Magic link token generation
 └── lib/
-    └── rate-limit.test.ts      # Per-user + per-team rate limiting
+    └── rate-limit.test.ts      # Per-user + per-team rate limiting with retry timing
 ```
 
 ## Test Coverage
@@ -43,10 +44,10 @@ apps/bot/__tests__/
 | Layer | Tests | What's Tested |
 |-------|-------|---------------|
 | Adapters | 20 | Signature verification, event parsing, edge cases per platform |
-| Formatter | 19 | All 5 platforms x all response types, MarkdownV2 escaping, truncation |
-| Router | 9 | Command dispatch, intent detection, DM/mention routing, unknown commands |
+| Renderers | 25 | All 5 platforms x all response types, citations, follow-ups, escaping |
+| Router | 12 | Command dispatch, intent detection, DM/mention routing, greetings |
 | Identity | 8 | Linked/unlinked users, activity updates, token generation, expiry |
-| Rate Limit | 6 | Per-user burst, per-team limits, cross-platform isolation |
+| Rate Limit | 6 | Per-user burst, per-team limits, retry timing, cross-platform isolation |
 
 ## Writing New Tests
 
@@ -57,35 +58,46 @@ The router tests mock `@openbeam/services` and `@openbeam/db` to avoid hitting r
 ```typescript
 mock.module("@openbeam/services", () => ({
   hybridSearch: () => Promise.resolve({ documents: [], total: 0, queryTime: 0 }),
-  ragAnswer: () => Promise.resolve({ answer: "test", citations: [], context: {}, usage: {} }),
+  ragAnswer: () => Promise.resolve({
+    answer: "test answer",
+    citations: [],
+    context: { documents: [] },
+    usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+  }),
+  dispatchAction: () => Promise.resolve({ success: true, data: {} }),
 }));
+```
+
+### Testing Renderers
+
+Renderer tests are pure functions — no mocks needed:
+
+```typescript
+import { renderSlack } from "../../src/renderers/slack";
+
+const payload = renderSlack({
+  type: "answer",
+  text: "Deploy uses GitHub Actions.",
+  citations: [{ index: 1, title: "Guide", url: "https://x.co/1" }],
+  followUps: ["Tell me more", "Search for deploy"],
+});
+
+expect(payload.blocks.some((b) => b.type === "context")).toBe(true);
+expect(payload.blocks.some((b) => b.type === "actions")).toBe(true);
 ```
 
 ### Testing Adapters
 
 Adapter tests should mock the platform SDK and verify:
 
-1. Signature verification accepts valid / rejects invalid
+1. Signature verification accepts valid / rejects invalid signatures
 2. Event parsing produces correct `UnifiedMessage` fields
-3. Response sending calls the right platform API
+3. Response sending calls the right platform API with the renderer's output
 
-### Testing Formatters
-
-Formatter tests are pure functions with no mocks needed:
-
-```typescript
-const out = formatForPlatform("SLACK", searchResponse());
-expect(out).toContain("<https://x.co/1|Deploy Guide>");
-```
-
-## Typecheck
+## Typecheck and Lint
 
 ```bash
 bun x tsc --noEmit -p apps/bot/tsconfig.json
-```
 
-## Lint
-
-```bash
-bunx biome check apps/bot/src/
+bun x biome check apps/bot/
 ```
