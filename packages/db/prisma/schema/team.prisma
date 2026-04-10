@@ -95,8 +95,10 @@ model Team {
   mcpNotifications           McpNotification[]
   mcpNotificationPreferences McpNotificationPreference[]
 
-  botUserLinks     BotUserLink[]
-  botInstallations BotInstallation[]
+  botUserLinks              BotUserLink[]
+  botInstallations          BotInstallation[]
+  botNotificationPreferences BotNotificationPreference[]
+  botNotificationEvents     BotNotificationEvent[]
 
   @@map("team")
 }

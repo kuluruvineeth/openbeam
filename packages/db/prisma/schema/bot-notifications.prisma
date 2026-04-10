@@ -1,0 +1,45 @@
+model BotNotificationPreference {
+  id              String      @id @default(cuid()) @map("_id")
+  teamId          String      @map("team_id")
+  userId          String      @map("user_id")
+  connectorId     String?     @map("connector_id")
+  eventType       String?     @map("event_type")
+  platform        BotPlatform
+  frequency       String      @default("IMMEDIATE")
+  enabled         Boolean     @default(true)
+  quietHoursStart Int?        @map("quiet_hours_start")
+  quietHoursEnd   Int?        @map("quiet_hours_end")
+  timezone        String      @default("UTC")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId, platform, connectorId, eventType])
+  @@index([teamId, userId])
+  @@map("bot_notification_preference")
+}
+
+model BotNotificationEvent {
+  id             String    @id @default(cuid()) @map("_id")
+  teamId         String    @map("team_id")
+  userId         String    @map("user_id")
+  eventType      String    @map("event_type")
+  priority       String    @default("NORMAL")
+  payload        Json
+  connectorId    String?   @map("connector_id")
+  platform       BotPlatform?
+  deliveredAt    DateTime? @map("delivered_at")
+  digestedAt     DateTime? @map("digested_at")
+  suppressedAt   DateTime? @map("suppressed_at")
+  suppressReason String?   @map("suppress_reason")
+  dedupKey       String?   @map("dedup_key")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, userId, deliveredAt])
+  @@index([teamId, userId, eventType, createdAt(sort: Desc)])
+  @@index([teamId, dedupKey, createdAt(sort: Desc)])
+  @@map("bot_notification_event")
+}
