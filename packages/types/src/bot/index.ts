@@ -37,3 +37,9 @@ export {
   type PlatformConfig,
   PlatformConfigSchema,
 } from "./platforms";
+export {
+  type SessionData,
+  SessionDataSchema,
+  type SessionTurn,
+  SessionTurnSchema,
+} from "./session";

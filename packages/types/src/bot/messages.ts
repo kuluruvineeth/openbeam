@@ -90,6 +90,7 @@ export const BotResponseSchema = z.object({
   citations: z.array(CitationSchema).optional(),
   followUps: z.array(z.string()).optional(),
   confidence: z.number().min(0).max(1).optional(),
+  responseId: z.string().optional(),
   buttons: z.array(ResponseButtonSchema).optional(),
   threadId: z.string().optional(),
   ephemeral: z.boolean().optional(),
