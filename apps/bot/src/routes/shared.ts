@@ -1,4 +1,5 @@
 import db from "@openbeam/db";
+import { getRedisClient } from "@openbeam/redis";
 import type {
   BotResponse,
   PlatformAdapter,
@@ -11,7 +12,22 @@ import { sendLinkPrompt } from "../identity/linking";
 import { resolveIdentity } from "../identity/resolver";
 import { checkTeamRateLimit, checkUserRateLimit } from "../lib/rate-limit";
 
+const noop = Function.prototype as () => void;
+
 const STREAMING_PLATFORMS = new Set(["SLACK", "DISCORD", "TELEGRAM", "TEAMS"]);
+
+async function recordPlatformActivity(
+  teamId: string,
+  userId: string,
+  platform: string
+): Promise<void> {
+  const redis = await getRedisClient();
+  await redis.set(
+    `notif:activity:${teamId}:${userId}:${platform}`,
+    String(Date.now()),
+    { EX: 86_400 }
+  );
+}
 
 function isAskLikeQuery(message: UnifiedMessage): boolean {
   if (message.command === "ask") {
@@ -48,6 +64,12 @@ export async function resolveAndRoute(
     await sendLinkPrompt(db, adapter, message);
     return null;
   }
+
+  recordPlatformActivity(
+    identity.teamId,
+    identity.userId,
+    message.platform
+  ).catch(noop);
 
   const teamLimit = checkTeamRateLimit(identity.teamId);
   if (!teamLimit.allowed) {

@@ -35,6 +35,7 @@ mock.module("@openbeam/services", () => ({
       usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
     }),
   dispatchAction: () => Promise.resolve({ success: true, data: {} }),
+  recordPlatformActivity: () => Promise.resolve(),
   ContextSessionManager: class {
     create() {
       return Promise.resolve({ id: "sess_test" });
