@@ -44,6 +44,7 @@ export async function handleExpert(
     type: "expert_list",
     text: `Found ${experts.length} experts on "${topic}"`,
     title: `Experts: ${topic}`,
+    responseId: crypto.randomUUID(),
     experts: experts.map((e) => {
       const entity = e.fromEntity;
       const meta = (entity?.metadata ?? {}) as Record<string, unknown>;

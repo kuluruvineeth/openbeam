@@ -5,6 +5,7 @@ import type {
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
+import { appendTurn, formatContextForQuery, getSession } from "../memory";
 import { stripCommandPrefix } from "./utils";
 
 export async function handleAsk(
@@ -20,21 +21,53 @@ export async function handleAsk(
     };
   }
 
+  const channelKey = message.threadId ?? message.channelId;
+  const session = await getSession(
+    message.platform,
+    channelKey,
+    identity.userId
+  );
+
+  const contextPrefix = formatContextForQuery(session);
+  const enrichedQuery = contextPrefix
+    ? `${contextPrefix}\n\nCurrent question: ${question}`
+    : question;
+
   const result = await ragAnswer({
-    query: question,
+    query: enrichedQuery,
     teamId: identity.teamId,
+  });
+
+  const turnParams = {
+    platform: message.platform,
+    channelId: channelKey,
+    userId: identity.userId,
+    teamId: identity.teamId,
+  };
+
+  await appendTurn(turnParams, {
+    role: "user",
+    content: question,
+    ts: message.timestamp.getTime(),
   });
 
   if (!result.answer) {
     return {
       type: "text",
       text: "I couldn't find a relevant answer. Try rephrasing your question.",
+      responseId: crypto.randomUUID(),
       followUps: [
         `Search for "${question}"`,
         `Find experts on ${question.split(" ").slice(0, 3).join(" ")}`,
       ],
     };
   }
+
+  await appendTurn(turnParams, {
+    role: "assistant",
+    content: result.answer,
+    ts: Date.now(),
+  });
 
   const citations: Citation[] = (result.citations ?? [])
     .slice(0, 5)
@@ -51,6 +84,7 @@ export async function handleAsk(
     text: result.answer,
     title: question,
     citations,
+    responseId: crypto.randomUUID(),
     results: result.citations?.map((c) => ({
       title: c.title ?? "Source",
       snippet: c.snippet ?? "",

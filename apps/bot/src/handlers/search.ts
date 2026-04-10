@@ -35,6 +35,7 @@ export async function handleSearch(
     type: "search_results",
     text: `Found ${searchResult.documents.length} results for "${query}"`,
     title: `Search: ${query}`,
+    responseId: crypto.randomUUID(),
     results: searchResult.documents.map((doc) => ({
       title: doc.title ?? "Untitled",
       snippet: doc.content?.slice(0, 200) ?? "",
