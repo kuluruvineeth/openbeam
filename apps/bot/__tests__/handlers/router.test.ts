@@ -2,6 +2,28 @@ import { describe, expect, it, mock } from "bun:test";
 import type { UnifiedMessage } from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../../src/identity/resolver";
 
+function createMockPipeline() {
+  const self: Record<string, unknown> = {};
+  const methods = ["rPush", "lTrim", "expire", "hSet", "exec"];
+  for (const m of methods) {
+    self[m] = (..._args: unknown[]) =>
+      m === "exec" ? Promise.resolve([]) : self;
+  }
+  return self;
+}
+
+const noopClient = {
+  get: () => Promise.resolve(null),
+  set: () => Promise.resolve("OK"),
+  del: () => Promise.resolve(0),
+  lRange: () => Promise.resolve([]),
+  multi: () => createMockPipeline(),
+};
+
+mock.module("@openbeam/redis", () => ({
+  getRedisClient: () => Promise.resolve(noopClient),
+}));
+
 mock.module("@openbeam/services", () => ({
   hybridSearch: () =>
     Promise.resolve({ documents: [], total: 0, queryTime: 0 }),
@@ -13,12 +35,36 @@ mock.module("@openbeam/services", () => ({
       usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
     }),
   dispatchAction: () => Promise.resolve({ success: true, data: {} }),
+  ContextSessionManager: class {
+    create() {
+      return Promise.resolve({ id: "sess_test" });
+    }
+    addMessage() {
+      return Promise.resolve();
+    }
+    getMessages() {
+      return Promise.resolve([]);
+    }
+    commit() {
+      return Promise.resolve({ workflowId: "wf_test" });
+    }
+  },
 }));
 
 mock.module("@openbeam/db", () => ({
   default: {},
   searchEntities: () => Promise.resolve([]),
   getExpertsForTopic: () => Promise.resolve([]),
+}));
+
+mock.module("../../src/memory", () => ({
+  appendTurn: () => Promise.resolve(),
+  getSession: () => Promise.resolve({ buffer: [], summary: null }),
+  storeSummary: () => Promise.resolve(),
+  clearSession: () => Promise.resolve(),
+  buildContextMessages: () => [],
+  estimateTokens: (text: string) => Math.ceil(text.length / 4),
+  formatContextForQuery: () => "",
 }));
 
 import { routeMessage } from "../../src/handlers/router";
