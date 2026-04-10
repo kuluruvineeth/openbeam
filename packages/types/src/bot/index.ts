@@ -30,6 +30,20 @@ export {
   UnifiedMessageSchema,
 } from "./messages";
 export {
+  DEDUP_WINDOW_SECONDS,
+  type NotificationEventPayload,
+  NotificationEventPayloadSchema,
+  type NotificationEventType,
+  NotificationEventTypeSchema,
+  type NotificationFrequency,
+  NotificationFrequencySchema,
+  type NotificationPriority,
+  NotificationPrioritySchema,
+  PRIORITY_BY_EVENT,
+  type ThrottleDecision,
+  ThrottleDecisionSchema,
+} from "./notifications";
+export {
   BOT_PLATFORMS,
   type BotPlatform,
   BotPlatformSchema,
