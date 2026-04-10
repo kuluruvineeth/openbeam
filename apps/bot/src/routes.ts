@@ -15,6 +15,11 @@ import {
   telegramAdapter,
   whatsappAdapter,
 } from "./adapters";
+import {
+  handleFeedback,
+  parseFeedbackAction,
+  parseWhatsAppFeedbackId,
+} from "./handlers/feedback";
 import { routeMessage } from "./handlers/router";
 import { sendLinkPrompt } from "./identity/linking";
 import { resolveIdentity } from "./identity/resolver";
@@ -48,6 +53,18 @@ async function resolveAndRoute(
       type: "error",
       text: `Too many requests. Try again in ${teamLimit.retryAfterSeconds}s.`,
     };
+  }
+
+  const whatsAppFeedback = parseWhatsAppFeedbackId(message.text);
+  if (whatsAppFeedback) {
+    await handleFeedback({
+      platform: message.platform,
+      platformUserId: message.platformUserId,
+      responseId: whatsAppFeedback.responseId,
+      rating: whatsAppFeedback.rating,
+      identity,
+    });
+    return { type: "text" as const, text: "Thanks for your feedback!" };
   }
 
   await adapter.sendTypingIndicator(
@@ -113,6 +130,77 @@ export function createBotRoutes(): Hono {
     const headers = extractHeaders(c.req.raw.headers);
     const result = await standardWebhook(slackAdapter, rawBody, headers);
     return c.json({ ok: result.ok, error: result.error }, result.status as 200);
+  });
+
+  routes.post("/webhooks/slack/interactions", async (c) => {
+    const body = await c.req.parseBody();
+    const rawPayload = typeof body.payload === "string" ? body.payload : "";
+    if (!rawPayload) {
+      return c.json({ ok: false }, 400);
+    }
+
+    let payload: Record<string, unknown>;
+    try {
+      payload = JSON.parse(rawPayload);
+    } catch {
+      return c.json({ ok: false }, 400);
+    }
+
+    if (payload.type === "block_actions") {
+      const actions = payload.actions as Array<{
+        action_id: string;
+        value: string;
+      }>;
+      const action = actions?.[0];
+      if (
+        action &&
+        (action.action_id === "feedback_thumbs_up" ||
+          action.action_id === "feedback_thumbs_down")
+      ) {
+        const parsed = parseFeedbackAction(action.value);
+        if (parsed) {
+          const user = payload.user as { id: string } | undefined;
+          const team = payload.team as { id: string } | undefined;
+          if (user && team) {
+            const identity = await resolveIdentity(db, {
+              id: "",
+              platform: "SLACK",
+              platformUserId: user.id,
+              platformTeamId: team.id,
+              channelId: "",
+              text: "",
+              isDirectMessage: false,
+              isMention: false,
+              timestamp: new Date(),
+              rawEvent: null,
+            });
+            if (identity) {
+              await handleFeedback({
+                platform: "SLACK",
+                platformUserId: user.id,
+                responseId: parsed.responseId,
+                rating: parsed.rating,
+                identity,
+              });
+            }
+          }
+        }
+        return c.json({
+          replace_original: true,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: "Thanks for your feedback!",
+              },
+            },
+          ],
+        });
+      }
+    }
+
+    return c.json({ ok: true });
   });
 
   routes.post("/webhooks/teams", async (c) => {
