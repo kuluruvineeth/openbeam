@@ -25,11 +25,51 @@ export function renderWhatsApp(to: string, response: BotResponse): Payload {
     return listPayload(to, response);
   }
   const text = renderText(response);
+
+  if (response.responseId) {
+    const feedbackLabels = ["\ud83d\udc4d Helpful", "\ud83d\udc4e Not helpful"];
+    const followUp = followUpLabels(response).slice(0, 1);
+    return feedbackButtonPayload(to, text, response.responseId, [
+      ...feedbackLabels,
+      ...followUp,
+    ]);
+  }
+
   const followUps = followUpLabels(response);
   if (followUps.length > 0) {
     return buttonPayload(to, text, followUps);
   }
   return textPayload(to, text);
+}
+
+function feedbackButtonPayload(
+  to: string,
+  text: string,
+  responseId: string,
+  labels: string[]
+): Payload {
+  return {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: { text: truncate(text, MAX_BODY) },
+      action: {
+        buttons: labels.slice(0, MAX_BUTTONS).map((label, i) => ({
+          type: "reply",
+          reply: {
+            id:
+              i < 2
+                ? `fb_${i === 0 ? "up" : "dn"}_${responseId.slice(0, 40)}`
+                : `fup_${label.slice(0, 40)}`,
+            title: truncate(label, MAX_BUTTON_TITLE),
+          },
+        })),
+      },
+    },
+  };
 }
 
 export function typingPayload(messageId: string): Payload {

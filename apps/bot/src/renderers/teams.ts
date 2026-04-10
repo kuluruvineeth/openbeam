@@ -155,6 +155,21 @@ function buildActions(response: BotResponse): CardElement[] {
     });
   }
 
+  if (response.responseId) {
+    actions.push(
+      {
+        type: "Action.Submit",
+        title: "\ud83d\udc4d Helpful",
+        data: { action: "feedback_up", responseId: response.responseId },
+      },
+      {
+        type: "Action.Submit",
+        title: "\ud83d\udc4e Not helpful",
+        data: { action: "feedback_down", responseId: response.responseId },
+      }
+    );
+  }
+
   return actions.slice(0, 6);
 }
 

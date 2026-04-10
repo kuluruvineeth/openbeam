@@ -131,18 +131,33 @@ function actionEmbed(response: BotResponse): Embed {
 
 function buildFollowUpRow(response: BotResponse): Component[] {
   const labels = followUpLabels(response);
-  if (labels.length === 0) {
+  const buttons: Record<string, unknown>[] = labels.map((label, i) => ({
+    type: 2,
+    style: 2,
+    label: truncate(label, 80),
+    custom_id: `followup_${i}`,
+  }));
+
+  if (response.responseId) {
+    buttons.push(
+      {
+        type: 2,
+        style: 3,
+        label: "\ud83d\udc4d",
+        custom_id: `feedback_up:${response.responseId}`,
+      },
+      {
+        type: 2,
+        style: 4,
+        label: "\ud83d\udc4e",
+        custom_id: `feedback_down:${response.responseId}`,
+      }
+    );
+  }
+
+  if (buttons.length === 0) {
     return [];
   }
-  return [
-    {
-      type: 1,
-      components: labels.map((label, i) => ({
-        type: 2,
-        style: 2,
-        label: truncate(label, 80),
-        custom_id: `followup_${i}`,
-      })),
-    },
-  ];
+
+  return [{ type: 1, components: buttons.slice(0, 5) }];
 }

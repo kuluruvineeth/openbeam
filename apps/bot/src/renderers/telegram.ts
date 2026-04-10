@@ -89,14 +89,29 @@ function renderActionResult(response: BotResponse): string {
 }
 
 function buildKeyboard(response: BotResponse): InlineKeyboardMarkup | null {
+  const rows: InlineKeyboardButton[][] = [];
+
   const labels = followUpLabels(response);
-  if (labels.length === 0) {
-    return null;
+  for (const label of labels) {
+    rows.push([
+      { text: truncate(label, 64), callback_data: `fup:${label.slice(0, 55)}` },
+    ]);
   }
-  const rows: InlineKeyboardButton[][] = labels.map((label) => [
-    { text: truncate(label, 64), callback_data: `fup:${label.slice(0, 55)}` },
-  ]);
-  return { inline_keyboard: rows };
+
+  if (response.responseId) {
+    rows.push([
+      {
+        text: "\ud83d\udc4d",
+        callback_data: `fb:up:${response.responseId.slice(0, 50)}`,
+      },
+      {
+        text: "\ud83d\udc4e",
+        callback_data: `fb:dn:${response.responseId.slice(0, 50)}`,
+      },
+    ]);
+  }
+
+  return rows.length > 0 ? { inline_keyboard: rows } : null;
 }
 
 function esc(text: string): string {

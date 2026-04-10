@@ -24,7 +24,31 @@ export function renderSlack(response: BotResponse): SlackPayload {
     blocks.push(divider());
     blocks.push(actions(followUps.map(followUpButton)));
   }
+  if (response.responseId) {
+    blocks.push(feedbackActions(response.responseId));
+  }
   return { text: response.text, blocks };
+}
+
+function feedbackActions(responseId: string): Block {
+  return {
+    type: "actions",
+    block_id: `feedback_${responseId.slice(0, 20)}`,
+    elements: [
+      {
+        type: "button",
+        text: { type: "plain_text", text: "\ud83d\udc4d", emoji: true },
+        action_id: "feedback_thumbs_up",
+        value: `up:${responseId}`,
+      },
+      {
+        type: "button",
+        text: { type: "plain_text", text: "\ud83d\udc4e", emoji: true },
+        action_id: "feedback_thumbs_down",
+        value: `down:${responseId}`,
+      },
+    ],
+  };
 }
 
 function renderBlocks(response: BotResponse): Block[] {
