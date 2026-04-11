@@ -528,6 +528,13 @@ export {
   unmuteMonitor as datadogUnmuteMonitor,
   updateMonitor as datadogUpdateMonitor,
 } from "./datadog";
+export type { DiscordClient, DiscordMessagePayload } from "./discord";
+export {
+  createDiscordClient,
+  DiscordApiError,
+  DiscordErrorCodes,
+  sendDm as sendDiscordDm,
+} from "./discord";
 export type {
   DoceboCertification,
   DoceboClient,
@@ -1550,7 +1557,10 @@ export {
   transformMicrosoftCalendarEvent,
   updateMicrosoftCalendarEvent,
 } from "./microsoft-calendar";
+export type { TeamsBotClient } from "./microsoft-teams";
 export {
+  createTeamsBotClient,
+  TEAMS_BOT_RATE_LIMITS,
   TeamsAuth,
   teamsFullSync,
   teamsIncrementalSync,
@@ -2518,6 +2528,13 @@ export {
   updateSyncCompletion,
   updateSyncCursor,
 } from "./sync";
+export type { TelegramClient } from "./telegram";
+export {
+  createTelegramClient,
+  sendDm as sendTelegramDm,
+  TelegramApiError,
+  TelegramErrorCodes,
+} from "./telegram";
 export type { ThingsboardClient } from "./thingsboard";
 export {
   createThingsboardClient,
@@ -2568,6 +2585,13 @@ export {
   startSession,
   updateSettings,
 } from "./voice";
+export type { WhatsAppClient } from "./whatsapp";
+export {
+  createWhatsAppClient,
+  sendDm as sendWhatsAppDm,
+  WhatsAppApiError,
+  WhatsAppErrorCodes,
+} from "./whatsapp";
 export type { WorkdayClient } from "./workday";
 export {
   createWorkdayClient,

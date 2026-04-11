@@ -1,17 +1,17 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { WhatsAppClient } from "@openbeam/services";
+import { createWhatsAppClient } from "@openbeam/services";
 import type {
   BotResponse,
   PlatformAdapter,
   PlatformConfig,
+  ProactiveTarget,
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
 import { z } from "zod";
 import { env } from "../env";
-import { renderWhatsApp, typingPayload } from "../renderers/whatsapp";
-
-const GRAPH_API_VERSION = "v19.0";
-const GRAPH_API_VERSION_TYPING = "v21.0";
+import { renderWhatsApp } from "../renderers/whatsapp";
 
 const WhatsAppMetadataSchema = z.object({
   display_phone_number: z.string(),
@@ -83,25 +83,17 @@ function extractText(message: WhatsAppMessage): string {
   return "";
 }
 
-async function postToGraphApi(
-  phoneNumberId: string,
-  accessToken: string,
-  payload: Record<string, unknown>,
-  apiVersion = GRAPH_API_VERSION
-): Promise<void> {
-  const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`WhatsApp API error ${response.status}: ${body}`);
+function buildWhatsAppClient(): WhatsAppClient | null {
+  const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = env.WHATSAPP_ACCESS_TOKEN;
+  if (!(phoneNumberId && accessToken)) {
+    return null;
   }
+  return createWhatsAppClient({
+    phoneNumberId,
+    accessToken,
+    connectorId: `bot_whatsapp_${phoneNumberId}`,
+  });
 }
 
 export function handleWhatsAppVerification(
@@ -122,6 +114,7 @@ export function handleWhatsAppVerification(
 export class WhatsAppAdapter implements PlatformAdapter {
   readonly platform = "WHATSAPP" as const;
   readonly config: PlatformConfig = PLATFORM_CONFIGS.WHATSAPP;
+  private readonly client = buildWhatsAppClient();
 
   verifySignature(_rawBody: string, headers: Record<string, string>): boolean {
     const appSecret = env.WHATSAPP_APP_SECRET;
@@ -183,13 +176,12 @@ export class WhatsAppAdapter implements PlatformAdapter {
     message: UnifiedMessage,
     response: BotResponse
   ): Promise<void> {
-    const creds = this.getCredentials();
-    if (!creds) {
+    if (!this.client) {
       return;
     }
 
     const payload = renderWhatsApp(message.channelId, response);
-    await postToGraphApi(creds.phoneNumberId, creds.accessToken, payload);
+    await this.client.sendMessage(payload);
   }
 
   async sendTypingIndicator(
@@ -197,34 +189,22 @@ export class WhatsAppAdapter implements PlatformAdapter {
     _threadId?: string,
     messageId?: string
   ): Promise<void> {
-    if (!messageId) {
-      return;
-    }
-    const creds = this.getCredentials();
-    if (!creds) {
+    if (!(messageId && this.client)) {
       return;
     }
 
-    const payload = typingPayload(messageId);
-    await postToGraphApi(
-      creds.phoneNumberId,
-      creds.accessToken,
-      payload,
-      GRAPH_API_VERSION_TYPING
-    ).catch((err) => {
-      console.warn("typing indicator failed", err.message);
-    });
+    await this.client.sendTypingIndicator(messageId);
   }
 
-  private getCredentials(): {
-    phoneNumberId: string;
-    accessToken: string;
-  } | null {
-    const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
-    const accessToken = env.WHATSAPP_ACCESS_TOKEN;
-    if (!(phoneNumberId && accessToken)) {
-      return null;
+  async sendProactive(
+    target: ProactiveTarget,
+    response: BotResponse
+  ): Promise<boolean> {
+    if (!this.client) {
+      return false;
     }
-    return { phoneNumberId, accessToken };
+
+    const payload = renderWhatsApp(target.platformUserId, response);
+    return await this.client.sendMessage(payload);
   }
 }

@@ -12,6 +12,7 @@ import type {
   BotResponse,
   PlatformAdapter,
   PlatformConfig,
+  ProactiveTarget,
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
@@ -174,6 +175,32 @@ export class SlackAdapter implements PlatformAdapter {
       text: payload.text,
       blocks: payload.blocks,
     });
+  }
+
+  async sendProactive(
+    target: ProactiveTarget,
+    response: BotResponse
+  ): Promise<boolean> {
+    const client = this.createClient();
+    if (!client) {
+      return false;
+    }
+
+    const openResult = await client.call<{
+      ok: boolean;
+      channel?: { id: string };
+    }>("conversations.open", { users: target.platformUserId });
+    if (!(openResult.ok && openResult.channel)) {
+      return false;
+    }
+
+    const payload = renderSlack(response);
+    await client.call("chat.postMessage", {
+      channel: openResult.channel.id,
+      text: payload.text,
+      blocks: payload.blocks,
+    });
+    return true;
   }
 
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {

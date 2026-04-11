@@ -1,7 +1,10 @@
+import type { TelegramClient } from "@openbeam/services";
+import { createTelegramClient } from "@openbeam/services";
 import type {
   BotResponse,
   PlatformAdapter,
   PlatformConfig,
+  ProactiveTarget,
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
@@ -50,6 +53,17 @@ function createBot(): Bot | null {
   return token ? new Bot(token) : null;
 }
 
+function buildApiClient(): TelegramClient | null {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  if (!token) {
+    return null;
+  }
+  return createTelegramClient({
+    botToken: token,
+    connectorId: `bot_telegram_${token.split(":")[0]}`,
+  });
+}
+
 function extractMessage(update: TelegramUpdate) {
   return update.message ?? update.edited_message ?? update.channel_post ?? null;
 }
@@ -69,6 +83,7 @@ export class TelegramAdapter implements PlatformAdapter {
   readonly platform = "TELEGRAM" as const;
   readonly config: PlatformConfig = PLATFORM_CONFIGS.TELEGRAM;
   private readonly bot = createBot();
+  private readonly apiClient = buildApiClient();
 
   verifySignature(_rawBody: string, headers: Record<string, string>): boolean {
     const secret = env.TELEGRAM_WEBHOOK_SECRET;
@@ -169,6 +184,26 @@ export class TelegramAdapter implements PlatformAdapter {
       parse_mode: payload.parse_mode,
       reply_markup: payload.reply_markup,
     });
+  }
+
+  async sendProactive(
+    target: ProactiveTarget,
+    response: BotResponse
+  ): Promise<boolean> {
+    if (!this.apiClient) {
+      return false;
+    }
+
+    const payload = renderTelegram(response);
+    const result = await this.apiClient.sendMessage(
+      Number(target.platformUserId),
+      payload.text,
+      {
+        parse_mode: payload.parse_mode,
+        reply_markup: payload.reply_markup,
+      }
+    );
+    return result !== null;
   }
 
   async sendTypingIndicator(channelId: string): Promise<void> {

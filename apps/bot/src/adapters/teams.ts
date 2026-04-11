@@ -1,7 +1,10 @@
+import type { TeamsBotClient } from "@openbeam/services";
+import { createTeamsBotClient } from "@openbeam/services";
 import type {
   BotResponse,
   PlatformAdapter,
   PlatformConfig,
+  ProactiveTarget,
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
@@ -107,6 +110,19 @@ function activityToMessage(activity: TeamsActivity): UnifiedMessage | null {
   };
 }
 
+function buildBotClient(): TeamsBotClient | null {
+  const appId = env.TEAMS_APP_ID;
+  const appPassword = env.TEAMS_APP_PASSWORD;
+  if (!(appId && appPassword)) {
+    return null;
+  }
+  return createTeamsBotClient({
+    appId,
+    appPassword,
+    connectorId: `bot_teams_${appId}`,
+  });
+}
+
 function buildAdapter(): CloudAdapter {
   const auth = new ConfigurationBotFrameworkAuthentication({
     MicrosoftAppId: env.TEAMS_APP_ID ?? "",
@@ -120,6 +136,7 @@ export class TeamsAdapter implements PlatformAdapter {
   readonly config: PlatformConfig = PLATFORM_CONFIGS.TEAMS;
 
   private readonly cloudAdapter = buildAdapter();
+  private readonly botClient = buildBotClient();
 
   verifySignature(
     _rawBody: string,
@@ -174,6 +191,22 @@ export class TeamsAdapter implements PlatformAdapter {
 
     const payload = renderTeams(response);
     await raw._turnContext.sendActivity(payload);
+  }
+
+  async sendProactive(
+    target: ProactiveTarget,
+    response: BotResponse
+  ): Promise<boolean> {
+    if (!this.botClient) {
+      return false;
+    }
+
+    const payload = renderTeams(response);
+    return await this.botClient.sendProactiveMessage({
+      userId: target.platformUserId,
+      tenantId: target.platformTeamId,
+      activity: payload as unknown as Record<string, unknown>,
+    });
   }
 
   sendTypingIndicator(_channelId: string, _threadId?: string): Promise<void> {

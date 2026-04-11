@@ -1,7 +1,10 @@
+import type { DiscordClient } from "@openbeam/services";
+import { createDiscordClient } from "@openbeam/services";
 import type {
   BotResponse,
   PlatformAdapter,
   PlatformConfig,
+  ProactiveTarget,
   UnifiedMessage,
 } from "@openbeam/types/bot";
 import { PLATFORM_CONFIGS } from "@openbeam/types/bot";
@@ -64,7 +67,7 @@ function extractCommandText(interaction: DiscordInteraction): string {
   return String(option.value ?? "");
 }
 
-function verifySignature(
+function verifySignatureEd25519(
   rawBody: string,
   signature: string,
   timestamp: string,
@@ -73,24 +76,23 @@ function verifySignature(
   return Promise.resolve(verifyKey(rawBody, signature, timestamp, publicKey));
 }
 
-async function postCallback(
-  interactionId: string,
-  token: string,
-  body: Record<string, unknown>
-): Promise<void> {
-  await fetch(
-    `https://discord.com/api/v10/interactions/${interactionId}/${token}/callback`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  );
+function buildClient(): DiscordClient | null {
+  const botToken = env.DISCORD_BOT_TOKEN;
+  const applicationId = env.DISCORD_APPLICATION_ID;
+  if (!(botToken && applicationId)) {
+    return null;
+  }
+  return createDiscordClient({
+    botToken,
+    applicationId,
+    connectorId: `bot_discord_${applicationId}`,
+  });
 }
 
 export class DiscordAdapter implements PlatformAdapter {
   readonly platform = "DISCORD" as const;
   readonly config: PlatformConfig = PLATFORM_CONFIGS.DISCORD;
+  private readonly client = buildClient();
 
   verifySignature(
     _rawBody: string,
@@ -103,7 +105,7 @@ export class DiscordAdapter implements PlatformAdapter {
     const signature = headers["x-signature-ed25519"] ?? "";
     const timestamp = headers["x-signature-timestamp"] ?? "";
     return Promise.resolve(
-      verifySignature(_rawBody, signature, timestamp, publicKey)
+      verifySignatureEd25519(_rawBody, signature, timestamp, publicKey)
     );
   }
 
@@ -145,7 +147,7 @@ export class DiscordAdapter implements PlatformAdapter {
     response: BotResponse
   ): Promise<void> {
     const rawEvent = DiscordInteractionSchema.safeParse(message.rawEvent);
-    if (!rawEvent.success) {
+    if (!(rawEvent.success && this.client)) {
       return;
     }
 
@@ -154,17 +156,17 @@ export class DiscordAdapter implements PlatformAdapter {
       string,
       unknown
     >;
-    await postCallback(id, token, payload);
+    await this.client.postInteractionCallback(id, token, payload);
   }
 
   async sendStreamPlaceholder(message: UnifiedMessage): Promise<string | null> {
     const rawEvent = DiscordInteractionSchema.safeParse(message.rawEvent);
-    if (!rawEvent.success) {
+    if (!(rawEvent.success && this.client)) {
       return null;
     }
 
     const { id, token } = rawEvent.data;
-    await postCallback(id, token, { type: 5 });
+    await this.client.postInteractionCallback(id, token, { type: 5 });
     return token;
   }
 
@@ -173,16 +175,12 @@ export class DiscordAdapter implements PlatformAdapter {
     interactionToken: string,
     text: string
   ): Promise<void> {
-    const appId = env.DISCORD_APPLICATION_ID;
-    if (!appId) {
+    if (!this.client) {
       return;
     }
 
-    const url = `https://discord.com/api/v10/webhooks/${appId}/${interactionToken}/messages/@original`;
-    const res = await fetch(url, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: text }),
+    const res = await this.client.patchOriginalMessage(interactionToken, {
+      content: text,
     });
 
     if (res.status === 429) {
@@ -196,17 +194,29 @@ export class DiscordAdapter implements PlatformAdapter {
     interactionToken: string,
     response: BotResponse
   ): Promise<void> {
-    const appId = env.DISCORD_APPLICATION_ID;
-    if (!appId) {
+    if (!this.client) {
       return;
     }
 
     const payload = renderDiscord(response);
-    const url = `https://discord.com/api/v10/webhooks/${appId}/${interactionToken}/messages/@original`;
-    await fetch(url, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload.data),
+    await this.client.patchOriginalMessage(interactionToken, payload.data);
+  }
+
+  async sendProactive(
+    target: ProactiveTarget,
+    response: BotResponse
+  ): Promise<boolean> {
+    if (!this.client) {
+      return false;
+    }
+
+    const payload = renderDiscord(response);
+    return await this.client.sendDm(target.platformUserId, {
+      embeds: payload.data.embeds as unknown as Record<string, unknown>[],
+      components: payload.data.components as unknown as Record<
+        string,
+        unknown
+      >[],
     });
   }
 

@@ -1,4 +1,4 @@
-export type { PlatformAdapter } from "./adapters";
+export type { PlatformAdapter, ProactiveTarget } from "./adapters";
 export {
   type BotInstallation,
   BotInstallationSchema,
