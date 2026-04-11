@@ -1,12 +1,17 @@
-import { ragAnswer } from "@openbeam/services";
+import { detectLanguage, ragAnswer } from "@openbeam/services";
 import type {
   BotResponse,
   Citation,
   UnifiedMessage,
 } from "@openbeam/types/bot";
+import { buildMultilingualSystemPrompt } from "../ai/prompts";
 import type { ResolvedIdentity } from "../identity/resolver";
 import { appendTurn, formatContextForQuery, getSession } from "../memory";
 import { stripCommandPrefix } from "./utils";
+
+const CONFIDENCE_VERY_LOW = 0.3;
+const CONFIDENCE_LOW = 0.5;
+const CONFIDENCE_HIGH = 0.8;
 
 export async function handleAsk(
   message: UnifiedMessage,
@@ -33,9 +38,16 @@ export async function handleAsk(
     ? `${contextPrefix}\n\nCurrent question: ${question}`
     : question;
 
+  const lang = detectLanguage(question);
+  const systemPrompt =
+    lang.iso6391 !== "en"
+      ? buildMultilingualSystemPrompt(lang.iso6391)
+      : undefined;
+
   const result = await ragAnswer({
     query: enrichedQuery,
     teamId: identity.teamId,
+    systemPrompt,
   });
 
   const turnParams = {
@@ -79,11 +91,22 @@ export async function handleAsk(
       source: c.connectorType ?? undefined,
     }));
 
+  const confidence = result.confidence ?? 0;
+
+  if (confidence < CONFIDENCE_VERY_LOW) {
+    return buildVeryLowConfidenceResponse(question);
+  }
+
+  if (confidence < CONFIDENCE_LOW) {
+    return buildLowConfidenceResponse(result.answer, citations, confidence);
+  }
+
   return {
     type: "answer",
     text: result.answer,
     title: question,
     citations,
+    confidence: confidence >= CONFIDENCE_HIGH ? undefined : confidence,
     responseId: crypto.randomUUID(),
     results: result.citations?.map((c) => ({
       title: c.title ?? "Source",
@@ -93,6 +116,34 @@ export async function handleAsk(
       score: c.relevanceScore ?? 0,
     })),
     followUps: buildFollowUps(question, citations),
+  };
+}
+
+function buildVeryLowConfidenceResponse(question: string): BotResponse {
+  return {
+    type: "text",
+    text: "I don't have enough information to answer that confidently.",
+    responseId: crypto.randomUUID(),
+    followUps: [
+      `Search for "${question}"`,
+      `Find experts on ${question.split(" ").slice(0, 3).join(" ")}`,
+      "Check connected data sources",
+    ],
+  };
+}
+
+function buildLowConfidenceResponse(
+  answer: string,
+  citations: Citation[],
+  confidence: number
+): BotResponse {
+  return {
+    type: "answer",
+    text: answer,
+    citations,
+    confidence,
+    responseId: crypto.randomUUID(),
+    followUps: ["Search for more results", "Find an expert on this topic"],
   };
 }
 

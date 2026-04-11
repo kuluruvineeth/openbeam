@@ -106,6 +106,7 @@ export {
   streamCanvasBuilder,
   withAgentMemory,
 } from "./agents";
+export { buildBotTools, routeWithAgent } from "./agents/specialized/bot";
 export type {
   BackgroundAgentConfig,
   BackgroundAgentResult,

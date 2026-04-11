@@ -1,5 +1,15 @@
 export type { PlatformAdapter, ProactiveTarget } from "./adapters";
 export {
+  type FormDefinition,
+  FormDefinitionSchema,
+  type FormField,
+  FormFieldSchema,
+  type FormFieldType,
+  FormFieldTypeSchema,
+  type FormState,
+  FormStateSchema,
+} from "./forms";
+export {
   type BotInstallation,
   BotInstallationSchema,
   type BotLinkRequest,

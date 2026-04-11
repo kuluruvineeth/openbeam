@@ -57,7 +57,9 @@ export type {
 export {
   askQuestion,
   buildRAGContext,
+  computeConfidence,
   createToolServices,
+  detectLanguage,
   getBatchCachedEmbeddings,
   getCachedEmbedding,
   getConversationManager,

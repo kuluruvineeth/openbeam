@@ -26,14 +26,16 @@ mock.module("@openbeam/redis", () => ({
 
 mock.module("@openbeam/services", () => ({
   hybridSearch: () =>
-    Promise.resolve({ documents: [], total: 0, queryTime: 0 }),
+    Promise.resolve({ documents: [], results: [], total: 0, queryTime: 0 }),
   ragAnswer: () =>
     Promise.resolve({
       answer: "test answer",
       citations: [],
+      confidence: 0.85,
       context: { documents: [] },
       usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
     }),
+  detectLanguage: () => ({ iso6391: "en", confidence: "high" }),
   dispatchAction: () => Promise.resolve({ success: true, data: {} }),
   recordPlatformActivity: () => Promise.resolve(),
   ContextSessionManager: class {
@@ -56,6 +58,15 @@ mock.module("@openbeam/db", () => ({
   default: {},
   searchEntities: () => Promise.resolve([]),
   getExpertsForTopic: () => Promise.resolve([]),
+}));
+
+mock.module("../../src/handlers/agent-router", () => ({
+  routeWithAgent: () => Promise.reject(new Error("mocked: no LLM in tests")),
+}));
+
+mock.module("../../src/forms", () => ({
+  getFormSession: () => Promise.resolve(null),
+  resumeForm: () => Promise.resolve({ type: "text", text: "form" }),
 }));
 
 mock.module("../../src/memory", () => ({

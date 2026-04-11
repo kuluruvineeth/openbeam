@@ -1,6 +1,8 @@
 import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
+import { getFormSession, resumeForm } from "../forms";
 import type { ResolvedIdentity } from "../identity/resolver";
 import { handleAction } from "./action";
+import { routeWithAgent } from "./agent-router";
 import { handleAsk } from "./ask";
 import { handleExpert } from "./expert";
 import { handleHelp } from "./help";
@@ -27,6 +29,8 @@ const INTENT_PATTERNS: [RegExp, string][] = [
   [/\?$/i, "ask"],
 ];
 
+const MIN_MEANINGFUL_LENGTH = 10;
+
 export async function routeMessage(
   message: UnifiedMessage,
   identity: ResolvedIdentity
@@ -42,21 +46,48 @@ export async function routeMessage(
   }
 
   if (message.isDirectMessage || message.isMention) {
-    return await detectAndRoute(message, identity);
+    return await hybridRoute(message, identity);
   }
 
   return { type: "text", text: "Mention me or use a command to get started." };
 }
 
-function detectAndRoute(
+async function hybridRoute(
   message: UnifiedMessage,
   identity: ResolvedIdentity
 ): Promise<BotResponse> {
   const text = message.text.trim();
 
-  if (GREETING_RE.test(text)) {
-    return Promise.resolve(handleGreeting());
+  const conversationKey = `${message.channelId}:${message.platformUserId}`;
+  const formSession = await getFormSession(message.platform, conversationKey);
+  if (formSession) {
+    return resumeForm(formSession.state, formSession.fields, text);
   }
+
+  if (GREETING_RE.test(text)) {
+    return handleGreeting();
+  }
+
+  if (text.length < MIN_MEANINGFUL_LENGTH) {
+    return {
+      type: "text",
+      text: "Could you provide more detail? Try asking a question or using a command.",
+      followUps: ["help", "search <query>", "ask <question>"],
+    };
+  }
+
+  try {
+    return await routeWithAgent(message, identity);
+  } catch {
+    return regexFallback(message, identity);
+  }
+}
+
+function regexFallback(
+  message: UnifiedMessage,
+  identity: ResolvedIdentity
+): Promise<BotResponse> {
+  const text = message.text.trim();
 
   for (const [pattern, intent] of INTENT_PATTERNS) {
     if (pattern.test(text)) {

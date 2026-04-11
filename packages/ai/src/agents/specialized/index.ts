@@ -9,6 +9,7 @@ export {
   SOURCE_SPECIFIC_ANALYST_PROMPT,
   slackAnalystConfig,
 } from "./analyst";
+export { buildBotTools, routeWithAgent } from "./bot";
 export {
   BROWSER_AGENT_PROMPT,
   browserAgent,

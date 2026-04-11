@@ -8,6 +8,7 @@ import {
 } from "@openbeam/ai";
 import { searchService } from "../search/service";
 import type { ScoredMedia, SearchScoredDocument } from "../search/types";
+import { computeConfidence } from "./confidence";
 import type {
   AnswerCitation,
   RAGAnswer,
@@ -231,6 +232,7 @@ export async function ragAnswer(params: RAGAnswerParams): Promise<RAGAnswer> {
       answer:
         "I couldn't find any relevant documents to answer your question. Please try rephrasing your query or check if the relevant data has been synced.",
       citations: [],
+      confidence: 0,
       context,
       usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
       latencyMs: Date.now() - startTime,
@@ -270,9 +272,16 @@ export async function ragAnswer(params: RAGAnswerParams): Promise<RAGAnswer> {
     };
   });
 
+  const confidence = computeConfidence(
+    result.content,
+    citations,
+    context.documents.length
+  );
+
   return {
     answer: result.content,
     citations,
+    confidence,
     context,
     usage: {
       promptTokens: result.usage.inputTokens,

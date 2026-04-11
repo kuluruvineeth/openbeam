@@ -1,3 +1,4 @@
+export { computeConfidence } from "./confidence";
 export {
   getBatchCachedEmbeddings,
   getCachedEmbedding,
@@ -6,7 +7,6 @@ export {
   setBatchCachedEmbeddings,
   setCachedEmbedding,
 } from "./embedding-cache";
-
 export {
   hybridSearch,
   keywordSearch,
@@ -14,6 +14,7 @@ export {
 } from "./hybrid-search";
 export type { AIInitOptions } from "./init";
 export { initializeAI, isAIInitialized, resetAIInitialization } from "./init";
+export { detectLanguage } from "./language";
 export type {
   BuiltContext,
   CitationMatch,

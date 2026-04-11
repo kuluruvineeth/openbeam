@@ -70,6 +70,7 @@ export interface RAGAnswerParams extends RAGContextParams {
 export interface RAGAnswer {
   answer: string;
   citations: AnswerCitation[];
+  confidence: number;
   context: RAGContext;
   usage: {
     promptTokens: number;
