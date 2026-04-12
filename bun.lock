@@ -958,7 +958,6 @@
         "@openbeam/analytics": "workspace:*",
         "@openbeam/db": "workspace:*",
         "@openbeam/integrations": "workspace:*",
-        "@openbeam/mcp-server": "workspace:*",
         "@openbeam/media": "workspace:*",
         "@openbeam/observability": "workspace:*",
         "@openbeam/redis": "workspace:*",
