@@ -873,6 +873,7 @@ export type {
 export {
   createGetToolParameters,
   createUnimplementedServices,
+  deriveApprovalPattern,
   registerAllTools,
   ToolRegistry,
   tool,

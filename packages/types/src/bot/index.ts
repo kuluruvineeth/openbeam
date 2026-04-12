@@ -30,6 +30,8 @@ export {
   CitationSchema,
   type ExpertItem,
   ExpertItemSchema,
+  type InteractionType,
+  InteractionTypeSchema,
   type MessageAttachment,
   MessageAttachmentSchema,
   type ResponseButton,

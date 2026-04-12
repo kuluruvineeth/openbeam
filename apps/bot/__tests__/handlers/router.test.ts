@@ -60,6 +60,11 @@ mock.module("@openbeam/db", () => ({
   getExpertsForTopic: () => Promise.resolve([]),
 }));
 
+mock.module("@openbeam/ai", () => ({
+  deriveApprovalPattern: () => "auto",
+  registry: { chatModel: () => ({}) },
+}));
+
 mock.module("../../src/handlers/agent-router", () => ({
   routeWithAgent: () => Promise.reject(new Error("mocked: no LLM in tests")),
 }));

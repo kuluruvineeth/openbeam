@@ -19,6 +19,10 @@ export const PlatformConfigSchema = z.object({
   supportsRichFormatting: z.boolean(),
   supportsButtons: z.boolean(),
   supportsFiles: z.boolean(),
+  supportsModals: z.boolean(),
+  supportsDeferred: z.boolean(),
+  supportsInputFields: z.boolean(),
+  supportsReactions: z.boolean(),
 });
 export type PlatformConfig = z.infer<typeof PlatformConfigSchema>;
 
@@ -31,6 +35,10 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
+    supportsModals: true,
+    supportsDeferred: false,
+    supportsInputFields: true,
+    supportsReactions: true,
   },
   TEAMS: {
     platform: "TEAMS",
@@ -40,6 +48,10 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
+    supportsModals: false,
+    supportsDeferred: false,
+    supportsInputFields: true,
+    supportsReactions: false,
   },
   DISCORD: {
     platform: "DISCORD",
@@ -49,6 +61,10 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
+    supportsModals: true,
+    supportsDeferred: true,
+    supportsInputFields: true,
+    supportsReactions: false,
   },
   TELEGRAM: {
     platform: "TELEGRAM",
@@ -58,6 +74,10 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
+    supportsModals: false,
+    supportsDeferred: false,
+    supportsInputFields: false,
+    supportsReactions: false,
   },
   WHATSAPP: {
     platform: "WHATSAPP",
@@ -67,5 +87,9 @@ export const PLATFORM_CONFIGS: Record<BotPlatform, PlatformConfig> = {
     supportsRichFormatting: true,
     supportsButtons: true,
     supportsFiles: true,
+    supportsModals: false,
+    supportsDeferred: false,
+    supportsInputFields: false,
+    supportsReactions: true,
   },
 };

@@ -1,6 +1,10 @@
 import db from "@openbeam/db";
 import type { Hono } from "hono";
 import { slackAdapter } from "../adapters";
+import {
+  handleCancellation,
+  handleConfirmation,
+} from "../handlers/confirmation";
 import { handleFeedback, parseFeedbackAction } from "../handlers/feedback";
 import { resolveIdentity } from "../identity/resolver";
 import { extractHeaders, standardWebhook } from "./shared";
@@ -46,37 +50,68 @@ export function registerSlackRoutes(routes: Hono): void {
       | undefined;
     const action = actions?.[0];
 
-    if (
-      !action ||
-      (action.action_id !== "feedback_thumbs_up" &&
-        action.action_id !== "feedback_thumbs_down")
-    ) {
-      return c.json({ ok: true });
-    }
-
-    const parsed = parseFeedbackAction(action.value);
-    if (!parsed) {
+    if (!action) {
       return c.json({ ok: true });
     }
 
     const user = payload.user as { id: string } | undefined;
     const team = payload.team as { id: string } | undefined;
+    if (!(user && team)) {
+      return c.json({ ok: true });
+    }
 
-    if (user && team) {
-      const identity = await resolveIdentity(db, {
-        id: "",
-        platform: "SLACK",
-        platformUserId: user.id,
-        platformTeamId: team.id,
-        channelId: "",
-        text: "",
-        isDirectMessage: false,
-        isMention: false,
-        timestamp: new Date(),
-        rawEvent: null,
+    const identity = await resolveIdentity(db, {
+      id: "",
+      platform: "SLACK",
+      platformUserId: user.id,
+      platformTeamId: team.id,
+      channelId: "",
+      text: "",
+      isDirectMessage: false,
+      isMention: false,
+      timestamp: new Date(),
+      rawEvent: null,
+    });
+
+    if (!identity) {
+      return c.json({ ok: true });
+    }
+
+    if (action.action_id.startsWith("confirm:")) {
+      const pendingId = action.action_id.slice(8);
+      const msg = buildStubMessage(user.id, team.id);
+      const response = await handleConfirmation(msg, identity, pendingId);
+      return c.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: { type: "mrkdwn", text: response.text },
+          },
+        ],
       });
+    }
 
-      if (identity) {
+    if (action.action_id.startsWith("cancel:")) {
+      const pendingId = action.action_id.slice(7);
+      const response = handleCancellation(pendingId);
+      return c.json({
+        replace_original: true,
+        blocks: [
+          {
+            type: "section",
+            text: { type: "mrkdwn", text: response.text },
+          },
+        ],
+      });
+    }
+
+    if (
+      action.action_id === "feedback_thumbs_up" ||
+      action.action_id === "feedback_thumbs_down"
+    ) {
+      const parsed = parseFeedbackAction(action.value);
+      if (parsed) {
         await handleFeedback({
           platform: "SLACK",
           platformUserId: user.id,
@@ -85,8 +120,25 @@ export function registerSlackRoutes(routes: Hono): void {
           identity,
         });
       }
+      return c.json(FEEDBACK_THANKS);
     }
 
-    return c.json(FEEDBACK_THANKS);
+    return c.json({ ok: true });
   });
+}
+
+function buildStubMessage(userId: string, teamId: string) {
+  return {
+    id: "",
+    platform: "SLACK" as const,
+    platformUserId: userId,
+    platformTeamId: teamId,
+    channelId: "",
+    text: "",
+    isDirectMessage: false,
+    isMention: false,
+    timestamp: new Date(),
+    rawEvent: null,
+    interactionType: "button" as const,
+  };
 }

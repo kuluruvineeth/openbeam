@@ -1,6 +1,12 @@
+import { deriveApprovalPattern } from "@openbeam/ai";
 import { dispatchAction } from "@openbeam/services";
-import type { BotResponse, UnifiedMessage } from "@openbeam/types/bot";
+import type {
+  BotResponse,
+  ResponseButton,
+  UnifiedMessage,
+} from "@openbeam/types/bot";
 import type { ResolvedIdentity } from "../identity/resolver";
+import { storePendingAction } from "../lib/pending-actions";
 import { stripCommandPrefix } from "./utils";
 
 const WHITESPACE_RE = /\s+/;
@@ -15,6 +21,56 @@ export async function handleAction(
     return { type: "error", text: parsed.error };
   }
 
+  const approval = deriveApprovalPattern(
+    (parsed.stakes ?? "low") as "low" | "medium" | "high",
+    parsed.reversible ? "easy" : "irreversible"
+  );
+
+  if (approval === "auto") {
+    return executeAction(parsed, identity);
+  }
+
+  const pendingId = await storePendingAction(
+    message.platform,
+    identity.userId,
+    {
+      connectorId: parsed.connectorId,
+      actionId: parsed.actionId,
+      params: parsed.params,
+      teamId: identity.teamId,
+      userId: identity.userId,
+      description: `${parsed.actionId} on ${parsed.connectorId}`,
+      stakes: parsed.stakes ?? "low",
+    }
+  );
+
+  const buttons: ResponseButton[] = [
+    {
+      label: "Confirm",
+      action: `confirm:${pendingId}`,
+      value: pendingId,
+      style: "primary",
+    },
+    {
+      label: "Cancel",
+      action: `cancel:${pendingId}`,
+      value: pendingId,
+      style: "danger",
+    },
+  ];
+
+  return {
+    type: "text",
+    text: `Confirm: ${parsed.actionId} on ${parsed.connectorId}?`,
+    buttons,
+    responseId: crypto.randomUUID(),
+  };
+}
+
+async function executeAction(
+  parsed: ParsedAction,
+  identity: ResolvedIdentity
+): Promise<BotResponse> {
   const result = await dispatchAction({
     connectorId: parsed.connectorId,
     actionId: parsed.actionId,
@@ -27,7 +83,7 @@ export async function handleAction(
   return {
     type: "action_result",
     text: result.success
-      ? `Action "${parsed.actionId}" completed successfully.`
+      ? `Action "${parsed.actionId}" completed.`
       : `Action "${parsed.actionId}" failed: ${result.error ?? "unknown error"}`,
     actionResult: {
       action: parsed.actionId,
@@ -37,14 +93,16 @@ export async function handleAction(
   };
 }
 
-type ParseResult =
-  | {
-      ok: true;
-      connectorId: string;
-      actionId: string;
-      params: Record<string, unknown>;
-    }
-  | { ok: false; error: string };
+interface ParsedAction {
+  ok: true;
+  connectorId: string;
+  actionId: string;
+  params: Record<string, unknown>;
+  stakes?: string;
+  reversible?: boolean;
+}
+
+type ParseResult = ParsedAction | { ok: false; error: string };
 
 function parseActionCommand(text: string): ParseResult {
   const cleaned = stripCommandPrefix(text, "action");

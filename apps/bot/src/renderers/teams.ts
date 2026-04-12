@@ -137,6 +137,18 @@ function buildActions(response: BotResponse): CardElement[] {
   const labels = followUpLabels(response);
   const actions: CardElement[] = [];
 
+  if (response.buttons) {
+    for (const btn of response.buttons) {
+      actions.push({
+        type: "Action.Submit",
+        title: btn.label,
+        ...(btn.style === "primary" && { style: "positive" }),
+        ...(btn.style === "danger" && { style: "destructive" }),
+        data: { action: btn.action, value: btn.value },
+      });
+    }
+  }
+
   for (const item of (response.results ?? []).slice(0, 3)) {
     if (item.url) {
       actions.push({

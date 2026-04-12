@@ -19,6 +19,26 @@ export interface SlackPayload {
 
 export function renderSlack(response: BotResponse): SlackPayload {
   const blocks = renderBlocks(response);
+
+  if (response.buttons && response.buttons.length > 0) {
+    blocks.push(
+      actions(
+        response.buttons.map((btn) => ({
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: truncate(btn.label, 75),
+            emoji: true,
+          },
+          action_id: btn.action,
+          value: btn.value,
+          ...(btn.style === "primary" && { style: "primary" }),
+          ...(btn.style === "danger" && { style: "danger" }),
+        }))
+      )
+    );
+  }
+
   const followUps = followUpLabels(response);
   if (followUps.length > 0) {
     blocks.push(divider());

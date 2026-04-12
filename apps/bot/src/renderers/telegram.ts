@@ -91,6 +91,14 @@ function renderActionResult(response: BotResponse): string {
 function buildKeyboard(response: BotResponse): InlineKeyboardMarkup | null {
   const rows: InlineKeyboardButton[][] = [];
 
+  if (response.buttons && response.buttons.length > 0) {
+    const buttonRow: InlineKeyboardButton[] = response.buttons.map((btn) => ({
+      text: btn.label,
+      callback_data: btn.action.slice(0, 64),
+    }));
+    rows.push(buttonRow);
+  }
+
   const labels = followUpLabels(response);
   for (const label of labels) {
     rows.push([

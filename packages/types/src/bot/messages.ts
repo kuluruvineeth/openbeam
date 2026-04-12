@@ -10,6 +10,15 @@ export const MessageAttachmentSchema = z.object({
 });
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
+export const InteractionTypeSchema = z.enum([
+  "message",
+  "button",
+  "modal_submit",
+  "list_select",
+  "callback",
+]);
+export type InteractionType = z.infer<typeof InteractionTypeSchema>;
+
 export const UnifiedMessageSchema = z.object({
   id: z.string(),
   platform: BotPlatformSchema,
@@ -24,6 +33,10 @@ export const UnifiedMessageSchema = z.object({
   isMention: z.boolean(),
   timestamp: z.date(),
   rawEvent: z.unknown(),
+  interactionType: InteractionTypeSchema.optional(),
+  interactionData: z.record(z.string(), z.unknown()).optional(),
+  callbackQueryId: z.string().optional(),
+  callbackMessageId: z.number().optional(),
 });
 export type UnifiedMessage = z.infer<typeof UnifiedMessageSchema>;
 

@@ -18,6 +18,7 @@ export {
   createErrorResult,
   createSuccessResult,
   defineTool,
+  deriveApprovalPattern,
   failure,
   success,
 } from "./builder";

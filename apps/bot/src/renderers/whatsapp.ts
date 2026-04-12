@@ -26,6 +26,28 @@ export function renderWhatsApp(to: string, response: BotResponse): Payload {
   }
   const text = renderText(response);
 
+  if (response.buttons && response.buttons.length > 0) {
+    return {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: truncate(text, MAX_BODY) },
+        action: {
+          buttons: response.buttons.slice(0, MAX_BUTTONS).map((btn) => ({
+            type: "reply",
+            reply: {
+              id: btn.action.slice(0, 40),
+              title: truncate(btn.label, MAX_BUTTON_TITLE),
+            },
+          })),
+        },
+      },
+    };
+  }
+
   if (response.responseId) {
     const feedbackLabels = ["\ud83d\udc4d Helpful", "\ud83d\udc4e Not helpful"];
     const followUp = followUpLabels(response).slice(0, 1);

@@ -46,6 +46,20 @@ export interface DiscordPayload {
 export function renderDiscord(response: BotResponse): DiscordPayload {
   const embed = renderEmbed(response);
   const components = buildFollowUpRow(response);
+
+  if (response.buttons && response.buttons.length > 0) {
+    const buttonRow: Component = {
+      type: 1,
+      components: response.buttons.map((btn) => ({
+        type: 2,
+        style: buttonStyle(btn.style),
+        label: btn.label,
+        custom_id: btn.action,
+      })),
+    };
+    components.unshift(buttonRow);
+  }
+
   return {
     type: InteractionResponseType.ChannelMessageWithSource,
     data: {
@@ -160,4 +174,14 @@ function buildFollowUpRow(response: BotResponse): Component[] {
   }
 
   return [{ type: 1, components: buttons.slice(0, 5) }];
+}
+
+const BUTTON_STYLES: Record<string, number> = {
+  primary: 3,
+  danger: 4,
+  default: 2,
+};
+
+function buttonStyle(style: string | undefined): number {
+  return BUTTON_STYLES[style ?? "default"] ?? 2;
 }
