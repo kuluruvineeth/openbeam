@@ -43,6 +43,7 @@ export type UnifiedMessage = z.infer<typeof UnifiedMessageSchema>;
 export const BotResponseTypeSchema = z.enum([
   "text",
   "search_results",
+  "briefing",
   "answer",
   "expert_list",
   "action_result",

@@ -56,6 +56,19 @@ export {
   ThrottleDecisionSchema,
 } from "./notifications";
 export {
+  type BriefingResponse,
+  BriefingResponseSchema,
+  type BriefingSection,
+  BriefingSectionSchema,
+  type CapabilityHint,
+  CapabilityHintSchema,
+  type OnboardingState,
+  OnboardingStateSchema,
+  stageFromCount,
+  type UserJourneyStage,
+  UserJourneyStageSchema,
+} from "./onboarding";
+export {
   BOT_PLATFORMS,
   type BotPlatform,
   BotPlatformSchema,

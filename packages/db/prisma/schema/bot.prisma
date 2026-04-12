@@ -67,3 +67,31 @@ model BotLinkRequest {
   @@index([expiresAt])
   @@map("bot_link_request")
 }
+
+model BotUserOnboarding {
+  id                    String    @id @default(cuid()) @map("_id")
+  teamId                String    @map("team_id")
+  userId                String    @map("user_id")
+  platform              BotPlatform
+  queryCount            Int       @default(0) @map("query_count")
+  stage                 String    @default("TOURIST")
+  firstQueryAt          DateTime? @map("first_query_at")
+  lastQueryAt           DateTime? @map("last_query_at")
+  discoveredCaps        String[]  @default([]) @map("discovered_caps")
+  streakDays            Int       @default(0) @map("streak_days")
+  longestStreak         Int       @default(0) @map("longest_streak")
+  lastStreakDate        DateTime? @map("last_streak_date")
+  resolvedCount         Int       @default(0) @map("resolved_count")
+  unresolvedCount       Int       @default(0) @map("unresolved_count")
+  milestoneFirstAction  DateTime? @map("milestone_first_action")
+  milestoneFiftyQueries DateTime? @map("milestone_fifty_queries")
+  milestoneFirstDigest  DateTime? @map("milestone_first_digest")
+  milestoneWeekStreak   DateTime? @map("milestone_week_streak")
+  milestoneMonthStreak  DateTime? @map("milestone_month_streak")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@unique([teamId, userId, platform])
+  @@index([teamId])
+  @@map("bot_user_onboarding")
+}
