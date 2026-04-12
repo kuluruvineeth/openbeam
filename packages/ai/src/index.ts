@@ -476,8 +476,6 @@ export {
   MCP_ERROR_CODES,
   MCPServer,
   MCPToolBridge,
-  McpClientPool,
-  mcpClientPool,
   mcpContextToToolContext,
   PromptRegistry,
   parseMessage,

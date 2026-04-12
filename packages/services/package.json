@@ -30,6 +30,7 @@
     "@openbeam/ai": "workspace:*",
     "@openbeam/analytics": "workspace:*",
     "@openbeam/db": "workspace:*",
+    "@openbeam/mcp-server": "workspace:*",
     "@openbeam/integrations": "workspace:*",
     "@openbeam/media": "workspace:*",
     "@openbeam/observability": "workspace:*",

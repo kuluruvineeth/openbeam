@@ -68,7 +68,6 @@ export {
   registeredToolToMCPListItem,
   toolResultToMCPResult,
 } from "./bridge";
-export { McpClientPool, mcpClientPool } from "./client-pool";
 export {
   buildAnalysisPromptMessages,
   buildAnswerPromptMessages,

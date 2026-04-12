@@ -1,6 +1,7 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createProductionMcpServer } from "./server";
 
+export { McpClientPool, mcpClientPool } from "./client-pool";
 export type { AuditSink, McpAuditEntry } from "./middleware/audit";
 export {
   auditToolCall,

@@ -1,4 +1,4 @@
-import type { McpClientPool } from "@openbeam/ai";
+import type { McpClientPool } from "@openbeam/mcp-server/client";
 import {
   sanitizeToolDescription,
   sanitizeToolName,

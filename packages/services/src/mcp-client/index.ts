@@ -1,6 +1,6 @@
-import { mcpClientPool } from "@openbeam/ai";
 import type { Database } from "@openbeam/db";
 import { decryptIfEncrypted } from "@openbeam/db";
+import { mcpClientPool } from "@openbeam/mcp-server/client";
 import { logger } from "../lib/logger";
 import { deriveSlug } from "./sanitize";
 import { externalToolRegistry } from "./tool-registry";
