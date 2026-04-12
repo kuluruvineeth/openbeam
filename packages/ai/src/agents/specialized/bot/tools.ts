@@ -40,7 +40,7 @@ export function buildBotTools(ctx: BotToolContext) {
         query: z.string(),
         limit: z.number().optional().default(10),
       }),
-      execute: async ({ query, limit }: { query: string; limit?: number }) => {
+      execute: async ({ query, limit }) => {
         const results = await ctx.hybridSearch({
           query,
           teamId: ctx.teamId,
@@ -66,7 +66,7 @@ export function buildBotTools(ctx: BotToolContext) {
       parameters: z.object({
         question: z.string(),
       }),
-      execute: async ({ question }: { question: string }) => {
+      execute: async ({ question }) => {
         const result = await ctx.ragAnswer({
           query: question,
           teamId: ctx.teamId,
@@ -92,7 +92,7 @@ export function buildBotTools(ctx: BotToolContext) {
       parameters: z.object({
         topic: z.string(),
       }),
-      execute: async ({ topic }: { topic: string }) => {
+      execute: async ({ topic }) => {
         const results = await ctx.hybridSearch({
           query: topic,
           teamId: ctx.teamId,

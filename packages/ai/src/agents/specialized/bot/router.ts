@@ -1,6 +1,6 @@
+import type { ProviderId } from "@openbeam/types/ai";
 import { generateText, stepCountIs } from "ai";
 import { registry } from "../../../providers/registry";
-import type { ProviderId } from "../../../providers/types";
 import { buildBotTools } from "./tools";
 
 const ROUTER_SYSTEM_PROMPT = [
