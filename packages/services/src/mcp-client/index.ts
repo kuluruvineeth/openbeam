@@ -1,6 +1,5 @@
 import type { Database } from "@openbeam/db";
 import { decryptIfEncrypted } from "@openbeam/db";
-import { mcpClientPool } from "@openbeam/mcp-server/client";
 import { logger } from "../lib/logger";
 import { deriveSlug } from "./sanitize";
 import { externalToolRegistry } from "./tool-registry";
@@ -22,6 +21,33 @@ interface PluginServerRow {
   authTokenIv: string | null;
 }
 
+interface PoolEntry {
+  tools: Array<{
+    name: string;
+    description?: string;
+    inputSchema?: Record<string, unknown>;
+  }>;
+}
+
+interface ClientPool {
+  get(
+    serverId: string,
+    config: {
+      url: string;
+      authToken?: string;
+      serverId: string;
+      serverName: string;
+    }
+  ): Promise<PoolEntry>;
+  healthCheck(serverId: string): Promise<boolean>;
+  disconnect(serverId: string): Promise<void>;
+  getTools(serverId: string): Array<{
+    name: string;
+    description?: string;
+    inputSchema?: Record<string, unknown>;
+  }>;
+}
+
 function decryptAuthToken(server: PluginServerRow): string | undefined {
   if (!server.authTokenEncrypted) {
     return;
@@ -34,6 +60,7 @@ function decryptAuthToken(server: PluginServerRow): string | undefined {
 
 export async function syncPluginTools(
   db: Database,
+  pool: ClientPool,
   teamId: string
 ): Promise<number> {
   const servers = await db.mcpPluginServer.findMany({
@@ -44,7 +71,7 @@ export async function syncPluginTools(
 
   for (const server of servers) {
     try {
-      const entry = await mcpClientPool.get(server.id, {
+      const entry = await pool.get(server.id, {
         url: server.url,
         authToken: decryptAuthToken(server),
         serverId: server.id,
@@ -90,6 +117,7 @@ export async function syncPluginTools(
 
 export async function installPlugin(
   db: Database,
+  pool: ClientPool,
   params: {
     teamId: string;
     userId: string;
@@ -119,7 +147,7 @@ export async function installPlugin(
     },
   });
 
-  const entry = await mcpClientPool.get(server.id, {
+  const entry = await pool.get(server.id, {
     url: params.url,
     authToken: params.authToken,
     serverId: server.id,
@@ -143,25 +171,27 @@ export async function installPlugin(
 
 export async function uninstallPlugin(
   db: Database,
+  pool: ClientPool,
   pluginId: string
 ): Promise<void> {
   externalToolRegistry.unregister(pluginId);
-  await mcpClientPool.disconnect(pluginId);
+  await pool.disconnect(pluginId);
   await db.mcpPluginServer.delete({ where: { id: pluginId } });
 }
 
 export async function refreshPluginTools(
   db: Database,
+  pool: ClientPool,
   pluginId: string
 ): Promise<number> {
   const server = await db.mcpPluginServer.findUniqueOrThrow({
     where: { id: pluginId },
   });
 
-  const healthy = await mcpClientPool.healthCheck(pluginId);
+  const healthy = await pool.healthCheck(pluginId);
   if (!healthy) {
-    await mcpClientPool.disconnect(pluginId);
-    await mcpClientPool.get(pluginId, {
+    await pool.disconnect(pluginId);
+    await pool.get(pluginId, {
       url: server.url,
       authToken: decryptAuthToken(server),
       serverId: pluginId,
@@ -169,7 +199,7 @@ export async function refreshPluginTools(
     });
   }
 
-  const tools = mcpClientPool.getTools(pluginId);
+  const tools = pool.getTools(pluginId);
   externalToolRegistry.unregister(pluginId);
   externalToolRegistry.register(pluginId, server.slug, tools);
 
@@ -190,9 +220,10 @@ export async function refreshPluginTools(
 
 export async function checkPluginHealth(
   db: Database,
+  pool: ClientPool,
   pluginId: string
 ): Promise<boolean> {
-  const healthy = await mcpClientPool.healthCheck(pluginId);
+  const healthy = await pool.healthCheck(pluginId);
 
   if (healthy) {
     await db.mcpPluginServer.update({

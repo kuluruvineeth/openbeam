@@ -1,4 +1,3 @@
-import type { McpClientPool } from "@openbeam/mcp-server/client";
 import {
   sanitizeToolDescription,
   sanitizeToolName,
@@ -6,6 +5,17 @@ import {
 } from "./sanitize";
 
 const NAMESPACE_SEPARATOR = "__";
+
+interface ToolCallClient {
+  callTool(params: {
+    name: string;
+    arguments: Record<string, unknown>;
+  }): Promise<{ content: unknown }>;
+}
+
+interface ClientPool {
+  getClient(serverId: string): ToolCallClient | undefined;
+}
 
 interface ExternalToolDefinition {
   name: string;
@@ -66,7 +76,7 @@ export class ExternalToolRegistry {
   }
 
   async callTool(
-    pool: McpClientPool,
+    pool: ClientPool,
     namespacedName: string,
     args: Record<string, unknown>
   ): Promise<string> {
