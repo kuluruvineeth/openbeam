@@ -53,7 +53,7 @@ CREATE INDEX IF NOT EXISTS "bot_notification_event_team_id_user_id_event_type_cr
 CREATE INDEX IF NOT EXISTS "bot_notification_event_team_id_dedup_key_created_at_idx" ON "bot_notification_event"("team_id", "dedup_key", "created_at" DESC);
 
 -- AddForeignKey
-ALTER TABLE "bot_notification_preference" ADD CONSTRAINT "bot_notification_preference_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bot_notification_preference" ADD CONSTRAINT "bot_notification_preference_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "bot_notification_event" ADD CONSTRAINT "bot_notification_event_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bot_notification_event" ADD CONSTRAINT "bot_notification_event_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
