@@ -1506,6 +1506,15 @@ export {
   incrementalSync as matterportIncrementalSync,
   MatterportApiError,
 } from "./matterport";
+export {
+  checkPluginHealth,
+  ExternalToolRegistry,
+  externalToolRegistry,
+  installPlugin,
+  refreshPluginTools,
+  syncPluginTools,
+  uninstallPlugin,
+} from "./mcp-client";
 export type {
   CachedMediaContent,
   ContentType,

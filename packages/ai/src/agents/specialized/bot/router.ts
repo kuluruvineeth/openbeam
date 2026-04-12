@@ -24,6 +24,7 @@ interface RouteParams {
   systemPromptSuffix?: string;
   hybridSearch: Parameters<typeof buildBotTools>[0]["hybridSearch"];
   ragAnswer: Parameters<typeof buildBotTools>[0]["ragAnswer"];
+  externalTools?: Record<string, unknown>;
 }
 
 interface RouteResult {
@@ -45,17 +46,21 @@ export async function routeWithAgent(
     params.modelId
   );
 
-  const tools = buildBotTools({
+  const nativeTools = buildBotTools({
     teamId: params.teamId,
     hybridSearch: params.hybridSearch,
     ragAnswer: params.ragAnswer,
   });
 
+  const mergedTools = params.externalTools
+    ? { ...nativeTools, ...(params.externalTools as typeof nativeTools) }
+    : nativeTools;
+
   const result = await generateText({
     model: chatModel,
     system: systemParts.join("\n\n"),
     messages: [{ role: "user", content: params.text }],
-    tools,
+    tools: mergedTools,
     stopWhen: stepCountIs(3),
   });
 

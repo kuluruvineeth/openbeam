@@ -94,6 +94,7 @@ model Team {
 
   mcpNotifications           McpNotification[]
   mcpNotificationPreferences McpNotificationPreference[]
+  mcpPluginServers           McpPluginServer[]
 
   botUserLinks              BotUserLink[]
   botInstallations          BotInstallation[]

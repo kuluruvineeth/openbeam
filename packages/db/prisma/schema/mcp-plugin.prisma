@@ -1,0 +1,62 @@
+enum McpPluginAuthType {
+  NONE
+  BEARER_TOKEN
+  OAUTH2
+}
+
+enum McpPluginStatus {
+  PENDING
+  HEALTHY
+  UNHEALTHY
+  DISABLED
+}
+
+model McpPluginServer {
+  id                  String          @id @default(cuid()) @map("_id")
+  teamId              String          @map("team_id")
+  installedBy         String          @map("installed_by")
+  name                String
+  slug                String
+  description         String?
+  url                 String
+  authType            McpPluginAuthType @default(NONE) @map("auth_type")
+  authTokenEncrypted  String?         @map("auth_token_encrypted")
+  authTokenIv         String?         @map("auth_token_iv")
+  authTokenPrefix     String?         @map("auth_token_prefix")
+  scopes              String[]        @default([])
+  toolsCache          Json?           @map("tools_cache")
+  toolsCachedAt       DateTime?       @map("tools_cached_at")
+  status              McpPluginStatus @default(PENDING)
+  lastHealthAt        DateTime?       @map("last_health_at")
+  lastHealthError     String?         @map("last_health_error")
+  healthFailCount     Int             @default(0) @map("health_fail_count")
+  enabled             Boolean         @default(true)
+  installedAt         DateTime        @default(now()) @map("installed_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  team   Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tokens McpPluginToken[]
+
+  @@unique([teamId, slug])
+  @@index([teamId, enabled])
+  @@index([status, enabled])
+  @@map("mcp_plugin_server")
+}
+
+model McpPluginToken {
+  id                      String   @id @default(cuid()) @map("_id")
+  pluginServerId          String   @map("plugin_server_id")
+  userId                  String   @map("user_id")
+  accessTokenEncrypted    String   @map("access_token_encrypted")
+  accessTokenIv           String   @map("access_token_iv")
+  refreshTokenEncrypted   String?  @map("refresh_token_encrypted")
+  refreshTokenIv          String?  @map("refresh_token_iv")
+  expiresAt               DateTime? @map("expires_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  pluginServer McpPluginServer @relation(fields: [pluginServerId], references: [id], onDelete: Cascade)
+
+  @@unique([pluginServerId, userId])
+  @@map("mcp_plugin_token")
+}

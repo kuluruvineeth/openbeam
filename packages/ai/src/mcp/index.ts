@@ -68,6 +68,7 @@ export {
   registeredToolToMCPListItem,
   toolResultToMCPResult,
 } from "./bridge";
+export { McpClientPool, mcpClientPool } from "./client-pool";
 export {
   buildAnalysisPromptMessages,
   buildAnswerPromptMessages,
@@ -120,7 +121,6 @@ export {
   MCPServer,
   parseMessage,
 } from "./server";
-
 export type {
   MCPErrorCode,
   MCPMessageHandler,

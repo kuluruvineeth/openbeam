@@ -8,9 +8,11 @@ import {
   listToolsHandler,
   readResourceHandler,
 } from "./mcp.handlers";
+import wellKnown from "./mcp.well-known";
 
 const mcp = new Hono<AuthEnv>();
 
+mcp.route("/", wellKnown);
 mcp.use("/*", requireAuth);
 
 mcp.get("/tools", listToolsHandler);
