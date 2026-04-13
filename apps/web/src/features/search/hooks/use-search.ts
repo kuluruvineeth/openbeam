@@ -453,17 +453,14 @@ export function useSearchAutocomplete(
   options?: { enabled?: boolean }
 ) {
   const trpc = useTRPC();
-  const debouncedQuery = useDebounce(query, 150);
+  const debouncedQuery = useDebounce(query, 100);
   const shouldFetch =
-    debouncedQuery.trim().length >= 2 && options?.enabled !== false;
+    debouncedQuery.trim().length >= 1 && options?.enabled !== false;
 
   return useQuery({
-    ...trpc.search.unified.queryOptions({
+    ...trpc.search.autocomplete.queryOptions({
       q: debouncedQuery,
       limit: 8,
-      includeDocuments: true,
-      includeMedia: true,
-      ranking: "bm25",
     }),
     enabled: shouldFetch,
     placeholderData: keepPreviousData,

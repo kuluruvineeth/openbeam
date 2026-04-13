@@ -192,3 +192,24 @@ export type SearchTiming = {
   fusionMs: number;
   totalMs: number;
 };
+
+export type AutocompleteEntitySuggestion = {
+  id: string;
+  type: "entity";
+  label: string;
+  entityType: string;
+  mentionCount: number;
+};
+
+export type AutocompleteDocSuggestion = {
+  id: string;
+  type: "document";
+  label: string;
+  url?: string | null;
+  connectorType?: string | null;
+  snippet?: string | null;
+};
+
+export type AutocompleteSuggestion =
+  | AutocompleteEntitySuggestion
+  | AutocompleteDocSuggestion;

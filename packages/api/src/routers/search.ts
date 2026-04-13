@@ -1,3 +1,4 @@
+import { searchEntities } from "@openbeam/db";
 import {
   getStorageProvider,
   hybridSearchOrchestrator,
@@ -671,5 +672,64 @@ export const searchRouter = createTRPCRouter({
       });
 
       return result;
+    }),
+
+  autocomplete: withActiveTeam
+    .input(
+      z.object({
+        q: z.string().min(1).max(200),
+        limit: z.number().min(1).max(20).default(8),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const startMs = performance.now();
+      const query = input.q.trim();
+      const entityLimit = Math.min(input.limit, 5);
+      const docLimit = input.limit;
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const [entities, docResults] = await Promise.all([
+        searchEntities(ctx.prisma, {
+          teamId: ctx.teamId,
+          query,
+          limit: entityLimit,
+        }),
+        searchService.search({
+          query,
+          teamId: ctx.teamId,
+          limit: docLimit,
+          offset: 0,
+          accessControlIds,
+          ranking: "bm25" as SearchRanking,
+        }),
+      ]);
+
+      const entitySuggestions = entities.map((e) => ({
+        id: e.id,
+        type: "entity" as const,
+        label: e.normalizedName,
+        entityType: e.type,
+        mentionCount: e.mentionCount,
+      }));
+
+      const documentSuggestions = (docResults.documents ?? [])
+        .slice(0, docLimit)
+        .map((d) => ({
+          id: d.id,
+          type: "document" as const,
+          label: d.title ?? "Untitled",
+          url: d.url,
+          connectorType: d.connector_type,
+          snippet:
+            d.content && d.content.length > 80
+              ? `${d.content.slice(0, 80)}...`
+              : (d.content ?? null),
+        }));
+
+      return {
+        entities: entitySuggestions,
+        documents: documentSuggestions,
+        queryTimeMs: Math.round(performance.now() - startMs),
+      };
     }),
 });

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDocumentPreview } from "@/features/file-preview";
 import { useSearch } from "../hooks/use-search";
-import type { UnifiedSearchItem } from "../types";
+import type { AutocompleteSuggestion } from "../types";
 import { SearchCommand } from "./search-command";
 import { SearchExpanded } from "./search-expanded";
 
@@ -28,12 +28,16 @@ export function SearchPage() {
     [setQuery]
   );
 
-  const handleSelectItem = useCallback(
-    (item: UnifiedSearchItem) => {
-      const itemTitle = item.data.title || "";
-      setQuery(itemTitle);
-      setHasSearched(true);
-      openPreview(item.data.id, item.type === "media" ? "media" : "document");
+  const handleSelectSuggestion = useCallback(
+    (suggestion: AutocompleteSuggestion) => {
+      if (suggestion.type === "document") {
+        setQuery(suggestion.label);
+        setHasSearched(true);
+        openPreview(suggestion.id, "document");
+      } else {
+        setQuery(suggestion.label);
+        setHasSearched(true);
+      }
     },
     [setQuery, openPreview]
   );
@@ -44,7 +48,7 @@ export function SearchPage() {
         <SearchExpanded />
       ) : (
         <SearchCommand
-          onSelectItem={handleSelectItem}
+          onSelectSuggestion={handleSelectSuggestion}
           onSubmit={handleSubmit}
         />
       )}

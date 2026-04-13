@@ -2,20 +2,20 @@
 
 import { Input } from "@openbeam/ui";
 import { Command as CommandPrimitive } from "cmdk";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useSearchAutocomplete } from "../hooks/use-search";
-import type { UnifiedSearchItem } from "../types";
+import type { AutocompleteSuggestion } from "../types";
 import { SearchCommandDropdown } from "./search-command-dropdown";
 
 type Props = {
   onSubmit: (query: string) => void;
-  onSelectItem: (item: UnifiedSearchItem) => void;
+  onSelectSuggestion?: (suggestion: AutocompleteSuggestion) => void;
 };
 
-export function SearchCommand({ onSubmit, onSelectItem }: Props) {
+export function SearchCommand({ onSubmit, onSelectSuggestion }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localQuery, setLocalQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -24,8 +24,14 @@ export function SearchCommand({ onSubmit, onSelectItem }: Props) {
     enabled: isFocused,
   });
 
-  const items = data?.items ?? [];
-  const showDropdown = isFocused && localQuery.length >= 2;
+  const suggestions = useMemo<AutocompleteSuggestion[]>(() => {
+    if (!data) {
+      return [];
+    }
+    return [...(data.entities ?? []), ...(data.documents ?? [])];
+  }, [data]);
+
+  const showDropdown = isFocused && localQuery.length >= 1;
 
   useHotkeys(
     "mod+k",
@@ -83,7 +89,7 @@ export function SearchCommand({ onSubmit, onSelectItem }: Props) {
                   onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                   onFocus={() => setIsFocused(true)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && items.length === 0) {
+                    if (e.key === "Enter" && suggestions.length === 0) {
                       e.preventDefault();
                       handleSubmit();
                     }
@@ -94,7 +100,7 @@ export function SearchCommand({ onSubmit, onSelectItem }: Props) {
                   type="text"
                 />
               </CommandPrimitive.Input>
-              {isFetching && localQuery.length >= 2 && (
+              {isFetching && localQuery.length >= 1 && (
                 <Icons.Spinner
                   className="shrink-0 animate-spin text-foreground/30"
                   size={14}
@@ -120,10 +126,17 @@ export function SearchCommand({ onSubmit, onSelectItem }: Props) {
 
           {showDropdown && (
             <SearchCommandDropdown
+              documents={data?.documents ?? []}
+              entities={data?.entities ?? []}
               isFetching={isFetching}
-              items={items}
               onExpandAll={handleSubmit}
-              onSelect={onSelectItem}
+              onSelect={(s) => {
+                if (s.type === "entity") {
+                  onSubmit(s.label);
+                } else {
+                  onSelectSuggestion?.(s);
+                }
+              }}
             />
           )}
         </CommandPrimitive>
