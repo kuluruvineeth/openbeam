@@ -4,9 +4,12 @@ import type { ResolvedIdentity } from "../identity/resolver";
 import { handleAction } from "./action";
 import { routeWithAgent } from "./agent-router";
 import { handleAsk } from "./ask";
+import { handleDocumentUpload } from "./document-handler";
 import { handleExpert } from "./expert";
 import { handleHelp } from "./help";
+import { handleImageMessage } from "./image-handler";
 import { handleSearch } from "./search";
+import { handleVoiceMessage } from "./voice-handler";
 
 type Handler = (
   msg: UnifiedMessage,
@@ -35,6 +38,11 @@ export async function routeMessage(
   message: UnifiedMessage,
   identity: ResolvedIdentity
 ): Promise<BotResponse> {
+  const attachmentResponse = await routeAttachment(message, identity);
+  if (attachmentResponse) {
+    return attachmentResponse;
+  }
+
   if (message.command) {
     if (message.command === "help") {
       return handleHelp();
@@ -116,4 +124,26 @@ function handleGreeting(): BotResponse {
       "Or just ask me anything directly.",
     ].join("\n"),
   };
+}
+
+async function routeAttachment(
+  message: UnifiedMessage,
+  identity: ResolvedIdentity
+): Promise<BotResponse | null> {
+  const attachment = message.attachments?.[0];
+  if (!attachment) {
+    return null;
+  }
+
+  switch (attachment.type) {
+    case "audio":
+      return await handleVoiceMessage(message, identity);
+    case "image":
+      return await handleImageMessage(message, identity);
+    case "document":
+    case "file":
+      return await handleDocumentUpload(message, identity);
+    default:
+      return null;
+  }
 }

@@ -1536,6 +1536,7 @@ export {
   mediaIndexService,
   mediaMetadataService,
 } from "./media";
+export { downloadMedia } from "./media-download";
 export type {
   DocumentResult,
   EmailMessage,
@@ -2596,6 +2597,7 @@ export {
   startSession,
   updateSettings,
 } from "./voice";
+export { transcribeVoiceNote } from "./voice-transcription";
 export type { WhatsAppClient } from "./whatsapp";
 export {
   createWhatsAppClient,

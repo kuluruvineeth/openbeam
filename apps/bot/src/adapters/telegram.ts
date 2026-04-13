@@ -2,6 +2,7 @@ import type { TelegramClient } from "@openbeam/services";
 import { createTelegramClient } from "@openbeam/services";
 import type {
   BotResponse,
+  MessageAttachment,
   PlatformAdapter,
   PlatformConfig,
   ProactiveTarget,
@@ -31,12 +32,42 @@ const TelegramChatSchema = z.object({
   username: z.string().optional(),
 });
 
+const TelegramFileSchema = z.object({
+  file_id: z.string(),
+  file_unique_id: z.string(),
+  file_size: z.number().optional(),
+  duration: z.number().optional(),
+  mime_type: z.string().optional(),
+});
+
+const TelegramPhotoSchema = z.object({
+  file_id: z.string(),
+  file_unique_id: z.string(),
+  width: z.number(),
+  height: z.number(),
+  file_size: z.number().optional(),
+});
+
+const TelegramDocumentSchema = z.object({
+  file_id: z.string(),
+  file_unique_id: z.string(),
+  file_name: z.string().optional(),
+  mime_type: z.string().optional(),
+  file_size: z.number().optional(),
+});
+
 const TelegramMessageSchema = z.object({
   message_id: z.number(),
   from: TelegramUserSchema.optional(),
   chat: TelegramChatSchema,
   date: z.number(),
   text: z.string().optional(),
+  voice: TelegramFileSchema.optional(),
+  audio: TelegramFileSchema.optional(),
+  photo: z.array(TelegramPhotoSchema).optional(),
+  document: TelegramDocumentSchema.optional(),
+  video: TelegramFileSchema.optional(),
+  caption: z.string().optional(),
 });
 
 const TelegramUpdateSchema = z.object({
@@ -108,8 +139,56 @@ export class TelegramAdapter implements PlatformAdapter {
       return Promise.resolve(null);
     }
 
-    const text = message.text ?? "";
+    const text = message.text ?? message.caption ?? "";
     const { command, body } = parseText(text);
+
+    const attachments: MessageAttachment[] = [];
+    if (message.voice) {
+      attachments.push({
+        type: "audio",
+        platformMediaId: message.voice.file_id,
+        mimeType: message.voice.mime_type,
+        duration: message.voice.duration,
+        size: message.voice.file_size,
+      });
+    }
+    if (message.audio) {
+      attachments.push({
+        type: "audio",
+        platformMediaId: message.audio.file_id,
+        mimeType: message.audio.mime_type,
+        duration: message.audio.duration,
+        size: message.audio.file_size,
+      });
+    }
+    if (message.photo && message.photo.length > 0) {
+      const largest = message.photo.at(-1);
+      if (largest) {
+        attachments.push({
+          type: "image",
+          platformMediaId: largest.file_id,
+          size: largest.file_size,
+        });
+      }
+    }
+    if (message.document) {
+      attachments.push({
+        type: "document",
+        platformMediaId: message.document.file_id,
+        name: message.document.file_name,
+        mimeType: message.document.mime_type,
+        size: message.document.file_size,
+      });
+    }
+    if (message.video) {
+      attachments.push({
+        type: "video",
+        platformMediaId: message.video.file_id,
+        mimeType: message.video.mime_type,
+        duration: message.video.duration,
+        size: message.video.file_size,
+      });
+    }
 
     return Promise.resolve({
       id: String(update.update_id),
@@ -123,6 +202,7 @@ export class TelegramAdapter implements PlatformAdapter {
       isMention: false,
       timestamp: new Date(message.date * 1000),
       rawEvent: update,
+      ...(attachments.length > 0 && { attachments }),
     });
   }
 

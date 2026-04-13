@@ -3,6 +3,7 @@ import type { WhatsAppClient } from "@openbeam/services";
 import { createWhatsAppClient } from "@openbeam/services";
 import type {
   BotResponse,
+  MessageAttachment,
   PlatformAdapter,
   PlatformConfig,
   ProactiveTarget,
@@ -18,6 +19,12 @@ const WhatsAppMetadataSchema = z.object({
   phone_number_id: z.string(),
 });
 
+const WhatsAppMediaSchema = z.object({
+  id: z.string(),
+  mime_type: z.string().optional(),
+  voice: z.boolean().optional(),
+});
+
 const WhatsAppMessageBaseSchema = z.object({
   id: z.string(),
   from: z.string(),
@@ -25,6 +32,12 @@ const WhatsAppMessageBaseSchema = z.object({
   type: z.string(),
   text: z.object({ body: z.string() }).optional(),
   interactive: z.record(z.string(), z.unknown()).optional(),
+  audio: WhatsAppMediaSchema.optional(),
+  image: WhatsAppMediaSchema.optional(),
+  video: WhatsAppMediaSchema.optional(),
+  document: WhatsAppMediaSchema.extend({
+    filename: z.string().optional(),
+  }).optional(),
 });
 
 type WhatsAppMessage = z.infer<typeof WhatsAppMessageBaseSchema>;
@@ -81,6 +94,47 @@ function extractText(message: WhatsAppMessage): string {
     return reply?.title ?? "";
   }
   return "";
+}
+
+function extractAttachments(message: WhatsAppMessage): MessageAttachment[] {
+  if (message.audio) {
+    return [
+      {
+        type: "audio",
+        platformMediaId: message.audio.id,
+        mimeType: message.audio.mime_type,
+      },
+    ];
+  }
+  if (message.image) {
+    return [
+      {
+        type: "image",
+        platformMediaId: message.image.id,
+        mimeType: message.image.mime_type,
+      },
+    ];
+  }
+  if (message.video) {
+    return [
+      {
+        type: "video",
+        platformMediaId: message.video.id,
+        mimeType: message.video.mime_type,
+      },
+    ];
+  }
+  if (message.document) {
+    return [
+      {
+        type: "document",
+        platformMediaId: message.document.id,
+        mimeType: message.document.mime_type,
+        name: message.document.filename,
+      },
+    ];
+  }
+  return [];
 }
 
 function buildWhatsAppClient(): WhatsAppClient | null {
@@ -154,7 +208,9 @@ export class WhatsAppAdapter implements PlatformAdapter {
     }
 
     const text = extractText(message);
-    if (!text) {
+    const attachments = extractAttachments(message);
+
+    if (!text && attachments.length === 0) {
       return Promise.resolve(null);
     }
 
@@ -169,6 +225,7 @@ export class WhatsAppAdapter implements PlatformAdapter {
       isMention: false,
       timestamp: new Date(Number(message.timestamp) * 1000),
       rawEvent: rawBody,
+      ...(attachments.length > 0 && { attachments }),
     });
   }
 

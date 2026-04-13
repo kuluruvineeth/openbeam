@@ -2,11 +2,14 @@ import { z } from "zod";
 import { BotPlatformSchema } from "./platforms";
 
 export const MessageAttachmentSchema = z.object({
-  type: z.enum(["file", "image", "link"]),
+  type: z.enum(["file", "image", "link", "audio", "video", "document"]),
   url: z.string().optional(),
   name: z.string().optional(),
   mimeType: z.string().optional(),
   size: z.number().optional(),
+  platformMediaId: z.string().optional(),
+  duration: z.number().optional(),
+  transcription: z.string().optional(),
 });
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
