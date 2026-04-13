@@ -17,6 +17,7 @@ import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
 import { oauthApplicationsRouter } from "./oauth-applications";
+import { onboardingRouter } from "./onboarding";
 import { overviewRouter } from "./overview";
 import { paymentsRouter } from "./payments";
 import { permissionsRouter } from "./permissions";
@@ -47,6 +48,7 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   messages: messagesRouter,
   oauthApplications: oauthApplicationsRouter,
+  onboarding: onboardingRouter,
   overview: overviewRouter,
   payments: paymentsRouter,
   permissions: permissionsRouter,

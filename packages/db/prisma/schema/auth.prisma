@@ -30,7 +30,8 @@ model User {
   voiceSettings VoiceSettings?
   voiceSessions VoiceSession[]
 
-  botUserLinks BotUserLink[]
+  botUserLinks      BotUserLink[]
+  onboardingStates  OnboardingState[]
 
   @@unique([email])
   @@index([teamId])

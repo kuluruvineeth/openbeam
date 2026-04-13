@@ -101,6 +101,8 @@ model Team {
   botNotificationPreferences BotNotificationPreference[]
   botNotificationEvents     BotNotificationEvent[]
 
+  onboardingStates OnboardingState[]
+
   @@map("team")
 }
 

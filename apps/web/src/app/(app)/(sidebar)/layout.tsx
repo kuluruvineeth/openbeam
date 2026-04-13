@@ -20,6 +20,14 @@ export default async function Layout({
     redirect("/teams/create");
   }
 
+  const onboardingState = await queryClient.fetchQuery(
+    trpc.onboarding.isCompleted.queryOptions()
+  );
+
+  if (!onboardingState.completed) {
+    redirect("/onboarding");
+  }
+
   return (
     <HydrateClient>
       <SidebarProvider>

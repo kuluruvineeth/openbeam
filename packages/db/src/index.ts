@@ -73,6 +73,7 @@ export {
 } from "./mutations/mcp-notifications";
 export * from "./mutations/oauth";
 export * from "./mutations/oauth-server";
+export * from "./mutations/onboarding";
 export * from "./mutations/payments";
 export * from "./mutations/permissions";
 export * from "./mutations/rag-interactions";
@@ -119,6 +120,7 @@ export {
   listMcpNotifications,
 } from "./queries/mcp-notifications";
 export * from "./queries/oauth-server";
+export * from "./queries/onboarding";
 export * from "./queries/payments";
 export * from "./queries/permissions";
 export * from "./queries/saved-search";

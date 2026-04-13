@@ -66,14 +66,15 @@ export const onboardingRouter = createTRPCRouter({
         return completeOnboarding(ctx.prisma, userId, ctx.teamId);
       }
 
-      return advanceOnboardingStep(
-        ctx.prisma,
+      return advanceOnboardingStep(ctx.prisma, {
         userId,
-        ctx.teamId,
-        state.currentStep,
-        nextStep as Parameters<typeof advanceOnboardingStep>[4],
-        input.connectorId
-      );
+        teamId: ctx.teamId,
+        completedStep: state.currentStep,
+        nextStep: nextStep as Parameters<
+          typeof advanceOnboardingStep
+        >[1]["nextStep"],
+        connectorId: input.connectorId,
+      });
     }),
 
   skip: withActiveTeam.mutation(({ ctx }) => {
