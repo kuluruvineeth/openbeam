@@ -56,7 +56,9 @@ export function OnboardingWizard() {
     <div className="space-y-6">
       <StepProgress current={stepIndex} total={totalSteps} />
       <StepComponent
-        onAdvance={(connectorId) => advance({ connectorId })}
+        onAdvance={(connectorId: string | undefined) =>
+          advance({ connectorId })
+        }
         onSkip={() => skip()}
       />
     </div>
