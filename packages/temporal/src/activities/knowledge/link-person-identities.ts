@@ -81,6 +81,21 @@ export function createLinkPersonIdentitiesActivity(
       const secondaries = entities.slice(1);
 
       for (const secondary of secondaries) {
+        const existing = await deps.db.entity.findFirst({
+          where: {
+            teamId: input.teamId,
+            type: "PERSON",
+            normalizedName: primary.normalizedName,
+            id: { not: primary.id },
+          },
+          select: { id: true },
+        });
+
+        if (existing && existing.id !== secondary.id) {
+          processed.add(secondary.id);
+          continue;
+        }
+
         const newAliases = new Set([
           ...primary.aliases,
           secondary.normalizedName,
@@ -88,26 +103,38 @@ export function createLinkPersonIdentitiesActivity(
         ]);
         newAliases.delete(primary.normalizedName);
 
-        await deps.db.entity.update({
-          where: { id: primary.id },
-          data: { aliases: [...newAliases] },
+        await deps.db.$transaction(async (tx) => {
+          await tx.entity.update({
+            where: { id: primary.id },
+            data: { aliases: [...newAliases] },
+          });
+
+          await tx.entityMention.updateMany({
+            where: { entityId: secondary.id },
+            data: { entityId: primary.id },
+          });
+
+          await tx.entityRelation.deleteMany({
+            where: {
+              OR: [
+                { fromEntityId: secondary.id, toEntityId: primary.id },
+                { fromEntityId: primary.id, toEntityId: secondary.id },
+              ],
+            },
+          });
+
+          await tx.entityRelation.updateMany({
+            where: { fromEntityId: secondary.id },
+            data: { fromEntityId: primary.id },
+          });
+          await tx.entityRelation.updateMany({
+            where: { toEntityId: secondary.id },
+            data: { toEntityId: primary.id },
+          });
+
+          await tx.entity.delete({ where: { id: secondary.id } });
         });
 
-        await deps.db.entityMention.updateMany({
-          where: { entityId: secondary.id },
-          data: { entityId: primary.id },
-        });
-
-        await deps.db.entityRelation.updateMany({
-          where: { fromEntityId: secondary.id },
-          data: { fromEntityId: primary.id },
-        });
-        await deps.db.entityRelation.updateMany({
-          where: { toEntityId: secondary.id },
-          data: { toEntityId: primary.id },
-        });
-
-        await deps.db.entity.delete({ where: { id: secondary.id } });
         processed.add(secondary.id);
         merged += 1;
       }

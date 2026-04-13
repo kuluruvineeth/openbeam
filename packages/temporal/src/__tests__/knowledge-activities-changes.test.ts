@@ -41,6 +41,7 @@ interface MockDb {
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     updateMany: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
   };
   entity: {
     findFirst: ReturnType<typeof vi.fn>;
@@ -49,6 +50,7 @@ interface MockDb {
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
+  $transaction: ReturnType<typeof vi.fn>;
   entityChange: {
     create: ReturnType<typeof vi.fn>;
     deleteMany: ReturnType<typeof vi.fn>;
@@ -79,6 +81,7 @@ function createMockDb(): MockDb {
       create: vi.fn().mockResolvedValue({}),
       update: vi.fn().mockResolvedValue({}),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     entity: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -97,6 +100,7 @@ function createMockDb(): MockDb {
     indexedDocument: {
       findFirst: vi.fn().mockResolvedValue(null),
     },
+    $transaction: vi.fn(),
   };
 }
 
@@ -774,6 +778,9 @@ describe("linkPersonIdentities activity", () => {
 
   it("merges persons that share an alias", async () => {
     const db = createMockDb();
+    db.$transaction.mockImplementation(
+      async (fn: (tx: unknown) => Promise<unknown>) => fn(db)
+    );
     db.entity.findMany
       .mockResolvedValueOnce([
         {
@@ -808,6 +815,7 @@ describe("linkPersonIdentities activity", () => {
     const result = await activity({ teamId: "team1" });
 
     expect(result.merged).toBe(1);
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
     expect(db.entity.delete).toHaveBeenCalledWith({ where: { id: "e2" } });
     expect(db.entityMention.updateMany).toHaveBeenCalledWith({
       where: { entityId: "e2" },
@@ -818,6 +826,9 @@ describe("linkPersonIdentities activity", () => {
 
   it("keeps entity with highest mention count as primary", async () => {
     const db = createMockDb();
+    db.$transaction.mockImplementation(
+      async (fn: (tx: unknown) => Promise<unknown>) => fn(db)
+    );
     db.entity.findMany
       .mockResolvedValueOnce([
         {
@@ -863,5 +874,136 @@ describe("linkPersonIdentities activity", () => {
     const result = await activity({ teamId: "team1" });
 
     expect(result.merged).toBe(0);
+  });
+
+  it("handles duplicate normalizedName without unique constraint violation", async () => {
+    const db = createMockDb();
+    db.$transaction.mockImplementation(
+      async (fn: (tx: unknown) => Promise<unknown>) => fn(db)
+    );
+    db.entity.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john",
+          aliases: ["john.smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john.smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john",
+          aliases: ["john.smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john.smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ]);
+
+    db.entity.findFirst.mockResolvedValue(null);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(1);
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips merge when collision detected with another entity", async () => {
+    const db = createMockDb();
+    db.entity.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john",
+          aliases: ["john.smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john.smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john",
+          aliases: ["john.smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john.smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ]);
+
+    db.entity.findFirst.mockResolvedValue({ id: "e3" });
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(0);
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("deletes self-referencing relations during merge", async () => {
+    const db = createMockDb();
+    db.$transaction.mockImplementation(
+      async (fn: (tx: unknown) => Promise<unknown>) => fn(db)
+    );
+    db.entity.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "jane@acme.com",
+          aliases: ["jane doe"],
+          mentionCount: 8,
+        },
+        {
+          id: "e2",
+          normalizedName: "jane doe",
+          aliases: [],
+          mentionCount: 2,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "jane@acme.com",
+          aliases: ["jane doe"],
+          mentionCount: 8,
+        },
+        {
+          id: "e2",
+          normalizedName: "jane doe",
+          aliases: [],
+          mentionCount: 2,
+        },
+      ]);
+
+    db.entity.findFirst.mockResolvedValue(null);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    await activity({ teamId: "team1" });
+
+    const txFn = db.$transaction.mock.calls[0]?.[0] as
+      | ((tx: MockDb) => Promise<void>)
+      | undefined;
+    expect(txFn).toBeDefined();
   });
 });
