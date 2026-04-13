@@ -191,7 +191,15 @@ export function formatAnswer(r: AnswerResult): string {
 
   if (r.confidence != null) {
     const pct = Math.round(r.confidence * 100);
-    parts.push(`\nConfidence: ${pct}%`);
+    let level = "uncertain";
+    if (r.confidence >= 0.8) {
+      level = "high";
+    } else if (r.confidence >= 0.6) {
+      level = "medium";
+    } else if (r.confidence >= 0.3) {
+      level = "low";
+    }
+    parts.push(`\nConfidence: ${level} (${pct}%)`);
   }
 
   parts.push("");

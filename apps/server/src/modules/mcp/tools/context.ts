@@ -1,4 +1,5 @@
-import { ragAnswer } from "@openbeam/services";
+import db from "@openbeam/db";
+import { getRAGOrchestrator } from "@openbeam/services";
 import type { ContextType } from "@openbeam/types/context";
 import { z } from "zod";
 import {
@@ -16,15 +17,13 @@ import {
 } from "../mcp.types";
 import { truncateListResponse, withErrorHandling } from "../mcp.utils";
 
-const MCP_RAG_PROMPT = `Answer questions using the provided context documents.
+const NO_CONTEXT_RESPONSE =
+  "I don't have enough context in the connected data sources to answer this question. " +
+  "Try rephrasing your query or check if the relevant data has been synced.";
 
-Rules:
-- Answer ONLY from the provided context documents
-- If context is insufficient, say "I couldn't find enough information to answer this"
-- Cite sources by referencing document titles with [n] notation matching document order
-- Be concise — prefer short paragraphs and bullet points
-- Never fabricate information not in the context
-- Use markdown formatting (bold, lists, code blocks)`;
+const LOW_CONFIDENCE_RESPONSE =
+  "I found some potentially relevant information, but I'm not confident enough " +
+  "in the results to give a reliable answer. The sources may not directly address your question.";
 
 const mcpContextEntrySchema = z.object({
   uri: z.string(),
@@ -385,39 +384,78 @@ export const registerContextTools: RegisterTools = (server, ctx) => {
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    withErrorHandling(async ({ question, connectorTypes, maxSources }) => {
+    withErrorHandling(async ({ question, maxSources }) => {
       const accessControlIds = [
         `team:${ctx.teamId}`,
         ctx.userId,
         ctx.userEmail,
       ].filter(Boolean) as string[];
 
-      const ragResult = await ragAnswer({
+      const orchestrator = getRAGOrchestrator(db, {
+        enableCrossEncoderReranking: true,
+        enableGrounding: true,
+        enableCache: true,
+        maxChunks: maxSources ?? 10,
+        rerankTopK: 40,
+      });
+
+      const ragResult = await orchestrator.answer({
         query: question,
         teamId: ctx.teamId,
+        userId: ctx.userId,
         accessControlIds,
-        connectorTypes,
-        topK: maxSources ?? 5,
-        systemPrompt: MCP_RAG_PROMPT,
       });
+
+      const groundingScore = ragResult.grounding?.overallScore ?? null;
+      const citationCount = ragResult.citations.length;
+
+      if (citationCount === 0) {
+        const noCtx = sanitize(mcpAnswerSchema, {
+          answer: NO_CONTEXT_RESPONSE,
+          confidence: 0,
+          citations: [],
+        });
+        return {
+          content: [{ type: "text" as const, text: formatAnswer(noCtx) }],
+          structuredContent: { data: noCtx },
+        };
+      }
+
+      const maxRelevance = Math.max(
+        ...ragResult.citations.map((c) => c.relevanceScore),
+        0
+      );
+      const avgRelevance =
+        ragResult.citations.reduce((sum, c) => sum + c.relevanceScore, 0) /
+        citationCount;
+
+      if (maxRelevance < 0.15 || avgRelevance < 0.1) {
+        const lowConf = sanitize(mcpAnswerSchema, {
+          answer: LOW_CONFIDENCE_RESPONSE,
+          confidence: groundingScore ?? avgRelevance,
+          citations: ragResult.citations.slice(0, 3).map((c) => ({
+            uri: c.documentId
+              ? `openbeam://resources/${ctx.teamId}/${c.documentId}`
+              : null,
+            title: c.documentTitle,
+            snippet: c.snippet,
+            source: c.connectorType ?? null,
+          })),
+        });
+        return {
+          content: [{ type: "text" as const, text: formatAnswer(lowConf) }],
+          structuredContent: { data: lowConf },
+        };
+      }
 
       const result = {
         answer: ragResult.answer,
-        confidence:
-          ragResult.citations.length > 0
-            ? Math.min(
-                ragResult.citations.reduce(
-                  (sum, c) => sum + c.relevanceScore,
-                  0
-                ) / ragResult.citations.length,
-                1
-              )
-            : null,
+        confidence: groundingScore ?? Math.min(avgRelevance, 1),
         citations: ragResult.citations.map((c) => ({
           uri: c.documentId
             ? `openbeam://resources/${ctx.teamId}/${c.documentId}`
             : null,
-          title: c.title,
+          title: c.documentTitle,
           snippet: c.snippet,
           source: c.connectorType ?? null,
         })),
