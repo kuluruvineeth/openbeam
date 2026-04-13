@@ -1,9 +1,12 @@
 import type { BotPlatform, MessageAttachment } from "@openbeam/types/bot";
+import { createTelegramClient } from "../telegram/client";
+import { createWhatsAppClient } from "../whatsapp/client";
 
 interface PlatformCredentials {
   accessToken?: string;
   botToken?: string;
   phoneNumberId?: string;
+  connectorId?: string;
 }
 
 const MAX_DOWNLOAD_SIZE = 25 * 1024 * 1024;
@@ -22,7 +25,6 @@ export async function downloadMedia(
     case "SLACK":
       return await downloadWithAuth(attachment.url ?? "", credentials.botToken);
     case "DISCORD":
-      return await downloadPublic(attachment.url ?? "");
     case "TEAMS":
       return await downloadPublic(attachment.url ?? "");
     default:
@@ -35,20 +37,19 @@ async function downloadWhatsApp(
   credentials: PlatformCredentials
 ): Promise<Buffer> {
   const mediaId = attachment.platformMediaId;
-  if (!(mediaId && credentials.accessToken)) {
-    throw new Error("WhatsApp media download requires mediaId and accessToken");
+  if (!(mediaId && credentials.accessToken && credentials.phoneNumberId)) {
+    throw new Error(
+      "WhatsApp download requires platformMediaId, accessToken, and phoneNumberId"
+    );
   }
 
-  const metaRes = await fetchWithTimeout(
-    `https://graph.facebook.com/v19.0/${mediaId}`,
-    { headers: { Authorization: `Bearer ${credentials.accessToken}` } }
-  );
-  const meta = (await metaRes.json()) as { url?: string };
-  if (!meta.url) {
-    throw new Error("WhatsApp media URL not found");
-  }
+  const client = createWhatsAppClient({
+    phoneNumberId: credentials.phoneNumberId,
+    accessToken: credentials.accessToken,
+    connectorId: credentials.connectorId ?? "bot_whatsapp",
+  });
 
-  return downloadWithAuth(meta.url, credentials.accessToken);
+  return await client.downloadMedia(mediaId);
 }
 
 async function downloadTelegram(
@@ -57,26 +58,22 @@ async function downloadTelegram(
 ): Promise<Buffer> {
   const fileId = attachment.platformMediaId;
   if (!(fileId && credentials.botToken)) {
-    throw new Error("Telegram download requires fileId and botToken");
+    throw new Error("Telegram download requires platformMediaId and botToken");
   }
 
-  const fileRes = await fetchWithTimeout(
-    `https://api.telegram.org/bot${credentials.botToken}/getFile?file_id=${fileId}`
-  );
-  const fileData = (await fileRes.json()) as {
-    result?: { file_path?: string };
-  };
-  const filePath = fileData.result?.file_path;
-  if (!filePath) {
-    throw new Error("Telegram file path not found");
-  }
+  const client = createTelegramClient({
+    botToken: credentials.botToken,
+    connectorId: credentials.connectorId ?? "bot_telegram",
+  });
 
-  return downloadPublic(
-    `https://api.telegram.org/file/bot${credentials.botToken}/${filePath}`
-  );
+  return await client.downloadFile(fileId);
 }
 
 async function downloadWithAuth(url: string, token?: string): Promise<Buffer> {
+  if (!url) {
+    throw new Error("Download URL is empty");
+  }
+
   const headers: Record<string, string> = {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -92,30 +89,23 @@ async function downloadPublic(
     throw new Error("Download URL is empty");
   }
 
-  const res = await fetchWithTimeout(url, { headers });
-  if (!res.ok) {
-    throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-  }
-
-  const contentLength = Number(res.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_DOWNLOAD_SIZE) {
-    throw new Error(
-      `File too large: ${contentLength} bytes (max ${MAX_DOWNLOAD_SIZE})`
-    );
-  }
-
-  const arrayBuffer = await res.arrayBuffer();
-  return Buffer.from(arrayBuffer);
-}
-
-async function fetchWithTimeout(
-  url: string,
-  init?: RequestInit
-): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT);
+
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    const res = await fetch(url, { headers, signal: controller.signal });
+    if (!res.ok) {
+      throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+    }
+
+    const contentLength = Number(res.headers.get("content-length") ?? 0);
+    if (contentLength > MAX_DOWNLOAD_SIZE) {
+      throw new Error(
+        `File too large: ${contentLength} bytes (max ${MAX_DOWNLOAD_SIZE})`
+      );
+    }
+
+    return Buffer.from(await res.arrayBuffer());
   } finally {
     clearTimeout(timer);
   }

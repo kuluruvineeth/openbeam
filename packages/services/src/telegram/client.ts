@@ -51,6 +51,7 @@ export interface TelegramClient {
     options?: Record<string, unknown>;
   }): Promise<boolean>;
   sendChatAction(chatId: number, action: string): Promise<boolean>;
+  downloadFile(fileId: string): Promise<Buffer>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -197,6 +198,32 @@ export function createTelegramClient(
     }
   }
 
+  async function downloadFile(fileId: string): Promise<Buffer> {
+    const fileRes = await call<{ file_path?: string }>("getFile", {
+      file_id: fileId,
+    });
+    const filePath = fileRes.result?.file_path;
+    if (!filePath) {
+      throw new TelegramApiError(
+        "File path not found",
+        TelegramErrorCodes.INTERNAL_ERROR,
+        false
+      );
+    }
+
+    const cdnUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+    const res = await fetch(cdnUrl);
+    if (!res.ok) {
+      throw new TelegramApiError(
+        `File download failed: ${res.status}`,
+        TelegramErrorCodes.INTERNAL_ERROR,
+        false
+      );
+    }
+
+    return Buffer.from(await res.arrayBuffer());
+  }
+
   return {
     connectorId,
     call: <T>(method: string, params?: Record<string, unknown>) =>
@@ -204,6 +231,7 @@ export function createTelegramClient(
     sendMessage,
     editMessageText,
     sendChatAction,
+    downloadFile,
     healthCheck,
   };
 }

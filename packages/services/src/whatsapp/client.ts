@@ -29,6 +29,7 @@ export interface WhatsAppClient {
   readonly phoneNumberId: string;
   sendMessage(payload: Record<string, unknown>): Promise<boolean>;
   sendTypingIndicator(messageId: string): Promise<boolean>;
+  downloadMedia(mediaId: string): Promise<Buffer>;
   healthCheck(): Promise<boolean>;
 }
 
@@ -167,11 +168,50 @@ export function createWhatsAppClient(
     }
   }
 
+  async function downloadMedia(mediaId: string): Promise<Buffer> {
+    await checkRateLimit();
+
+    const metaRes = await fetch(
+      `https://graph.facebook.com/${apiVersion}/${mediaId}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!metaRes.ok) {
+      throw new WhatsAppApiError(
+        `Media metadata fetch failed: ${metaRes.status}`,
+        WhatsAppErrorCodes.INTERNAL_ERROR,
+        false
+      );
+    }
+
+    const meta = (await metaRes.json()) as { url?: string };
+    if (!meta.url) {
+      throw new WhatsAppApiError(
+        "Media URL not found in response",
+        WhatsAppErrorCodes.INTERNAL_ERROR,
+        false
+      );
+    }
+
+    const dataRes = await fetch(meta.url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!dataRes.ok) {
+      throw new WhatsAppApiError(
+        `Media download failed: ${dataRes.status}`,
+        WhatsAppErrorCodes.INTERNAL_ERROR,
+        false
+      );
+    }
+
+    return Buffer.from(await dataRes.arrayBuffer());
+  }
+
   return {
     connectorId,
     phoneNumberId,
     sendMessage,
     sendTypingIndicator,
+    downloadMedia,
     healthCheck,
   };
 }
