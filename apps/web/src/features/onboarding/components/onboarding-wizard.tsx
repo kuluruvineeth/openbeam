@@ -22,7 +22,7 @@ export function OnboardingWizard() {
 
   useEffect(() => {
     if (!isLoading && needsOnboarding && !state) {
-      initialize({});
+      initialize();
     }
   }, [isLoading, needsOnboarding, state, initialize]);
 
@@ -57,7 +57,7 @@ export function OnboardingWizard() {
       <StepProgress current={stepIndex} total={totalSteps} />
       <StepComponent
         onAdvance={(connectorId) => advance({ connectorId })}
-        onSkip={() => skip({})}
+        onSkip={() => skip()}
       />
     </div>
   );
