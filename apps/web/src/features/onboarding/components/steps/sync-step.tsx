@@ -23,9 +23,7 @@ export function SyncStep({ onAdvance, onSkip }: Props) {
   const activeConnectors = (connectors ?? []).filter(
     (c) => c.status === "ACTIVE" || c.status === "SYNCING"
   );
-  const hasSynced = activeConnectors.some(
-    (c) => c.status === "ACTIVE" && (c.documentCount ?? 0) > 0
-  );
+  const hasSynced = activeConnectors.some((c) => c.status === "ACTIVE");
   const isSyncing = activeConnectors.some((c) => c.status === "SYNCING");
 
   useEffect(() => {
@@ -72,9 +70,9 @@ export function SyncStep({ onAdvance, onSkip }: Props) {
                 <Icons.Check className="text-foreground/60" size={14} />
               )}
             </div>
-            <span className="flex-1 text-sm">{c.name ?? c.type}</span>
-            <span className="font-mono text-[10px] text-foreground/40 tabular-nums">
-              {c.documentCount ?? 0} docs
+            <span className="flex-1 text-sm">{c.name}</span>
+            <span className="font-mono text-[10px] text-foreground/40 uppercase">
+              {c.status === "ACTIVE" ? "ready" : "syncing"}
             </span>
           </div>
         ))}

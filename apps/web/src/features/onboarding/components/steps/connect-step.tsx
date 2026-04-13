@@ -1,41 +1,27 @@
 "use client";
 
 import { Button } from "@openbeam/ui";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/components/icons";
-import { AppLogo } from "@/components/integrations/app-logo";
-import { useTRPC } from "@/trpc/client";
-
-const POPULAR_CONNECTORS = [
-  "SLACK",
-  "NOTION",
-  "GOOGLE_DRIVE",
-  "GITHUB",
-  "JIRA",
-  "CONFLUENCE",
-  "LINEAR",
-  "GMAIL",
-];
 
 type Props = {
   onAdvance: (connectorId?: string) => void;
   onSkip: () => void;
 };
 
+const POPULAR_SOURCES = [
+  { label: "Slack", icon: Icons.MessageSquare },
+  { label: "Notion", icon: Icons.FileIcon },
+  { label: "Google Drive", icon: Icons.Folder },
+  { label: "GitHub", icon: Icons.GitBranch },
+  { label: "Jira", icon: Icons.Task },
+  { label: "Confluence", icon: Icons.BookOpen },
+  { label: "Linear", icon: Icons.Layers },
+  { label: "Gmail", icon: Icons.Mail },
+];
+
 export function ConnectStep({ onAdvance }: Props) {
-  const trpc = useTRPC();
   const router = useRouter();
-  const { data: apps } = useQuery(trpc.apps.list.queryOptions());
-
-  const popularApps = (apps ?? []).filter((app) =>
-    POPULAR_CONNECTORS.includes(app.type)
-  );
-
-  const handleConnect = (appType: string) => {
-    const path = `/connectors/setup/${appType.toLowerCase()}` as `/${string}`;
-    router.push(path);
-  };
 
   return (
     <div className="space-y-6 py-8">
@@ -47,15 +33,19 @@ export function ConnectStep({ onAdvance }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {popularApps.map((app) => (
+        {POPULAR_SOURCES.map((source) => (
           <button
             className="flex items-center gap-3 border border-border/50 px-3 py-2.5 text-left transition-colors hover:border-border hover:bg-foreground/3"
-            key={app.type}
-            onClick={() => handleConnect(app.type)}
+            key={source.label}
+            onClick={() => router.push("/connectors")}
             type="button"
           >
-            <AppLogo app={app} size={20} />
-            <span className="min-w-0 flex-1 truncate text-sm">{app.name}</span>
+            <div className="flex size-6 shrink-0 items-center justify-center bg-foreground/3">
+              <source.icon size={14} />
+            </div>
+            <span className="min-w-0 flex-1 truncate text-sm">
+              {source.label}
+            </span>
             <Icons.ChevronRight
               className="shrink-0 text-foreground/30"
               size={14}
@@ -66,7 +56,7 @@ export function ConnectStep({ onAdvance }: Props) {
 
       <div className="flex items-center gap-3">
         <Button
-          onClick={() => router.push("/connectors" as `/${string}`)}
+          onClick={() => router.push("/connectors")}
           size="sm"
           variant="outline"
         >
