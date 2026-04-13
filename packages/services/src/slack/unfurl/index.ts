@@ -1,0 +1,1 @@
+export { handleLinkShared } from "./handler";

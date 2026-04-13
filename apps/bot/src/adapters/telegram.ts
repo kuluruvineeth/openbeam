@@ -70,11 +70,20 @@ const TelegramMessageSchema = z.object({
   caption: z.string().optional(),
 });
 
+const TelegramInlineQuerySchema = z.object({
+  id: z.string(),
+  from: TelegramUserSchema,
+  query: z.string(),
+  offset: z.string(),
+  chat_type: z.string().optional(),
+});
+
 const TelegramUpdateSchema = z.object({
   update_id: z.number(),
   message: TelegramMessageSchema.optional(),
   edited_message: TelegramMessageSchema.optional(),
   channel_post: TelegramMessageSchema.optional(),
+  inline_query: TelegramInlineQuerySchema.optional(),
 });
 
 type TelegramUpdate = z.infer<typeof TelegramUpdateSchema>;
@@ -134,6 +143,27 @@ export class TelegramAdapter implements PlatformAdapter {
     }
 
     const update = parsed.data;
+
+    if (update.inline_query) {
+      return Promise.resolve({
+        id: update.inline_query.id,
+        platform: "TELEGRAM",
+        platformUserId: String(update.inline_query.from.id),
+        platformTeamId: "",
+        channelId: "",
+        text: update.inline_query.query,
+        isDirectMessage: false,
+        isMention: false,
+        timestamp: new Date(),
+        rawEvent: update,
+        interactionType: "callback",
+        interactionData: {
+          inlineQueryId: update.inline_query.id,
+          offset: update.inline_query.offset,
+        },
+      });
+    }
+
     const message = extractMessage(update);
     if (!message?.from) {
       return Promise.resolve(null);
@@ -293,5 +323,21 @@ export class TelegramAdapter implements PlatformAdapter {
     }
 
     await bot.api.sendChatAction(Number(channelId), "typing");
+  }
+
+  async answerInlineQuery(
+    queryId: string,
+    results: Record<string, unknown>[]
+  ): Promise<void> {
+    const bot = this.bot;
+    if (!bot) {
+      return;
+    }
+
+    await bot.api.answerInlineQuery(
+      queryId,
+      results as unknown as Parameters<typeof bot.api.answerInlineQuery>[1],
+      { cache_time: 300 }
+    );
   }
 }
