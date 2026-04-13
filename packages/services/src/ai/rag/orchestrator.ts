@@ -4,6 +4,8 @@ import { createRAGInteraction } from "@openbeam/db";
 import { getRAGCache, hashQuery } from "@openbeam/redis";
 import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
+import { rerankerService } from "../../search/reranking/service";
+import type { RerankDocument } from "../../search/reranking/types";
 import { searchService } from "../../search/service";
 import {
   extractChunksFromDocuments,
@@ -34,7 +36,9 @@ const DEFAULT_CONFIG: RAGOrchestratorConfig = {
   enableCache: true,
   enableGrounding: true,
   enablePersonalization: false,
+  enableCrossEncoderReranking: true,
   maxChunks: 20,
+  rerankTopK: 40,
   diversityWeight: 0.3,
   streamFirstToken: true,
 };
@@ -79,6 +83,7 @@ function createEmptyTiming(): RAGTiming {
   return {
     analysisMs: 0,
     retrievalMs: 0,
+    rerankMs: 0,
     chunkingMs: 0,
     generationMs: 0,
     groundingMs: 0,
@@ -315,11 +320,14 @@ export class RAGOrchestrator {
 
     const chunkingStart = performance.now();
     const allChunks = extractChunksFromDocuments(documents, scores);
-    const rerankedChunks = rerankChunks(
+
+    const rerankStart = performance.now();
+    const rerankedChunks = await this.rerankWithFallback(
       enrichedQuery,
-      allChunks,
-      this.config.maxChunks * 2
+      allChunks
     );
+    timing.rerankMs = performance.now() - rerankStart;
+
     const selectedChunks = selectDiverse(
       rerankedChunks,
       this.config.maxChunks,
@@ -335,6 +343,54 @@ export class RAGOrchestrator {
     const citations = Array.from(assembled.citationMap.values());
 
     return { selectedChunks, assembled, citations };
+  }
+
+  private async rerankWithFallback(
+    query: string,
+    chunks: RAGChunk[]
+  ): Promise<RAGChunk[]> {
+    if (
+      !(
+        this.config.enableCrossEncoderReranking && rerankerService.isEnabled()
+      ) ||
+      chunks.length === 0
+    ) {
+      return rerankChunks(query, chunks, this.config.rerankTopK);
+    }
+
+    try {
+      const documents: RerankDocument[] = chunks.map((c, i) => ({
+        id: c.id ?? `chunk_${i}`,
+        content: c.content,
+        title: c.documentTitle,
+        score: c.score,
+        rank: i,
+      }));
+
+      const response = await rerankerService.rerank(
+        query,
+        documents,
+        this.config.rerankTopK
+      );
+
+      if (!response) {
+        return rerankChunks(query, chunks, this.config.rerankTopK);
+      }
+
+      const scoreMap = new Map(response.results.map((r) => [r.id, r.score]));
+
+      const scored = chunks
+        .map((chunk, i) => ({
+          ...chunk,
+          score: scoreMap.get(chunk.id ?? `chunk_${i}`) ?? chunk.score,
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, this.config.rerankTopK);
+
+      return scored;
+    } catch {
+      return rerankChunks(query, chunks, this.config.rerankTopK);
+    }
   }
 
   private processGrounding(

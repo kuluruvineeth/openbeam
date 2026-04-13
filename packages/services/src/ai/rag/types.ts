@@ -117,6 +117,7 @@ export interface TokenUsage {
 export interface RAGTiming {
   analysisMs: number;
   retrievalMs: number;
+  rerankMs: number;
   chunkingMs: number;
   generationMs: number;
   groundingMs: number;
@@ -168,7 +169,9 @@ export interface RAGOrchestratorConfig {
   enableCache: boolean;
   enableGrounding: boolean;
   enablePersonalization: boolean;
+  enableCrossEncoderReranking: boolean;
   maxChunks: number;
+  rerankTopK: number;
   diversityWeight: number;
   streamFirstToken: boolean;
 }
