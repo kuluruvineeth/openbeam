@@ -1,6 +1,6 @@
 -- AlterTable: Add timezone and locale to User
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "timezone" TEXT NOT NULL DEFAULT 'UTC';
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "locale" TEXT NOT NULL DEFAULT 'en';
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "timezone" TEXT NOT NULL DEFAULT 'UTC';
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "locale" TEXT NOT NULL DEFAULT 'en';
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "bot_user_onboarding" (
