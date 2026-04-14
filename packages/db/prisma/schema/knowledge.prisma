@@ -55,10 +55,11 @@ model Entity {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  team              Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  outgoingRelations EntityRelation[] @relation("FromEntity")
-  incomingRelations EntityRelation[] @relation("ToEntity")
+  team              Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  outgoingRelations EntityRelation[]  @relation("FromEntity")
+  incomingRelations EntityRelation[]  @relation("ToEntity")
   mentions          EntityMention[]
+  identities        EntityIdentity[]
 
   @@unique([teamId, type, normalizedName])
   @@unique([teamId, externalSource, externalId])
@@ -133,4 +134,24 @@ model TopicCluster {
   @@index([teamId])
   @@index([parentId])
   @@map("topic_cluster")
+}
+
+model EntityIdentity {
+  id            String @id @default(cuid()) @map("_id")
+  entityId      String
+  teamId        String
+  connectorType String
+  externalId    String
+  email         String?
+  displayName   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, connectorType, externalId])
+  @@index([entityId])
+  @@index([teamId, email])
+  @@map("entity_identity")
 }
