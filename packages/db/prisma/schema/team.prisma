@@ -103,6 +103,7 @@ model Team {
 
   onboardingStates OnboardingState[]
   ragAuditLogs     RagAuditLog[]
+  auditLogs        AuditLog[]
 
   @@map("team")
 }

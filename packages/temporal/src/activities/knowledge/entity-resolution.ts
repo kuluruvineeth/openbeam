@@ -18,7 +18,17 @@ export interface EntityResolutionInput {
 export interface EntityResolutionOutput {
   candidatesFound: number;
   merged: number;
-  skipped: number;
+  needsReview: number;
+  failed: number;
+}
+
+function isPrismaNotFound(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "P2025"
+  );
 }
 
 export function createEntityResolutionActivities(
@@ -28,18 +38,28 @@ export function createEntityResolutionActivities(
     findResolutionCandidates(
       input: EntityResolutionInput
     ): Promise<MergeCandidate[]> {
-      return findMergeCandidates(deps.db, input.teamId, input.batchSize ?? 50);
+      const limit = Math.min(input.batchSize ?? 50, 100);
+      return findMergeCandidates(deps.db, input.teamId, limit);
     },
 
     async executeMergeBatch(
       candidates: MergeCandidate[]
     ): Promise<EntityResolutionOutput> {
       let merged = 0;
-      let skipped = 0;
+      let needsReview = 0;
+      let failed = 0;
 
       for (const candidate of candidates) {
         if (candidate.confidence < 0.95) {
-          skipped += 1;
+          needsReview += 1;
+          continue;
+        }
+
+        const secondary = await deps.db.entity.findUnique({
+          where: { id: candidate.secondaryId },
+          select: { id: true },
+        });
+        if (!secondary) {
           continue;
         }
 
@@ -50,15 +70,20 @@ export function createEntityResolutionActivities(
             candidate.secondaryId
           );
           merged += 1;
-        } catch {
-          skipped += 1;
+        } catch (error) {
+          if (isPrismaNotFound(error)) {
+            continue;
+          }
+          failed += 1;
+          throw error;
         }
       }
 
       return {
         candidatesFound: candidates.length,
         merged,
-        skipped,
+        needsReview,
+        failed,
       };
     },
   };

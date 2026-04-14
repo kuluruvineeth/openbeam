@@ -37,6 +37,7 @@ export default prisma;
 
 export * from "./lib/encryption";
 export * from "./mutations/accounts";
+export * from "./mutations/admin-audit";
 export * from "./mutations/agent-canvas";
 export * from "./mutations/agent-canvas-session";
 export * from "./mutations/agent-control";

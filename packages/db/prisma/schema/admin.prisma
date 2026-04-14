@@ -1,0 +1,19 @@
+model AuditLog {
+  id       String @id @default(cuid()) @map("_id")
+  teamId   String
+  userId   String
+  action   String
+  category String
+  target   String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
+  @@index([teamId, category, createdAt])
+  @@index([teamId, userId, createdAt])
+  @@map("audit_log")
+}

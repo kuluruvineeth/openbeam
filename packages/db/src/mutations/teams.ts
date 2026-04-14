@@ -41,3 +41,27 @@ export const createTeam = async (
 
   return result;
 };
+
+export function countTeamOwners(db: Database, teamId: string) {
+  return db.usersOnTeam.count({
+    where: { teamId, role: "OWNER" },
+  });
+}
+
+export function updateTeamMemberRole(
+  db: Database,
+  userId: string,
+  teamId: string,
+  role: "ADMIN" | "MEMBER"
+) {
+  return db.usersOnTeam.update({
+    where: { userId_teamId: { userId, teamId } },
+    data: { role },
+  });
+}
+
+export function removeTeamMember(db: Database, userId: string, teamId: string) {
+  return db.usersOnTeam.delete({
+    where: { userId_teamId: { userId, teamId } },
+  });
+}
