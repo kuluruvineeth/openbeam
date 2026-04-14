@@ -1,4 +1,4 @@
-import { vespaClient } from "@openbeam/vespa";
+import { vespaSearchEngine } from "../engine-vespa";
 import type { RetrievalResult, SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -31,7 +31,7 @@ export async function retrieveHybrid(
 
   const yql = `select id from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
-  const result = await vespaClient.query({
+  const result = await vespaSearchEngine.query({
     yql,
     ranking: "hybrid_v2",
     hits: limit,
@@ -74,7 +74,7 @@ export async function retrieveHybridWithSparse(
 
   const yql = `select id from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
-  const result = await vespaClient.query({
+  const result = await vespaSearchEngine.query({
     yql,
     ranking: "hybrid_v2",
     hits: limit,

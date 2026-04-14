@@ -1,4 +1,4 @@
-import { vespaClient } from "@openbeam/vespa";
+import { vespaSearchEngine } from "../engine-vespa";
 import type { RetrievalResult, SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -28,7 +28,7 @@ export async function retrieveBM25(
 
   const yql = `select id from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
-  const result = await vespaClient.query({
+  const result = await vespaSearchEngine.query({
     yql,
     ranking: "bm25",
     hits: limit,

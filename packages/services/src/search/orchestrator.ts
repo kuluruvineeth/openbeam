@@ -1,11 +1,12 @@
 import { getBGEM3Provider } from "@openbeam/ai";
 import prisma from "@openbeam/db";
-import { type GenericDocument, vespaClient } from "@openbeam/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../lib/logger";
 import {
   applyPersonalization,
   shouldPersonalize,
 } from "../personalization/search-integration";
+import { vespaSearchEngine } from "./engine-vespa";
 import { weightedReciprocalRankFusion } from "./fusion/weighted-rrf";
 import type { DocumentFeatures, LTRResult } from "./ltr";
 import { ltrService } from "./ltr";
@@ -591,7 +592,7 @@ export class HybridSearchOrchestrator {
     }
 
     const results = await Promise.all(
-      docIds.map((id) => vespaClient.getDocument(id))
+      docIds.map((id) => vespaSearchEngine.getDocument(id))
     );
 
     const map = new Map<string, GenericDocument>();
