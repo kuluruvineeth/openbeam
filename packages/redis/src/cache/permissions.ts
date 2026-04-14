@@ -6,11 +6,17 @@ import {
   PermissionCacheKeys,
 } from "./permission-keys";
 
+export interface CachedGroupEntry {
+  groupId: string;
+  groupType: string;
+}
+
 export interface CachedPermissionSet {
   userId: string;
   email: string | null;
   teamId: string;
   groupIds: string[];
+  groups: CachedGroupEntry[];
   domain: string | null;
   connectorScopes: Record<string, string[]>;
   isTeamAdmin: boolean;

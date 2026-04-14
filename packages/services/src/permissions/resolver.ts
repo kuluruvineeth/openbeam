@@ -44,6 +44,10 @@ export async function resolvePermissions(
   );
 
   const groupIds = permData.groupMemberships.map((m) => m.groupId);
+  const groups = permData.groupMemberships.map((m) => ({
+    groupId: m.groupId,
+    groupType: m.groupType,
+  }));
   const domain = ctx.email ? extractDomain(ctx.email) : null;
 
   const scopeMap: Record<string, string[]> = {};
@@ -62,6 +66,7 @@ export async function resolvePermissions(
     email: ctx.email,
     teamId: ctx.teamId,
     groupIds,
+    groups,
     domain,
     connectorScopes: scopeMap,
     isTeamAdmin,
@@ -96,8 +101,11 @@ function buildAccessControlIds(perms: CachedPermissionSet): string[] {
 
   ids.push(`team:${perms.teamId}`);
 
-  for (const groupId of perms.groupIds) {
-    ids.push(`group:${groupId}`);
+  for (const group of perms.groups) {
+    ids.push(`group:${group.groupId}`);
+    if (group.groupType === "CHANNEL") {
+      ids.push(`channel:${group.groupId}`);
+    }
   }
 
   if (perms.domain) {

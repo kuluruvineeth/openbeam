@@ -81,7 +81,8 @@ export async function transformMessage(
   const accessControl = channel.is_private
     ? [
         `team:${teamId}`,
-        ...(channelMembers ?? []).map((id) => `slack_user:${id}`),
+        `channel:${channel.id}`,
+        ...(channelMembers ?? []).map((id) => `user:${id}`),
       ]
     : undefined;
 
