@@ -1122,9 +1122,12 @@ export class DaemonClient {
       responseType: params.responseType,
       timeout: params.timeout,
       options: { skipQueue: true },
-      // biome-ignore lint/suspicious/noExplicitAny: local CorrelatedResponsePayload<TResponseType> is structurally identical but TS sees it as a different instantiation
       ...(params.selectPayload
-        ? { selectPayload: params.selectPayload as any }
+        ? {
+            selectPayload: params.selectPayload as (
+              payload: CorrelatedResponsePayload<TResponseType>
+            ) => TResult | null,
+          }
         : {}),
     });
   }

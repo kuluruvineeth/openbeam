@@ -31,20 +31,30 @@ interface BotToolContext {
   }>;
 }
 
+const searchParams = z.object({
+  query: z.string(),
+  limit: z.number().optional().default(10),
+});
+
+const questionParams = z.object({
+  question: z.string(),
+});
+
+const topicParams = z.object({
+  topic: z.string(),
+});
+
 export function buildBotTools(ctx: BotToolContext) {
   return {
     search_documents: tool({
       description:
         "Search across all connected enterprise data sources. Use for finding files, docs, messages.",
-      parameters: z.object({
-        query: z.string(),
-        limit: z.number().optional().default(10),
-      }),
-      execute: async ({ query, limit }: { query: string; limit: number }) => {
+      parameters: searchParams,
+      execute: async (params: z.infer<typeof searchParams>) => {
         const results = await ctx.hybridSearch({
-          query,
+          query: params.query,
           teamId: ctx.teamId,
-          limit: limit ?? 10,
+          limit: params.limit ?? 10,
         });
         return {
           type: "search_results" as const,
@@ -63,12 +73,10 @@ export function buildBotTools(ctx: BotToolContext) {
     answer_question: tool({
       description:
         "Generate a grounded answer with citations. Use for questions requiring synthesis.",
-      parameters: z.object({
-        question: z.string(),
-      }),
-      execute: async ({ question }: { question: string }) => {
+      parameters: questionParams,
+      execute: async (params: z.infer<typeof questionParams>) => {
         const result = await ctx.ragAnswer({
-          query: question,
+          query: params.question,
           teamId: ctx.teamId,
         });
         return {
@@ -89,12 +97,10 @@ export function buildBotTools(ctx: BotToolContext) {
     find_experts: tool({
       description:
         "Find people who are experts on a topic. Use for 'who knows about X'.",
-      parameters: z.object({
-        topic: z.string(),
-      }),
-      execute: async ({ topic }: { topic: string }) => {
+      parameters: topicParams,
+      execute: async (params: z.infer<typeof topicParams>) => {
         const results = await ctx.hybridSearch({
-          query: topic,
+          query: params.topic,
           teamId: ctx.teamId,
           limit: 20,
         });
@@ -123,11 +129,11 @@ export function buildBotTools(ctx: BotToolContext) {
           .slice(0, 5);
         return {
           type: "expert_list" as const,
-          topic,
+          topic: params.topic,
           experts: experts.map((e) => ({
             name: e.name,
             email: e.email,
-            expertise: [topic],
+            expertise: [params.topic],
             documentCount: e.count,
           })),
         };
