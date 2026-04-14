@@ -1,0 +1,28 @@
+model RagAuditLog {
+  id                String   @id @default(cuid()) @map("_id")
+  teamId            String
+  userId            String
+  query             String
+  queryHash         String
+
+  sourcesUsed       String[]
+  sourcesFiltered   String[]
+  filterReasons     Json?
+
+  answerLength      Int
+  citationCount     Int
+  permissionSetHash String
+
+  surface           String
+  latencyMs         Int
+
+  createdAt         DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
+  @@index([userId, createdAt])
+  @@index([queryHash])
+  @@map("rag_audit_log")
+}

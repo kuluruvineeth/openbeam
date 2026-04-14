@@ -32,6 +32,7 @@ model User {
 
   botUserLinks      BotUserLink[]
   onboardingStates  OnboardingState[]
+  ragAuditLogs      RagAuditLog[]
 
   @@unique([email])
   @@index([teamId])

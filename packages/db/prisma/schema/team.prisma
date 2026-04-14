@@ -102,6 +102,7 @@ model Team {
   botNotificationEvents     BotNotificationEvent[]
 
   onboardingStates OnboardingState[]
+  ragAuditLogs     RagAuditLog[]
 
   @@map("team")
 }
