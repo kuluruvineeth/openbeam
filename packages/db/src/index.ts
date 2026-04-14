@@ -76,6 +76,7 @@ export * from "./mutations/oauth-server";
 export * from "./mutations/onboarding";
 export * from "./mutations/payments";
 export * from "./mutations/permissions";
+export * from "./mutations/rag-audit";
 export * from "./mutations/rag-interactions";
 export * from "./mutations/saved-search";
 export * from "./mutations/search-experiments";

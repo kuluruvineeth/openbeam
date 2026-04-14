@@ -28,8 +28,7 @@ const STALE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
 export async function enforcePermissions(
   db: Database,
   userAccessControlIds: string[],
-  documents: DocumentAccessCheck[],
-  _teamId: string
+  documents: DocumentAccessCheck[]
 ): Promise<PermissionEnforcementResult> {
   const accessibleDocIds: string[] = [];
   const deniedDocIds: string[] = [];

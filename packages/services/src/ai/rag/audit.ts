@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Database } from "@openbeam/db";
+import { createRagAuditLog } from "@openbeam/db";
 import type { RAGCitation } from "./types";
 
 export interface RagAuditEntry {
@@ -25,21 +26,19 @@ export async function writeRagAuditLog(
   entry: RagAuditEntry
 ): Promise<void> {
   try {
-    await db.ragAuditLog.create({
-      data: {
-        teamId: entry.teamId,
-        userId: entry.userId,
-        query: entry.query,
-        queryHash: hashString(entry.query.toLowerCase().trim()),
-        sourcesUsed: entry.sourcesUsed,
-        sourcesFiltered: entry.sourcesFiltered,
-        filterReasons: entry.filterReasons ?? undefined,
-        answerLength: entry.answerLength,
-        citationCount: entry.citationCount,
-        permissionSetHash: hashString(entry.accessControlIds.sort().join(",")),
-        surface: entry.surface,
-        latencyMs: entry.latencyMs,
-      },
+    await createRagAuditLog(db, {
+      team: { connect: { id: entry.teamId } },
+      user: { connect: { id: entry.userId } },
+      query: entry.query,
+      queryHash: hashString(entry.query.toLowerCase().trim()),
+      sourcesUsed: entry.sourcesUsed,
+      sourcesFiltered: entry.sourcesFiltered,
+      filterReasons: entry.filterReasons ?? undefined,
+      answerLength: entry.answerLength,
+      citationCount: entry.citationCount,
+      permissionSetHash: hashString(entry.accessControlIds.sort().join(",")),
+      surface: entry.surface,
+      latencyMs: entry.latencyMs,
     });
   } catch {
     // Fire-and-forget — audit failure must not break RAG

@@ -15,7 +15,6 @@ export interface ChannelPermission {
 }
 
 export interface SlackPermissionResult {
-  permissionsWritten: number;
   groupsWritten: number;
 }
 
@@ -24,7 +23,6 @@ export async function extractSlackPermissions(
   ctx: SlackPermissionContext,
   channels: ChannelPermission[]
 ): Promise<SlackPermissionResult> {
-  const permissionsWritten = 0;
   let groupsWritten = 0;
 
   for (const channel of channels) {
@@ -45,7 +43,7 @@ export async function extractSlackPermissions(
     }
   }
 
-  return { permissionsWritten, groupsWritten };
+  return { groupsWritten };
 }
 
 export function buildSlackDocumentAcl(

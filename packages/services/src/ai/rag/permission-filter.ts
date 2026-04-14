@@ -1,13 +1,11 @@
 import type { Database } from "@openbeam/db";
-import {
-  type DocumentAccessCheck,
-  enforcePermissions,
-} from "../../permissions/enforcement";
+import { getDocumentPermissions } from "@openbeam/db";
 import type { RAGChunk, RAGCitation } from "./types";
 
 export interface PermissionFilterResult {
   accessibleChunks: RAGChunk[];
   filteredCount: number;
+  filteredDocIds: string[];
   allSourcesAccessible: boolean;
 }
 
@@ -21,35 +19,72 @@ export async function filterChunksByPermission(
     return {
       accessibleChunks: [],
       filteredCount: 0,
+      filteredDocIds: [],
       allSourcesAccessible: true,
     };
   }
 
-  const docChecks: DocumentAccessCheck[] = chunks.map((chunk) => ({
-    documentId: chunk.documentId,
-    accessControl: [],
-    isPublic: true,
-    connectorId: chunk.connectorType,
-  }));
+  const uniqueDocIds = [...new Set(chunks.map((c) => c.documentId))];
+  const aclSet = new Set(userAccessControlIds);
 
-  const result = await enforcePermissions(
-    db,
-    userAccessControlIds,
-    docChecks,
-    teamId
+  const docPermissions = await Promise.all(
+    uniqueDocIds.map((docId) => getDocumentPermissions(db, docId, teamId))
   );
 
-  const accessibleSet = new Set(result.accessibleDocIds);
+  const accessibleDocIds = new Set<string>();
+  const filteredDocIds: string[] = [];
+
+  for (let i = 0; i < uniqueDocIds.length; i += 1) {
+    const docId = uniqueDocIds[i] as string;
+    const perms = docPermissions[i] ?? [];
+
+    if (perms.length === 0) {
+      accessibleDocIds.add(docId);
+      continue;
+    }
+
+    const hasAccess = perms.some((p) => {
+      if (p.granteeType === "ANYONE") {
+        return true;
+      }
+      const aclId = buildPermissionAclId(p);
+      return aclId ? aclSet.has(aclId) : false;
+    });
+
+    if (hasAccess) {
+      accessibleDocIds.add(docId);
+    } else {
+      filteredDocIds.push(docId);
+    }
+  }
+
   const accessibleChunks = chunks.filter((c) =>
-    accessibleSet.has(c.documentId)
+    accessibleDocIds.has(c.documentId)
   );
-  const filteredCount = chunks.length - accessibleChunks.length;
 
   return {
     accessibleChunks,
-    filteredCount,
-    allSourcesAccessible: filteredCount === 0,
+    filteredCount: chunks.length - accessibleChunks.length,
+    filteredDocIds,
+    allSourcesAccessible: filteredDocIds.length === 0,
   };
+}
+
+function buildPermissionAclId(perm: {
+  granteeType: string;
+  granteeId: string | null;
+  granteeDomain: string | null;
+}): string | null {
+  switch (perm.granteeType) {
+    case "USER":
+      return perm.granteeId ? `user:${perm.granteeId}` : null;
+    case "GROUP":
+      return perm.granteeId ? `group:${perm.granteeId}` : null;
+    case "DOMAIN":
+      return perm.granteeDomain ? `domain:${perm.granteeDomain}` : null;
+    default:
+      return null;
+  }
 }
 
 export function buildSafeAnswerPrefix(

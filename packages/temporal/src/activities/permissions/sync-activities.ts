@@ -52,21 +52,14 @@ export function createPermissionSyncActivities(
       result: PermissionSyncResult
     ): Promise<void> {
       const now = new Date();
-      const updateData: Record<string, unknown> = {
+      await updatePermissionSyncStatus(deps.db, input.connectorId, {
         status: "IDLE",
-        lastError: null,
-      };
-
-      if (input.syncType === "full") {
-        updateData.lastFullSync = now;
-      } else {
-        updateData.lastIncrementalSync = now;
-      }
-
-      updateData.totalPermissions = result.permissionsUpdated;
-      updateData.totalGroups = result.groupsUpdated;
-
-      await updatePermissionSyncStatus(deps.db, input.connectorId, updateData);
+        lastError: undefined,
+        lastFullSync: input.syncType === "full" ? now : undefined,
+        lastIncrementalSync: input.syncType === "incremental" ? now : undefined,
+        totalPermissions: result.permissionsUpdated,
+        totalGroups: result.groupsUpdated,
+      });
     },
 
     async markSyncFailed(connectorId: string, error: string): Promise<void> {
