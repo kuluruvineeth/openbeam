@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
+    "module": "esnext",
     "moduleSuffixes": [".native", ""],
     "paths": {
       "@/*": ["./src/*"],
@@ -19,5 +20,12 @@
     "expo-env.d.ts",
     "nativewind-env.d.ts",
     "react-native-web.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }

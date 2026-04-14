@@ -209,10 +209,9 @@ function appendUserMessage(
   const existingIndex = state.findIndex(
     (entry) => entry.kind === "user_message" && entry.id === entryId
   );
+  const existingEntry = existingIndex >= 0 ? state[existingIndex] : undefined;
   const existing =
-    existingIndex >= 0 && state[existingIndex]?.kind === "user_message"
-      ? state[existingIndex]
-      : null;
+    existingEntry?.kind === "user_message" ? existingEntry : null;
   const preservedImages = existing?.images;
 
   const nextItem: UserMessageItem = {

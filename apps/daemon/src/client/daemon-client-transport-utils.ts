@@ -4,7 +4,7 @@ export function copyArrayBufferViewToBuffer(
   const view = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
   const out = new Uint8Array(view.byteLength);
   out.set(view);
-  return out.buffer;
+  return out.buffer as ArrayBuffer;
 }
 
 export function normalizeTransportPayload(

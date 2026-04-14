@@ -1733,5 +1733,5 @@ function SessionProviderInternal({
     [serverId, clearSession]
   );
 
-  return children;
+  return <>{children}</>;
 }
