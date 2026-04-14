@@ -339,23 +339,16 @@ jobs:
           IMAGE_TAG="${{ needs.changes.outputs.image_tag }}"
           SERVICES='${{ needs.changes.outputs.services }}'
 
-          # Build --set args for image tags
           SET_ARGS="--set global.image.registry=${{ env.ACR_LOGIN_SERVER }}"
 
           for svc in $(echo "$SERVICES" | jq -r '.[]'); do
             SET_ARGS="$SET_ARGS --set services.${svc}.image.tag=${IMAGE_TAG}"
           done
 
-          # Read DB and Redis URLs from existing configmap
-          DB_URL=$(kubectl get configmap openbeam-env -n openbeam -o jsonpath='{.data.DATABASE_URL}')
-          REDIS_URL=$(kubectl get configmap openbeam-env -n openbeam -o jsonpath='{.data.REDIS_URL}')
-
           helm upgrade openbeam ${{ env.HELM_CHART_PATH }} \
             -n openbeam \
             -f ${{ env.HELM_VALUES_PATH }} \
             $SET_ARGS \
-            --set "env.DATABASE_URL=${DB_URL}" \
-            --set "env.REDIS_URL=${REDIS_URL}" \
             --timeout 5m
 
       - name: Restart updated deployments

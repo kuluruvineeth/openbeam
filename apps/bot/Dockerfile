@@ -27,7 +27,8 @@ COPY --from=deps /app/bun.lock ./bun.lock
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/bot ./apps/bot
-RUN mkdir -p apps/bot/node_modules/@openbeam && \
+RUN find packages -name node_modules -type d -maxdepth 2 -exec rm -rf {} + 2>/dev/null; \
+    mkdir -p apps/bot/node_modules/@openbeam && \
     for pkg in packages/*/; do \
       name=$(basename "$pkg"); \
       rm -rf "apps/bot/node_modules/@openbeam/$name" && \

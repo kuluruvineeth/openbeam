@@ -39,9 +39,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.28.0",
-    "@prisma/client": "^6.9.0",
-    "@temporalio/client": "^1.11.7",
-    "@temporalio/common": "^1.11.7"
+    "@prisma/client": "^6.9.0"
   },
   "devDependencies": {
     "@openbeam/config": "workspace:*",

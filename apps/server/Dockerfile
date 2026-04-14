@@ -33,7 +33,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/server ./apps/server
 COPY scripts/migrate.sh ./scripts/migrate.sh
-RUN mkdir -p apps/server/node_modules/@openbeam && \
+RUN find packages -name node_modules -type d -maxdepth 2 -exec rm -rf {} + 2>/dev/null; \
+    mkdir -p apps/server/node_modules/@openbeam && \
     for pkg in packages/*/; do \
       name=$(basename "$pkg"); \
       rm -rf "apps/server/node_modules/@openbeam/$name" && \

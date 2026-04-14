@@ -380,8 +380,8 @@ services:
     extraEnv:
       - name: CPU_REDIS_URL
         valueFrom:
-          configMapKeyRef:
-            name: openbeam-env
+          secretKeyRef:
+            name: openbeam-secrets
             key: REDIS_URL
 
   bot:

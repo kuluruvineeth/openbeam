@@ -11,8 +11,6 @@ configMap:
   create: true
 
 env:
-  DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/openbeam"
-  REDIS_URL: "redis://redis:6379"
   VESPA_URL: "http://vespa:8080"
   TEMPORAL_ADDRESS: "temporal:7233"
   ENGINE_URL: "http://engine-cpu:8000"
