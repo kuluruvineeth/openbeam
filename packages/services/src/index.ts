@@ -1917,6 +1917,12 @@ export type {
   ResolvedPermissions,
 } from "./permissions";
 export { resolvePermissions } from "./permissions";
+export {
+  type DenialReason,
+  type DocumentAccessCheck,
+  enforcePermissions,
+  type PermissionEnforcementResult,
+} from "./permissions/enforcement";
 export type {
   DocumentForScoring,
   PersonalizationContext,

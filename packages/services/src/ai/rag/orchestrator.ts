@@ -15,6 +15,11 @@ import {
 import { assembleContext } from "./context-assembler";
 import { getConversationManager } from "./conversation-manager";
 import { shouldIncludeGrounding, verifyGrounding } from "./grounding-verifier";
+import {
+  buildSafeAnswerPrefix,
+  filterChunksByPermission,
+  filterCitationsByPermission,
+} from "./permission-filter";
 import { analyzeQuery, enrichQueryWithContext } from "./query-analyzer";
 import type {
   ConversationContext,
@@ -134,14 +139,51 @@ export class RAGOrchestrator {
     const { analysis, enrichedQuery, conversationContext } =
       this.analyzeRequest(request, timing);
 
-    const { selectedChunks, assembled, citations } =
-      await this.retrieveAndProcess({
-        request,
-        enrichedQuery,
-        analysis,
-        conversationContext,
-        timing,
-      });
+    const retrieved = await this.retrieveAndProcess({
+      request,
+      enrichedQuery,
+      analysis,
+      conversationContext,
+      timing,
+    });
+
+    let { selectedChunks } = retrieved;
+    let { citations } = retrieved;
+
+    if (request.accessControlIds && request.accessControlIds.length > 0) {
+      const permResult = await filterChunksByPermission(
+        this.db,
+        selectedChunks,
+        request.accessControlIds,
+        request.teamId
+      );
+
+      const safePrefix = buildSafeAnswerPrefix(
+        permResult.filteredCount,
+        selectedChunks.length
+      );
+
+      if (safePrefix) {
+        return {
+          answer: safePrefix,
+          citations: [],
+          grounding: null,
+          conversationId: request.conversationId ?? null,
+          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          timing: { ...timing, totalMs: performance.now() - startTime },
+        };
+      }
+
+      selectedChunks = permResult.accessibleChunks;
+      const accessibleDocIds = new Set(selectedChunks.map((c) => c.documentId));
+      citations = filterCitationsByPermission(citations, accessibleDocIds);
+    }
+
+    const assembled = assembleContext(
+      selectedChunks,
+      analysis,
+      conversationContext ?? undefined
+    );
 
     const generationStart = performance.now();
     const { answer, usage } = await this.generateAnswer({
