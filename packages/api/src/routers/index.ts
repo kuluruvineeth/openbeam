@@ -12,6 +12,7 @@ import { connectorResourcesRouter } from "./connector-resources";
 import { contextRouter } from "./context";
 import { controlRouter } from "./control";
 import { customConnectorsRouter } from "./custom-connectors";
+import { dataAnalyticsRouter } from "./data-analytics";
 import { filesRouter } from "./files";
 import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
@@ -44,6 +45,7 @@ export const appRouter = createTRPCRouter({
   context: contextRouter,
   control: controlRouter,
   customConnectors: customConnectorsRouter,
+  dataAnalytics: dataAnalyticsRouter,
   files: filesRouter,
   jobs: jobsRouter,
   knowledge: knowledgeRouter,
