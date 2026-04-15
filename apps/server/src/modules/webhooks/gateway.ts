@@ -1,4 +1,4 @@
-import db from "@openbeam/db";
+import db, { findConnectorById } from "@openbeam/db";
 import { rateLimiter } from "@openbeam/redis";
 import {
   isDuplicateEvent,
@@ -37,10 +37,7 @@ webhookGateway.post("/:connectorType/:connectorId/events", async (c) => {
     return c.json({ accepted: true, eventId, deduplicated: true });
   }
 
-  const connector = await db.connector.findUnique({
-    where: { id: connectorId },
-    select: { id: true, teamId: true, app: true, status: true },
-  });
+  const connector = await findConnectorById(db, connectorId);
 
   if (!connector) {
     return c.json({ accepted: false, error: "Connector not found" }, 404);
