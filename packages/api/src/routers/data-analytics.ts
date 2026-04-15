@@ -1,4 +1,5 @@
 import {
+  countSearchImpressions,
   getDailyUsageForPeriod,
   getTeamConnectorsSummary,
   getTeamUsageSummary,
@@ -27,12 +28,12 @@ export const dataAnalyticsRouter = createTRPCRouter({
         getTeamConnectorsSummary(ctx.prisma, ctx.teamId),
       ]);
 
-      const searchCount = await ctx.prisma.searchImpression.count({
-        where: {
-          teamId: ctx.teamId,
-          createdAt: { gte: startDate, lte: endDate },
-        },
-      });
+      const searchCount = await countSearchImpressions(
+        ctx.prisma,
+        ctx.teamId,
+        startDate,
+        endDate
+      );
 
       return {
         searchCount,

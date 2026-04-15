@@ -88,3 +88,17 @@ export function countTrainingSamples(
     },
   });
 }
+
+export function countSearchImpressions(
+  db: Database,
+  teamId: string,
+  fromDate: Date,
+  toDate: Date
+) {
+  return db.searchImpression.count({
+    where: {
+      teamId,
+      createdAt: { gte: fromDate, lte: toDate },
+    },
+  });
+}
