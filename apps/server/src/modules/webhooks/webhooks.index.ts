@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { customWebhook } from "./custom";
+import { webhookGateway } from "./gateway";
 import { githubWebhook } from "./github";
 import { gmailWebhook } from "./gmail";
 import { googleDriveWebhook } from "./google-drive";
@@ -13,6 +14,7 @@ import { slackOptions } from "./slack-options";
 const webhooks = new Hono();
 
 webhooks.route("/custom", customWebhook);
+webhooks.route("/gateway", webhookGateway);
 webhooks.route("/github", githubWebhook);
 webhooks.route("/gmail", gmailWebhook);
 webhooks.route("/google-drive", googleDriveWebhook);
