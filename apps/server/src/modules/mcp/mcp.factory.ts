@@ -16,6 +16,7 @@ import {
   registerConnectorTools,
   registerContextTools,
   registerContextWriteTools,
+  registerKnowledgeBaseTools,
   registerKnowledgeTools,
   registerMemoryTools,
   registerNotificationTools,
@@ -129,6 +130,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerMemoryTools(server, ctx);
   registerSessionTools(server, ctx);
   registerKnowledgeTools(server, ctx);
+  registerKnowledgeBaseTools(server, ctx);
   registerTeamTools(server, ctx);
   registerActionTools(server, ctx);
   registerAgentTools(server, ctx);

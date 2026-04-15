@@ -9,6 +9,7 @@ export { registerConnectorTools } from "./connectors";
 export { registerContextTools } from "./context";
 export { registerContextWriteTools } from "./context-write";
 export { registerKnowledgeTools } from "./knowledge";
+export { registerKnowledgeBaseTools } from "./knowledge-base";
 export { registerMemoryTools } from "./memory";
 export { registerNotificationTools } from "./notifications";
 export { registerSearchTools } from "./search";

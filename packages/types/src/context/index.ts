@@ -2,6 +2,12 @@ export {
   type ContextAnalytics,
   ContextAnalyticsSchema,
 } from "./analytics";
+export type {
+  CompilationJob,
+  CompilationResult,
+  ProvenanceChain,
+  SourceContribution,
+} from "./compiler";
 export {
   type ContextEntry,
   ContextEntrySchema,
