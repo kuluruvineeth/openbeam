@@ -1,0 +1,53 @@
+enum ResearchStatus {
+  PENDING
+  PLANNING
+  INVESTIGATING
+  SYNTHESIZING
+  WRITING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model ResearchSession {
+  id        String         @id @default(cuid()) @map("_id")
+  teamId    String
+  userId    String
+  prompt    String
+  status    ResearchStatus @default(PENDING)
+  report    String?
+  plan      Json?
+  progress  Int            @default(0)
+  error     String?
+  tokenUsage Json?
+  workflowId String?       @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team     Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidence ResearchEvidence[]
+
+  @@index([teamId, createdAt])
+  @@index([userId, createdAt])
+  @@index([workflowId])
+  @@map("research_session")
+}
+
+model ResearchEvidence {
+  id        String @id @default(cuid()) @map("_id")
+  sessionId String
+  sourceUri String
+  title     String
+  snippet   String
+  relevance Float  @default(0)
+  connector String?
+
+  createdAt DateTime @default(now())
+
+  session ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("research_evidence")
+}

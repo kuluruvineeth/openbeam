@@ -104,6 +104,7 @@ model Team {
   onboardingStates OnboardingState[]
   ragAuditLogs     RagAuditLog[]
   auditLogs        AuditLog[]
+  researchSessions ResearchSession[]
 
   @@map("team")
 }
