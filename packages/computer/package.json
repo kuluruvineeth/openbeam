@@ -1,0 +1,35 @@
+{
+  "name": "@openbeam/computer",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.2",
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "ai": "^6.0.26",
+    "secure-exec": "^0.2.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@openbeam/config": "workspace:*",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}
