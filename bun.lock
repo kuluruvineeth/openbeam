@@ -355,6 +355,7 @@
         "@openbeam/analytics": "workspace:*",
         "@openbeam/api": "workspace:*",
         "@openbeam/auth": "workspace:*",
+        "@openbeam/computer": "workspace:*",
         "@openbeam/db": "workspace:*",
         "@openbeam/integrations": "workspace:*",
         "@openbeam/mcp-apps": "workspace:*",

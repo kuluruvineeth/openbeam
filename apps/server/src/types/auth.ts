@@ -23,6 +23,8 @@ export const API_SCOPES = {
   CANVAS_EXECUTE: "canvas:execute",
   RESEARCH_READ: "research:read",
   RESEARCH_WRITE: "research:write",
+  COMPUTER_READ: "computer:read",
+  COMPUTER_WRITE: "computer:write",
   CONTROL_READ: "control:read",
   CONTROL_WRITE: "control:write",
   CONTROL_EXECUTE: "control:execute",
@@ -148,6 +150,8 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.CANVAS_EXECUTE]: ["POST"],
   [API_SCOPES.RESEARCH_READ]: ["GET"],
   [API_SCOPES.RESEARCH_WRITE]: ["POST"],
+  [API_SCOPES.COMPUTER_READ]: ["GET"],
+  [API_SCOPES.COMPUTER_WRITE]: ["POST", "PUT", "DELETE"],
   [API_SCOPES.CONTROL_READ]: ["GET"],
   [API_SCOPES.CONTROL_WRITE]: ["POST", "PUT", "PATCH", "DELETE"],
   [API_SCOPES.CONTROL_EXECUTE]: ["POST"],
@@ -235,6 +239,12 @@ export function getScopesForRoute(
       return [API_SCOPES.RESEARCH_READ];
     }
     return [API_SCOPES.RESEARCH_WRITE];
+  }
+  if (path.startsWith("/api/v1/computer")) {
+    if (method === "GET") {
+      return [API_SCOPES.COMPUTER_READ];
+    }
+    return [API_SCOPES.COMPUTER_WRITE];
   }
   if (path.startsWith("/api/v1/control")) {
     if (path.includes("/execute") && method === "POST") {
