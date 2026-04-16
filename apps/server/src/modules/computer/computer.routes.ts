@@ -6,8 +6,11 @@ import {
   approveBodySchema,
   approveResponseSchema,
   catalogResponseSchema,
+  confirmBodySchema,
   enableAgentBodySchema,
   errorSchema,
+  generateBodySchema,
+  generateResponseSchema,
   memoryListResponseSchema,
   rejectResponseSchema,
   runIdParamsSchema,
@@ -178,6 +181,50 @@ export const listMemoryRoute = createRoute({
     200: {
       content: { "application/json": { schema: memoryListResponseSchema } },
       description: "Agent memory",
+    },
+  },
+});
+
+export const generateAgentRoute = createRoute({
+  tags,
+  method: "post",
+  path: "/generate",
+  summary: "Generate agent from description",
+  request: {
+    body: {
+      content: { "application/json": { schema: generateBodySchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: generateResponseSchema } },
+      description: "Agent generated",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Generation failed",
+    },
+  },
+});
+
+export const confirmAgentRoute = createRoute({
+  tags,
+  method: "post",
+  path: "/agents/confirm",
+  summary: "Deploy generated agent",
+  request: {
+    body: {
+      content: { "application/json": { schema: confirmBodySchema } },
+    },
+  },
+  responses: {
+    201: {
+      content: { "application/json": { schema: agentResponseSchema } },
+      description: "Agent deployed",
+    },
+    409: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Slug already exists",
     },
   },
 });

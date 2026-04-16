@@ -58,6 +58,31 @@ export const enableAgentBodySchema = z.object({
   templateId: z.string(),
 });
 
+export const generateBodySchema = z.object({
+  description: z.string().min(10),
+});
+
+export const generateResponseSchema = z.object({
+  data: z.object({
+    name: z.string(),
+    slug: z.string(),
+    description: z.string(),
+    scheduleCron: z.string().nullable(),
+    plan: z.array(z.string()),
+    toolsUsed: z.array(z.string()),
+    code: z.string(),
+    compiledCode: z.string(),
+  }),
+});
+
+export const confirmBodySchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+  description: z.string(),
+  code: z.string(),
+  scheduleCron: z.string().optional(),
+});
+
 export const triggerRunResponseSchema = z.object({
   data: z.object({ runId: z.string() }),
 });

@@ -235,4 +235,118 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
       };
     }, "Failed to run agent")
   );
+
+  server.registerTool(
+    "computer_agent_generate",
+    {
+      title: "Generate Custom Agent",
+      description:
+        "Generate a custom AI agent from a natural language description. " +
+        "Returns a plan with name, schedule, code, and tools it will use. " +
+        "The user must review and confirm before deployment via computer_agent_confirm. " +
+        "Do NOT deploy without user confirmation.",
+      inputSchema: {
+        description: z
+          .string()
+          .min(10)
+          .describe("Natural language description of what the agent should do"),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    withErrorHandling(async (params: { description: string }) => {
+      const { connectMcpPair, generateAgentFromDescription } = await import(
+        "@openbeam/computer"
+      );
+      const { createOpenBeamMcpServer } = await import("../mcp.factory");
+
+      const mcpCtx = {
+        teamId: ctx.teamId,
+        userId: ctx.userId,
+        userEmail: ctx.userEmail,
+        scopes: ["admin:*"],
+        timezone: ctx.timezone,
+        locale: ctx.locale,
+      };
+      const mcpServer = createOpenBeamMcpServer(mcpCtx);
+      const mcp = await connectMcpPair(mcpServer);
+
+      try {
+        const result = await generateAgentFromDescription(
+          params.description,
+          mcp.client
+        );
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          structuredContent: { data: result },
+        };
+      } finally {
+        await mcp.close();
+      }
+    }, "Failed to generate agent")
+  );
+
+  server.registerTool(
+    "computer_agent_confirm",
+    {
+      title: "Deploy Generated Agent",
+      description:
+        "Deploy a previously generated agent after user has reviewed the plan. " +
+        "Pass the exact name, slug, code, and description from computer_agent_generate.",
+      inputSchema: {
+        name: z.string().describe("Agent display name"),
+        slug: z.string().describe("URL-safe unique slug"),
+        description: z.string().describe("What the agent does"),
+        code: z.string().describe("Compiled JavaScript code"),
+        scheduleCron: z
+          .string()
+          .optional()
+          .describe("Cron expression for scheduling"),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    withErrorHandling(
+      async (params: {
+        name: string;
+        slug: string;
+        description: string;
+        code: string;
+        scheduleCron?: string;
+      }) => {
+        const existing = await getComputerAgentBySlug(
+          prisma,
+          teamId,
+          params.slug
+        );
+        if (existing) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Agent with slug "${params.slug}" already exists.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const agent = await createComputerAgent(prisma, {
+          teamId,
+          name: params.name,
+          slug: params.slug,
+          description: params.description,
+          source: "GENERATED",
+          code: params.code,
+          scheduleCron: params.scheduleCron,
+          status: "ACTIVE",
+          createdBy: userId,
+        });
+
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(agent) }],
+          structuredContent: { data: agent },
+        };
+      },
+      "Failed to deploy agent"
+    )
+  );
 };

@@ -3,8 +3,10 @@ import { type AuthEnv, requireAuth, requireScopes } from "@/middleware/auth";
 import { API_SCOPES } from "@/types/auth";
 import {
   approveRunHandler,
+  confirmAgentHandler,
   deleteAgentHandler,
   enableAgentHandler,
+  generateAgentHandler,
   getCatalogHandler,
   listAgentsHandler,
   listMemoryHandler,
@@ -14,8 +16,10 @@ import {
 } from "./computer.handlers";
 import {
   approveRunRoute,
+  confirmAgentRoute,
   deleteAgentRoute,
   enableAgentRoute,
+  generateAgentRoute,
   getCatalogRoute,
   listAgentsRoute,
   listMemoryRoute,
@@ -69,5 +73,11 @@ computer.use(
   requireScopes([API_SCOPES.COMPUTER_READ])
 );
 computer.openapi(listMemoryRoute, listMemoryHandler);
+
+computer.use("/generate", requireScopes([API_SCOPES.COMPUTER_WRITE]));
+computer.openapi(generateAgentRoute, generateAgentHandler);
+
+computer.use("/agents/confirm", requireScopes([API_SCOPES.COMPUTER_WRITE]));
+computer.openapi(confirmAgentRoute, confirmAgentHandler);
 
 export default computer;

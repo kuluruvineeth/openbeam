@@ -1,5 +1,10 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { CATALOG_AGENTS, type CatalogAgent } from "@openbeam/computer";
+import {
+  CATALOG_AGENTS,
+  type CatalogAgent,
+  connectMcpPair,
+  generateAgentFromDescription,
+} from "@openbeam/computer";
 import prisma, {
   approveComputerRun,
   createComputerAgent,
@@ -17,8 +22,10 @@ import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {
   approveRunRoute,
+  confirmAgentRoute,
   deleteAgentRoute,
   enableAgentRoute,
+  generateAgentRoute,
   getCatalogRoute,
   listAgentsRoute,
   listMemoryRoute,
@@ -204,4 +211,71 @@ export const listMemoryHandler: RouteHandler<
   const teamId = requireTeamId(c);
   const memory = await getAgentMemoryEntries(prisma, agentId, teamId);
   return c.json({ data: memory }, 200);
+};
+
+export const generateAgentHandler: RouteHandler<
+  typeof generateAgentRoute,
+  AuthEnv
+> = async (c) => {
+  const { description } = c.req.valid("json");
+
+  try {
+    const { createOpenBeamMcpServer } = await import(
+      "@/modules/mcp/mcp.factory"
+    );
+    const authCtx = c.get("authContext");
+    const mcpCtx = {
+      teamId: requireTeamId(c),
+      userId: authCtx.type === "session" ? authCtx.userId : "",
+      userEmail: null,
+      scopes: ["admin:*"],
+      timezone: null,
+      locale: null,
+    };
+    const mcpServer = createOpenBeamMcpServer(mcpCtx);
+    const mcp = await connectMcpPair(mcpServer);
+
+    try {
+      const result = await generateAgentFromDescription(
+        description,
+        mcp.client
+      );
+      return c.json({ data: result }, 200);
+    } finally {
+      await mcp.close();
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Generation failed";
+    return c.json({ error: msg }, 400);
+  }
+};
+
+export const confirmAgentHandler: RouteHandler<
+  typeof confirmAgentRoute,
+  AuthEnv
+> = async (c) => {
+  const input = c.req.valid("json");
+  const teamId = requireTeamId(c);
+
+  const existing = await getComputerAgentBySlug(prisma, teamId, input.slug);
+  if (existing) {
+    return c.json({ error: "Agent with this slug already exists" }, 409);
+  }
+
+  const authCtx = c.get("authContext");
+  const userId = authCtx.type === "session" ? authCtx.userId : undefined;
+
+  const agent = await createComputerAgent(prisma, {
+    teamId,
+    name: input.name,
+    slug: input.slug,
+    description: input.description,
+    source: "GENERATED",
+    code: input.code,
+    scheduleCron: input.scheduleCron,
+    status: "ACTIVE",
+    createdBy: userId,
+  });
+
+  return c.json({ data: agent }, 201);
 };
