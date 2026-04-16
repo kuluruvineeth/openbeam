@@ -68,6 +68,10 @@
       "types": "./dist/connector-actions/linear.d.ts",
       "default": "./src/connector-actions/linear.ts"
     },
+    "./computer": {
+      "types": "./dist/computer/index.d.ts",
+      "default": "./src/computer/index.ts"
+    },
     "./db": {
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
