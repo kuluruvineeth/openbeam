@@ -8,7 +8,8 @@ export type WorkerType =
   | "maintenance"
   | "scheduled"
   | "knowledge"
-  | "context";
+  | "context"
+  | "computer";
 
 export interface WorkerOptions {
   taskQueue: string;

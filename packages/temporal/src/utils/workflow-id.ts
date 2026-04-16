@@ -11,7 +11,8 @@ export type WorkflowType =
   | "heartbeat"
   | "scheduler"
   | "timer"
-  | "reaper";
+  | "reaper"
+  | "computer";
 
 export interface WorkflowIdOptions {
   type: WorkflowType;
@@ -140,6 +141,13 @@ function generateReaperWorkflowId(teamId: string | undefined): string {
   return `reaper:${teamId}`;
 }
 
+function generateComputerWorkflowId(runId: string | undefined): string {
+  if (!runId) {
+    throw new Error("runId required for computer");
+  }
+  return `computer:${runId}`;
+}
+
 const WORKFLOW_ID_GENERATORS: Record<
   WorkflowType,
   (options: WorkflowIdOptions, _ts: number) => string
@@ -157,6 +165,7 @@ const WORKFLOW_ID_GENERATORS: Record<
   scheduler: (o) => generateSchedulerWorkflowId(o.teamId),
   timer: (o) => generateTimerWorkflowId(o.agentId),
   reaper: (o) => generateReaperWorkflowId(o.teamId),
+  computer: (o) => generateComputerWorkflowId(o.runId),
 };
 
 export function generateWorkflowId(options: WorkflowIdOptions): string {

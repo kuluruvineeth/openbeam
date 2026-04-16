@@ -117,6 +117,7 @@ export function getTaskQueuesForWorkerType(workerType: WorkerType): string[] {
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
     context: TASK_QUEUES.CONTEXT_ENRICHMENT,
+    computer: TASK_QUEUES.COMPUTER,
   };
 
   return [mapping[workerType] ?? TASK_QUEUES.DEFAULT];
@@ -134,6 +135,7 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
     context: TASK_QUEUES.CONTEXT_ENRICHMENT,
+    computer: TASK_QUEUES.COMPUTER,
   };
 
   return mapping[workerType] ?? TASK_QUEUES.DEFAULT;

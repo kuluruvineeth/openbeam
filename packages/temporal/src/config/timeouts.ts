@@ -97,6 +97,16 @@ export const AGENT_REAPER_TIMEOUTS: ActivityTimeouts = {
   heartbeatTimeout: "1m",
 };
 
+export const COMPUTER_EXECUTE_TIMEOUTS: ActivityTimeouts = {
+  startToCloseTimeout: "30m",
+  scheduleToCloseTimeout: "1h",
+  heartbeatTimeout: "2m",
+};
+
+export const COMPUTER_SHORT_TIMEOUTS: ActivityTimeouts = {
+  startToCloseTimeout: "1m",
+};
+
 export const LLM_CALL_TIMEOUTS: ActivityTimeouts = {
   startToCloseTimeout: "3m",
   heartbeatTimeout: "45s",

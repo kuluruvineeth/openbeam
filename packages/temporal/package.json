@@ -54,8 +54,10 @@
   },
   "dependencies": {
     "@duckdb/node-api": "^1.4.3-r.2",
+    "@modelcontextprotocol/sdk": "^1.28.0",
     "@openbeam/ai": "workspace:*",
     "@openbeam/analytics": "workspace:*",
+    "@openbeam/computer": "workspace:*",
     "@openbeam/db": "workspace:*",
     "@openbeam/media": "workspace:*",
     "@openbeam/redis": "workspace:*",

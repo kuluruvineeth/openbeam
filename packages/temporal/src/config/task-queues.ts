@@ -15,6 +15,7 @@ export const TASK_QUEUES = {
   KNOWLEDGE: "knowledge",
   KNOWLEDGE_INFERENCE: "knowledge-inference",
   CONTEXT_ENRICHMENT: "context-enrichment",
+  COMPUTER: "computer",
   DEFAULT: "default",
 } as const;
 
