@@ -23,7 +23,9 @@
     "@modelcontextprotocol/sdk": "^1.28.0",
     "@openbeam/db": "workspace:*",
     "@openbeam/types": "workspace:*",
+    "@secure-exec/typescript": "^0.2.1",
     "ai": "^6.0.26",
+    "json-schema-to-typescript": "^15.0.4",
     "secure-exec": "^0.2.1",
     "zod": "catalog:"
   },
