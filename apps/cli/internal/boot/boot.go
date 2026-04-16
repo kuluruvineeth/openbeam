@@ -11,6 +11,7 @@ import (
 	authcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/auth"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/backgroundagents"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/canvas"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/computer"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/completion"
 	configcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/config"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/control"
@@ -127,6 +128,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	agentCommand := agent.NewCommand(buildRuntime)
 	backgroundAgentsCommand := backgroundagents.NewCommand(buildRuntime)
 	canvasCommand := canvas.NewCommand(buildRuntime)
+	computerCommand := computer.NewCommand(buildRuntime)
 	ragCommand := rag.NewCommand(buildRuntime)
 	researchCommand := research.NewCommand(buildRuntime)
 	knowledgeCommand := knowledge.NewCommand(buildRuntime)
@@ -153,6 +155,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	agentCommand.GroupID = "agent"
 	backgroundAgentsCommand.GroupID = "agent"
 	canvasCommand.GroupID = "agent"
+	computerCommand.GroupID = "agent"
 	ragCommand.GroupID = "agent"
 	researchCommand.GroupID = "agent"
 	knowledgeCommand.GroupID = "agent"
@@ -177,6 +180,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	root.AddCommand(agentCommand)
 	root.AddCommand(backgroundAgentsCommand)
 	root.AddCommand(canvasCommand)
+	root.AddCommand(computerCommand)
 	root.AddCommand(ragCommand)
 	root.AddCommand(researchCommand)
 	root.AddCommand(knowledgeCommand)
