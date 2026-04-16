@@ -1,4 +1,6 @@
 export { createBindings } from "./bindings";
+export type { CatalogAgent } from "./catalog";
+export { CATALOG_AGENTS, seedPreBuiltAgents } from "./catalog";
 export { AGENT_LIMITS } from "./constants";
 export { executeAgent } from "./engine";
 export { ProposalSubmittedError } from "./errors";
