@@ -11,6 +11,7 @@ import {
   registerAdminTeamTools,
   registerAgentTools,
   registerApiKeyTools,
+  registerComputerTools,
   registerConnectorManageTools,
   registerConnectorSetupTools,
   registerConnectorTools,
@@ -138,6 +139,7 @@ export function createOpenBeamMcpServer(ctx: McpContext): McpServer {
   registerAdminTeamTools(server, ctx);
   registerNotificationTools(server, ctx);
   registerActivityTools(server, ctx);
+  registerComputerTools(server, ctx);
 
   registerResources(server, ctx);
   registerPrompts(server, ctx);

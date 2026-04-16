@@ -1,0 +1,238 @@
+import { CATALOG_AGENTS, type CatalogAgent } from "@openbeam/computer";
+import prisma, {
+  createComputerAgent,
+  createComputerRun,
+  getComputerAgentBySlug,
+  getComputerAgentForRun,
+  getComputerAgents,
+  getComputerRuns,
+} from "@openbeam/db";
+import { z } from "zod";
+import {
+  hasScope,
+  READ_ONLY_ANNOTATIONS,
+  type RegisterTools,
+  WRITE_ANNOTATIONS,
+} from "../mcp.types";
+import { withErrorHandling } from "../mcp.utils";
+
+export const registerComputerTools: RegisterTools = (server, ctx) => {
+  const { teamId, userId } = ctx;
+
+  if (!(hasScope(ctx, "computer.read") || hasScope(ctx, "teams.read"))) {
+    return;
+  }
+
+  server.registerTool(
+    "computer_catalog_list",
+    {
+      title: "List Agent Catalog",
+      description:
+        "List available pre-built AI agents that can be enabled to automate enterprise workflows. " +
+        "Returns name, description, and schedule for each. " +
+        "Use this FIRST before computer_agent_enable to see available agents. " +
+        "After finding an agent, use computer_agent_enable with its templateId to install it.",
+      inputSchema: {},
+      annotations: READ_ONLY_ANNOTATIONS,
+    },
+    withErrorHandling(async () => {
+      const catalog = await Promise.resolve(
+        CATALOG_AGENTS.map(
+          ({
+            templateId,
+            name,
+            slug,
+            description,
+            scheduleCron,
+          }: CatalogAgent) => ({
+            templateId,
+            name,
+            slug,
+            description,
+            scheduleCron,
+          })
+        )
+      );
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(catalog) }],
+        structuredContent: { data: catalog },
+      };
+    }, "Failed to list catalog")
+  );
+
+  server.registerTool(
+    "computer_agents_list",
+    {
+      title: "List Team Agents",
+      description:
+        "List all AI agents enabled for the current team, including ID, name, schedule, and status. " +
+        "Use this to find an agent before running it or checking its history.",
+      inputSchema: {},
+      annotations: READ_ONLY_ANNOTATIONS,
+    },
+    withErrorHandling(async () => {
+      const agents = await getComputerAgents(prisma, teamId);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(agents) }],
+        structuredContent: { data: agents },
+      };
+    }, "Failed to list agents")
+  );
+
+  server.registerTool(
+    "computer_agent_runs",
+    {
+      title: "List Agent Runs",
+      description:
+        "List recent runs for a specific agent, including status, summary, errors, and timing. " +
+        "Use this to check what an agent found or whether a run completed successfully.",
+      inputSchema: {
+        agentId: z.string().describe("The agent ID"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .default(10)
+          .describe("Number of runs to return (default 10)"),
+      },
+      annotations: READ_ONLY_ANNOTATIONS,
+    },
+    withErrorHandling(async (params: { agentId: string; limit?: number }) => {
+      const runs = await getComputerRuns(
+        prisma,
+        params.agentId,
+        teamId,
+        params.limit ?? 10
+      );
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(runs) }],
+        structuredContent: { data: runs },
+      };
+    }, "Failed to list runs")
+  );
+
+  if (!(hasScope(ctx, "computer.write") || hasScope(ctx, "teams.write"))) {
+    return;
+  }
+
+  server.registerTool(
+    "computer_agent_enable",
+    {
+      title: "Enable Catalog Agent",
+      description:
+        "Install and enable a pre-built agent from the catalog. " +
+        "Pass the templateId from computer_catalog_list. " +
+        "The agent starts running on its defined schedule immediately.",
+      inputSchema: {
+        templateId: z
+          .string()
+          .describe("The templateId of the catalog agent to enable"),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    withErrorHandling(async (params: { templateId: string }) => {
+      const template = CATALOG_AGENTS.find(
+        (a: CatalogAgent) => a.templateId === params.templateId
+      );
+      if (!template) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: "Template not found. Use computer_catalog_list to see available agents.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const existing = await getComputerAgentBySlug(
+        prisma,
+        teamId,
+        template.slug
+      );
+      if (existing) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Agent "${template.name}" is already enabled.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const agent = await createComputerAgent(prisma, {
+        teamId,
+        name: template.name,
+        slug: template.slug,
+        description: template.description,
+        source: "CATALOG",
+        code: template.code,
+        templateId: template.templateId,
+        scheduleCron: template.scheduleCron,
+        status: "ACTIVE",
+        createdBy: userId,
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(agent) }],
+        structuredContent: { data: agent },
+      };
+    }, "Failed to enable agent")
+  );
+
+  server.registerTool(
+    "computer_agent_run",
+    {
+      title: "Run Agent Now",
+      description:
+        "Trigger an immediate manual run of an agent. " +
+        "Returns the run ID which can be used to check status via computer_agent_runs.",
+      inputSchema: {
+        agentId: z.string().describe("The agent ID to run"),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    withErrorHandling(async (params: { agentId: string }) => {
+      const agent = await getComputerAgentForRun(
+        prisma,
+        params.agentId,
+        teamId
+      );
+      if (!agent) {
+        return {
+          content: [{ type: "text" as const, text: "Agent not found." }],
+          isError: true,
+        };
+      }
+      if (agent.status !== "ACTIVE") {
+        return {
+          content: [{ type: "text" as const, text: "Agent is not active." }],
+          isError: true,
+        };
+      }
+
+      const runId = crypto.randomUUID();
+      await createComputerRun(prisma, {
+        id: runId,
+        agentId: params.agentId,
+        teamId,
+        triggeredBy: "MANUAL",
+        triggeredByUser: userId,
+      });
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Run ${runId} started. Use computer_agent_runs to check status.`,
+          },
+        ],
+        structuredContent: { data: { runId, status: "pending" } },
+      };
+    }, "Failed to run agent")
+  );
+};

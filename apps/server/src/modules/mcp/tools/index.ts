@@ -3,6 +3,7 @@ export { registerActivityTools } from "./activity";
 export { registerApiKeyTools } from "./admin-apikeys";
 export { registerAdminTeamTools } from "./admin-team";
 export { registerAgentTools } from "./agents";
+export { registerComputerTools } from "./computer";
 export { registerConnectorManageTools } from "./connector-manage";
 export { registerConnectorSetupTools } from "./connector-setup";
 export { registerConnectorTools } from "./connectors";
