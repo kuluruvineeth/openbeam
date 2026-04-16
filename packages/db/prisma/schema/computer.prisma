@@ -1,0 +1,140 @@
+enum ComputerAgentSource {
+  CATALOG
+  GENERATED
+}
+
+enum ComputerAgentStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+  ERROR
+}
+
+enum ComputerAgentMode {
+  AUTONOMOUS
+  APPROVAL
+  REPORT_ONLY
+}
+
+enum ComputerRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  WAITING_APPROVAL
+}
+
+enum ComputerTriggerType {
+  SCHEDULE
+  MANUAL
+  WEBHOOK
+  API
+}
+
+enum ComputerStepType {
+  TOOL_CALL
+  AI_GENERATION
+  MEMORY_READ
+  MEMORY_WRITE
+  NOTIFICATION
+  PROPOSAL
+  CONNECTOR_CALL
+  CONTEXT
+}
+
+model ComputerAgent {
+  id           String              @id @default(cuid()) @map("_id")
+  teamId       String
+  name         String
+  slug         String              @db.VarChar(255)
+  description  String?             @db.Text
+  source       ComputerAgentSource
+  code         String              @db.Text
+  codeHash     String?             @db.VarChar(64)
+  templateId   String?             @db.VarChar(255)
+  status       ComputerAgentStatus @default(DRAFT)
+  mode         ComputerAgentMode   @default(APPROVAL)
+  scheduleCron String?             @db.VarChar(255)
+  config       Json?
+  createdBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team          Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdByUser User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  runs          ComputerRun[]
+  memories      ComputerAgentMemory[]
+
+  @@unique([teamId, slug])
+  @@index([teamId, status])
+  @@map("computer_agent")
+}
+
+model ComputerRun {
+  id              String              @id @default(cuid()) @map("_id")
+  agentId         String
+  teamId          String
+  status          ComputerRunStatus   @default(PENDING)
+  triggeredBy     ComputerTriggerType?
+  triggeredByUser String?
+  proposedActions Json?
+  summary         String?             @db.Text
+  error           String?             @db.Text
+  toolCallCount   Int                 @default(0)
+  llmCallCount    Int                 @default(0)
+  tokenUsage      Json?
+  workflowId      String?             @unique
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  agent ComputerAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  team  Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  steps ComputerRunStep[]
+
+  @@index([agentId, status])
+  @@index([teamId, createdAt(sort: Desc)])
+  @@map("computer_run")
+}
+
+model ComputerRunStep {
+  id         String           @id @default(cuid()) @map("_id")
+  runId      String
+  sequence   Int
+  type       ComputerStepType
+  name       String           @db.VarChar(255)
+  input      Json?
+  output     Json?
+  durationMs Int?
+
+  createdAt DateTime @default(now())
+
+  run ComputerRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, sequence])
+  @@map("computer_run_step")
+}
+
+model ComputerAgentMemory {
+  id       String  @id @default(cuid()) @map("_id")
+  agentId  String
+  teamId   String
+  key      String  @db.VarChar(255)
+  content  String  @db.Text
+  type     String? @db.VarChar(100)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent ComputerAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  team  Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, key])
+  @@index([agentId])
+  @@index([teamId])
+  @@map("computer_agent_memory")
+}

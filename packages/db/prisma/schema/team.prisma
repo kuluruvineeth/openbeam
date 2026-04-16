@@ -106,6 +106,10 @@ model Team {
   auditLogs        AuditLog[]
   researchSessions ResearchSession[]
 
+  computerAgents      ComputerAgent[]
+  computerRuns        ComputerRun[]
+  computerAgentMemory ComputerAgentMemory[]
+
   @@map("team")
 }
 
