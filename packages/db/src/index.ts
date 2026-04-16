@@ -47,6 +47,9 @@ export * from "./mutations/audit-logs";
 export * from "./mutations/background-agents";
 export * from "./mutations/bot";
 export * from "./mutations/composition";
+export * from "./mutations/computer-agents";
+export * from "./mutations/computer-memory";
+export * from "./mutations/computer-runs";
 export * from "./mutations/connector-resources";
 export {
   completeSetupSession,
@@ -105,6 +108,9 @@ export * from "./queries/audit-logs";
 export * from "./queries/background-agents";
 export * from "./queries/bot";
 export * from "./queries/composition";
+export * from "./queries/computer-agents";
+export * from "./queries/computer-memory";
+export * from "./queries/computer-runs";
 export * from "./queries/connector-resources";
 export * from "./queries/connector-stats";
 export * from "./queries/connectors";
