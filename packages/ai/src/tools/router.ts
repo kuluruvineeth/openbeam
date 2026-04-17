@@ -41,6 +41,7 @@ const CATEGORY_PRIORITY: Record<ToolCategory, number> = {
   canvas: 0,
   voice: 2,
   control: 3,
+  computer: 4,
 };
 
 export class ToolRouter {

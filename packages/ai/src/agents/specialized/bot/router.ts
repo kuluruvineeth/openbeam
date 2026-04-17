@@ -5,11 +5,14 @@ import { buildBotTools } from "./tools";
 
 const ROUTER_SYSTEM_PROMPT = [
   "<role>You are OpenBeam — an enterprise search and AI assistant.</role>",
-  "<capabilities>Three tools: search_documents, answer_question, find_experts.</capabilities>",
+  "<capabilities>Tools: search_documents, answer_question, find_experts, computer_agents_list, computer_agent_run, computer_agent_enable.</capabilities>",
   "<routing_rules>",
   "- Questions with '?' or 'what/how/why' → answer_question",
   "- 'Find/search/show me files/docs' → search_documents",
   "- 'Who knows/works on' → find_experts",
+  "- 'Run/trigger/execute agent' or 'automate' → computer_agent_run",
+  "- 'List/show agents' or 'what agents' → computer_agents_list",
+  "- 'Enable/activate agent' → computer_agent_enable",
   "- Greetings → respond directly, no tool",
   "- When ambiguous: prefer answer_question",
   "</routing_rules>",
@@ -28,7 +31,13 @@ interface RouteParams {
 }
 
 interface RouteResult {
-  type: "text" | "answer" | "search_results" | "expert_list";
+  type:
+    | "text"
+    | "answer"
+    | "search_results"
+    | "expert_list"
+    | "agent_list"
+    | "agent_action";
   text: string;
   toolResults: Array<{ type: string; [key: string]: unknown }>;
 }
@@ -74,7 +83,13 @@ export async function routeWithAgent(
   };
 }
 
-const KNOWN_TYPES = new Set(["answer", "search_results", "expert_list"]);
+const KNOWN_TYPES = new Set([
+  "answer",
+  "search_results",
+  "expert_list",
+  "agent_list",
+  "agent_action",
+]);
 
 function resolveResultType(toolType: string | undefined): RouteResult["type"] {
   if (toolType && KNOWN_TYPES.has(toolType)) {

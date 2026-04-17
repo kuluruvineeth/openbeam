@@ -125,6 +125,7 @@ export const PERMISSION_MODE_CONFIGS: Record<
       "analysis",
       "integration",
       "system",
+      "computer",
     ],
     requiresApproval: true,
     canWrite: true,

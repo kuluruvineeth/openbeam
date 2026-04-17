@@ -71,6 +71,10 @@ export async function executeAgent(
       llmCallCount: getCounters().llmCallCount,
     };
   } finally {
-    driver.dispose();
+    try {
+      driver.dispose();
+    } catch {
+      /* disposal errors must not mask execution results */
+    }
   }
 }
