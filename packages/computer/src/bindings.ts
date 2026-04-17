@@ -78,7 +78,7 @@ export function createBindings(ctx: BindingContext) {
         );
       }
       toolCallCount += 1;
-      const step = stepLogger.log("TOOL_CALL", name, args);
+      const step = stepLogger.log("tool_call", name, args);
       try {
         const result = await ctx.mcpClient.callTool({
           name,
@@ -108,7 +108,7 @@ export function createBindings(ctx: BindingContext) {
         );
       }
       llmCallCount += 1;
-      const step = stepLogger.log("AI_GENERATION", "generateText", {
+      const step = stepLogger.log("ai_generation", "generateText", {
         promptLength: prompt.length,
         model: opts?.model,
       });
@@ -133,7 +133,7 @@ export function createBindings(ctx: BindingContext) {
       key?: string;
       type?: string;
     }): Promise<unknown[]> {
-      const step = stepLogger.log("MEMORY_READ", "readMemory", opts);
+      const step = stepLogger.log("memory_read", "readMemory", opts);
       try {
         const result = await getAgentMemory(
           ctx.db,
@@ -157,7 +157,7 @@ export function createBindings(ctx: BindingContext) {
       type?: string,
       metadata?: Record<string, unknown>
     ): Promise<{ success: true }> {
-      const step = stepLogger.log("MEMORY_WRITE", "writeMemory", {
+      const step = stepLogger.log("memory_write", "writeMemory", {
         key,
         type,
       });
@@ -181,7 +181,7 @@ export function createBindings(ctx: BindingContext) {
     },
 
     getTrigger(): Record<string, unknown> {
-      const step = stepLogger.log("CONTEXT", "getTrigger", {});
+      const step = stepLogger.log("context", "getTrigger", {});
       const triggerData = ctx.triggerContext ?? {};
       step.done(triggerData);
       return triggerData;
@@ -191,7 +191,7 @@ export function createBindings(ctx: BindingContext) {
       message: string,
       priority: "low" | "normal" | "urgent" = "normal"
     ): Promise<{ success: true }> {
-      const step = stepLogger.log("NOTIFICATION", "notify", {
+      const step = stepLogger.log("notification", "notify", {
         priority,
         messageLength: message.length,
       });
@@ -220,7 +220,7 @@ export function createBindings(ctx: BindingContext) {
     },
 
     async propose(actions: ProposedAction[]): Promise<never> {
-      const step = stepLogger.log("PROPOSAL", "propose", {
+      const step = stepLogger.log("proposal", "propose", {
         actionCount: actions.length,
       });
       await updateComputerRun(ctx.db, ctx.runId, {
@@ -250,7 +250,7 @@ export function createBindings(ctx: BindingContext) {
         );
       }
       toolCallCount += 1;
-      const step = stepLogger.log("CONNECTOR_CALL", toolName, args);
+      const step = stepLogger.log("connector_call", toolName, args);
       try {
         const result = await ctx.mcpClient.callTool({
           name: toolName,
@@ -270,7 +270,7 @@ export function createBindings(ctx: BindingContext) {
       query: string,
       opts?: { scope?: string; limit?: number }
     ): Promise<unknown[]> {
-      const step = stepLogger.log("CONTEXT", "searchContext", {
+      const step = stepLogger.log("context", "searchContext", {
         query,
         ...opts,
       });

@@ -82,12 +82,12 @@ export const enableAgentHandler: RouteHandler<
     (a: CatalogAgent) => a.templateId === templateId
   );
   if (!template) {
-    return c.json({ error: "Template not found" }, 404);
+    return c.json({ error: `Template not found (id: ${templateId})` }, 404);
   }
 
   const existing = await getComputerAgentBySlug(prisma, teamId, template.slug);
   if (existing) {
-    return c.json({ error: "Agent already enabled" }, 409);
+    return c.json({ error: `Agent already enabled (id: ${existing.id})` }, 409);
   }
 
   const authCtx = c.get("authContext");
@@ -133,10 +133,15 @@ export const triggerRunHandler: RouteHandler<
 
   const agent = await getComputerAgentForRun(prisma, agentId, teamId);
   if (!agent) {
-    return c.json({ error: "Agent not found" }, 404);
+    return c.json({ error: `Agent not found (id: ${agentId})` }, 404);
   }
   if (agent.status !== "ACTIVE") {
-    return c.json({ error: "Agent is not active" }, 400);
+    return c.json(
+      {
+        error: `Agent is not active (id: ${agentId}, status: ${agent.status})`,
+      },
+      400
+    );
   }
 
   const authCtx = c.get("authContext");
@@ -264,7 +269,12 @@ export const confirmAgentHandler: RouteHandler<
 
   const existing = await getComputerAgentBySlug(prisma, teamId, input.slug);
   if (existing) {
-    return c.json({ error: "Agent with this slug already exists" }, 409);
+    return c.json(
+      {
+        error: `Agent with slug "${input.slug}" already exists (id: ${existing.id})`,
+      },
+      409
+    );
   }
 
   const authCtx = c.get("authContext");

@@ -29,9 +29,10 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
       title: "List Agent Catalog",
       description:
         "List available pre-built AI agents that can be enabled to automate enterprise workflows. " +
-        "Returns name, description, and schedule for each. " +
+        "Returns name, description, and schedule for each catalog agent (e.g., Knowledge Digest, Connector Health Monitor, Compliance Watchdog). " +
         "Use this FIRST before computer_agent_enable to see available agents. " +
-        "After finding an agent, use computer_agent_enable with its templateId to install it.",
+        "After finding an agent, use computer_agent_enable with its templateId to install it. " +
+        "Do NOT use this for listing already-enabled agents — use computer_agents_list instead.",
       inputSchema: {},
       annotations: READ_ONLY_ANNOTATIONS,
     },
@@ -65,8 +66,10 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
     {
       title: "List Team Agents",
       description:
-        "List all AI agents enabled for the current team, including ID, name, schedule, and status. " +
-        "Use this to find an agent before running it or checking its history.",
+        "List all AI agents enabled for the current team, including ID, name, schedule, and status (ACTIVE, PAUSED, DRAFT). " +
+        "Use this when the user asks about their agents, automation, or scheduled tasks. " +
+        "Returns the agentId needed for computer_agent_run and computer_agent_runs. " +
+        "Do NOT use this to browse the catalog — use computer_catalog_list instead.",
       inputSchema: {},
       annotations: READ_ONLY_ANNOTATIONS,
     },
@@ -189,8 +192,9 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
     {
       title: "Run Agent Now",
       description:
-        "Trigger an immediate manual run of an agent. " +
-        "Returns the run ID which can be used to check status via computer_agent_runs.",
+        "Trigger an immediate manual run of an agent (e.g., run connector health check now, generate a knowledge digest). " +
+        "Returns the run ID which can be used to check status via computer_agent_runs. " +
+        "The agent must be ACTIVE — use computer_agents_list to verify status first.",
       inputSchema: {
         agentId: z.string().describe("The agent ID to run"),
       },
@@ -241,7 +245,7 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
     {
       title: "Generate Custom Agent",
       description:
-        "Generate a custom AI agent from a natural language description. " +
+        "Generate a custom AI agent from a natural language description (e.g., 'monitor Slack for unanswered questions', 'weekly report on content gaps'). " +
         "Returns a plan with name, schedule, code, and tools it will use. " +
         "The user must review and confirm before deployment via computer_agent_confirm. " +
         "Do NOT deploy without user confirmation.",

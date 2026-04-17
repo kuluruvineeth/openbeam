@@ -22,7 +22,7 @@ export async function executeProposedActions(
   try {
     for (const action of options.actions) {
       toolCallCount += 1;
-      const step = stepLogger.log("TOOL_CALL", action.tool, action.args);
+      const step = stepLogger.log("tool_call", action.tool, action.args);
       try {
         const result = await options.mcpClient.callTool({
           name: action.tool,

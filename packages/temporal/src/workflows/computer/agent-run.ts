@@ -123,7 +123,7 @@ export async function agentRunWorkflow(
   if (result.proposalSubmitted) {
     const gotDecision = await conditionWithTimeout(
       () => state.decided,
-      input.approvalTimeoutMs ?? 24 * 60 * 60 * 1000
+      input.approvalTimeoutMs ?? 30 * 60 * 1000
     );
 
     if (!gotDecision) {

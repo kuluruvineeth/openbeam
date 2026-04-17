@@ -90,6 +90,8 @@ async function typecheckAndCompile(
   const tsTools = createTypeScriptTools({
     systemDriver,
     runtimeDriverFactory,
+    memoryLimit: 128,
+    cpuTimeLimitMs: 15_000,
   });
 
   const fullSource = `${typeStubs}\n\n(async () => {\n${code}\n})();`;

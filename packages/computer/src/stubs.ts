@@ -2,6 +2,12 @@ import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { compile } from "json-schema-to-typescript";
 
 const BINDING_DECLARATIONS = `
+interface ToolCallResult {
+  structuredContent?: unknown;
+  content?: Array<{ text?: string }>;
+  isError?: boolean;
+}
+
 declare namespace SecureExec {
   const bindings: {
     callTool: CallToolOverloads["callTool"];
@@ -20,9 +26,14 @@ declare const module: { exports: unknown };
 `;
 
 const SPLIT_PATTERN = /[_-]/;
+const UNSAFE_CHARS = /[^a-zA-Z0-9]/g;
+
+function sanitizeName(str: string): string {
+  return str.replace(UNSAFE_CHARS, "_");
+}
 
 function toPascalCase(str: string): string {
-  return str
+  return sanitizeName(str)
     .split(SPLIT_PATTERN)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
@@ -53,14 +64,14 @@ export async function generateTypeStubs(mcpClient: Client): Promise<string> {
     }
 
     overloads.push(
-      `  callTool(name: "${tool.name}", args: ${inputTypeName}): Promise<unknown>;`
+      `  callTool(name: "${tool.name}", args: ${inputTypeName}): Promise<ToolCallResult>;`
     );
   }
 
   const callToolInterface = [
     "interface CallToolOverloads {",
     ...overloads,
-    "  callTool(name: string, args: Record<string, unknown>): Promise<unknown>;",
+    "  callTool(name: string, args: Record<string, unknown>): Promise<ToolCallResult>;",
     "}",
   ].join("\n");
 
