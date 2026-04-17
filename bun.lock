@@ -638,6 +638,7 @@
       "dependencies": {
         "@openbeam/ai": "workspace:*",
         "@openbeam/auth": "workspace:*",
+        "@openbeam/computer": "workspace:*",
         "@openbeam/db": "workspace:*",
         "@openbeam/integrations": "workspace:*",
         "@openbeam/orchestrations": "workspace:*",
