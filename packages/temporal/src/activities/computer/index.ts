@@ -6,6 +6,7 @@ import {
 } from "./execute-agent";
 import {
   createRunLifecycleActivities,
+  type NotifyFn,
   type RunLifecycleActivities,
 } from "./run-lifecycle";
 
@@ -16,6 +17,7 @@ export interface ComputerActivityDeps {
     userId: string,
     timezone: string | null
   ) => McpServer;
+  notify?: NotifyFn;
 }
 
 export type ComputerActivities = ExecuteAgentActivities &
@@ -26,6 +28,6 @@ export function createComputerActivities(
 ): ComputerActivities {
   return {
     ...createExecuteAgentActivities(deps),
-    ...createRunLifecycleActivities(deps.db),
+    ...createRunLifecycleActivities(deps.db, deps.notify),
   };
 }

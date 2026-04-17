@@ -33,6 +33,9 @@ export const NotificationEventTypeSchema = z.enum([
   "team.member_joined",
   "agent.task_completed",
   "agent.approval_required",
+  "computer.run_completed",
+  "computer.run_failed",
+  "computer.proposal_pending",
   "digest.ready",
 ]);
 export type NotificationEventType = z.infer<typeof NotificationEventTypeSchema>;
@@ -52,6 +55,9 @@ export const PRIORITY_BY_EVENT: Record<
   "document.shared_with_you": "NORMAL",
   "search.saved_alert": "NORMAL",
   "agent.task_completed": "NORMAL",
+  "computer.run_completed": "NORMAL",
+  "computer.run_failed": "HIGH",
+  "computer.proposal_pending": "HIGH",
   "digest.ready": "NORMAL",
   "connector.new_available": "LOW",
   "search.trending": "LOW",
@@ -71,6 +77,8 @@ export const DEDUP_WINDOW_SECONDS: Partial<
   "search.trending": 86_400,
   "team.new_connector": 86_400,
   "team.member_joined": 86_400,
+  "computer.run_completed": 300,
+  "computer.run_failed": 600,
 };
 
 export const NotificationEventPayloadSchema = z.object({

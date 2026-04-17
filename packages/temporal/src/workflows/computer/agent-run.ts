@@ -148,6 +148,8 @@ export async function agentRunWorkflow(
 
     await shortActivities.completeOrFailRun({
       runId,
+      teamId: input.teamId,
+      agentName: input.agentName,
       success: replayResult.success,
       summary:
         typeof replayResult.result === "string" ? replayResult.result : null,
@@ -161,6 +163,8 @@ export async function agentRunWorkflow(
 
   await shortActivities.completeOrFailRun({
     runId,
+    teamId: input.teamId,
+    agentName: input.agentName,
     success: result.success,
     summary: typeof result.result === "string" ? result.result : null,
     error: result.error ?? null,

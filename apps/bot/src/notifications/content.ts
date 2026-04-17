@@ -82,6 +82,21 @@ const CONTENT_MAP: Record<NotificationEventType, NotificationContent> = {
     icon: "shield",
     severity: "warning",
   },
+  "computer.run_completed": {
+    title: "Agent Run Completed",
+    icon: "bot",
+    severity: "success",
+  },
+  "computer.run_failed": {
+    title: "Agent Run Failed",
+    icon: "alert",
+    severity: "warning",
+  },
+  "computer.proposal_pending": {
+    title: "Agent Needs Approval",
+    icon: "shield",
+    severity: "warning",
+  },
   "digest.ready": {
     title: "Your Digest Is Ready",
     icon: "mail",
@@ -159,6 +174,18 @@ export function buildNotificationBody(
       return message || "An agent task has completed.";
     case "agent.approval_required":
       return message || "An agent needs your approval to proceed.";
+    case "computer.run_completed": {
+      const agentName = (payload.agentName as string) ?? "Agent";
+      return `${agentName}: ${message || "Run completed successfully."}`;
+    }
+    case "computer.run_failed": {
+      const agentName = (payload.agentName as string) ?? "Agent";
+      return `${agentName}: ${message || "Run failed."}`;
+    }
+    case "computer.proposal_pending": {
+      const agentName = (payload.agentName as string) ?? "Agent";
+      return `${agentName} has proposed actions awaiting your approval.`;
+    }
     case "digest.ready":
       return message || "Your activity digest is ready.";
     default:

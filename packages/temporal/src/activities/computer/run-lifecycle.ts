@@ -11,7 +11,18 @@ import type {
   ComputerTriggerType,
 } from "@openbeam/types/computer";
 
-export function createRunLifecycleActivities(db: Database) {
+export type NotifyFn = (
+  teamId: string,
+  eventType: string,
+  payload: Record<string, unknown>
+) => Promise<void>;
+
+const noopNotify: NotifyFn = () => Promise.resolve();
+
+export function createRunLifecycleActivities(
+  db: Database,
+  notify: NotifyFn = noopNotify
+) {
   return {
     async createAndClaimRun(input: {
       agentId: string;
@@ -40,19 +51,31 @@ export function createRunLifecycleActivities(db: Database) {
 
     async completeOrFailRun(input: {
       runId: string;
+      teamId: string;
+      agentName: string;
       success: boolean;
       summary?: string | null;
       error?: string | null;
       toolCallCount: number;
       llmCallCount: number;
     }): Promise<void> {
+      const status = input.success ? "COMPLETED" : "FAILED";
       await updateComputerRun(db, input.runId, {
-        status: (input.success ? "COMPLETED" : "FAILED") as ComputerRunStatus,
+        status: status as ComputerRunStatus,
         summary: input.summary ?? null,
         error: input.error ?? null,
         toolCallCount: input.toolCallCount,
         llmCallCount: input.llmCallCount,
         completedAt: new Date(),
+      });
+
+      const eventType = input.success
+        ? "computer.run_completed"
+        : "computer.run_failed";
+      await notify(input.teamId, eventType, {
+        runId: input.runId,
+        agentName: input.agentName,
+        summary: input.summary ?? input.error ?? status,
       });
     },
 
