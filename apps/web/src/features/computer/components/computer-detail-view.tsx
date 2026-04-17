@@ -11,6 +11,7 @@ import {
 } from "@openbeam/ui";
 import { formatRelativeTime } from "@openbeam/ui/utils/format";
 import Link from "next/link";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import {
   useComputerAgent,
@@ -37,6 +38,31 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
   const triggerRun = useTriggerRun();
   const updateAgent = useUpdateAgent();
 
+  const isActive = !agentLoading && agent?.status === "ACTIVE";
+
+  useHotkeys(
+    "r",
+    () => {
+      if (isActive && !triggerRun.isPending) {
+        triggerRun.mutate({ agentId });
+      }
+    },
+    { enabled: isActive }
+  );
+
+  useHotkeys(
+    "p",
+    () => {
+      if (!agentLoading && agent) {
+        updateAgent.mutate({
+          agentId,
+          status: agent.status === "ACTIVE" ? "PAUSED" : "ACTIVE",
+        });
+      }
+    },
+    { enabled: !agentLoading && !!agent }
+  );
+
   if (agentLoading) {
     return <DetailSkeleton />;
   }
@@ -48,8 +74,6 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
       </div>
     );
   }
-
-  const isActive = agent.status === "ACTIVE";
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-8">

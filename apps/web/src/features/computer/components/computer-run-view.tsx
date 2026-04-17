@@ -117,6 +117,7 @@ export function ComputerRunView({ agentId, runId }: ComputerRunViewProps) {
         <TabsContent className="mt-4" value="proposals">
           <ProposalsSection
             actions={proposedActions}
+            agentId={agentId}
             isLoading={proposalsLoading}
             runId={runId}
             status={proposals?.status ?? run.status}
@@ -129,6 +130,7 @@ export function ComputerRunView({ agentId, runId }: ComputerRunViewProps) {
 
 function ProposalsSection({
   actions,
+  agentId,
   isLoading,
   runId,
   status,
@@ -138,6 +140,7 @@ function ProposalsSection({
     args: Record<string, unknown>;
     description?: string;
   }>;
+  agentId: string;
   isLoading: boolean;
   runId: string;
   status: string;
@@ -146,7 +149,14 @@ function ProposalsSection({
     return <ProposalCardSkeleton />;
   }
   if (actions.length > 0) {
-    return <ProposalCard actions={actions} runId={runId} status={status} />;
+    return (
+      <ProposalCard
+        actions={actions}
+        agentId={agentId}
+        runId={runId}
+        status={status}
+      />
+    );
   }
   return (
     <p className="py-4 text-center text-muted-foreground text-xs">

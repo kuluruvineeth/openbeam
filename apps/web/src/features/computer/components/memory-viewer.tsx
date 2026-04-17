@@ -24,7 +24,7 @@ function MemoryRow({ entry }: { entry: MemoryEntry }) {
     parsedContent = JSON.parse(entry.content);
     isJson = true;
   } catch {
-    /* raw text */
+    isJson = false;
   }
 
   return (

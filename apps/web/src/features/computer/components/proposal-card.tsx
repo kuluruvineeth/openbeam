@@ -3,6 +3,7 @@
 import { Badge, Button, Skeleton } from "@openbeam/ui";
 import { cn } from "@openbeam/ui/utils/cn";
 import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { useApproveRun, useRejectRun } from "../hooks/use-computer";
 
@@ -13,20 +14,34 @@ interface ProposedAction {
 }
 
 interface ProposalCardProps {
+  agentId: string;
   runId: string;
   actions: ProposedAction[];
   status: string;
 }
 
-export function ProposalCard({ runId, actions, status }: ProposalCardProps) {
+export function ProposalCard({
+  agentId,
+  runId,
+  actions,
+  status,
+}: ProposalCardProps) {
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(actions.map((_, i) => i))
   );
-  const approveRun = useApproveRun();
-  const rejectRun = useRejectRun();
+  const approveRun = useApproveRun(agentId, runId);
+  const rejectRun = useRejectRun(agentId, runId);
 
   const isWaiting = status === "WAITING_APPROVAL";
   const allSelected = selected.size === actions.length;
+
+  useHotkeys("mod+enter", () => handleApprove(), {
+    enabled: isWaiting && selected.size > 0 && !approveRun.isPending,
+  });
+
+  useHotkeys("escape", () => rejectRun.mutate({ runId }), {
+    enabled: isWaiting && !rejectRun.isPending,
+  });
 
   function toggleIndex(index: number) {
     setSelected((prev) => {

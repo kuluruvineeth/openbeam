@@ -23,9 +23,20 @@ export function useComputerRuns(agentId: string) {
   return useQuery(trpc.computer.listRuns.queryOptions({ agentId, limit: 20 }));
 }
 
+const ACTIVE_RUN_STATUSES = new Set(["RUNNING", "PENDING"]);
+const RUN_POLL_INTERVAL = 3000;
+
 export function useComputerRun(agentId: string, runId: string) {
   const trpc = useTRPC();
-  return useQuery(trpc.computer.getRun.queryOptions({ agentId, runId }));
+  return useQuery({
+    ...trpc.computer.getRun.queryOptions({ agentId, runId }),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status && ACTIVE_RUN_STATUSES.has(status)
+        ? RUN_POLL_INTERVAL
+        : false;
+    },
+  });
 }
 
 export function useComputerMemory(agentId: string) {
@@ -67,24 +78,40 @@ export function useTriggerRun() {
   });
 }
 
-export function useApproveRun() {
+export function useApproveRun(agentId: string, runId: string) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   return useMutation({
     ...trpc.computer.approveRun.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.getRun.queryKey({ agentId, runId }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.getProposals.queryKey({ agentId, runId }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.listRuns.queryKey({ agentId, limit: 20 }),
+      });
     },
   });
 }
 
-export function useRejectRun() {
+export function useRejectRun(agentId: string, runId: string) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   return useMutation({
     ...trpc.computer.rejectRun.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.getRun.queryKey({ agentId, runId }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.getProposals.queryKey({ agentId, runId }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.listRuns.queryKey({ agentId, limit: 20 }),
+      });
     },
   });
 }
