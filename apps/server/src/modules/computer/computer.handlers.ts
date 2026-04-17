@@ -174,15 +174,17 @@ export const approveRunHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { runId } = c.req.valid("param");
+  const teamId = requireTeamId(c);
   const body = c.req.valid("json");
 
   const approved = await approveComputerRun(
     prisma,
     runId,
+    teamId,
     body.approvedIndices
   );
   if (!approved) {
-    return c.json({ error: "No pending proposals" }, 404);
+    return c.json({ error: `No pending proposals (runId: ${runId})` }, 404);
   }
 
   const actions = (approved.proposedActions ?? []) as unknown[];
@@ -209,7 +211,10 @@ export const rejectRunHandler: RouteHandler<
     return c.json({ error: "No pending proposals" }, 404);
   }
 
-  await rejectComputerRun(prisma, runId);
+  const rejected = await rejectComputerRun(prisma, runId, teamId);
+  if (!rejected) {
+    return c.json({ error: `No pending proposals (runId: ${runId})` }, 404);
+  }
   return c.json({ data: { runId, status: "rejected" } }, 200);
 };
 

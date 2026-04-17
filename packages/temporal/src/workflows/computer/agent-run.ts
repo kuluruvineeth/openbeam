@@ -45,7 +45,6 @@ export const rejectionSignal =
 
 const executeActivities = proxyActivities<ComputerActivities>({
   startToCloseTimeout: "30m",
-  heartbeatTimeout: "2m",
   retry: { maximumAttempts: 1 },
 });
 
@@ -107,6 +106,7 @@ export async function agentRunWorkflow(
   if (!claimed) {
     await shortActivities.expireRun({
       runId,
+      teamId: input.teamId,
       reason: "skipped_concurrent",
     });
     return { runId, status: "FAILED" };
@@ -129,13 +129,14 @@ export async function agentRunWorkflow(
     if (!gotDecision) {
       await shortActivities.expireRun({
         runId,
+        teamId: input.teamId,
         reason: "approval_timeout",
       });
       return { runId, status: "TIMED_OUT" };
     }
 
     if (state.rejectionData) {
-      await shortActivities.rejectRun({ runId });
+      await shortActivities.rejectRun({ runId, teamId: input.teamId });
       return { runId, status: "FAILED" };
     }
 

@@ -198,15 +198,12 @@ export function createBindings(ctx: BindingContext) {
       try {
         await updateComputerRun(ctx.db, ctx.runId, { summary: message });
         if (ctx.onNotify) {
-          const eventType =
-            priority === "urgent"
-              ? "computer.run_failed"
-              : "computer.run_completed";
-          await ctx.onNotify(ctx.teamId, eventType, {
+          await ctx.onNotify(ctx.teamId, "computer.agent_alert", {
             runId: ctx.runId,
             agentName: ctx.agentName,
             summary: message,
             priority,
+            sendEmail: priority === "urgent",
           });
         }
         step.done({ delivered: true });

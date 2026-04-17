@@ -159,6 +159,7 @@ export const computerRouter = createTRPCRouter({
       const approved = await approveComputerRun(
         ctx.prisma,
         input.runId,
+        ctx.teamId,
         input.approvedIndices
       );
       if (!approved) {
@@ -172,9 +173,19 @@ export const computerRouter = createTRPCRouter({
 
   rejectRun: withActiveTeam
     .input(z.object({ runId: z.string() }))
-    .mutation(async ({ ctx, input }) =>
-      rejectComputerRun(ctx.prisma, input.runId)
-    ),
+    .mutation(async ({ ctx, input }) => {
+      const rejected = await rejectComputerRun(
+        ctx.prisma,
+        input.runId,
+        ctx.teamId
+      );
+      if (!rejected) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No pending proposals",
+        });
+      }
+    }),
 
   getProposals: withActiveTeam
     .input(runIdSchema)

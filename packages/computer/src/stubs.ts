@@ -11,7 +11,7 @@ interface ToolCallResult {
 declare namespace SecureExec {
   const bindings: {
     callTool: CallToolOverloads["callTool"];
-    parseMcp: (result: unknown) => unknown;
+    parseMcp: <T = any>(result: unknown) => T;
     generateText: (prompt: string, opts?: { system?: string; temperature?: number; maxTokens?: number; model?: string }) => Promise<string>;
     readMemory: (opts?: { key?: string; type?: string }) => Promise<Array<{ id: string; key: string; content: string; type: string | null; metadata: Record<string, unknown> | null; updatedAt: string }>>;
     writeMemory: (key: string, content: string, type?: string, metadata?: Record<string, unknown>) => Promise<{ success: true }>;
@@ -42,31 +42,32 @@ function toPascalCase(str: string): string {
 export async function generateTypeStubs(mcpClient: Client): Promise<string> {
   const { tools } = await mcpClient.listTools();
 
-  const interfaces: string[] = [];
-  const overloads: string[] = [];
+  const results = await Promise.all(
+    tools.map(async (tool) => {
+      const inputTypeName = `${toPascalCase(tool.name)}Input`;
+      let iface: string;
 
-  for (const tool of tools) {
-    const inputTypeName = `${toPascalCase(tool.name)}Input`;
-
-    if (tool.inputSchema) {
-      try {
-        const inputInterface = await compile(
-          tool.inputSchema as Record<string, unknown>,
-          inputTypeName,
-          { bannerComment: "", additionalProperties: false }
-        );
-        interfaces.push(inputInterface);
-      } catch {
-        interfaces.push(`type ${inputTypeName} = Record<string, unknown>;`);
+      if (tool.inputSchema) {
+        try {
+          iface = await compile(
+            tool.inputSchema as Record<string, unknown>,
+            inputTypeName,
+            { bannerComment: "", additionalProperties: false }
+          );
+        } catch {
+          iface = `interface ${inputTypeName} { [key: string]: unknown; }`;
+        }
+      } else {
+        iface = `interface ${inputTypeName} { [key: string]: unknown; }`;
       }
-    } else {
-      interfaces.push(`type ${inputTypeName} = Record<string, unknown>;`);
-    }
 
-    overloads.push(
-      `  callTool(name: "${tool.name}", args: ${inputTypeName}): Promise<ToolCallResult>;`
-    );
-  }
+      const overload = `  callTool(name: "${tool.name}", args: ${inputTypeName}): Promise<ToolCallResult>;`;
+      return { iface, overload };
+    })
+  );
+
+  const interfaces = results.map((r) => r.iface);
+  const overloads = results.map((r) => r.overload);
 
   const callToolInterface = [
     "interface CallToolOverloads {",

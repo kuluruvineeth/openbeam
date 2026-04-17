@@ -95,10 +95,19 @@ async function typecheckAndCompile(
   });
 
   const fullSource = `${typeStubs}\n\n(async () => {\n${code}\n})();`;
+  const agentSource = `(async () => {\n${code}\n})();`;
+
+  const compilerOptions = {
+    target: "ES2022",
+    module: "commonjs",
+    strict: false,
+    skipLibCheck: true,
+  };
 
   const checkResult = await tsTools.typecheckSource({
     sourceText: fullSource,
     filePath: "agent.ts",
+    compilerOptions: { ...compilerOptions, noEmit: true },
   });
 
   if (!checkResult.success) {
@@ -111,8 +120,9 @@ async function typecheckAndCompile(
   }
 
   const compileResult = await tsTools.compileSource({
-    sourceText: fullSource,
+    sourceText: agentSource,
     filePath: "agent.ts",
+    compilerOptions: { ...compilerOptions, removeComments: true },
   });
 
   if (!compileResult.success) {

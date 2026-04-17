@@ -69,17 +69,25 @@ export function createRunLifecycleActivities(
         completedAt: new Date(),
       });
 
-      const eventType = input.success
-        ? "computer.run_completed"
-        : "computer.run_failed";
-      await notify(input.teamId, eventType, {
-        runId: input.runId,
-        agentName: input.agentName,
-        summary: input.summary ?? input.error ?? status,
-      });
+      try {
+        const eventType = input.success
+          ? "computer.run_completed"
+          : "computer.run_failed";
+        await notify(input.teamId, eventType, {
+          runId: input.runId,
+          agentName: input.agentName,
+          summary: input.summary ?? input.error ?? status,
+        });
+      } catch {
+        /* notification failure must not fail the activity — DB status is already persisted */
+      }
     },
 
-    async expireRun(input: { runId: string; reason: string }): Promise<void> {
+    async expireRun(input: {
+      runId: string;
+      teamId: string;
+      reason: string;
+    }): Promise<void> {
       await updateComputerRun(db, input.runId, {
         status: "FAILED" as ComputerRunStatus,
         error: input.reason,
@@ -87,8 +95,8 @@ export function createRunLifecycleActivities(
       });
     },
 
-    async rejectRun(input: { runId: string }): Promise<void> {
-      await rejectComputerRun(db, input.runId);
+    async rejectRun(input: { runId: string; teamId: string }): Promise<void> {
+      await rejectComputerRun(db, input.runId, input.teamId);
     },
 
     async setRunWorkflowId(input: {

@@ -30,8 +30,13 @@ export function upsertAgentMemory(
   });
 }
 
-export function deleteAgentMemory(db: Database, agentId: string, key: string) {
-  return db.computerAgentMemory.delete({
-    where: { agentId_key: { agentId, key } },
+export function deleteAgentMemory(
+  db: Database,
+  agentId: string,
+  teamId: string,
+  key: string
+) {
+  return db.computerAgentMemory.deleteMany({
+    where: { agentId, teamId, key },
   });
 }

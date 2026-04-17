@@ -1,5 +1,6 @@
 import type {
   ComputerRunStatus,
+  ComputerStepType,
   ComputerTriggerType,
   Prisma,
 } from "../../prisma/generated/client";
@@ -107,10 +108,11 @@ export function updateComputerRun(
 export async function approveComputerRun(
   db: Database,
   runId: string,
+  teamId: string,
   approvedIndices?: number[]
 ) {
   const run = await db.computerRun.findFirst({
-    where: { id: runId, status: "WAITING_APPROVAL" },
+    where: { id: runId, teamId, status: "WAITING_APPROVAL" },
     select: { proposedActions: true },
   });
 
@@ -130,24 +132,38 @@ export async function approveComputerRun(
         .map((i) => allActions[i] as (typeof allActions)[number])
     : allActions;
 
-  return db.computerRun.update({
-    where: { id: runId },
+  const result = await db.computerRun.updateMany({
+    where: { id: runId, teamId, status: "WAITING_APPROVAL" },
     data: {
       proposedActions: approvedActions as Prisma.InputJsonValue,
       status: "PENDING",
     },
   });
+
+  if (result.count === 0) {
+    return null;
+  }
+
+  return db.computerRun.findUnique({
+    where: { id: runId },
+    select: { id: true, proposedActions: true, status: true, agentId: true },
+  });
 }
 
-export function rejectComputerRun(db: Database, runId: string) {
-  return db.computerRun.update({
-    where: { id: runId },
+export async function rejectComputerRun(
+  db: Database,
+  runId: string,
+  teamId: string
+) {
+  const result = await db.computerRun.updateMany({
+    where: { id: runId, teamId, status: "WAITING_APPROVAL" },
     data: {
       status: "FAILED",
       error: "rejected_by_user",
       completedAt: new Date(),
     },
   });
+  return result.count > 0;
 }
 
 export function insertComputerRunSteps(
@@ -159,7 +175,8 @@ export function insertComputerRunSteps(
     input: unknown;
     output: unknown;
     durationMs: number;
-  }>
+  }>,
+  sequenceOffset = 0
 ) {
   if (steps.length === 0) {
     return Promise.resolve();
@@ -168,8 +185,8 @@ export function insertComputerRunSteps(
   return db.computerRunStep.createMany({
     data: steps.map((step, index) => ({
       runId,
-      sequence: index,
-      type: step.type as "TOOL_CALL",
+      sequence: sequenceOffset + index,
+      type: step.type.toUpperCase() as ComputerStepType,
       name: step.name,
       input: step.input as Prisma.InputJsonValue,
       output: step.output as Prisma.InputJsonValue,
