@@ -11,18 +11,10 @@ import {
 import { formatRelativeTime } from "@openbeam/ui/utils/format";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
+import { RUN_STATUS_BADGE } from "../constants";
 import { useComputerProposals, useComputerRun } from "../hooks/use-computer";
 import { ProposalCard, ProposalCardSkeleton } from "./proposal-card";
 import { StepTrace, StepTraceSkeleton } from "./step-trace";
-
-const RUN_STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  FAILED: "bg-destructive/10 text-destructive border-destructive/20",
-  RUNNING: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  PENDING: "bg-muted text-muted-foreground border-border/50",
-  WAITING_APPROVAL: "bg-violet-500/10 text-violet-600 border-violet-500/20",
-  REJECTED: "bg-muted text-muted-foreground border-border/30",
-};
 
 interface ComputerRunViewProps {
   agentId: string;
@@ -48,8 +40,7 @@ export function ComputerRunView({ agentId, runId }: ComputerRunViewProps) {
     );
   }
 
-  const statusStyle =
-    RUN_STATUS_STYLES[run.status] ?? RUN_STATUS_STYLES.PENDING;
+  const statusStyle = RUN_STATUS_BADGE[run.status] ?? RUN_STATUS_BADGE.PENDING;
   const proposedActions = (proposals?.proposedActions ?? []) as Array<{
     tool: string;
     args: Record<string, unknown>;

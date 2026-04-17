@@ -14,6 +14,15 @@ export {
   formatAgentStatus,
 } from "./agents";
 export {
+  formatComputerAgentEnabled,
+  formatComputerAgents,
+  formatComputerCatalog,
+  formatComputerConfirmed,
+  formatComputerGenerated,
+  formatComputerRuns,
+  formatComputerRunTriggered,
+} from "./computer";
+export {
   formatConnectorDetail,
   formatConnectorHealth,
   formatConnectorList,

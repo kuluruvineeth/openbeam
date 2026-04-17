@@ -343,5 +343,20 @@ export const getProposalsHandler: RouteHandler<
     agentId,
     teamId
   );
-  return c.json({ data: proposals }, 200);
+  if (!proposals) {
+    return c.json({ data: null }, 200);
+  }
+  return c.json(
+    {
+      data: {
+        ...proposals,
+        proposedActions: (proposals.proposedActions ?? []) as Array<{
+          tool: string;
+          args: Record<string, unknown>;
+          description?: string;
+        }>,
+      },
+    },
+    200
+  );
 };

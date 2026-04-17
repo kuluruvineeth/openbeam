@@ -90,12 +90,18 @@ export const runDetailResponseSchema = z.object({
   }),
 });
 
+const proposedActionSchema = z.object({
+  tool: z.string(),
+  args: z.record(z.string(), z.unknown()),
+  description: z.string().optional(),
+});
+
 export const proposalsResponseSchema = z.object({
   data: z
     .object({
       id: z.string(),
       status: z.string(),
-      proposedActions: z.unknown().nullable(),
+      proposedActions: z.array(proposedActionSchema).nullable(),
       agentId: z.string(),
     })
     .nullable(),
@@ -120,7 +126,7 @@ export const generateResponseSchema = z.object({
 
 export const confirmBodySchema = z.object({
   name: z.string(),
-  slug: z.string(),
+  slug: z.string().regex(/^[a-z0-9-]+$/),
   description: z.string(),
   code: z.string(),
   scheduleCron: z.string().optional(),

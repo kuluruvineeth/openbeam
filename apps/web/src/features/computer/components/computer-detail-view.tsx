@@ -13,6 +13,7 @@ import { formatRelativeTime } from "@openbeam/ui/utils/format";
 import Link from "next/link";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
+import { humanCron, RUN_STATUS_COLOR } from "../constants";
 import {
   useComputerAgent,
   useComputerMemory,
@@ -22,14 +23,6 @@ import {
 } from "../hooks/use-computer";
 import { AgentSettings } from "./agent-settings";
 import { MemoryViewer, MemoryViewerSkeleton } from "./memory-viewer";
-
-const RUN_STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "text-emerald-600",
-  FAILED: "text-destructive",
-  RUNNING: "text-amber-600",
-  PENDING: "text-muted-foreground",
-  WAITING_APPROVAL: "text-violet-600",
-};
 
 export function ComputerDetailView({ agentId }: { agentId: string }) {
   const { data: agent, isLoading: agentLoading } = useComputerAgent(agentId);
@@ -133,7 +126,7 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
         {agent.scheduleCron && (
           <span className="flex items-center gap-1">
             <Icons.ClockIcon size={12} />
-            {agent.scheduleCron}
+            {humanCron(agent.scheduleCron)}
           </span>
         )}
       </div>
@@ -227,7 +220,7 @@ function RunRow({
   };
   agentId: string;
 }) {
-  const statusColor = RUN_STATUS_STYLES[run.status] ?? "text-muted-foreground";
+  const statusColor = RUN_STATUS_COLOR[run.status] ?? "text-muted-foreground";
 
   return (
     <Link
@@ -257,9 +250,16 @@ function DetailSkeleton() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-8">
       <div className="space-y-2">
+        <Skeleton className="h-3 w-20" />
         <Skeleton className="h-7 w-48" />
         <Skeleton className="h-4 w-96" />
       </div>
+      <div className="flex gap-3">
+        <Skeleton className="h-5 w-16" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-28" />
+      </div>
+      <Skeleton className="h-9 w-64" />
       <RunsSkeleton />
     </div>
   );

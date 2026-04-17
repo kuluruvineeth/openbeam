@@ -4,20 +4,12 @@ import { Badge, Button, Skeleton } from "@openbeam/ui";
 import Link from "next/link";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
+import { AGENT_STATUS_STYLES, humanCron } from "../constants";
 import { useComputerAgents } from "../hooks/use-computer";
 import { CreateAgentModal } from "./create-agent-modal";
 
-const STATUS_STYLES = {
-  ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  PAUSED: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  DRAFT: "bg-muted text-muted-foreground border-border/50",
-  ERROR: "bg-destructive/10 text-destructive border-destructive/20",
-  ARCHIVED: "bg-muted text-muted-foreground border-border/30",
-} as const;
-
 function AgentStatusBadge({ status }: { status: string }) {
-  const style =
-    STATUS_STYLES[status as keyof typeof STATUS_STYLES] ?? STATUS_STYLES.DRAFT;
+  const style = AGENT_STATUS_STYLES[status] ?? AGENT_STATUS_STYLES.DRAFT;
   return (
     <Badge className={style} variant="outline">
       {status.toLowerCase()}
@@ -57,7 +49,7 @@ function AgentCard({
         {agent.scheduleCron && (
           <span className="flex items-center gap-1">
             <Icons.ClockIcon size={12} />
-            {agent.scheduleCron}
+            {humanCron(agent.scheduleCron)}
           </span>
         )}
         <span>{agent.mode.toLowerCase().replace("_", " ")}</span>
@@ -91,7 +83,7 @@ export function ComputerListView() {
       <CreateAgentModal onOpenChange={setCreateOpen} open={createOpen} />
 
       {!agents || agents.length === 0 ? (
-        <EmptyState />
+        <EmptyState onEnable={() => setCreateOpen(true)} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {agents.map((agent) => (
@@ -103,14 +95,19 @@ export function ComputerListView() {
   );
 }
 
-function EmptyState() {
+function EmptyState({ onEnable }: { onEnable: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-border/50 border-dashed py-16">
       <Icons.BotIcon className="text-muted-foreground/40" size={32} />
-      <p className="text-muted-foreground text-sm">No agents enabled yet</p>
-      <p className="text-muted-foreground/60 text-xs">
-        Enable a pre-built agent from the catalog to get started
+      <p className="font-medium text-sm">No agents running</p>
+      <p className="max-w-xs text-center text-muted-foreground/60 text-xs">
+        Pre-built agents monitor connector health, digest knowledge updates,
+        detect stale content, and surface compliance issues automatically.
       </p>
+      <Button onClick={onEnable} size="sm" variant="outline">
+        <Icons.Plus size={14} />
+        Enable your first agent
+      </Button>
     </div>
   );
 }

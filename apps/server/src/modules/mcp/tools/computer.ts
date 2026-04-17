@@ -9,6 +9,15 @@ import prisma, {
 } from "@openbeam/db";
 import { z } from "zod";
 import {
+  formatComputerAgentEnabled,
+  formatComputerAgents,
+  formatComputerCatalog,
+  formatComputerConfirmed,
+  formatComputerGenerated,
+  formatComputerRuns,
+  formatComputerRunTriggered,
+} from "../formatters";
+import {
   hasScope,
   READ_ONLY_ANNOTATIONS,
   type RegisterTools,
@@ -55,7 +64,9 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
         )
       );
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(catalog) }],
+        content: [
+          { type: "text" as const, text: formatComputerCatalog(catalog) },
+        ],
         structuredContent: { data: catalog },
       };
     }, "Failed to list catalog")
@@ -76,7 +87,14 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
     withErrorHandling(async () => {
       const agents = await getComputerAgents(prisma, teamId);
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(agents) }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatComputerAgents(
+              agents as Parameters<typeof formatComputerAgents>[0]
+            ),
+          },
+        ],
         structuredContent: { data: agents },
       };
     }, "Failed to list agents")
@@ -109,7 +127,15 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
         params.limit ?? 10
       );
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(runs) }],
+        content: [
+          {
+            type: "text" as const,
+            text: formatComputerRuns(
+              params.agentId,
+              runs as Parameters<typeof formatComputerRuns>[1]
+            ),
+          },
+        ],
         structuredContent: { data: runs },
       };
     }, "Failed to list runs")
@@ -181,7 +207,9 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
       });
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(agent) }],
+        content: [
+          { type: "text" as const, text: formatComputerAgentEnabled(agent) },
+        ],
         structuredContent: { data: agent },
       };
     }, "Failed to enable agent")
@@ -230,10 +258,7 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
 
       return {
         content: [
-          {
-            type: "text" as const,
-            text: `Run ${runId} started. Use computer_agent_runs to check status.`,
-          },
+          { type: "text" as const, text: formatComputerRunTriggered(runId) },
         ],
         structuredContent: { data: { runId, status: "pending" } },
       };
@@ -280,7 +305,9 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
           mcp.client
         );
         return {
-          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          content: [
+            { type: "text" as const, text: formatComputerGenerated(result) },
+          ],
           structuredContent: { data: result },
         };
       } finally {
@@ -346,7 +373,9 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
         });
 
         return {
-          content: [{ type: "text" as const, text: JSON.stringify(agent) }],
+          content: [
+            { type: "text" as const, text: formatComputerConfirmed(agent) },
+          ],
           structuredContent: { data: agent },
         };
       },

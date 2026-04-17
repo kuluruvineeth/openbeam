@@ -121,7 +121,28 @@ export function useUpdateAgent() {
   const queryClient = useQueryClient();
   return useMutation({
     ...trpc.computer.updateAgent.mutationOptions(),
-    onSuccess: () => {
+    onMutate: async (variables) => {
+      const key = trpc.computer.getAgent.queryKey({
+        agentId: variables.agentId,
+      });
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData(key);
+      queryClient.setQueryData(key, (old: typeof previous) =>
+        old ? { ...old, ...variables } : old
+      );
+      return { previous, key };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.key, context.previous);
+      }
+    },
+    onSettled: (_data, _err, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.computer.getAgent.queryKey({
+          agentId: variables.agentId,
+        }),
+      });
       queryClient.invalidateQueries({
         queryKey: trpc.computer.listAgents.queryKey(),
       });
