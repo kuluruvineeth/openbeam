@@ -20,13 +20,10 @@ type MenuItems = readonly MenuItem[];
 const icons: Record<string, () => React.ReactElement> = {
   "/connectors": () => <Icons.ConnectorIcon size={20} />,
   "/search": () => <Icons.Search size={20} />,
+  "/computer": () => <Icons.BotIcon size={20} />,
 } as const;
 
 const items: MenuItems = [
-  // {
-  //   path: "/",
-  //   name: "New",
-  // },
   {
     path: "/connectors",
     name: "Connectors",
@@ -34,6 +31,10 @@ const items: MenuItems = [
   {
     path: "/search",
     name: "Search",
+  },
+  {
+    path: "/computer",
+    name: "Computer",
   },
   // {
   //   path: "/agents",
