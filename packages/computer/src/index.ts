@@ -1,3 +1,9 @@
+export {
+  checkAgentQuota,
+  checkRunQuota,
+  estimateRunCost,
+  getMonthlyUsage,
+} from "./billing";
 export { createBindings } from "./bindings";
 export type { CatalogAgent } from "./catalog";
 export { CATALOG_AGENTS, seedPreBuiltAgents } from "./catalog";
