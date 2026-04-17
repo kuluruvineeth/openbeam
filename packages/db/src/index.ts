@@ -109,6 +109,7 @@ export * from "./queries/background-agents";
 export * from "./queries/bot";
 export * from "./queries/composition";
 export * from "./queries/computer-agents";
+export * from "./queries/computer-analytics";
 export * from "./queries/computer-memory";
 export * from "./queries/computer-runs";
 export * from "./queries/connector-resources";
