@@ -9,6 +9,7 @@ import {
   createComputerRun,
   deleteComputerAgent,
   getAgentMemoryEntries,
+  getAgentRunStats,
   getComputerAgentById,
   getComputerAgentBySlug,
   getComputerAgents,
@@ -248,4 +249,12 @@ export const computerRouter = createTRPCRouter({
     .query(async ({ ctx, input }) =>
       getAgentMemoryEntries(ctx.prisma, input.agentId, ctx.teamId)
     ),
+
+  agentStats: withActiveTeam
+    .input(z.object({ days: z.number().min(1).max(90).default(30) }))
+    .query(async ({ ctx, input }) => {
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+      return await getAgentRunStats(ctx.prisma, ctx.teamId, since);
+    }),
 });

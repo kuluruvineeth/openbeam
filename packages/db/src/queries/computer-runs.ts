@@ -59,3 +59,35 @@ export function getComputerRunProposals(
     },
   });
 }
+
+export async function getAgentRunStats(
+  db: Database,
+  teamId: string,
+  since: Date
+) {
+  const agents = await db.computerAgent.findMany({
+    where: { teamId },
+    select: { id: true, name: true, slug: true },
+  });
+
+  const stats = await db.computerRun.groupBy({
+    by: ["agentId"],
+    where: { teamId, createdAt: { gte: since } },
+    _count: { id: true },
+    _sum: { toolCallCount: true, llmCallCount: true },
+  });
+
+  const agentMap = new Map(agents.map((a) => [a.id, a]));
+
+  return stats.map((s) => {
+    const agent = agentMap.get(s.agentId);
+    return {
+      agentId: s.agentId,
+      agentName: agent?.name ?? "unknown",
+      agentSlug: agent?.slug ?? "unknown",
+      runCount: s._count.id,
+      totalToolCalls: s._sum.toolCallCount ?? 0,
+      totalLlmCalls: s._sum.llmCallCount ?? 0,
+    };
+  });
+}

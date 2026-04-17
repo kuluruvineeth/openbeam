@@ -3,9 +3,11 @@ package computer
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
@@ -142,33 +144,58 @@ func runAndWait(ctx context.Context, provider shared.RuntimeProvider, agentID st
 		return rt.WriteEnvelope("computer run", result, api.Metadata{})
 	}
 
-	fmt.Fprintf(rt.Streams.Err, "Run %s started. Polling...\n", runID)
-
 	detailPath := shared.Path("/api/v1/computer/agents", agentID, "runs", runID)
-	deadline := time.Now().Add(pollTimeoutSec * time.Second)
+	startTime := time.Now()
+	deadline := startTime.Add(pollTimeoutSec * time.Second)
+
+	s := spinner.New(spinner.CharSets[14], 80*time.Millisecond, spinner.WithWriter(rt.Streams.Err))
+	s.Suffix = fmt.Sprintf(" Running agent... (run: %s)", runID)
+	s.Start()
+
+	defer s.Stop()
 
 	for time.Now().Before(deadline) {
 		select {
 		case <-ctx.Done():
+			s.Stop()
 			return ctx.Err()
 		case <-time.After(pollIntervalSec * time.Second):
 		}
 
 		detail, meta, err := rt.Get(ctx, detailPath, nil)
 		if err != nil {
+			s.Stop()
 			return err
 		}
 
 		status := extractStatus(detail)
-		elapsed := time.Since(deadline.Add(-pollTimeoutSec * time.Second)).Truncate(time.Second)
-		fmt.Fprintf(rt.Streams.Err, "  [%s] status: %s\n", elapsed, status)
+		elapsed := time.Since(startTime).Truncate(time.Second)
+		s.Suffix = fmt.Sprintf(" %s %s", status, elapsed)
 
 		if isTerminal(status) {
+			s.Stop()
+			printRunResult(rt.Streams.Err, status, runID, agentID)
 			return rt.WriteEnvelope("computer run", detail, meta)
 		}
 	}
 
-	return errs.New(errs.KindTimeout, "run did not complete within 120s", nil)
+	s.Stop()
+	fmt.Fprintf(rt.Streams.Err, "⚠ Run still in progress (timed out after 120s)\n\n  Check status: openbeam computer runs %s\n  Run ID: %s\n", agentID, runID)
+	return errs.New(errs.KindTimeout, fmt.Sprintf("run %s did not complete within 120s — check: openbeam computer runs %s", runID, agentID), nil)
+}
+
+func printRunResult(w io.Writer, status string, runID string, agentID string) {
+	upper := strings.ToUpper(status)
+	switch upper {
+	case "COMPLETED":
+		fmt.Fprintf(w, "✓ Run completed (run: %s)\n", runID)
+	case "FAILED":
+		fmt.Fprintf(w, "✗ Run failed (run: %s)\n", runID)
+	case "WAITING_APPROVAL":
+		fmt.Fprintf(w, "⏸ Awaiting approval (run: %s)\n\n  View proposals: openbeam computer proposals %s %s\n  Approve: openbeam computer approve %s %s\n", runID, agentID, runID, agentID, runID)
+	default:
+		fmt.Fprintf(w, "→ Run %s: %s\n", status, runID)
+	}
 }
 
 func extractRunID(result any) (string, bool) {

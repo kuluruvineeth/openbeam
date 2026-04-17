@@ -29,6 +29,11 @@ const ComparisonSection = dynamic(() =>
     (mod) => mod.ComparisonSection
   )
 );
+const ComputerCTASection = dynamic(() =>
+  import("@/components/sections/computer-cta-section").then(
+    (mod) => mod.ComputerCTASection
+  )
+);
 const CTASection = dynamic(() =>
   import("@/components/sections/cta-section").then((mod) => mod.CTASection)
 );
@@ -63,6 +68,10 @@ export default function HomePage() {
       </SectionTracker>
       <Divider />
       <ComparisonSection />
+      <Divider />
+      <SectionTracker eventName="computer_cta_viewed">
+        <ComputerCTASection />
+      </SectionTracker>
       <Divider />
       <SectionTracker eventName="pricing_viewed">
         <CTASection />
