@@ -12,6 +12,12 @@ import { AGENT_LIMITS } from "./constants";
 import { ProposalSubmittedError } from "./errors";
 import { createStepLogger } from "./step-logger";
 
+export type NotifyCallback = (
+  teamId: string,
+  eventType: string,
+  payload: Record<string, unknown>
+) => Promise<void>;
+
 interface BindingContext {
   db: Database;
   teamId: string;
@@ -22,6 +28,7 @@ interface BindingContext {
   runId: string;
   mcpClient: Client;
   triggerContext?: Record<string, unknown>;
+  onNotify?: NotifyCallback;
 }
 
 interface ProposedAction {
@@ -190,6 +197,18 @@ export function createBindings(ctx: BindingContext) {
       });
       try {
         await updateComputerRun(ctx.db, ctx.runId, { summary: message });
+        if (ctx.onNotify) {
+          const eventType =
+            priority === "urgent"
+              ? "computer.run_failed"
+              : "computer.run_completed";
+          await ctx.onNotify(ctx.teamId, eventType, {
+            runId: ctx.runId,
+            agentName: ctx.agentName,
+            summary: message,
+            priority,
+          });
+        }
         step.done({ delivered: true });
         return { success: true };
       } catch (error) {
@@ -208,6 +227,15 @@ export function createBindings(ctx: BindingContext) {
         proposedActions: actions,
         status: "WAITING_APPROVAL",
       });
+      if (ctx.onNotify) {
+        await ctx.onNotify(ctx.teamId, "computer.proposal_pending", {
+          runId: ctx.runId,
+          agentName: ctx.agentName,
+          agentSlug: ctx.agentSlug,
+          actionCount: actions.length,
+          summary: `${ctx.agentName} has ${actions.length} proposed action(s) awaiting approval`,
+        });
+      }
       step.done({ submitted: true, actionCount: actions.length });
       throw new ProposalSubmittedError(actions.length);
     },

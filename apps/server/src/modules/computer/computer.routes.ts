@@ -12,10 +12,13 @@ import {
   generateBodySchema,
   generateResponseSchema,
   memoryListResponseSchema,
+  proposalsResponseSchema,
   rejectResponseSchema,
+  runDetailResponseSchema,
   runIdParamsSchema,
   runListResponseSchema,
   triggerRunResponseSchema,
+  updateAgentBodySchema,
 } from "./computer.schema";
 
 const tags = ["Computer"];
@@ -225,6 +228,61 @@ export const confirmAgentRoute = createRoute({
     409: {
       content: { "application/json": { schema: errorSchema } },
       description: "Slug already exists",
+    },
+  },
+});
+
+export const updateAgentRoute = createRoute({
+  tags,
+  method: "put",
+  path: "/agents/{agentId}",
+  summary: "Update agent configuration",
+  request: {
+    params: agentIdParamsSchema,
+    body: {
+      content: { "application/json": { schema: updateAgentBodySchema } },
+    },
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: agentResponseSchema } },
+      description: "Agent updated",
+    },
+    404: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Agent not found",
+    },
+  },
+});
+
+export const getRunDetailRoute = createRoute({
+  tags,
+  method: "get",
+  path: "/agents/{agentId}/runs/{runId}",
+  summary: "Get run detail with step traces",
+  request: { params: runIdParamsSchema },
+  responses: {
+    200: {
+      content: { "application/json": { schema: runDetailResponseSchema } },
+      description: "Run details with steps",
+    },
+    404: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Run not found",
+    },
+  },
+});
+
+export const getProposalsRoute = createRoute({
+  tags,
+  method: "get",
+  path: "/agents/{agentId}/runs/{runId}/proposals",
+  summary: "Get pending proposals for a run",
+  request: { params: runIdParamsSchema },
+  responses: {
+    200: {
+      content: { "application/json": { schema: proposalsResponseSchema } },
+      description: "Run proposals",
     },
   },
 });

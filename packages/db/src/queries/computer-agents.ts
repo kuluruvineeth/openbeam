@@ -76,3 +76,16 @@ export function getUserTimezone(db: Database, userId: string) {
     .findUnique({ where: { id: userId }, select: { timezone: true } })
     .then((u) => u?.timezone ?? null);
 }
+
+const SCHEDULER_LOCK_ID = 8_675_309;
+
+export async function acquireSchedulerLock(db: Database): Promise<boolean> {
+  const result = await db.$queryRaw<Array<{ acquired: boolean }>>`
+    SELECT pg_try_advisory_lock(${SCHEDULER_LOCK_ID}) as "acquired"
+  `;
+  return result[0]?.acquired ?? false;
+}
+
+export async function releaseSchedulerLock(db: Database): Promise<void> {
+  await db.$queryRaw`SELECT pg_advisory_unlock(${SCHEDULER_LOCK_ID})`;
+}

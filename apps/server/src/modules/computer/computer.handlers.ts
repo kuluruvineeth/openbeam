@@ -16,7 +16,9 @@ import prisma, {
   getComputerAgents,
   getComputerRunProposals,
   getComputerRuns,
+  getComputerRunWithSteps,
   rejectComputerRun,
+  updateComputerAgent,
 } from "@openbeam/db";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
@@ -27,11 +29,14 @@ import type {
   enableAgentRoute,
   generateAgentRoute,
   getCatalogRoute,
+  getProposalsRoute,
+  getRunDetailRoute,
   listAgentsRoute,
   listMemoryRoute,
   listRunsRoute,
   rejectRunRoute,
   triggerRunRoute,
+  updateAgentRoute,
 } from "./computer.routes";
 
 function requireTeamId(c: Parameters<typeof getTeamId>[0]): string {
@@ -278,4 +283,50 @@ export const confirmAgentHandler: RouteHandler<
   });
 
   return c.json({ data: agent }, 201);
+};
+
+export const updateAgentHandler: RouteHandler<
+  typeof updateAgentRoute,
+  AuthEnv
+> = async (c) => {
+  const { agentId } = c.req.valid("param");
+  const teamId = requireTeamId(c);
+  const body = c.req.valid("json");
+
+  try {
+    const updated = await updateComputerAgent(prisma, agentId, teamId, body);
+    return c.json({ data: updated }, 200);
+  } catch {
+    return c.json({ error: "Agent not found" }, 404);
+  }
+};
+
+export const getRunDetailHandler: RouteHandler<
+  typeof getRunDetailRoute,
+  AuthEnv
+> = async (c) => {
+  const { agentId, runId } = c.req.valid("param");
+  const teamId = requireTeamId(c);
+
+  const run = await getComputerRunWithSteps(prisma, runId, agentId, teamId);
+  if (!run) {
+    return c.json({ error: "Run not found" }, 404);
+  }
+  return c.json({ data: run }, 200);
+};
+
+export const getProposalsHandler: RouteHandler<
+  typeof getProposalsRoute,
+  AuthEnv
+> = async (c) => {
+  const { agentId, runId } = c.req.valid("param");
+  const teamId = requireTeamId(c);
+
+  const proposals = await getComputerRunProposals(
+    prisma,
+    runId,
+    agentId,
+    teamId
+  );
+  return c.json({ data: proposals }, 200);
 };

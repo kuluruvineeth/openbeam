@@ -58,6 +58,49 @@ export const enableAgentBodySchema = z.object({
   templateId: z.string(),
 });
 
+export const updateAgentBodySchema = z.object({
+  status: z.enum(["DRAFT", "ACTIVE", "PAUSED", "ARCHIVED"]).optional(),
+  mode: z.enum(["AUTONOMOUS", "APPROVAL", "REPORT_ONLY"]).optional(),
+  scheduleCron: z.string().nullable().optional(),
+});
+
+export const runDetailResponseSchema = z.object({
+  data: z.object({
+    id: z.string(),
+    status: z.string(),
+    summary: z.string().nullable(),
+    error: z.string().nullable(),
+    toolCallCount: z.number(),
+    llmCallCount: z.number(),
+    proposedActions: z.unknown().nullable(),
+    startedAt: z.string().nullable(),
+    completedAt: z.string().nullable(),
+    createdAt: z.string(),
+    steps: z.array(
+      z.object({
+        id: z.string(),
+        sequence: z.number(),
+        type: z.string(),
+        name: z.string(),
+        input: z.unknown().nullable(),
+        output: z.unknown().nullable(),
+        durationMs: z.number().nullable(),
+      })
+    ),
+  }),
+});
+
+export const proposalsResponseSchema = z.object({
+  data: z
+    .object({
+      id: z.string(),
+      status: z.string(),
+      proposedActions: z.unknown().nullable(),
+      agentId: z.string(),
+    })
+    .nullable(),
+});
+
 export const generateBodySchema = z.object({
   description: z.string().min(10),
 });

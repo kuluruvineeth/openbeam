@@ -8,11 +8,14 @@ import {
   enableAgentHandler,
   generateAgentHandler,
   getCatalogHandler,
+  getProposalsHandler,
+  getRunDetailHandler,
   listAgentsHandler,
   listMemoryHandler,
   listRunsHandler,
   rejectRunHandler,
   triggerRunHandler,
+  updateAgentHandler,
 } from "./computer.handlers";
 import {
   approveRunRoute,
@@ -21,11 +24,14 @@ import {
   enableAgentRoute,
   generateAgentRoute,
   getCatalogRoute,
+  getProposalsRoute,
+  getRunDetailRoute,
   listAgentsRoute,
   listMemoryRoute,
   listRunsRoute,
   rejectRunRoute,
   triggerRunRoute,
+  updateAgentRoute,
 } from "./computer.routes";
 
 const computer = new OpenAPIHono<AuthEnv>();
@@ -42,6 +48,7 @@ computer.use("/agents", requireScopes([API_SCOPES.COMPUTER_WRITE]));
 computer.openapi(enableAgentRoute, enableAgentHandler);
 
 computer.use("/agents/:agentId", requireScopes([API_SCOPES.COMPUTER_WRITE]));
+computer.openapi(updateAgentRoute, updateAgentHandler);
 computer.openapi(deleteAgentRoute, deleteAgentHandler);
 
 computer.use(
@@ -55,6 +62,18 @@ computer.use(
   requireScopes([API_SCOPES.COMPUTER_READ])
 );
 computer.openapi(listRunsRoute, listRunsHandler);
+
+computer.use(
+  "/agents/:agentId/runs/:runId",
+  requireScopes([API_SCOPES.COMPUTER_READ])
+);
+computer.openapi(getRunDetailRoute, getRunDetailHandler);
+
+computer.use(
+  "/agents/:agentId/runs/:runId/proposals",
+  requireScopes([API_SCOPES.COMPUTER_READ])
+);
+computer.openapi(getProposalsRoute, getProposalsHandler);
 
 computer.use(
   "/agents/:agentId/runs/:runId/approve",
