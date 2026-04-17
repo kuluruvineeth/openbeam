@@ -1,14 +1,26 @@
 "use client";
 
-import { Badge, Button, Skeleton } from "@openbeam/ui";
+import {
+  Badge,
+  Button,
+  Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@openbeam/ui";
 import { formatRelativeTime } from "@openbeam/ui/utils/format";
+import Link from "next/link";
 import { Icons } from "@/components/icons";
 import {
   useComputerAgent,
+  useComputerMemory,
   useComputerRuns,
   useTriggerRun,
   useUpdateAgent,
 } from "../hooks/use-computer";
+import { AgentSettings } from "./agent-settings";
+import { MemoryViewer, MemoryViewerSkeleton } from "./memory-viewer";
 
 const RUN_STATUS_STYLES: Record<string, string> = {
   COMPLETED: "text-emerald-600",
@@ -21,6 +33,7 @@ const RUN_STATUS_STYLES: Record<string, string> = {
 export function ComputerDetailView({ agentId }: { agentId: string }) {
   const { data: agent, isLoading: agentLoading } = useComputerAgent(agentId);
   const { data: runs, isLoading: runsLoading } = useComputerRuns(agentId);
+  const { data: memory, isLoading: memoryLoading } = useComputerMemory(agentId);
   const triggerRun = useTriggerRun();
   const updateAgent = useUpdateAgent();
 
@@ -42,6 +55,13 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
     <div className="mx-auto max-w-4xl space-y-6 py-8">
       <div className="flex items-center justify-between">
         <div>
+          <Link
+            className="mb-2 inline-flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
+            href="/computer"
+          >
+            <Icons.ArrowLeft size={12} />
+            All agents
+          </Link>
           <h1 className="font-medium text-xl">{agent.name}</h1>
           {agent.description && (
             <p className="text-muted-foreground text-sm">{agent.description}</p>
@@ -94,10 +114,38 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
         )}
       </div>
 
-      <div className="space-y-3">
-        <h2 className="font-medium text-sm">Run History</h2>
-        <RunList isLoading={runsLoading} runs={runs} />
-      </div>
+      <Tabs defaultValue="runs">
+        <TabsList>
+          <TabsTrigger value="runs">
+            Runs{runs ? ` (${runs.length})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="memory">
+            Memory{memory ? ` (${memory.length})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+
+        <TabsContent className="mt-4" value="runs">
+          <RunList agentId={agentId} isLoading={runsLoading} runs={runs} />
+        </TabsContent>
+
+        <TabsContent className="mt-4" value="memory">
+          {memoryLoading ? (
+            <MemoryViewerSkeleton />
+          ) : (
+            <MemoryViewer entries={memory ?? []} />
+          )}
+        </TabsContent>
+
+        <TabsContent className="mt-4" value="settings">
+          <AgentSettings
+            agentId={agentId}
+            mode={agent.mode}
+            scheduleCron={agent.scheduleCron}
+            status={agent.status}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -105,6 +153,7 @@ export function ComputerDetailView({ agentId }: { agentId: string }) {
 function RunList({
   runs,
   isLoading,
+  agentId,
 }: {
   runs:
     | Array<{
@@ -119,6 +168,7 @@ function RunList({
       }>
     | undefined;
   isLoading: boolean;
+  agentId: string;
 }) {
   if (isLoading) {
     return <RunsSkeleton />;
@@ -131,7 +181,7 @@ function RunList({
   return (
     <div className="space-y-1">
       {runs.map((run) => (
-        <RunRow key={run.id} run={run} />
+        <RunRow agentId={agentId} key={run.id} run={run} />
       ))}
     </div>
   );
@@ -139,6 +189,7 @@ function RunList({
 
 function RunRow({
   run,
+  agentId,
 }: {
   run: {
     id: string;
@@ -150,11 +201,15 @@ function RunRow({
     completedAt: Date | null;
     createdAt: Date;
   };
+  agentId: string;
 }) {
   const statusColor = RUN_STATUS_STYLES[run.status] ?? "text-muted-foreground";
 
   return (
-    <div className="flex items-center gap-3 rounded-sm border border-border/30 px-3 py-2 text-xs">
+    <Link
+      className="flex items-center gap-3 rounded-sm border border-border/30 px-3 py-2 text-xs transition-colors hover:border-border hover:bg-muted/20"
+      href={`/computer/${agentId}/runs/${run.id}`}
+    >
       <span className={`font-medium ${statusColor}`}>
         {run.status.toLowerCase().replace("_", " ")}
       </span>
@@ -169,7 +224,8 @@ function RunRow({
           ? formatRelativeTime(new Date(run.completedAt))
           : formatRelativeTime(new Date(run.createdAt))}
       </span>
-    </div>
+      <Icons.ChevronRight className="text-muted-foreground/30" size={12} />
+    </Link>
   );
 }
 

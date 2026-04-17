@@ -3,6 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 
+export function useComputerCatalog() {
+  const trpc = useTRPC();
+  return useQuery(trpc.computer.listCatalog.queryOptions());
+}
+
 export function useComputerAgents() {
   const trpc = useTRPC();
   return useQuery(trpc.computer.listAgents.queryOptions());
@@ -26,6 +31,11 @@ export function useComputerRun(agentId: string, runId: string) {
 export function useComputerMemory(agentId: string) {
   const trpc = useTRPC();
   return useQuery(trpc.computer.listMemory.queryOptions({ agentId }));
+}
+
+export function useComputerProposals(agentId: string, runId: string) {
+  const trpc = useTRPC();
+  return useQuery(trpc.computer.getProposals.queryOptions({ agentId, runId }));
 }
 
 export function useEnableAgent() {

@@ -2,8 +2,10 @@
 
 import { Badge, Button, Skeleton } from "@openbeam/ui";
 import Link from "next/link";
+import { useState } from "react";
 import { Icons } from "@/components/icons";
-import { useComputerAgents, useEnableAgent } from "../hooks/use-computer";
+import { useComputerAgents } from "../hooks/use-computer";
+import { CreateAgentModal } from "./create-agent-modal";
 
 const STATUS_STYLES = {
   ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -66,6 +68,7 @@ function AgentCard({
 
 export function ComputerListView() {
   const { data: agents, isLoading } = useComputerAgents();
+  const [createOpen, setCreateOpen] = useState(false);
 
   if (isLoading) {
     return <ComputerPageSkeleton />;
@@ -80,8 +83,12 @@ export function ComputerListView() {
             Autonomous agents that work for your team
           </p>
         </div>
-        <EnableCatalogButton />
+        <Button onClick={() => setCreateOpen(true)} size="sm" variant="outline">
+          <Icons.Plus size={14} />
+          Enable Agent
+        </Button>
       </div>
+      <CreateAgentModal onOpenChange={setCreateOpen} open={createOpen} />
 
       {!agents || agents.length === 0 ? (
         <EmptyState />
@@ -93,22 +100,6 @@ export function ComputerListView() {
         </div>
       )}
     </div>
-  );
-}
-
-function EnableCatalogButton() {
-  const enableAgent = useEnableAgent();
-
-  return (
-    <Button
-      disabled={enableAgent.isPending}
-      onClick={() => enableAgent.mutate({ templateId: "knowledge-digest" })}
-      size="sm"
-      variant="outline"
-    >
-      <Icons.Plus size={14} />
-      Enable Agent
-    </Button>
   );
 }
 

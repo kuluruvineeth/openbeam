@@ -1,3 +1,4 @@
+import { CATALOG_AGENTS } from "@openbeam/computer";
 import {
   approveComputerRun,
   createComputerAgent,
@@ -26,6 +27,16 @@ const runIdSchema = z.object({
 });
 
 export const computerRouter = createTRPCRouter({
+  listCatalog: withActiveTeam.query(() =>
+    CATALOG_AGENTS.map((a) => ({
+      templateId: a.templateId,
+      name: a.name,
+      slug: a.slug,
+      description: a.description,
+      scheduleCron: a.scheduleCron,
+    }))
+  ),
+
   listAgents: withActiveTeam.query(async ({ ctx }) =>
     getComputerAgents(ctx.prisma, ctx.teamId)
   ),
@@ -43,7 +54,6 @@ export const computerRouter = createTRPCRouter({
   enableAgent: withActiveTeam
     .input(z.object({ templateId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { CATALOG_AGENTS } = await import("@openbeam/computer");
       const template = CATALOG_AGENTS.find(
         (a) => a.templateId === input.templateId
       );
