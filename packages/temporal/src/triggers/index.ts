@@ -35,6 +35,13 @@ export {
   runDailyCleanup,
 } from "./cleanup";
 export {
+  type ComputerRunHandle,
+  type StartComputerRunOptions,
+  signalComputerApproval,
+  signalComputerRejection,
+  startComputerRun,
+} from "./computer";
+export {
   type MemoryExtractionHandle,
   type StartMemoryExtractionOptions,
   startMemoryExtraction,

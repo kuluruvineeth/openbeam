@@ -2,6 +2,7 @@
 
 import { Badge, Skeleton } from "@openbeam/ui";
 import { cn } from "@openbeam/ui/utils/cn";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 
@@ -86,35 +87,45 @@ function StepRow({ step }: { step: Step }) {
         />
       </button>
 
-      {expanded && (
-        <div className="ml-8 space-y-2 border-border/30 border-l px-4 py-2">
-          {step.input !== null && step.input !== undefined && (
-            <div>
-              <span className="mb-1 block font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
-                Input
-              </span>
-              <pre className="overflow-x-auto rounded-sm bg-muted/50 px-3 py-2 font-mono text-[11px] leading-relaxed">
-                {formatPayload(step.input)}
-              </pre>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            animate={{ height: "auto", opacity: 1 }}
+            className="overflow-hidden"
+            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            <div className="ml-8 space-y-2 border-border/30 border-l px-4 py-2">
+              {step.input !== null && step.input !== undefined && (
+                <div>
+                  <span className="mb-1 block font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
+                    Input
+                  </span>
+                  <pre className="overflow-x-auto rounded-sm bg-muted/50 px-3 py-2 font-mono text-[11px] leading-relaxed">
+                    {formatPayload(step.input)}
+                  </pre>
+                </div>
+              )}
+              {step.output !== null && step.output !== undefined && (
+                <div>
+                  <span className="mb-1 block font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
+                    Output
+                  </span>
+                  <pre
+                    className={cn(
+                      "overflow-x-auto rounded-sm px-3 py-2 font-mono text-[11px] leading-relaxed",
+                      hasError ? "bg-destructive/5" : "bg-muted/50"
+                    )}
+                  >
+                    {formatPayload(step.output)}
+                  </pre>
+                </div>
+              )}
             </div>
-          )}
-          {step.output !== null && step.output !== undefined && (
-            <div>
-              <span className="mb-1 block font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
-                Output
-              </span>
-              <pre
-                className={cn(
-                  "overflow-x-auto rounded-sm px-3 py-2 font-mono text-[11px] leading-relaxed",
-                  hasError ? "bg-destructive/5" : "bg-muted/50"
-                )}
-              >
-                {formatPayload(step.output)}
-              </pre>
-            </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

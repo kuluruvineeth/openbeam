@@ -7,6 +7,7 @@ import prisma, {
   getComputerAgents,
   getComputerRuns,
 } from "@openbeam/db";
+import { startComputerRun } from "@openbeam/temporal";
 import { z } from "zod";
 import {
   formatComputerAgentEnabled,
@@ -253,6 +254,15 @@ export const registerComputerTools: RegisterTools = (server, ctx) => {
         agentId: params.agentId,
         teamId,
         triggeredBy: "MANUAL",
+        triggeredByUser: userId,
+      });
+
+      await startComputerRun({
+        agentId: params.agentId,
+        teamId,
+        runId,
+        agentName: agent.name,
+        triggerType: "MANUAL",
         triggeredByUser: userId,
       });
 

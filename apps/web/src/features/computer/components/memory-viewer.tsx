@@ -3,6 +3,7 @@
 import { Badge, Skeleton } from "@openbeam/ui";
 import { cn } from "@openbeam/ui/utils/cn";
 import { formatRelativeTime } from "@openbeam/ui/utils/format";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 
@@ -56,31 +57,43 @@ function MemoryRow({ entry }: { entry: MemoryEntry }) {
         />
       </button>
 
-      {expanded && (
-        <div className="px-3 pb-3">
-          <pre
-            className={cn(
-              "overflow-x-auto rounded-sm bg-muted/50 px-3 py-2 font-mono text-[11px] leading-relaxed",
-              !isJson && "whitespace-pre-wrap"
-            )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            animate={{ height: "auto", opacity: 1 }}
+            className="overflow-hidden"
+            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
-            {isJson ? JSON.stringify(parsedContent, null, 2) : entry.content}
-          </pre>
-          {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {Object.entries(entry.metadata).map(([k, v]) => (
-                <Badge
-                  className="px-1.5 py-0 text-[10px]"
-                  key={k}
-                  variant="outline"
-                >
-                  {k}: {String(v)}
-                </Badge>
-              ))}
+            <div className="px-3 pb-3">
+              <pre
+                className={cn(
+                  "overflow-x-auto rounded-sm bg-muted/50 px-3 py-2 font-mono text-[11px] leading-relaxed",
+                  !isJson && "whitespace-pre-wrap"
+                )}
+              >
+                {isJson
+                  ? JSON.stringify(parsedContent, null, 2)
+                  : entry.content}
+              </pre>
+              {entry.metadata && Object.keys(entry.metadata).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {Object.entries(entry.metadata).map(([k, v]) => (
+                    <Badge
+                      className="px-1.5 py-0 text-[10px]"
+                      key={k}
+                      variant="outline"
+                    >
+                      {k}: {String(v)}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

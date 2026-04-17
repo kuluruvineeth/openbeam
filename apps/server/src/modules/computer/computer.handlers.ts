@@ -20,6 +20,11 @@ import prisma, {
   rejectComputerRun,
   updateComputerAgent,
 } from "@openbeam/db";
+import {
+  signalComputerApproval,
+  signalComputerRejection,
+  startComputerRun,
+} from "@openbeam/temporal";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {
@@ -156,6 +161,15 @@ export const triggerRunHandler: RouteHandler<
     triggeredByUser: userId,
   });
 
+  await startComputerRun({
+    agentId,
+    teamId,
+    runId,
+    agentName: agent.name,
+    triggerType: "MANUAL",
+    triggeredByUser: userId,
+  });
+
   return c.json({ data: { runId } }, 202);
 };
 
@@ -187,7 +201,17 @@ export const approveRunHandler: RouteHandler<
     return c.json({ error: `No pending proposals (runId: ${runId})` }, 404);
   }
 
-  const actions = (approved.proposedActions ?? []) as unknown[];
+  const actions = (approved.proposedActions ?? []) as Array<{
+    tool: string;
+    args: Record<string, unknown>;
+    description?: string;
+  }>;
+
+  const authCtx = c.get("authContext");
+  const reviewer = authCtx.type === "session" ? authCtx.userId : "api";
+
+  await signalComputerApproval(runId, actions, reviewer);
+
   return c.json(
     { data: { runId, status: "approved", actionsQueued: actions.length } },
     200
@@ -215,6 +239,11 @@ export const rejectRunHandler: RouteHandler<
   if (!rejected) {
     return c.json({ error: `No pending proposals (runId: ${runId})` }, 404);
   }
+
+  const authCtx = c.get("authContext");
+  const reviewer = authCtx.type === "session" ? authCtx.userId : "api";
+  await signalComputerRejection(runId, reviewer);
+
   return c.json({ data: { runId, status: "rejected" } }, 200);
 };
 

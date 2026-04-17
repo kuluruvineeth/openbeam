@@ -1,4 +1,8 @@
-import { CATALOG_AGENTS } from "@openbeam/computer";
+import {
+  CATALOG_AGENTS,
+  checkAgentQuota,
+  checkRunQuota,
+} from "@openbeam/computer";
 import {
   approveComputerRun,
   createComputerAgent,
@@ -11,9 +15,11 @@ import {
   getComputerRunProposals,
   getComputerRuns,
   getComputerRunWithSteps,
+  getTeamPlanTier,
   rejectComputerRun,
   updateComputerAgent,
 } from "@openbeam/db";
+import { startComputerRun } from "@openbeam/temporal";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
@@ -54,6 +60,15 @@ export const computerRouter = createTRPCRouter({
   enableAgent: withActiveTeam
     .input(z.object({ templateId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const planTier = await getTeamPlanTier(ctx.prisma, ctx.teamId);
+      const quota = await checkAgentQuota(ctx.prisma, ctx.teamId, planTier);
+      if (!quota.allowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: quota.reason ?? "Agent quota exceeded",
+        });
+      }
+
       const template = CATALOG_AGENTS.find(
         (a) => a.templateId === input.templateId
       );
@@ -113,6 +128,26 @@ export const computerRouter = createTRPCRouter({
   triggerRun: withActiveTeam
     .input(agentIdSchema)
     .mutation(async ({ ctx, input }) => {
+      const agent = await getComputerAgentById(ctx.prisma, input.agentId);
+      if (!agent || agent.teamId !== ctx.teamId) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      if (agent.status !== "ACTIVE") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Agent is not active",
+        });
+      }
+
+      const planTier = await getTeamPlanTier(ctx.prisma, ctx.teamId);
+      const runQuota = await checkRunQuota(ctx.prisma, ctx.teamId, planTier);
+      if (!runQuota.allowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: runQuota.reason ?? "Run quota exceeded",
+        });
+      }
+
       const runId = crypto.randomUUID();
       await createComputerRun(ctx.prisma, {
         id: runId,
@@ -121,6 +156,16 @@ export const computerRouter = createTRPCRouter({
         triggeredBy: "MANUAL",
         triggeredByUser: ctx.session.user.id,
       });
+
+      await startComputerRun({
+        agentId: input.agentId,
+        teamId: ctx.teamId,
+        runId,
+        agentName: agent.name,
+        triggerType: "MANUAL",
+        triggeredByUser: ctx.session.user.id,
+      });
+
       return { runId };
     }),
 

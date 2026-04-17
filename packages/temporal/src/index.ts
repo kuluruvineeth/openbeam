@@ -135,6 +135,13 @@ export {
   runDailyCleanup,
 } from "./triggers/cleanup";
 export {
+  type ComputerRunHandle,
+  type StartComputerRunOptions,
+  signalComputerApproval,
+  signalComputerRejection,
+  startComputerRun,
+} from "./triggers/computer";
+export {
   type MemoryExtractionHandle,
   type StartMemoryExtractionOptions,
   startMemoryExtraction,

@@ -146,6 +146,17 @@ export async function getTeamWithCounts(db: Database, teamId: string) {
   return { ...team, connectorCount, memberCount, documentCount };
 }
 
+export async function getTeamPlanTier(
+  db: Database,
+  teamId: string
+): Promise<string> {
+  const team = await db.team.findUnique({
+    where: { id: teamId },
+    select: { subscriptionTier: true },
+  });
+  return team?.subscriptionTier ?? "free";
+}
+
 export async function listTeamMembers(db: Database, teamId: string) {
   const members = await db.usersOnTeam.findMany({
     where: { teamId },
