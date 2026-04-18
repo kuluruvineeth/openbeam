@@ -67,7 +67,7 @@ export function CreateAgentModal({
                       className="px-1.5 py-0 text-[10px]"
                       variant="outline"
                     >
-                      <Icons.ClockIcon size={10} />
+                      <Icons.Clock size={10} />
                       {template.scheduleCron}
                     </Badge>
                   )}

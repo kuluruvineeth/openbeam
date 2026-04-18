@@ -52,10 +52,11 @@ function StepRow({ step }: { step: Step }) {
   const [expanded, setExpanded] = useState(false);
   const IconComponent = STEP_ICONS[step.type] ?? Icons.Play;
   const colorClass = STEP_COLORS[step.type] ?? "text-muted-foreground";
-  const hasError =
+  const hasError = Boolean(
     step.output &&
-    typeof step.output === "object" &&
-    "error" in (step.output as Record<string, unknown>);
+      typeof step.output === "object" &&
+      "error" in (step.output as Record<string, unknown>)
+  );
 
   return (
     <div className="group">

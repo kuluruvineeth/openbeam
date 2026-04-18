@@ -48,7 +48,7 @@ function AgentCard({
       <div className="flex items-center gap-3 text-muted-foreground text-xs">
         {agent.scheduleCron && (
           <span className="flex items-center gap-1">
-            <Icons.ClockIcon size={12} />
+            <Icons.Clock size={12} />
             {humanCron(agent.scheduleCron)}
           </span>
         )}
