@@ -20,7 +20,11 @@ import {
   rejectComputerRun,
   updateComputerAgent,
 } from "@openbeam/db";
-import { startComputerRun } from "@openbeam/temporal";
+import {
+  signalComputerApproval,
+  signalComputerRejection,
+  startComputerRun,
+} from "@openbeam/temporal";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
@@ -214,6 +218,15 @@ export const computerRouter = createTRPCRouter({
           message: "No pending proposals",
         });
       }
+
+      const actions = (approved.proposedActions ?? []) as Array<{
+        tool: string;
+        args: Record<string, unknown>;
+        description?: string;
+      }>;
+
+      await signalComputerApproval(input.runId, actions, ctx.session.user.id);
+
       return approved;
     }),
 
@@ -231,6 +244,8 @@ export const computerRouter = createTRPCRouter({
           message: "No pending proposals",
         });
       }
+
+      await signalComputerRejection(input.runId, ctx.session.user.id);
     }),
 
   getProposals: withActiveTeam

@@ -39,10 +39,6 @@ export function ProposalCard({
     enabled: isWaiting && selected.size > 0 && !approveRun.isPending,
   });
 
-  useHotkeys("escape", () => rejectRun.mutate({ runId }), {
-    enabled: isWaiting && !rejectRun.isPending,
-  });
-
   function toggleIndex(index: number) {
     setSelected((prev) => {
       const next = new Set(prev);

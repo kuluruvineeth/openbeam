@@ -3,6 +3,7 @@
 import { Button, Input } from "@openbeam/ui";
 import { cn } from "@openbeam/ui/utils/cn";
 import { useState } from "react";
+import { AGENT_STATUS_STYLES } from "../constants";
 import { useUpdateAgent } from "../hooks/use-computer";
 
 interface AgentSettingsProps {
@@ -14,13 +15,6 @@ interface AgentSettingsProps {
 
 const STATUS_OPTIONS = ["DRAFT", "ACTIVE", "PAUSED", "ARCHIVED"] as const;
 const MODE_OPTIONS = ["AUTONOMOUS", "APPROVAL", "REPORT_ONLY"] as const;
-
-const STATUS_STYLES: Record<string, string> = {
-  ACTIVE: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
-  PAUSED: "border-amber-500/30 bg-amber-500/10 text-amber-600",
-  DRAFT: "border-border bg-muted text-muted-foreground",
-  ARCHIVED: "border-border/30 bg-muted/50 text-muted-foreground",
-};
 
 export function AgentSettings({
   agentId,
@@ -48,7 +42,7 @@ export function AgentSettings({
               className={cn(
                 "rounded-sm border px-3 py-1.5 font-medium text-xs transition-colors",
                 status === opt
-                  ? STATUS_STYLES[opt]
+                  ? AGENT_STATUS_STYLES[opt]
                   : "border-border/30 text-muted-foreground hover:border-border hover:bg-muted/30"
               )}
               disabled={updateAgent.isPending || status === opt}

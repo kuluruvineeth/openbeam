@@ -64,6 +64,10 @@ export const enableAgentRoute = createRoute({
       content: { "application/json": { schema: agentResponseSchema } },
       description: "Agent enabled",
     },
+    403: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Quota exceeded",
+    },
     404: {
       content: { "application/json": { schema: errorSchema } },
       description: "Template not found",
@@ -108,13 +112,17 @@ export const triggerRunRoute = createRoute({
       content: { "application/json": { schema: triggerRunResponseSchema } },
       description: "Run triggered",
     },
-    404: {
-      content: { "application/json": { schema: errorSchema } },
-      description: "Agent not found",
-    },
     400: {
       content: { "application/json": { schema: errorSchema } },
       description: "Agent not active",
+    },
+    403: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Quota exceeded",
+    },
+    404: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Agent not found",
     },
   },
 });

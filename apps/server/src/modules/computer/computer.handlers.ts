@@ -2,6 +2,8 @@ import type { RouteHandler } from "@hono/zod-openapi";
 import {
   CATALOG_AGENTS,
   type CatalogAgent,
+  checkAgentQuota,
+  checkRunQuota,
   connectMcpPair,
   generateAgentFromDescription,
 } from "@openbeam/computer";
@@ -17,6 +19,7 @@ import prisma, {
   getComputerRunProposals,
   getComputerRuns,
   getComputerRunWithSteps,
+  getTeamPlanTier,
   rejectComputerRun,
   updateComputerAgent,
 } from "@openbeam/db";
@@ -83,6 +86,12 @@ export const enableAgentHandler: RouteHandler<
   const { templateId } = c.req.valid("json");
   const teamId = requireTeamId(c);
 
+  const planTier = await getTeamPlanTier(prisma, teamId);
+  const quota = await checkAgentQuota(prisma, teamId, planTier);
+  if (!quota.allowed) {
+    return c.json({ error: quota.reason ?? "Agent quota exceeded" }, 403);
+  }
+
   const template = CATALOG_AGENTS.find(
     (a: CatalogAgent) => a.templateId === templateId
   );
@@ -147,6 +156,12 @@ export const triggerRunHandler: RouteHandler<
       },
       400
     );
+  }
+
+  const planTier = await getTeamPlanTier(prisma, teamId);
+  const runQuota = await checkRunQuota(prisma, teamId, planTier);
+  if (!runQuota.allowed) {
+    return c.json({ error: runQuota.reason ?? "Run quota exceeded" }, 403);
   }
 
   const authCtx = c.get("authContext");
