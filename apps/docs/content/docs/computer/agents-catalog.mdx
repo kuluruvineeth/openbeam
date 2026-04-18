@@ -1,0 +1,127 @@
+---
+title: Agents Catalog
+description: Six production-grade agents ready to enable
+---
+
+# Agents Catalog
+
+Six pre-built agents cover the most common enterprise workflows. Every agent includes error collection, Set-based deduplication, conditional notifications, and persistent memory.
+
+## Knowledge Digest
+
+Weekly summary of new content across all connectors with trend analysis.
+
+| Property | Value |
+|----------|-------|
+| Schedule | `0 8 * * 1` (Mondays 8am) |
+| Mode | `AUTONOMOUS` |
+| Tools | `search_recent`, `generateText`, `readMemory`, `writeMemory`, `notify` |
+
+Tracks document volume week-over-week with 12-week rolling averages. Identifies top sources and notable items. Silent when nothing changes meaningfully.
+
+**Memory keys:** `weekly_volume` (last snapshot), `weekly_trends` (12-week history).
+
+## Stale Content Detector
+
+Finds documents not updated in 90+ days and proposes archival.
+
+| Property | Value |
+|----------|-------|
+| Schedule | `0 10 * * *` (Daily 10am) |
+| Mode | `APPROVAL` |
+| Tools | `search_documents`, `generateText`, `readMemory`, `writeMemory`, `notify`, `propose` |
+
+Deduplicates against `ignore_paths` memory so pinned docs never surface. Categorizes by severity (critical, moderate, low) via LLM. Proposes archival for up to 10 documents — you approve individually.
+
+**Memory keys:** `ignore_paths` (list of paths to skip).
+
+## Connector Health Monitor
+
+Checks sync status and error rates across all connectors.
+
+| Property | Value |
+|----------|-------|
+| Schedule | `0 */6 * * *` (Every 6 hours) |
+| Mode | `AUTONOMOUS` |
+| Tools | `connector_list`, `connector_health`, `sync_trigger`, `readMemory`, `writeMemory`, `notify` |
+
+Detects new errors vs baseline. Auto-triggers `sync_trigger` for newly-failing connectors. Flags syncs stale > 12 hours. Urgent notification with `sendEmail: true` when issues found.
+
+**Memory keys:** `connector_stats` (last check snapshot per connector).
+
+## Search Quality Analyst
+
+Analyzes search coverage trends and identifies content gaps.
+
+| Property | Value |
+|----------|-------|
+| Schedule | `0 15 * * 5` (Fridays 3pm) |
+| Mode | `REPORT_ONLY` |
+| Tools | `search_documents`, `generateText`, `readMemory`, `writeMemory`, `notify` |
+
+Measures result coverage week-over-week. Early-exit when change is < 5 results — no noisy notifications. Delivers actionable recommendations via LLM synthesis.
+
+**Memory keys:** `search_metrics` (last metrics snapshot), `known_gaps` (tracked gaps).
+
+## Onboarding Curator
+
+On-demand agent that creates personalized reading lists for new team members.
+
+| Property | Value |
+|----------|-------|
+| Schedule | On-demand (triggered by webhook or manual) |
+| Mode | `AUTONOMOUS` |
+| Tools | `search_documents`, `search_people`, `generateText`, `readMemory`, `writeMemory`, `notify`, `getTrigger` |
+
+Reads `role` from trigger payload. Produces Day 1 / Week 1 / Month 1 progression. Matches documents and topic experts to role context. Tracks generated paths per role in memory.
+
+**Trigger payload:** `{ "role": "engineer" }`.
+
+**Memory keys:** `onboarding_paths` (per-role tracker).
+
+## Compliance Watchdog
+
+Scans for sensitive data exposure and proposes access restrictions.
+
+| Property | Value |
+|----------|-------|
+| Schedule | `0 6 * * *` (Daily 6am) |
+| Mode | `APPROVAL` |
+| Tools | `search_documents`, `readMemory`, `writeMemory`, `notify`, `propose` |
+
+Searches for passwords, API keys, secrets, tokens, credentials. Triple-layer deduplication: `seenIds` (this run) + `knownIds` (history) + `exclusions` (allowed). Critical findings (password, API key, secret, credential) trigger `propose` with up to 5 access restrictions. Urgent priority sends email.
+
+**Memory keys:** `sensitive_docs` (findings history, capped at 200), `exclusions` (allowed paths).
+
+## Enabling agents
+
+Every agent starts in `ACTIVE` status on its defined schedule when enabled:
+
+```bash
+openbeam computer enable --template-id knowledge-digest
+openbeam computer enable --template-id connector-health-monitor
+openbeam computer enable --template-id compliance-watchdog
+```
+
+Or enable all six in the dashboard via **Enable Agent** → multi-select.
+
+## Generating custom agents
+
+Don't see what you need? Describe it in English:
+
+```bash
+openbeam computer generate \
+  --description "Monitor Slack for unanswered questions older than 24 hours and post a summary to #eng-leads every Monday"
+```
+
+The generator returns a plan (name, slug, schedule, tools, code) for you to review. Deploy with:
+
+```bash
+openbeam computer confirm \
+  --name "Slack Question Tracker" \
+  --slug "slack-question-tracker" \
+  --description "..." \
+  --code "..."
+```
+
+See the [CLI Reference](/docs/computer/cli-reference) for full syntax.

@@ -1,0 +1,12 @@
+{
+  "title": "Computer",
+  "icon": "Terminal",
+  "pages": [
+    "index",
+    "quickstart",
+    "agents-catalog",
+    "cli-reference",
+    "api-reference",
+    "use-cases"
+  ]
+}

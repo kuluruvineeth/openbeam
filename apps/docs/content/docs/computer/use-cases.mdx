@@ -1,0 +1,188 @@
+---
+title: Use Cases
+description: Real-world patterns with pre-built and custom agents
+---
+
+# Use Cases
+
+Copy-paste patterns for the most common Computer deployments.
+
+## Knowledge teams
+
+### Weekly digest for leadership
+
+Enable `knowledge-digest`. Every Monday at 8am it summarizes new content across all connectors, compares week-over-week volume, flags the top 10 notable documents, and delivers a scannable digest to the notification channel.
+
+```bash
+openbeam computer enable --template-id knowledge-digest
+```
+
+Customize the schedule:
+
+```bash
+openbeam computer catalog       # Get agentId from list
+openbeam computer list          # Confirm enabled
+# Then update schedule in the dashboard Settings tab or via PUT /agents/:id
+```
+
+### Stale content cleanup
+
+Enable `stale-content-detector` in `APPROVAL` mode. Every day at 10am it finds docs not updated in 90+ days, categorizes by severity, and proposes archival for up to 10 documents per run. You review and approve individually.
+
+```bash
+openbeam computer enable --template-id stale-content-detector
+```
+
+To exclude specific paths (e.g., a pinned wiki):
+
+```bash
+# Write ignore_paths to agent memory via the dashboard or REST API
+curl -X POST https://openbeam.example.com/api/v1/computer/agents/agent_xyz/memory \
+  -H "Authorization: Bearer op_live_..." \
+  -d '{
+    "key": "ignore_paths",
+    "content": "[\"/wiki/permanent\", \"/compliance/retained\"]",
+    "type": "config"
+  }'
+```
+
+## Infrastructure teams
+
+### Auto-heal connector failures
+
+Enable `connector-health-monitor`. Every 6 hours it checks every connector, detects new errors vs baseline, and auto-triggers `sync_trigger` for failing connectors. Urgent notifications when issues are found.
+
+```bash
+openbeam computer enable --template-id connector-health-monitor
+```
+
+Pattern: add to your oncall runbook. The agent's memory (`connector_stats`) is the source of truth for "was this connector healthy yesterday?"
+
+### Custom: notify Slack when Vespa indexing stalls
+
+```bash
+openbeam computer generate \
+  --description "Every 15 minutes, check Vespa indexing latency. If the p99 is above 2 seconds, post to #eng-alerts. Track baseline in memory so we only alert on regressions."
+```
+
+Review the generated plan, then confirm.
+
+## Security / compliance teams
+
+### Daily credential scan
+
+Enable `compliance-watchdog` in `APPROVAL` mode. Every day at 6am it searches for passwords, API keys, secrets, tokens. Deduplicates against known findings and exclusions. Critical findings trigger urgent email notifications.
+
+```bash
+openbeam computer enable --template-id compliance-watchdog
+```
+
+Review proposed access restrictions:
+
+```bash
+openbeam computer proposals agent_xyz run_abc123
+```
+
+Approve only the true positives:
+
+```bash
+openbeam computer approve agent_xyz run_abc123 --pick 0,2,4
+```
+
+Reject false positives with a note:
+
+```bash
+openbeam computer reject agent_xyz run_abc123
+```
+
+### Custom: PII detection in uploaded docs
+
+```bash
+openbeam computer generate \
+  --description "When a document is uploaded to the Drive connector, scan for SSN patterns, credit card numbers, and email addresses. If found, notify the security team with the document URL and pattern matched."
+```
+
+## HR / operations teams
+
+### Personalized onboarding
+
+Enable `onboarding-curator` in on-demand mode. Trigger it with a role when a new hire starts:
+
+```bash
+# Manually via API
+curl -X POST https://openbeam.example.com/api/v1/computer/agents/agent_onboarding/run \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "parameters": { "role": "backend-engineer" } }'
+```
+
+Returns a Day 1 / Week 1 / Month 1 reading list tailored to the role, plus topic experts to meet.
+
+### Custom: send rollup to HR every Friday
+
+```bash
+openbeam computer generate \
+  --description "Every Friday at 3pm, list all documents marked as 'HR policy' updated in the last 7 days. Group by department. Notify hr@example.com."
+```
+
+## Product / engineering teams
+
+### Weekly search quality report
+
+Enable `search-quality-analyst` in `REPORT_ONLY` mode. Every Friday at 3pm it measures result coverage trends, flags significant metric changes, and delivers actionable recommendations.
+
+```bash
+openbeam computer enable --template-id search-quality-analyst
+```
+
+The agent is silent when change is < 5 results — no noisy notifications.
+
+### Custom: track PR review turnaround
+
+```bash
+openbeam computer generate \
+  --description "Every Monday, summarize the prior week's PRs from GitHub. Flag PRs that stayed open > 5 days. Track median review time in memory for trend analysis."
+```
+
+## Patterns used across all agents
+
+### Persistent memory
+
+Every agent uses `readMemory` and `writeMemory` to track state across runs:
+
+- **Baselines** — What was normal last week? Alert on regression.
+- **Exclusions** — Known false positives or acceptable items.
+- **Trends** — Rolling windows of historical data for comparison.
+- **Trackers** — What was processed in the last run, to avoid duplicates.
+
+### Error collection
+
+Every production-grade agent wraps individual tool calls in `try/catch`, collects errors, and surfaces them in the final notification or `module.exports`. This prevents a single failed tool call from breaking the entire run.
+
+### Conditional notifications
+
+Silent runs are good runs. Agents only send notifications when something noteworthy happens — a new error, a significant change, or a finding that needs human attention. Urgent priority (`"urgent"`) sends an email; normal priority is dashboard-only.
+
+### Approval for destructive actions
+
+Any action that modifies data (archiving, restricting access, deleting) uses `propose()` instead of direct tool calls. This pauses the workflow in `WAITING_APPROVAL` state and waits for human review. Temporal's durable signals mean the workflow can wait up to 30 minutes (configurable) for a decision.
+
+## Next steps
+
+<Cards>
+  <Card
+    title="CLI Reference"
+    href="/docs/computer/cli-reference"
+    description="Full command syntax for every operation"
+  />
+  <Card
+    title="API Reference"
+    href="/docs/computer/api-reference"
+    description="REST, MCP, and tRPC integration"
+  />
+  <Card
+    title="Agents Catalog"
+    href="/docs/computer/agents-catalog"
+    description="All 6 pre-built agents in detail"
+  />
+</Cards>

@@ -1,0 +1,105 @@
+---
+title: Computer
+description: Autonomous AI agents that monitor your knowledge base, track connector health, and surface insights on schedule.
+---
+
+# Computer
+
+OpenBeam Computer is an autonomous agent platform. Describe what you need in plain language — Computer generates an agent, runs it on schedule, accumulates memory across runs, and waits for your approval before acting on anything sensitive.
+
+## What you get
+
+| Capability | Detail |
+|------------|--------|
+| Pre-built agents | 6 production-grade agents for knowledge, compliance, and quality |
+| Natural language generation | Describe an agent in English — Computer writes the code |
+| Durable execution | Temporal-backed workflows survive crashes and restarts |
+| Approval workflows | Agents propose destructive actions; you approve individually |
+| Persistent memory | Agents remember context across runs — trends, baselines, known issues |
+| Secure sandbox | V8 isolation, no filesystem or network access, 64MB / 30s limits |
+| Full audit trail | Every tool call, every LLM generation, every decision — logged |
+| 5 surfaces | Dashboard, Chat, CLI, REST API, MCP |
+
+## How it works
+
+<Cards>
+  <Card
+    title="1. Describe"
+    description="Tell Computer what you need. It generates an agent with a plan, schedule, and tools."
+  />
+  <Card
+    title="2. Review"
+    description="Inspect the generated plan before deploying. See tools, schedule, and actions."
+  />
+  <Card
+    title="3. Automate"
+    description="Agent runs on schedule, accumulates memory, and gets smarter with every run."
+  />
+  <Card
+    title="4. Control"
+    description="See every step. Approve sensitive actions. Full audit trail across all runs."
+  />
+</Cards>
+
+## Quick links
+
+<Cards>
+  <Card
+    title="Quickstart"
+    href="/docs/computer/quickstart"
+    description="Enable your first agent in 5 minutes"
+  />
+  <Card
+    title="Agents Catalog"
+    href="/docs/computer/agents-catalog"
+    description="6 pre-built agents ready to enable"
+  />
+  <Card
+    title="CLI Reference"
+    href="/docs/computer/cli-reference"
+    description="Full command reference for openbeam computer"
+  />
+  <Card
+    title="API Reference"
+    href="/docs/computer/api-reference"
+    description="REST endpoints, MCP tools, and tRPC procedures"
+  />
+  <Card
+    title="Use Cases"
+    href="/docs/computer/use-cases"
+    description="Real-world patterns and examples"
+  />
+</Cards>
+
+## Safety model
+
+Every agent runs inside a `secure-exec` V8 sandbox:
+
+- No filesystem access
+- No network access outside declared MCP tools
+- 64MB memory limit
+- 30-second CPU timeout
+- All tool calls go through the team-scoped MCP server
+
+Agents that propose destructive actions (archiving documents, restricting access, sending notifications) pause in `WAITING_APPROVAL` state. You review the proposed actions in the dashboard, CLI, or chat — approve individually with partial selection, or reject the batch. Temporal's durable signals mean the workflow resumes exactly where it paused, with no lost state.
+
+## Execution modes
+
+| Mode | Behavior |
+|------|----------|
+| `AUTONOMOUS` | Agent executes actions without approval |
+| `APPROVAL` | Agent proposes actions and waits for approval |
+| `REPORT_ONLY` | Agent reports findings but takes no action |
+
+Set mode per agent in the dashboard Settings tab or via the `updateAgent` API.
+
+## Plan limits
+
+| Plan | Max Agents | Monthly Runs | Concurrent Runs |
+|------|-----------|--------------|-----------------|
+| Free | 2 | 50 | 1 |
+| Starter | 5 | 500 | 3 |
+| Pro | 25 | 5,000 | 10 |
+| Enterprise | 100 | 50,000 | 50 |
+
+Hitting a limit returns `403 Forbidden` with a descriptive reason. Upgrade or archive unused agents to free quota.

@@ -1,0 +1,134 @@
+---
+title: Quickstart
+description: Enable your first agent in 5 minutes
+---
+
+# Quickstart
+
+From zero to a running autonomous agent in four steps.
+
+## Prerequisites
+
+- OpenBeam instance (self-hosted or cloud)
+- API key from Settings → Developer → API Keys, with `computer:read` and `computer:write` scopes
+- CLI installed (`brew install kuluruvineeth/tap/openbeam`) or use the dashboard
+
+## Step 1 — Authenticate
+
+<Tabs items={["CLI", "Dashboard"]}>
+<Tab value="CLI">
+```bash
+openbeam auth login --api-key op_live_...
+```
+
+Verify:
+
+```bash
+openbeam team info
+```
+</Tab>
+<Tab value="Dashboard">
+Navigate to `/computer` in your OpenBeam web app. Your session cookie handles auth — no keys needed.
+</Tab>
+</Tabs>
+
+## Step 2 — Browse the catalog
+
+See what's available out of the box:
+
+<Tabs items={["CLI", "Dashboard"]}>
+<Tab value="CLI">
+```bash
+openbeam computer catalog
+```
+
+Output:
+
+```
+6 pre-built agents available:
+
+• Knowledge Digest (knowledge-digest)
+  Weekly summary of new content across all connectors
+  Schedule: 0 8 * * 1
+
+• Connector Health Monitor (connector-health-monitor)
+  Checks sync status and error rates
+  Schedule: 0 */6 * * *
+
+• Compliance Watchdog (compliance-watchdog)
+  Scans for sensitive data exposure
+  Schedule: 0 6 * * *
+
+...
+```
+</Tab>
+<Tab value="Dashboard">
+Click **Enable Agent** on the `/computer` page. A modal opens showing all 6 agents with their schedules and descriptions.
+</Tab>
+</Tabs>
+
+## Step 3 — Enable an agent
+
+Start with `connector-health-monitor` — it runs every 6 hours and catches sync failures:
+
+<Tabs items={["CLI", "Dashboard"]}>
+<Tab value="CLI">
+```bash
+openbeam computer enable --template-id connector-health-monitor
+```
+
+Output:
+
+```
+Agent "Connector Health Monitor" enabled (ID: agent_abc123, status: active).
+
+Next steps:
+• Run it now: computer_agent_run with agentId "agent_abc123".
+• View all agents: computer_agents_list.
+```
+</Tab>
+<Tab value="Dashboard">
+Select **Connector Health Monitor** in the modal and click **Enable**. The agent appears in your list with `ACTIVE` status.
+</Tab>
+</Tabs>
+
+## Step 4 — Trigger an immediate run
+
+Don't wait for the schedule — run it now with `--wait` to see results live:
+
+```bash
+openbeam computer run agent_abc123 --wait
+```
+
+The CLI shows a live spinner with status updates:
+
+```
+⠋ Running agent... (run: run_xyz)
+⠙ completed 14s
+
+✓ Run completed (run: run_xyz)
+```
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Agents Catalog"
+    href="/docs/computer/agents-catalog"
+    description="Explore all 6 pre-built agents"
+  />
+  <Card
+    title="Generate a custom agent"
+    href="/docs/computer/cli-reference"
+    description="Describe what you need in plain English"
+  />
+  <Card
+    title="Use Cases"
+    href="/docs/computer/use-cases"
+    description="Real-world patterns to copy"
+  />
+</Cards>
+
+<Callout type="info">
+  Agents that propose destructive actions (archival, access restriction) pause in `WAITING_APPROVAL` state. View proposals via `openbeam computer proposals <agent-id> <run-id>` and approve with `openbeam computer approve`.
+</Callout>

@@ -1,0 +1,163 @@
+---
+title: API Reference
+description: REST endpoints, MCP tools, and tRPC procedures for Computer
+---
+
+# API Reference
+
+Computer exposes three surfaces: REST API (14 endpoints), MCP (7 tools), and tRPC (15 procedures). Use the surface that fits your client.
+
+## REST API
+
+Base URL: `https://your-openbeam.com/api/v1/computer`
+
+Auth: `Authorization: Bearer op_live_...` with `computer:read` and/or `computer:write` scopes.
+
+### Agents
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/catalog` | List pre-built agent templates |
+| `GET` | `/agents` | List enabled agents for team |
+| `POST` | `/agents` | Enable a catalog agent (body: `{ templateId }`) |
+| `PUT` | `/agents/:id` | Update status / mode / scheduleCron |
+| `DELETE` | `/agents/:id` | Delete an agent |
+| `POST` | `/agents/confirm` | Deploy a generated agent |
+| `POST` | `/generate` | Generate agent from description |
+
+### Runs
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/agents/:id/run` | Trigger a run (returns `runId`, `202`) |
+| `GET` | `/agents/:id/runs` | List runs (query: `limit`) |
+| `GET` | `/agents/:id/runs/:runId` | Run detail with steps |
+| `GET` | `/agents/:id/runs/:runId/proposals` | Pending proposals |
+| `POST` | `/agents/:id/runs/:runId/approve` | Approve (body: `{ approvedIndices? }`) |
+| `POST` | `/agents/:id/runs/:runId/reject` | Reject proposals |
+| `GET` | `/agents/:id/memory` | Memory entries |
+
+### Response codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success (GET) |
+| `201` | Agent enabled / created |
+| `202` | Run queued (Temporal workflow started) |
+| `400` | Agent not ACTIVE / invalid state |
+| `403` | Quota exceeded (agents, monthly runs, concurrent runs) |
+| `404` | Not found (agent, run, template, proposals) |
+| `409` | Agent already enabled |
+
+### Example: trigger a run
+
+```bash
+curl -X POST https://openbeam.example.com/api/v1/computer/agents/agent_abc/run \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json"
+```
+
+Response:
+
+```json
+{ "data": { "runId": "run_xyz" } }
+```
+
+### Example: approve with partial selection
+
+```bash
+curl -X POST https://openbeam.example.com/api/v1/computer/agents/agent_abc/runs/run_xyz/approve \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "approvedIndices": [0, 2] }'
+```
+
+Response:
+
+```json
+{ "data": { "runId": "run_xyz", "status": "approved", "actionsQueued": 2 } }
+```
+
+## MCP Tools
+
+Computer exposes 7 MCP tools for AI assistants (Claude Code, Cursor, Claude Desktop). All tools accept team-scoped operations via API key auth.
+
+| Tool | Scope | Description |
+|------|-------|-------------|
+| `computer_catalog_list` | read | List pre-built templates |
+| `computer_agents_list` | read | List enabled agents |
+| `computer_agent_runs` | read | List runs for an agent (args: `agentId`, `limit`) |
+| `computer_agent_enable` | write | Enable a catalog agent (args: `templateId`) |
+| `computer_agent_run` | write | Trigger a run (args: `agentId`) |
+| `computer_agent_generate` | write | Generate from description (args: `description`) |
+| `computer_agent_confirm` | write | Deploy a generated agent (args: full result from generate) |
+
+Every tool returns human-readable text via dedicated formatters — no raw JSON in `content[0].text`. Structured data is in `structuredContent` for UI clients.
+
+### MCP config snippet
+
+```json
+{
+  "mcpServers": {
+    "openbeam": {
+      "url": "https://openbeam.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer op_live_..."
+      }
+    }
+  }
+}
+```
+
+Restart your MCP client — the 7 computer tools appear alongside 100+ connector tools.
+
+## tRPC Procedures
+
+The web dashboard uses tRPC. Procedures live under `trpc.computer.*`:
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `listCatalog` | query | Pre-built templates |
+| `listAgents` | query | Enabled agents |
+| `getAgent` | query | Single agent (input: `agentId`) |
+| `listRuns` | query | Runs for agent (input: `agentId`, `limit`) |
+| `getRun` | query | Run with steps (polls every 3s on RUNNING/PENDING) |
+| `getProposals` | query | Proposed actions for a run |
+| `listMemory` | query | Memory entries for an agent |
+| `agentStats` | query | Per-agent run stats (input: `days`) |
+| `enableAgent` | mutation | Enable from catalog (checks `checkAgentQuota`) |
+| `updateAgent` | mutation | Update status/mode/scheduleCron (optimistic) |
+| `deleteAgent` | mutation | Delete agent |
+| `triggerRun` | mutation | Trigger a run (checks `checkRunQuota`, starts Temporal workflow) |
+| `approveRun` | mutation | Approve (signals Temporal workflow) |
+| `rejectRun` | mutation | Reject (signals Temporal workflow) |
+
+All mutations automatically invalidate the relevant query caches with scoped keys — no full-app refetch.
+
+## Temporal workflow
+
+Computer runs execute inside a Temporal workflow named `agentRunWorkflow`. Workflow ID format: `computer:${runId}` (deterministic, idempotent).
+
+| Signal | Payload | Effect |
+|--------|---------|--------|
+| `computerApproval` | `{ approvedActions, reviewedBy }` | Resume from `WAITING_APPROVAL` with approved actions |
+| `computerRejection` | `{ reviewedBy, note? }` | Mark run `FAILED` with `rejected_by_user` |
+
+Signals are durable — they survive worker crashes. A run waiting for approval resumes within seconds of the signal arriving, even if the worker was down.
+
+See [@openbeam/temporal](/docs/architecture/temporal) for the full execution model.
+
+## Error response format
+
+All 4xx responses use:
+
+```json
+{ "error": "Human-readable message with (id: ...) when applicable" }
+```
+
+Examples:
+
+- `{ "error": "Agent not found (id: agent_xyz)" }`
+- `{ "error": "Agent is not active (id: agent_xyz, status: PAUSED)" }`
+- `{ "error": "Agent limit reached (2). Upgrade to add more." }`
+- `{ "error": "No pending proposals (runId: run_xyz)" }`

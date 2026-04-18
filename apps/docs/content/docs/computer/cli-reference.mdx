@@ -1,0 +1,184 @@
+---
+title: CLI Reference
+description: Full command reference for openbeam computer
+---
+
+# CLI Reference
+
+All Computer commands under `openbeam computer`. Commands accept positional arguments for IDs — no flag needed.
+
+## catalog
+
+List pre-built agents.
+
+```bash
+openbeam computer catalog
+```
+
+## list
+
+List enabled agents for your team.
+
+```bash
+openbeam computer list
+```
+
+## enable
+
+Enable a pre-built agent from the catalog.
+
+```bash
+openbeam computer enable --template-id <id>
+```
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--template-id` | yes | Template ID from `catalog` |
+
+## disable
+
+Pause an agent (status → `PAUSED`).
+
+```bash
+openbeam computer disable <agent-id>
+```
+
+## remove
+
+Delete an agent permanently.
+
+```bash
+openbeam computer remove <agent-id>
+```
+
+## run
+
+Trigger an immediate run. Fire-and-forget by default, or use `--wait` to poll until completion.
+
+```bash
+openbeam computer run <agent-id> [--wait]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--wait` | `false` | Poll every 2s for up to 120s, show live spinner |
+
+Output with `--wait`:
+
+```
+⠋ Running agent... (run: run_xyz)
+⠙ completed 14s
+
+✓ Run completed (run: run_xyz)
+```
+
+For `WAITING_APPROVAL` terminal state, output includes next-step commands:
+
+```
+⏸ Awaiting approval (run: run_xyz)
+
+  View proposals: openbeam computer proposals agent_abc run_xyz
+  Approve: openbeam computer approve agent_abc run_xyz
+```
+
+## runs
+
+List recent runs for an agent.
+
+```bash
+openbeam computer runs <agent-id> [--limit 20]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--limit` | `20` | Max runs to return (1-50) |
+
+## memory
+
+View agent memory entries.
+
+```bash
+openbeam computer memory <agent-id>
+```
+
+Each entry shows `key`, `type` (e.g. `snapshot`, `trends`, `tracker`), `content` (JSON or text), and `updatedAt`.
+
+## proposals
+
+View proposed actions for a run that's waiting for approval.
+
+```bash
+openbeam computer proposals <agent-id> <run-id>
+```
+
+Output lists indexed actions — each with tool name, description, and full args.
+
+## approve
+
+Approve proposed actions. Default: approve all. Use `--pick` for partial approval.
+
+```bash
+openbeam computer approve <agent-id> <run-id> [--pick 0,2,4]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--pick` | all | Comma-separated indices to approve |
+
+Approved actions are replayed by the Temporal workflow. The run resumes from `WAITING_APPROVAL` → `PENDING` → `RUNNING` → `COMPLETED`.
+
+## reject
+
+Reject all proposed actions. Run status → `FAILED` with error `rejected_by_user`.
+
+```bash
+openbeam computer reject <agent-id> <run-id>
+```
+
+## generate
+
+Generate a custom agent from a natural language description.
+
+```bash
+openbeam computer generate --description "<description>"
+```
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--description` | yes | What the agent should do (min 10 chars) |
+
+Returns a plan with:
+- `name`, `slug`, `description`, `scheduleCron`
+- `plan` (step-by-step)
+- `toolsUsed` (MCP tool names)
+- `code` (TypeScript agent body)
+- `compiledCode` (sandboxed JS)
+
+<Callout type="warn">
+  `generate` does NOT deploy the agent. Review the plan, then call `confirm` to deploy.
+</Callout>
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `2` | Invalid usage / input |
+| `3` | Authentication required |
+| `4` | Permission denied (FORBIDDEN, quota exceeded) |
+| `5` | Not found (agent, run, template) |
+| `9` | Timeout (`--wait` exceeded 120s) |
+| `11` | Server error |
+
+## Global flags
+
+All commands accept these global flags:
+
+| Flag | Description |
+|------|-------------|
+| `--output json\|table\|yaml` | Output format |
+| `--jq '<expr>'` | JQ expression to filter JSON |
+| `--yes` | Auto-confirm destructive actions (non-interactive mode) |
+| `--timeout 30s` | HTTP request timeout |
+
+See the [CLI root docs](/docs/cli) for profile management, auth stores, and plugin system.
