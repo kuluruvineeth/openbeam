@@ -1,4 +1,4 @@
-import type { CoreTool } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
 
 interface BotToolContext {
@@ -32,21 +32,18 @@ interface BotToolContext {
 }
 
 export function buildBotTools(ctx: BotToolContext) {
-  const searchDocuments: CoreTool = {
-    type: "function",
+  const searchDocuments = tool({
     description:
       "Search across all connected enterprise data sources. Use for finding files, docs, messages.",
-    parameters: z.object({
+    inputSchema: z.object({
       query: z.string(),
       limit: z.number().optional().default(10),
     }),
-    execute: async (params: Record<string, unknown>) => {
-      const query = params.query as string;
-      const limit = (params.limit as number) ?? 10;
+    execute: async ({ query, limit }) => {
       const results = await ctx.hybridSearch({
         query,
         teamId: ctx.teamId,
-        limit,
+        limit: limit ?? 10,
       });
       return {
         type: "search_results" as const,
@@ -60,17 +57,15 @@ export function buildBotTools(ctx: BotToolContext) {
         })),
       };
     },
-  };
+  });
 
-  const answerQuestion: CoreTool = {
-    type: "function",
+  const answerQuestion = tool({
     description:
       "Generate a grounded answer with citations. Use for questions requiring synthesis.",
-    parameters: z.object({
+    inputSchema: z.object({
       question: z.string(),
     }),
-    execute: async (params: Record<string, unknown>) => {
-      const question = params.question as string;
+    execute: async ({ question }) => {
       const result = await ctx.ragAnswer({
         query: question,
         teamId: ctx.teamId,
@@ -88,17 +83,15 @@ export function buildBotTools(ctx: BotToolContext) {
         confidence: result.confidence,
       };
     },
-  };
+  });
 
-  const findExperts: CoreTool = {
-    type: "function",
+  const findExperts = tool({
     description:
       "Find people who are experts on a topic. Use for 'who knows about X'.",
-    parameters: z.object({
+    inputSchema: z.object({
       topic: z.string(),
     }),
-    execute: async (params: Record<string, unknown>) => {
-      const topic = params.topic as string;
+    execute: async ({ topic }) => {
       const results = await ctx.hybridSearch({
         query: topic,
         teamId: ctx.teamId,
@@ -138,7 +131,7 @@ export function buildBotTools(ctx: BotToolContext) {
         })),
       };
     },
-  };
+  });
 
   return {
     search_documents: searchDocuments,
