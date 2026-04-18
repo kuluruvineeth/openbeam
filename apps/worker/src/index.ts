@@ -31,6 +31,7 @@ const WORKER_TYPES: WorkerType[] = [
   "scheduled",
   "knowledge",
   "context",
+  "computer",
 ];
 
 const WORKER_CONCURRENCY: Record<WorkerType, number> = {
@@ -44,6 +45,7 @@ const WORKER_CONCURRENCY: Record<WorkerType, number> = {
   scheduled: 3,
   knowledge: 5,
   context: 5,
+  computer: 5,
 };
 
 const startupTracer = trace.getTracer("openbeam-worker.startup");
