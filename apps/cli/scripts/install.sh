@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${OPENBEAM_REPO:-kuluruvineeth/openplane}"
+REPO="${OPENBEAM_REPO:-kuluruvineeth/openbeam}"
 VERSION="${OPENBEAM_VERSION:-latest}"
 INSTALL_DIR="${OPENBEAM_INSTALL:-$HOME/.openbeam}"
 BIN_DIR="$INSTALL_DIR/bin"

@@ -24,7 +24,7 @@ import (
 const (
 	networkTimeout     = 5 * time.Second
 	latestTimeout      = 4 * time.Second
-	githubReleasesAPI  = "https://api.github.com/repos/kuluruvineeth/openplane/releases?per_page=10"
+	githubReleasesAPI  = "https://api.github.com/repos/kuluruvineeth/openbeam/releases?per_page=10"
 	releaseTagPrefix   = "cli-v"
 	authProbeEndpoint  = "/api/mcp/tools"
 	healthProbePath    = "/health"

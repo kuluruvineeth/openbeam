@@ -33,7 +33,7 @@ gh repo fork microsoft/winget-pkgs --clone=false
 `HOMEBREW_TAP_PAT` is a fine-grained PAT with `contents: write` + `pull-requests: write` scoped to those three repos. Set via:
 
 ```sh
-gh secret set HOMEBREW_TAP_PAT --repo kuluruvineeth/openplane
+gh secret set HOMEBREW_TAP_PAT --repo kuluruvineeth/openbeam
 ```
 
 No cosign key — keyless OIDC via `id-token: write`.
@@ -98,20 +98,20 @@ Auto-published:
 VERSION=0.2.0
 cd "$(mktemp -d)"
 
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt"
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt.sigstore.json"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/checksums.txt"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/checksums.txt.sigstore.json"
 
 shasum -a 256 -c checksums.txt --ignore-missing
 
 cosign verify-blob \
-  --certificate-identity "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@refs/tags/cli-v${VERSION}" \
+  --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/cli-v${VERSION}" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   --bundle checksums.txt.sigstore.json \
   checksums.txt
 
 gh attestation verify "openbeam_${VERSION}_linux_x86_64.tar.gz" \
-  --repo kuluruvineeth/openplane
+  --repo kuluruvineeth/openbeam
 ```
 
 The workflow's `verify` job runs this same chain automatically — its failure blocks the release from being considered done.
@@ -124,7 +124,7 @@ Never re-tag. Always roll forward.
 BAD_VERSION=0.2.0
 NEXT_VERSION=0.2.1
 
-gh release delete "cli-v${BAD_VERSION}" --cleanup-tag --yes --repo kuluruvineeth/openplane
+gh release delete "cli-v${BAD_VERSION}" --cleanup-tag --yes --repo kuluruvineeth/openbeam
 
 git -C ~/src/homebrew-tap revert HEAD --no-edit && git -C ~/src/homebrew-tap push
 
@@ -148,7 +148,7 @@ HOMEBREW_TAP_PAT=dummy goreleaser release \
 
 `install.sh` and `install.ps1` live in `apps/cli/scripts/`. To host at `https://get.openbeam.com/install.{sh,ps1}`:
 
-1. Set up a Cloudflare Worker (or equivalent) that redirects `get.openbeam.com/install.sh` → `raw.githubusercontent.com/kuluruvineeth/openplane/dev/apps/cli/scripts/install.sh`.
+1. Set up a Cloudflare Worker (or equivalent) that redirects `get.openbeam.com/install.sh` → `raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh`.
 2. Same for `install.ps1`.
 3. Serve with `content-type: text/plain` and cache for no more than 5 minutes.
 

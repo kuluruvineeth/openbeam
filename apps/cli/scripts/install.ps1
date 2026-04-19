@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Repo        = if ($env:OPENBEAM_REPO)    { $env:OPENBEAM_REPO }    else { "kuluruvineeth/openplane" }
+$Repo        = if ($env:OPENBEAM_REPO)    { $env:OPENBEAM_REPO }    else { "kuluruvineeth/openbeam" }
 $InstallDir  = if ($env:OPENBEAM_INSTALL) { $env:OPENBEAM_INSTALL } else { "$env:USERPROFILE\.openbeam" }
 $BinDir      = Join-Path $InstallDir "bin"
 

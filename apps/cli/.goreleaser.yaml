@@ -172,14 +172,14 @@ release:
 
     # Cosign signature (keyless OIDC)
     cosign verify-blob \
-      --certificate-identity "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@refs/tags/cli-v{{ .Version }}" \
+      --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/cli-v{{ .Version }}" \
       --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
       --bundle checksums.txt.sigstore.json \
       checksums.txt
 
     # GitHub attestation (SLSA provenance)
     gh attestation verify openbeam_{{ .Version }}_linux_x86_64.tar.gz \
-      --repo kuluruvineeth/openplane
+      --repo kuluruvineeth/openbeam
     ```
 
 homebrew_casks:
@@ -200,7 +200,7 @@ homebrew_casks:
       zsh: completions/openbeam.zsh
       fish: completions/openbeam.fish
     url:
-      verified: github.com/kuluruvineeth/openplane/releases/download
+      verified: github.com/kuluruvineeth/openbeam/releases/download
     hooks:
       post:
         install: |

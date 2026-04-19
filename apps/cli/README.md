@@ -50,13 +50,13 @@ Every release is signed with cosign (keyless OIDC) and carries a GitHub build pr
 shasum -a 256 -c checksums.txt
 
 cosign verify-blob \
-  --certificate-identity-regexp "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@.*" \
+  --certificate-identity-regexp "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@.*" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   --bundle checksums.txt.sigstore.json \
   checksums.txt
 
 gh attestation verify openbeam_<version>_<os>_<arch>.tar.gz \
-  --repo kuluruvineeth/openplane
+  --repo kuluruvineeth/openbeam
 ```
 
 ## Documentation

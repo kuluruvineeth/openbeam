@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	repoSlug             = "kuluruvineeth/openplane"
+	repoSlug             = "kuluruvineeth/openbeam"
 	releasesAPI          = "https://api.github.com/repos/" + repoSlug + "/releases"
 	releaseDownloadBase  = "https://github.com/" + repoSlug + "/releases/download"
 	tagPrefix            = "cli-v"
