@@ -16,13 +16,6 @@ import {
   upsertContextEntry,
 } from "@openbeam/db";
 import { ContextSearchService, getContextAnalytics } from "@openbeam/services";
-
-let _searchService: ContextSearchService | null = null;
-function getSearchService(): ContextSearchService {
-  _searchService ??= new ContextSearchService(completionService);
-  return _searchService;
-}
-
 import {
   CreateContextEntrySchema,
   UpdateContextEntrySchema,
@@ -31,6 +24,12 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
+
+let _searchService: ContextSearchService | null = null;
+function getSearchService(): ContextSearchService {
+  _searchService ??= new ContextSearchService(completionService);
+  return _searchService;
+}
 
 function contextEntryId(teamId: string, uri: string): string {
   return createHash("md5").update(`${teamId}:${uri}`).digest("hex");
