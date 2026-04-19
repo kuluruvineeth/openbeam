@@ -82,6 +82,10 @@ jobs:
 
       - uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
 
+      - name: Stage semver tag for goreleaser
+        run: |
+          git tag "v${{ needs.validate.outputs.version }}" "${{ needs.validate.outputs.tag }}"
+
       - uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
           distribution: goreleaser
@@ -91,6 +95,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_PAT: ${{ secrets.HOMEBREW_TAP_PAT }}
+          GORELEASER_CURRENT_TAG: v${{ needs.validate.outputs.version }}
+          GORELEASER_PREVIOUS_TAG: ""
 
       - name: Attest archive provenance
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
