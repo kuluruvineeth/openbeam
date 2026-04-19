@@ -30,7 +30,7 @@ const (
 	repoSlug             = "kuluruvineeth/openbeam"
 	releasesAPI          = "https://api.github.com/repos/" + repoSlug + "/releases"
 	releaseDownloadBase  = "https://github.com/" + repoSlug + "/releases/download"
-	tagPrefix            = "cli-v"
+	tagPrefix            = "v"
 	binaryName           = "openbeam"
 	githubAPITimeout     = 15 * time.Second
 	downloadTimeout      = 5 * time.Minute
@@ -69,7 +69,7 @@ func NewCommand() *cobra.Command {
 			return run(cmd, pinned, dryRun, skipConfirm, includePre)
 		},
 	}
-	cmd.Flags().StringVar(&pinned, "version", "", "install a specific version (e.g. cli-v0.2.0 or 0.2.0)")
+	cmd.Flags().StringVar(&pinned, "version", "", "install a specific version (e.g. v0.2.0 or 0.2.0)")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "report what would happen without making changes")
 	cmd.Flags().BoolVar(&includePre, "prerelease", false, "include pre-releases when resolving latest")
 	cmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "skip confirmation prompt")
@@ -127,7 +127,7 @@ func resolveDesiredVersion(ctx context.Context, pinned string, includePrerelease
 	if pinned != "" {
 		version := normalizeVersion(pinned)
 		if !isValidSemver(version) {
-			return "", errs.New(errs.KindUsage, fmt.Sprintf("invalid version: %q (expected cli-vX.Y.Z or X.Y.Z)", pinned), nil)
+			return "", errs.New(errs.KindUsage, fmt.Sprintf("invalid version: %q (expected vX.Y.Z or X.Y.Z)", pinned), nil)
 		}
 		return version, nil
 	}

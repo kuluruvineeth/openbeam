@@ -37,24 +37,24 @@ if [ "$VERSION" = "latest" ]; then
   yellow "Resolving latest release..."
   resolved_tag="$(
     curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
-      | sed -n 's/.*"tag_name": *"\(cli-v[^"]*\)".*/\1/p' \
+      | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p' \
       | head -n1
   )"
   if [ -z "$resolved_tag" ]; then
-    yellow "No 'cli-v*' release marked as latest — falling back to the most recent cli- tag"
+    yellow "No 'v*' release marked as latest — falling back to the most recent cli- tag"
     resolved_tag="$(
       curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=20" \
-        | sed -n 's/.*"tag_name": *"\(cli-v[^"]*\)".*/\1/p' \
+        | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p' \
         | head -n1
     )"
   fi
-  [ -n "$resolved_tag" ] || error "Could not resolve a cli-v* release for $REPO"
+  [ -n "$resolved_tag" ] || error "Could not resolve a v* release for $REPO"
   tag="$resolved_tag"
 else
   tag="$VERSION"
 fi
 
-resolved_version="${tag#cli-v}"
+resolved_version="${tag#v}"
 archive="openbeam_${resolved_version}_${target}.${archive_ext}"
 base="https://github.com/$REPO/releases/download/$tag"
 

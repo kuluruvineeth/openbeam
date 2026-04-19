@@ -172,7 +172,7 @@ release:
 
     # Cosign signature (keyless OIDC)
     cosign verify-blob \
-      --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/cli-v{{ .Version }}" \
+      --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/v{{ .Version }}" \
       --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
       --bundle checksums.txt.sigstore.json \
       checksums.txt

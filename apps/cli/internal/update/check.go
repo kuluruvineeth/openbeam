@@ -20,7 +20,7 @@ const (
 	cacheTTL        = 24 * time.Hour
 	fetchTimeout    = 3 * time.Second
 	releasesAPI     = "https://api.github.com/repos/kuluruvineeth/openbeam/releases?per_page=10"
-	tagPrefix       = "cli-v"
+	tagPrefix       = "v"
 	disableEnvKey   = "OPENBEAM_NO_UPDATE_CHECK"
 	userAgent       = "openbeam-cli-update-check"
 )

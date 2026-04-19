@@ -15,11 +15,10 @@ import (
 
 func TestNormalizeVersion(t *testing.T) {
 	cases := map[string]string{
-		"cli-v0.2.0":      "0.2.0",
-		"v0.2.0":          "0.2.0",
-		"0.2.0":           "0.2.0",
-		"cli-v1.0.0-rc.1": "1.0.0-rc.1",
-		"  0.1.0  ":       "0.1.0",
+		"v0.2.0":      "0.2.0",
+		"0.2.0":       "0.2.0",
+		"v1.0.0-rc.1": "1.0.0-rc.1",
+		"  0.1.0  ":   "0.1.0",
 	}
 	for in, want := range cases {
 		if got := normalizeVersion(in); got != want {
@@ -30,7 +29,7 @@ func TestNormalizeVersion(t *testing.T) {
 
 func TestIsValidSemver(t *testing.T) {
 	valid := []string{"0.0.1", "1.2.3", "10.20.30", "1.0.0-rc.1", "2.5.0-beta.12"}
-	invalid := []string{"", "0.1", "1.2.3.4", "v1.2.3", "cli-v1.2.3", "abc.def.ghi", "1..3"}
+	invalid := []string{"", "0.1", "1.2.3.4", "v1.2.3", "abc.def.ghi", "1..3"}
 
 	for _, v := range valid {
 		if !isValidSemver(v) {

@@ -7,7 +7,7 @@ This page is for maintainers. End users should see [Install](/docs/cli/install).
 
 ## Overview
 
-CLI releases are fully automated. Pushing a tag that matches `cli-v*` triggers `.github/workflows/release-cli.yml`, which runs GoReleaser to:
+CLI releases are fully automated. Pushing a tag that matches `v*` triggers `.github/workflows/release-cli.yml`, which runs GoReleaser to:
 
 - Build 6 binaries: `darwin_{arm64,x86_64}`, `linux_{arm64,x86_64}`, `windows_{arm64,x86_64}`
 - Create tar.gz/zip archives with `README.md`, manpages, and completions
@@ -30,17 +30,17 @@ A follow-up `verify` job re-downloads the release and validates checksums, cosig
 git checkout dev && git pull
 
 # 2. Tag
-git tag cli-v0.2.0
+git tag v0.2.0
 
 # 3. Push the tag — workflow fires immediately
-git push origin cli-v0.2.0
+git push origin v0.2.0
 ```
 
 Pre-releases:
 
 ```sh
-git tag cli-v0.2.0-rc.1
-git push origin cli-v0.2.0-rc.1
+git tag v0.2.0-rc.1
+git push origin v0.2.0-rc.1
 ```
 
 GoReleaser auto-detects the suffix and marks the GitHub release as pre-release.
@@ -49,10 +49,10 @@ GoReleaser auto-detects the suffix and marks the GitHub release as pre-release.
 
 | Pattern | Meaning |
 |---------|---------|
-| `cli-vX.Y.Z` | Stable release |
-| `cli-vX.Y.Z-rc.N` | Release candidate |
-| `cli-vX.Y.Z-beta.N` | Beta |
-| `cli-vX.Y.Z-alpha.N` | Alpha |
+| `vX.Y.Z` | Stable release |
+| `vX.Y.Z-rc.N` | Release candidate |
+| `vX.Y.Z-beta.N` | Beta |
+| `vX.Y.Z-alpha.N` | Alpha |
 
 The workflow validates the pattern before anything runs.
 
@@ -100,20 +100,20 @@ Each release opens a PR from `kuluruvineeth/winget-pkgs:openbeam-<version>` → 
 ```sh
 VERSION=0.2.0
 
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt"
-curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt.sigstore.json"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/checksums.txt"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/checksums.txt.sigstore.json"
 
 shasum -a 256 -c checksums.txt --ignore-missing
 
 cosign verify-blob \
-  --certificate-identity "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@refs/tags/cli-v${VERSION}" \
+  --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/v${VERSION}" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   --bundle checksums.txt.sigstore.json \
   checksums.txt
 
 gh attestation verify "openbeam_${VERSION}_linux_x86_64.tar.gz" \
-  --repo kuluruvineeth/openplane
+  --repo kuluruvineeth/openbeam
 ```
 
 ## Rollback
@@ -122,15 +122,15 @@ If a release is broken:
 
 ```sh
 # 1. Delete the tag + release
-gh release delete "cli-v${BAD_VERSION}" --cleanup-tag --yes
+gh release delete "v${BAD_VERSION}" --cleanup-tag --yes
 
 # 2. Revoke Homebrew formula
 git -C path/to/homebrew-tap revert HEAD --no-edit
 git -C path/to/homebrew-tap push
 
 # 3. Cut a patch release
-git tag "cli-v${NEXT_VERSION}"
-git push origin "cli-v${NEXT_VERSION}"
+git tag "v${NEXT_VERSION}"
+git push origin "v${NEXT_VERSION}"
 ```
 
 Never re-tag the same version — cosign signatures, attestations, and checksums are tag-scoped. Always go forward.
@@ -160,7 +160,7 @@ Not enabled by default. To add:
 
 ## Reference
 
-- [GoReleaser config](https://github.com/kuluruvineeth/openplane/blob/dev/apps/cli/.goreleaser.yaml)
-- [Release workflow](https://github.com/kuluruvineeth/openplane/blob/dev/.github/workflows/release-cli.yml)
+- [GoReleaser config](https://github.com/kuluruvineeth/openbeam/blob/dev/apps/cli/.goreleaser.yaml)
+- [Release workflow](https://github.com/kuluruvineeth/openbeam/blob/dev/.github/workflows/release-cli.yml)
 - [SLSA Level 3 provenance](https://slsa.dev/spec/v1.0/levels#build-l3)
 - [Sigstore / cosign docs](https://docs.sigstore.dev/cosign/)

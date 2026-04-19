@@ -41,7 +41,7 @@ func TestIsNewer(t *testing.T) {
 		{"0.2.0", "0.1.0", true},
 		{"0.1.0", "0.2.0", false},
 		{"0.1.0", "0.1.0", false},
-		{"cli-v0.2.0", "0.1.0", true},
+		{"v0.2.0", "0.1.0", true},
 		{"v0.2.0", "v0.1.0", true},
 		{"", "0.1.0", false},
 		{"0.2.0", "", false},
@@ -138,8 +138,8 @@ func TestIsExpired(t *testing.T) {
 
 func TestFetchLatest(t *testing.T) {
 	payload := []map[string]any{
-		{"tag_name": "cli-v0.3.0", "prerelease": false, "draft": false},
-		{"tag_name": "cli-v0.2.0", "prerelease": false, "draft": false},
+		{"tag_name": "v0.3.0", "prerelease": false, "draft": false},
+		{"tag_name": "v0.2.0", "prerelease": false, "draft": false},
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -158,8 +158,8 @@ func TestFetchLatest(t *testing.T) {
 
 func TestFetchLatest_SkipsPrerelease(t *testing.T) {
 	payload := []map[string]any{
-		{"tag_name": "cli-v0.3.0-rc.1", "prerelease": true, "draft": false},
-		{"tag_name": "cli-v0.2.0", "prerelease": false, "draft": false},
+		{"tag_name": "v0.3.0-rc.1", "prerelease": true, "draft": false},
+		{"tag_name": "v0.2.0", "prerelease": false, "draft": false},
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(payload)

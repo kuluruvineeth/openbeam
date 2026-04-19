@@ -22,22 +22,22 @@ try {
   if ($Version -eq "latest") {
     Write-Host "Resolving latest release..."
     $latest = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -Headers @{ "User-Agent" = "openbeam-install" }
-    if ($latest.tag_name -like "cli-v*") {
+    if ($latest.tag_name -like "v*") {
       $Tag = $latest.tag_name
     } else {
       $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases?per_page=20" -Headers @{ "User-Agent" = "openbeam-install" }
-      $Tag = ($releases | Where-Object { $_.tag_name -like "cli-v*" } | Select-Object -First 1).tag_name
+      $Tag = ($releases | Where-Object { $_.tag_name -like "v*" } | Select-Object -First 1).tag_name
     }
-    if (-not $Tag) { throw "Could not resolve a cli-v* release for $Repo" }
+    if (-not $Tag) { throw "Could not resolve a v* release for $Repo" }
   } else {
     $Tag = $Version
   }
 
-  if ($Tag -notmatch '^cli-v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$') {
-    throw "Invalid tag: $Tag (expected cli-vX.Y.Z)"
+  if ($Tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$') {
+    throw "Invalid tag: $Tag (expected vX.Y.Z)"
   }
 
-  $ResolvedVersion = $Tag -replace '^cli-v', ''
+  $ResolvedVersion = $Tag -replace '^v', ''
   $Archive = "openbeam_${ResolvedVersion}_${Target}.zip"
   $Base    = "https://github.com/$Repo/releases/download/$Tag"
 

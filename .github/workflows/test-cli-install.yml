@@ -34,10 +34,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag=$(gh release list --repo ${{ github.repository }} --limit 30 --json tagName --jq '[.[] | select(.tagName | startswith("cli-v"))] | .[0].tagName // empty')
+          tag=$(gh release list --repo ${{ github.repository }} --limit 30 --json tagName --jq '[.[] | select(.tagName | startswith("v"))] | .[0].tagName // empty')
           if [ -z "$tag" ]; then
             echo "has-release=false" >> "$GITHUB_OUTPUT"
-            echo "No cli-v* release present yet — install test will be skipped." >&2
+            echo "No v* release present yet — install test will be skipped." >&2
           else
             echo "has-release=true" >> "$GITHUB_OUTPUT"
             echo "tag=$tag" >> "$GITHUB_OUTPUT"

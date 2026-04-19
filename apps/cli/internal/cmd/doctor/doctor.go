@@ -25,7 +25,7 @@ const (
 	networkTimeout     = 5 * time.Second
 	latestTimeout      = 4 * time.Second
 	githubReleasesAPI  = "https://api.github.com/repos/kuluruvineeth/openbeam/releases?per_page=10"
-	releaseTagPrefix   = "cli-v"
+	releaseTagPrefix   = "v"
 	authProbeEndpoint  = "/api/mcp/tools"
 	healthProbePath    = "/health"
 )

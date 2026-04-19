@@ -2,11 +2,11 @@ name: "Release: CLI"
 
 on:
   push:
-    tags: ["cli-v*"]
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to release (e.g., cli-v0.1.0)"
+        description: "Tag to release (e.g., v0.2.0)"
         required: true
         type: string
 
@@ -31,11 +31,11 @@ jobs:
           else
             TAG="${GITHUB_REF_NAME}"
           fi
-          if [[ ! "$TAG" =~ ^cli-v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]; then
-            echo "Invalid tag: $TAG (expected cli-vX.Y.Z or cli-vX.Y.Z-suffix)"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]; then
+            echo "Invalid tag: $TAG (expected vX.Y.Z or vX.Y.Z-suffix)"
             exit 1
           fi
-          VERSION="${TAG#cli-v}"
+          VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -82,10 +82,6 @@ jobs:
 
       - uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
 
-      - name: Stage semver tag for goreleaser
-        run: |
-          git tag "v${{ needs.validate.outputs.version }}" "${{ needs.validate.outputs.tag }}"
-
       - uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
           distribution: goreleaser
@@ -95,8 +91,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_PAT: ${{ secrets.HOMEBREW_TAP_PAT }}
-          GORELEASER_CURRENT_TAG: v${{ needs.validate.outputs.version }}
-          GORELEASER_PREVIOUS_TAG: ""
 
       - name: Attest archive provenance
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0

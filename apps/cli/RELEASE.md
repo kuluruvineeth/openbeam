@@ -53,8 +53,8 @@ git pull
 # Pick a version — follow semver
 VERSION=0.2.0
 
-git tag "cli-v${VERSION}"
-git push origin "cli-v${VERSION}"
+git tag "v${VERSION}"
+git push origin "v${VERSION}"
 ```
 
 Tag triggers `.github/workflows/release-cli.yml` within ~30 seconds. Monitor:
@@ -67,10 +67,10 @@ gh run watch
 
 | Pattern | Type |
 |---------|------|
-| `cli-vX.Y.Z` | Stable |
-| `cli-vX.Y.Z-rc.N` | Release candidate (marked pre-release) |
-| `cli-vX.Y.Z-beta.N` | Beta |
-| `cli-vX.Y.Z-alpha.N` | Alpha |
+| `vX.Y.Z` | Stable |
+| `vX.Y.Z-rc.N` | Release candidate (marked pre-release) |
+| `vX.Y.Z-beta.N` | Beta |
+| `vX.Y.Z-alpha.N` | Alpha |
 
 ## What the workflow produces
 
@@ -98,14 +98,14 @@ Auto-published:
 VERSION=0.2.0
 cd "$(mktemp -d)"
 
-curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
-curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/checksums.txt"
-curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/cli-v${VERSION}/checksums.txt.sigstore.json"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/checksums.txt"
+curl -LO "https://github.com/kuluruvineeth/openbeam/releases/download/v${VERSION}/checksums.txt.sigstore.json"
 
 shasum -a 256 -c checksums.txt --ignore-missing
 
 cosign verify-blob \
-  --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/cli-v${VERSION}" \
+  --certificate-identity "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@refs/tags/v${VERSION}" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   --bundle checksums.txt.sigstore.json \
   checksums.txt
@@ -124,12 +124,12 @@ Never re-tag. Always roll forward.
 BAD_VERSION=0.2.0
 NEXT_VERSION=0.2.1
 
-gh release delete "cli-v${BAD_VERSION}" --cleanup-tag --yes --repo kuluruvineeth/openbeam
+gh release delete "v${BAD_VERSION}" --cleanup-tag --yes --repo kuluruvineeth/openbeam
 
 git -C ~/src/homebrew-tap revert HEAD --no-edit && git -C ~/src/homebrew-tap push
 
-git tag "cli-v${NEXT_VERSION}"
-git push origin "cli-v${NEXT_VERSION}"
+git tag "v${NEXT_VERSION}"
+git push origin "v${NEXT_VERSION}"
 ```
 
 ## Local dry-run
@@ -152,7 +152,7 @@ HOMEBREW_TAP_PAT=dummy goreleaser release \
 2. Same for `install.ps1`.
 3. Serve with `content-type: text/plain` and cache for no more than 5 minutes.
 
-Users should pin a SHA for the curl-pipe path (`OPENBEAM_VERSION=cli-v0.2.0`) when scripting around it — the installer resolves `latest` via the GitHub API.
+Users should pin a SHA for the curl-pipe path (`OPENBEAM_VERSION=v0.2.0`) when scripting around it — the installer resolves `latest` via the GitHub API.
 
 ## Reference
 

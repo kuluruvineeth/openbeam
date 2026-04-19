@@ -17,16 +17,16 @@ curl -fsSL https://get.openbeam.com/install.sh | bash
 irm https://get.openbeam.com/install.ps1 | iex
 ```
 
-Both installers detect your OS + architecture, download the right binary from [GitHub Releases](https://github.com/kuluruvineeth/openplane/releases), verify SHA256 checksums, and install to `~/.openbeam/bin/openbeam` (or `%USERPROFILE%\.openbeam\bin\openbeam.exe`). If `cosign` is on your `PATH`, signature verification runs automatically.
+Both installers detect your OS + architecture, download the right binary from [GitHub Releases](https://github.com/kuluruvineeth/openbeam/releases), verify SHA256 checksums, and install to `~/.openbeam/bin/openbeam` (or `%USERPROFILE%\.openbeam\bin\openbeam.exe`). If `cosign` is on your `PATH`, signature verification runs automatically.
 
 Pin a specific version:
 
 ```sh
-OPENBEAM_VERSION=cli-v0.2.0 curl -fsSL https://get.openbeam.com/install.sh | bash
+OPENBEAM_VERSION=v0.2.0 curl -fsSL https://get.openbeam.com/install.sh | bash
 ```
 
 ```powershell
-iex "& { $(irm https://get.openbeam.com/install.ps1) } -Version cli-v0.2.0"
+iex "& { $(irm https://get.openbeam.com/install.ps1) } -Version v0.2.0"
 ```
 
 ## Homebrew (macOS, Linux)
@@ -64,11 +64,11 @@ bun add -g @openbeam/cli
 
 ```sh
 # Debian / Ubuntu
-curl -LO https://github.com/kuluruvineeth/openplane/releases/latest/download/openbeam_<version>_linux_amd64.deb
+curl -LO https://github.com/kuluruvineeth/openbeam/releases/latest/download/openbeam_<version>_linux_amd64.deb
 sudo dpkg -i openbeam_<version>_linux_amd64.deb
 
 # Red Hat / Fedora
-sudo rpm -i https://github.com/kuluruvineeth/openplane/releases/latest/download/openbeam_<version>_linux_amd64.rpm
+sudo rpm -i https://github.com/kuluruvineeth/openbeam/releases/latest/download/openbeam_<version>_linux_amd64.rpm
 
 # Alpine
 apk add --allow-untrusted openbeam_<version>_linux_amd64.apk
@@ -81,7 +81,7 @@ Packages install the binary, manpage, and shell completions system-wide.
 
 ## Direct download
 
-Pick a binary from [the latest release](https://github.com/kuluruvineeth/openplane/releases/latest):
+Pick a binary from [the latest release](https://github.com/kuluruvineeth/openbeam/releases/latest):
 
 | OS | Arch | Archive |
 |----|------|---------|
@@ -104,14 +104,14 @@ shasum -a 256 -c checksums.txt
 
 # Cosign signature
 cosign verify-blob \
-  --certificate-identity-regexp "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@.*" \
+  --certificate-identity-regexp "https://github.com/kuluruvineeth/openbeam/.github/workflows/release-cli.yml@.*" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   --bundle checksums.txt.sigstore.json \
   checksums.txt
 
 # GitHub attestation
 gh attestation verify openbeam_<version>_<os>_<arch>.tar.gz \
-  --repo kuluruvineeth/openplane
+  --repo kuluruvineeth/openbeam
 ```
 
 ## Uninstall
