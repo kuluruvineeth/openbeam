@@ -1,0 +1,130 @@
+---
+title: Install
+description: Install the OpenBeam CLI on macOS, Linux, or Windows.
+---
+
+## One-line install
+
+### macOS / Linux
+
+```sh
+curl -fsSL https://get.openbeam.com/install.sh | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://get.openbeam.com/install.ps1 | iex
+```
+
+Both installers detect your OS + architecture, download the right binary from [GitHub Releases](https://github.com/kuluruvineeth/openplane/releases), verify SHA256 checksums, and install to `~/.openbeam/bin/openbeam` (or `%USERPROFILE%\.openbeam\bin\openbeam.exe`). If `cosign` is on your `PATH`, signature verification runs automatically.
+
+Pin a specific version:
+
+```sh
+OPENBEAM_VERSION=cli-v0.2.0 curl -fsSL https://get.openbeam.com/install.sh | bash
+```
+
+```powershell
+iex "& { $(irm https://get.openbeam.com/install.ps1) } -Version cli-v0.2.0"
+```
+
+## Homebrew (macOS, Linux)
+
+```sh
+brew install kuluruvineeth/tap/openbeam
+```
+
+The tap is auto-published on every release — `brew upgrade openbeam` pulls the latest.
+
+## Scoop (Windows)
+
+```powershell
+scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket
+scoop install openbeam
+```
+
+## Winget (Windows)
+
+```powershell
+winget install kuluruvineeth.openbeam
+```
+
+## npm
+
+```sh
+npm install -g @openbeam/cli
+# or
+bun add -g @openbeam/cli
+```
+
+`@openbeam/cli` is a thin wrapper that resolves the right platform binary via `optionalDependencies` (the esbuild pattern) — no postinstall network call.
+
+## Linux packages
+
+```sh
+# Debian / Ubuntu
+curl -LO https://github.com/kuluruvineeth/openplane/releases/latest/download/openbeam_<version>_linux_amd64.deb
+sudo dpkg -i openbeam_<version>_linux_amd64.deb
+
+# Red Hat / Fedora
+sudo rpm -i https://github.com/kuluruvineeth/openplane/releases/latest/download/openbeam_<version>_linux_amd64.rpm
+
+# Alpine
+apk add --allow-untrusted openbeam_<version>_linux_amd64.apk
+
+# Arch Linux
+sudo pacman -U openbeam_<version>_linux_amd64.pkg.tar.zst
+```
+
+Packages install the binary, manpage, and shell completions system-wide.
+
+## Direct download
+
+Pick a binary from [the latest release](https://github.com/kuluruvineeth/openplane/releases/latest):
+
+| OS | Arch | Archive |
+|----|------|---------|
+| macOS | arm64 | `openbeam_<version>_darwin_arm64.tar.gz` |
+| macOS | x86_64 | `openbeam_<version>_darwin_x86_64.tar.gz` |
+| Linux | arm64 | `openbeam_<version>_linux_arm64.tar.gz` |
+| Linux | x86_64 | `openbeam_<version>_linux_x86_64.tar.gz` |
+| Windows | arm64 | `openbeam_<version>_windows_arm64.zip` |
+| Windows | x86_64 | `openbeam_<version>_windows_x86_64.zip` |
+
+Each archive contains `openbeam`, `README.md`, `manpages/`, and `completions/`.
+
+## Verify a release
+
+Every release is signed with [cosign](https://docs.sigstore.dev/cosign/) (keyless OIDC via Sigstore) and carries a [GitHub build provenance attestation](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds) (SLSA Level 3).
+
+```sh
+# Checksums
+shasum -a 256 -c checksums.txt
+
+# Cosign signature
+cosign verify-blob \
+  --certificate-identity-regexp "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@.*" \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  --bundle checksums.txt.sigstore.json \
+  checksums.txt
+
+# GitHub attestation
+gh attestation verify openbeam_<version>_<os>_<arch>.tar.gz \
+  --repo kuluruvineeth/openplane
+```
+
+## Uninstall
+
+```sh
+rm -rf ~/.openbeam
+# then remove the PATH block from your shell profile
+```
+
+Or `brew uninstall openbeam`, `scoop uninstall openbeam`, etc.
+
+## Next
+
+- [Commands reference](/docs/cli/commands)
+- [Workflows](/docs/cli/workflows)
+- [Release process](/docs/cli/release) (for maintainers)

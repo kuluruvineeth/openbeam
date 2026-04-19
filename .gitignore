@@ -106,6 +106,8 @@ story/
 agents_engine_core/
 *.md
 !apps/video/README.md
+!apps/cli/README.md
+!apps/cli/RELEASE.md
 !packages/mcp/README.md
 !packages/sdk/README.md
 !docs/observability/

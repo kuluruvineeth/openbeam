@@ -4,7 +4,7 @@ project_name: openbeam
 before:
   hooks:
     - go mod tidy
-    - go test ./...
+    - bash scripts/gen-docs.sh
 
 builds:
   - id: openbeam
@@ -12,6 +12,8 @@ builds:
     binary: openbeam
     env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
     goos:
       - darwin
       - linux
@@ -20,7 +22,11 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Version={{ .Version }} -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Commit={{ .Commit }} -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Date={{ .Date }}
+      - -s -w
+      - -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Version={{ .Version }}
+      - -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Commit={{ .Commit }}
+      - -X github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version.Date={{ .CommitDate }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
   - id: openbeam
@@ -28,22 +34,173 @@ archives:
     format_overrides:
       - goos: windows
         formats: [zip]
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: >-
+      {{- .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
     files:
-      - docs/man/*
-      - docs/completion/*
+      - README*
+      - src: build/manpages/*
+        dst: manpages
+        strip_parent: true
+      - src: build/completions/*
+        dst: completions
+        strip_parent: true
+
+nfpms:
+  - id: openbeam
+    package_name: openbeam
+    vendor: OpenBeam
+    homepage: https://openbeam.com
+    maintainer: OpenBeam <support@openbeam.com>
+    description: OpenBeam CLI — enterprise search and AI assistant
+    license: MIT
+    formats: [apk, deb, rpm, archlinux]
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: build/completions/openbeam.bash
+        dst: /usr/share/bash-completion/completions/openbeam
+      - src: build/completions/openbeam.zsh
+        dst: /usr/share/zsh/site-functions/_openbeam
+      - src: build/completions/openbeam.fish
+        dst: /usr/share/fish/vendor_completions.d/openbeam.fish
+      - src: build/manpages/openbeam.1.gz
+        dst: /usr/share/man/man1/openbeam.1.gz
 
 checksum:
   name_template: checksums.txt
+  algorithm: sha256
 
 sboms:
   - artifacts: archive
+
+signs:
+  - id: cosign
+    cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    artifacts: checksum
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 changelog:
-  use: git
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Performance
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
 
 release:
+  name_template: "CLI {{ .Version }}"
   prerelease: auto
+  draft: false
+  mode: replace
+  header: |
+    ## OpenBeam CLI {{ .Version }}
+
+    Install via the one-liner:
+
+    ```sh
+    curl -fsSL https://get.openbeam.com/install.sh | bash
+    ```
+
+    Or pick your package manager below.
+  footer: |
+    ---
+
+    **Verify this release:**
+
+    ```sh
+    # Checksum
+    shasum -a 256 -c checksums.txt
+
+    # Cosign signature (keyless OIDC)
+    cosign verify-blob \
+      --certificate-identity "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@refs/tags/cli-v{{ .Version }}" \
+      --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+      --bundle checksums.txt.sigstore.json \
+      checksums.txt
+
+    # GitHub attestation (SLSA provenance)
+    gh attestation verify openbeam_{{ .Version }}_linux_x86_64.tar.gz \
+      --repo kuluruvineeth/openplane
+    ```
+
+homebrew_casks:
+  - name: openbeam
+    repository:
+      owner: kuluruvineeth
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+    homepage: https://openbeam.com
+    description: OpenBeam CLI — enterprise search and AI assistant
+    license: MIT
+    manpages:
+      - manpages/openbeam.1.gz
+    completions:
+      bash: completions/openbeam.bash
+      zsh: completions/openbeam.zsh
+      fish: completions/openbeam.fish
+    url:
+      verified: github.com/kuluruvineeth/openplane/releases/download
+    hooks:
+      post:
+        install: |
+          if OS.mac? && Hardware::CPU.arm?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/openbeam"]
+          end
+
+scoops:
+  - repository:
+      owner: kuluruvineeth
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+    directory: bucket
+    homepage: https://openbeam.com
+    description: OpenBeam CLI — enterprise search and AI assistant
+    license: MIT
+
+winget:
+  - name: openbeam
+    publisher: kuluruvineeth
+    package_identifier: kuluruvineeth.openbeam
+    short_description: OpenBeam CLI — enterprise search and AI assistant
+    license: MIT
+    homepage: https://openbeam.com
+    repository:
+      owner: kuluruvineeth
+      name: winget-pkgs
+      branch: "openbeam-{{ .Version }}"
+      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master

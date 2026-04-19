@@ -1,0 +1,146 @@
+name: "Release: CLI"
+
+on:
+  push:
+    tags: ["cli-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g., cli-v0.1.0)"
+        required: true
+        type: string
+
+concurrency:
+  group: release-cli-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          if [[ ! "$TAG" =~ ^cli-v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]; then
+            echo "Invalid tag: $TAG (expected cli-vX.Y.Z or cli-vX.Y.Z-suffix)"
+            exit 1
+          fi
+          VERSION="${TAG#cli-v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  goreleaser:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+      attestations: write
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.validate.outputs.tag }}
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
+
+      - uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
+
+      - uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          workdir: apps/cli
+          args: release --clean --timeout 60m
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_PAT: ${{ secrets.HOMEBREW_TAP_PAT }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Attest archive provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: |
+            apps/cli/dist/*.tar.gz
+            apps/cli/dist/*.zip
+            apps/cli/dist/*.deb
+            apps/cli/dist/*.rpm
+            apps/cli/dist/*.apk
+            apps/cli/dist/*.pkg.tar.zst
+
+      - name: Attest checksum provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-checksums: apps/cli/dist/checksums.txt
+
+  verify:
+    needs: [validate, goreleaser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          mkdir -p release
+          cd release
+          gh release download "$TAG" \
+            --repo ${{ github.repository }} \
+            --pattern "openbeam_${VERSION}_linux_x86_64.tar.gz" \
+            --pattern "checksums.txt" \
+            --pattern "checksums.txt.sigstore.json"
+
+      - name: Verify checksums
+        working-directory: release
+        run: shasum -a 256 --check --ignore-missing checksums.txt
+
+      - name: Verify cosign signature
+        working-directory: release
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          cosign verify-blob \
+            --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/release-cli.yml@refs/tags/$TAG" \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            --bundle checksums.txt.sigstore.json \
+            checksums.txt
+
+      - name: Verify build provenance attestation
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          gh attestation verify "openbeam_${VERSION}_linux_x86_64.tar.gz" \
+            --repo ${{ github.repository }}

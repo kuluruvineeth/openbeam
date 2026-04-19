@@ -1,5 +1,5 @@
 {
   "title": "CLI",
   "icon": "Terminal",
-  "pages": ["index", "commands", "workflows"]
+  "pages": ["index", "install", "commands", "workflows", "release"]
 }

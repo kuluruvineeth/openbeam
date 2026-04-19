@@ -1,0 +1,166 @@
+---
+title: Release Process
+description: How OpenBeam CLI releases are cut, signed, and distributed.
+---
+
+This page is for maintainers. End users should see [Install](/docs/cli/install).
+
+## Overview
+
+CLI releases are fully automated. Pushing a tag that matches `cli-v*` triggers `.github/workflows/release-cli.yml`, which runs GoReleaser to:
+
+- Build 6 binaries: `darwin_{arm64,x86_64}`, `linux_{arm64,x86_64}`, `windows_{arm64,x86_64}`
+- Create tar.gz/zip archives with `README.md`, manpages, and completions
+- Build 4 Linux package formats: `.deb`, `.rpm`, `.apk`, `.pkg.tar.zst`
+- Generate SHA256 checksums
+- Sign checksums with cosign keyless OIDC → Sigstore
+- Generate SPDX SBOM per archive via Syft
+- Write GitHub attestations (SLSA build provenance) for every archive + checksums
+- Publish Homebrew cask to `kuluruvineeth/homebrew-tap`
+- Publish Scoop manifest to `kuluruvineeth/scoop-bucket`
+- Open Winget PR against `microsoft/winget-pkgs`
+- Create the GitHub Release with full notes
+
+A follow-up `verify` job re-downloads the release and validates checksums, cosign signature, and the SLSA attestation — ensuring the full chain is intact.
+
+## Cutting a release
+
+```sh
+# 1. Make sure main is green
+git checkout dev && git pull
+
+# 2. Tag
+git tag cli-v0.2.0
+
+# 3. Push the tag — workflow fires immediately
+git push origin cli-v0.2.0
+```
+
+Pre-releases:
+
+```sh
+git tag cli-v0.2.0-rc.1
+git push origin cli-v0.2.0-rc.1
+```
+
+GoReleaser auto-detects the suffix and marks the GitHub release as pre-release.
+
+## Tag format
+
+| Pattern | Meaning |
+|---------|---------|
+| `cli-vX.Y.Z` | Stable release |
+| `cli-vX.Y.Z-rc.N` | Release candidate |
+| `cli-vX.Y.Z-beta.N` | Beta |
+| `cli-vX.Y.Z-alpha.N` | Alpha |
+
+The workflow validates the pattern before anything runs.
+
+## Required secrets
+
+Set these in **Settings → Secrets and variables → Actions**:
+
+| Secret | Purpose |
+|--------|---------|
+| `HOMEBREW_TAP_PAT` | Fine-grained PAT with `contents: write` on `kuluruvineeth/homebrew-tap`, `kuluruvineeth/scoop-bucket`, and `kuluruvineeth/winget-pkgs` (fork of `microsoft/winget-pkgs`) |
+| `NPM_TOKEN` | npm automation token for the `@openbeam` org (optional — only if publishing npm wrapper) |
+
+The workflow uses OIDC (`id-token: write`) for cosign and GitHub attestations — no key management needed.
+
+## First-time setup
+
+### Homebrew tap
+
+```sh
+gh repo create kuluruvineeth/homebrew-tap --public \
+  --description "Homebrew tap for OpenBeam tools"
+```
+
+GoReleaser pushes `Casks/openbeam.rb` on the first release.
+
+### Scoop bucket
+
+```sh
+gh repo create kuluruvineeth/scoop-bucket --public \
+  --description "Scoop bucket for OpenBeam tools"
+```
+
+GoReleaser pushes `bucket/openbeam.json` on the first release.
+
+### Winget fork
+
+```sh
+gh repo fork microsoft/winget-pkgs --clone=false
+```
+
+Each release opens a PR from `kuluruvineeth/winget-pkgs:openbeam-<version>` → `microsoft/winget-pkgs:master`.
+
+## Manual verification after release
+
+```sh
+VERSION=0.2.0
+
+curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/openbeam_${VERSION}_linux_x86_64.tar.gz"
+curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt"
+curl -LO "https://github.com/kuluruvineeth/openplane/releases/download/cli-v${VERSION}/checksums.txt.sigstore.json"
+
+shasum -a 256 -c checksums.txt --ignore-missing
+
+cosign verify-blob \
+  --certificate-identity "https://github.com/kuluruvineeth/openplane/.github/workflows/release-cli.yml@refs/tags/cli-v${VERSION}" \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  --bundle checksums.txt.sigstore.json \
+  checksums.txt
+
+gh attestation verify "openbeam_${VERSION}_linux_x86_64.tar.gz" \
+  --repo kuluruvineeth/openplane
+```
+
+## Rollback
+
+If a release is broken:
+
+```sh
+# 1. Delete the tag + release
+gh release delete "cli-v${BAD_VERSION}" --cleanup-tag --yes
+
+# 2. Revoke Homebrew formula
+git -C path/to/homebrew-tap revert HEAD --no-edit
+git -C path/to/homebrew-tap push
+
+# 3. Cut a patch release
+git tag "cli-v${NEXT_VERSION}"
+git push origin "cli-v${NEXT_VERSION}"
+```
+
+Never re-tag the same version — cosign signatures, attestations, and checksums are tag-scoped. Always go forward.
+
+## Local dry-run
+
+Validate the GoReleaser config and produce a snapshot build without publishing:
+
+```sh
+cd apps/cli
+goreleaser check
+HOMEBREW_TAP_PAT=dummy goreleaser release \
+  --snapshot --clean \
+  --skip=publish,sign,sbom,homebrew,scoop,winget
+ls dist/
+```
+
+`dist/` will contain every archive, package, and checksum — ready to inspect.
+
+## Nightly builds
+
+Not enabled by default. To add:
+
+1. Add `.github/workflows/release-cli-nightly.yml` with a `schedule: cron: '0 0 * * *'` trigger.
+2. Call GoReleaser with `args: release --clean --nightly`.
+3. Nightlies push to a separate tap/bucket or use a `@nightly` npm dist-tag.
+
+## Reference
+
+- [GoReleaser config](https://github.com/kuluruvineeth/openplane/blob/dev/apps/cli/.goreleaser.yaml)
+- [Release workflow](https://github.com/kuluruvineeth/openplane/blob/dev/.github/workflows/release-cli.yml)
+- [SLSA Level 3 provenance](https://slsa.dev/spec/v1.0/levels#build-l3)
+- [Sigstore / cosign docs](https://docs.sigstore.dev/cosign/)
