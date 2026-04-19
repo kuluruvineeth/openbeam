@@ -2,11 +2,23 @@
 
 Full process for cutting an `openbeam` CLI release. For user-facing install docs see [/docs/cli/install](../docs/content/docs/cli/install.mdx).
 
-## Pre-flight (one-time setup)
+## Pre-flight
 
-### 1. GitHub repositories
+**Minimum to cut the first release: nothing.**
 
-Create these under the `kuluruvineeth` account (or wherever the tap/bucket/fork should live):
+The release workflow succeeds with just `GITHUB_TOKEN` (provided automatically). That ships: GitHub Releases with binaries, Linux packages (`.deb`/`.rpm`/`.apk`/`.pkg.tar.zst`), SBOMs, cosign signatures, build provenance attestations, and the multi-arch `ghcr.io/kuluruvineeth/openbeam-cli` Docker image.
+
+### Optional channels (add when you want them)
+
+Each publisher below is gated on env presence — missing one just skips that channel, it does not fail the release.
+
+| Channel | Needs | How to enable |
+|---------|-------|---------------|
+| Homebrew tap | `HOMEBREW_TAP_PAT` + `kuluruvineeth/homebrew-tap` repo | see below |
+| Scoop bucket | `HOMEBREW_TAP_PAT` + `kuluruvineeth/scoop-bucket` repo | same PAT |
+| Winget | `HOMEBREW_TAP_PAT` + fork of `microsoft/winget-pkgs` | same PAT |
+
+Commands to bootstrap the tap/bucket/fork:
 
 ```sh
 gh repo create kuluruvineeth/homebrew-tap --public \
@@ -18,20 +30,15 @@ gh repo create kuluruvineeth/scoop-bucket --public \
 gh repo fork microsoft/winget-pkgs --clone=false
 ```
 
-All three are push targets for GoReleaser on each release.
+`HOMEBREW_TAP_PAT` is a fine-grained PAT with `contents: write` + `pull-requests: write` scoped to those three repos. Set via:
 
-### 2. Secrets
+```sh
+gh secret set HOMEBREW_TAP_PAT --repo kuluruvineeth/openplane
+```
 
-In the monorepo's GitHub → Settings → Secrets → Actions:
+No cosign key — keyless OIDC via `id-token: write`.
 
-| Secret | Purpose | Scope |
-|--------|---------|-------|
-| `HOMEBREW_TAP_PAT` | Fine-grained PAT with `contents: write` on `homebrew-tap`, `scoop-bucket`, and `winget-pkgs` fork | 3 repos |
-| `NPM_TOKEN` | npm automation token for `@openbeam` scope | optional, only if publishing npm wrapper |
-
-No cosign key — we use keyless OIDC via `id-token: write` in the workflow.
-
-### 3. Local toolchain (for dry-runs only)
+### Local toolchain (dry-runs only)
 
 ```sh
 brew install goreleaser cosign syft

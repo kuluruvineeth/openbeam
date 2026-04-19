@@ -184,11 +184,12 @@ release:
 
 homebrew_casks:
   - name: openbeam
+    skip_upload: '{{ if eq (envOrDefault "HOMEBREW_TAP_PAT" "") "" }}true{{ else }}false{{ end }}'
     repository:
       owner: kuluruvineeth
       name: homebrew-tap
       branch: main
-      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+      token: '{{ envOrDefault "HOMEBREW_TAP_PAT" "" }}'
     homepage: https://openbeam.com
     description: OpenBeam CLI — enterprise search and AI assistant
     license: MIT
@@ -208,11 +209,12 @@ homebrew_casks:
           end
 
 scoops:
-  - repository:
+  - skip_upload: '{{ if eq (envOrDefault "HOMEBREW_TAP_PAT" "") "" }}true{{ else }}false{{ end }}'
+    repository:
       owner: kuluruvineeth
       name: scoop-bucket
       branch: main
-      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+      token: '{{ envOrDefault "HOMEBREW_TAP_PAT" "" }}'
     directory: bucket
     homepage: https://openbeam.com
     description: OpenBeam CLI — enterprise search and AI assistant
@@ -225,11 +227,12 @@ winget:
     short_description: OpenBeam CLI — enterprise search and AI assistant
     license: MIT
     homepage: https://openbeam.com
+    skip_upload: '{{ if eq (envOrDefault "HOMEBREW_TAP_PAT" "") "" }}true{{ else }}false{{ end }}'
     repository:
       owner: kuluruvineeth
       name: winget-pkgs
       branch: "openbeam-{{ .Version }}"
-      token: "{{ .Env.HOMEBREW_TAP_PAT }}"
+      token: '{{ envOrDefault "HOMEBREW_TAP_PAT" "" }}'
       pull_request:
         enabled: true
         draft: false
