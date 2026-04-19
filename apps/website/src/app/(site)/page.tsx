@@ -34,6 +34,9 @@ const ComputerCTASection = dynamic(() =>
     (mod) => mod.ComputerCTASection
   )
 );
+const CliInstall = dynamic(() =>
+  import("@/components/cli-install").then((mod) => mod.CliInstall)
+);
 const CTASection = dynamic(() =>
   import("@/components/sections/cta-section").then((mod) => mod.CTASection)
 );
@@ -71,6 +74,10 @@ export default function HomePage() {
       <Divider />
       <SectionTracker eventName="computer_cta_viewed">
         <ComputerCTASection />
+      </SectionTracker>
+      <Divider />
+      <SectionTracker eventName="cli_install_viewed">
+        <CliInstall />
       </SectionTracker>
       <Divider />
       <SectionTracker eventName="pricing_viewed">

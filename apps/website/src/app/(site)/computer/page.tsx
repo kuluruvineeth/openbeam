@@ -25,6 +25,9 @@ const ComputerSurfaces = dynamic(() =>
     (mod) => mod.ComputerSurfaces
   )
 );
+const CliInstall = dynamic(() =>
+  import("@/components/cli-install").then((mod) => mod.CliInstall)
+);
 const ComputerCTA = dynamic(() =>
   import("@/components/sections/computer/cta").then((mod) => mod.ComputerCTA)
 );
@@ -89,6 +92,13 @@ export default function ComputerPage() {
       <Divider />
       <SectionTracker eventName="computer_surfaces_viewed">
         <ComputerSurfaces />
+      </SectionTracker>
+      <Divider />
+      <SectionTracker eventName="computer_cli_install_viewed">
+        <CliInstall
+          subtitle="Run any Computer agent from the terminal. Same agents, same data, every surface."
+          title="Install the CLI"
+        />
       </SectionTracker>
       <StripeDivider />
       <SectionTracker eventName="computer_cta_viewed">
