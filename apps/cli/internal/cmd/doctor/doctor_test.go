@@ -166,15 +166,9 @@ func TestAuthProbeCheck_NoKey(t *testing.T) {
 }
 
 func TestCompletionHint(t *testing.T) {
-	cases := map[string]string{
-		"bash": "bash-completion",
-		"zsh":  "fpath[1]",
-		"fish": "fish/completions",
-	}
-	for shell, expectSubstring := range cases {
-		got := completionHint(shell)
-		if !strings.Contains(got, expectSubstring) {
-			t.Errorf("hint for %s = %q, missing %q", shell, got, expectSubstring)
+	for _, shell := range []string{"bash", "zsh", "fish", "powershell"} {
+		if got := completionHint(shell); got != "openbeam completion install" {
+			t.Errorf("hint for %s = %q", shell, got)
 		}
 	}
 }

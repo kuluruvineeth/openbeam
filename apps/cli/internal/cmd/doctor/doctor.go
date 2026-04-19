@@ -467,16 +467,7 @@ func completionCandidates(shell string) []string {
 }
 
 func completionHint(shell string) string {
-	switch shell {
-	case "bash":
-		return "openbeam completion bash > ~/.local/share/bash-completion/completions/openbeam"
-	case "zsh":
-		return `openbeam completion zsh > "${fpath[1]}/_openbeam"`
-	case "fish":
-		return "openbeam completion fish > ~/.config/fish/completions/openbeam.fish"
-	default:
-		return "openbeam completion " + shell
-	}
+	return "openbeam completion install"
 }
 
 func resolveHost(profile config.Profile, hostOverride string) string {
