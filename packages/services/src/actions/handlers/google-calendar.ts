@@ -1,6 +1,7 @@
 import {
   createCalendarEvent,
   deleteCalendarEvent,
+  listCalendars,
   updateCalendarEvent,
 } from "../../google-calendar/actions";
 import {
@@ -17,6 +18,15 @@ type Handler = (
 ) => Promise<ActionExecutionResult>;
 
 const actions: Record<string, Handler> = {
+  async calendar_list(client, p) {
+    const limit = typeof p.limit === "number" ? p.limit : undefined;
+    const r = await listCalendars(client, { limit });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { calendars: r.calendars } };
+  },
+
   async event_create(client, p) {
     const r = await createCalendarEvent(client, {
       calendarId: typeof p.calendarId === "string" ? p.calendarId : undefined,

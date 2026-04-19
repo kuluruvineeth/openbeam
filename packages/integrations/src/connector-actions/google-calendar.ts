@@ -6,6 +6,37 @@ export const googleCalendarActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "google-calendar",
   actions: [
     {
+      id: "calendar_list",
+      name: "List Calendars",
+      description:
+        "List Google Calendars the current user has access to, including shared and team calendars. Returns id, summary, primary flag, access role, and timezone. Call this before event_create when the user wants to target a specific non-primary calendar (e.g. 'Team Calendar' or 'Engineering Standups'). For the user's main calendar, pass calendar_id='primary' without calling this first.",
+      connectorType: "google_calendar",
+      resource: "calendar",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      idempotent: true,
+      inputs: [
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Max calendars to return (1-250, default 50).",
+        },
+      ],
+      outputs: [
+        {
+          id: "calendars",
+          name: "Calendars",
+          type: "array",
+          description:
+            "Array of { id, summary, primary, accessRole, timeZone }. Use 'id' as the calendar_id input to event_create or event_update.",
+        },
+      ],
+    },
+    {
       id: "event_create",
       name: "Create Event",
       description: "Create a new calendar event",
