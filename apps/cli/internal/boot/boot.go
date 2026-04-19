@@ -29,6 +29,7 @@ import (
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/research"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/search"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/teams"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/upgrade"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
@@ -121,6 +122,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	configCommand := configcmd.NewCommand(buildRuntime)
 	completionCommand := completion.NewCommand(root)
 	versionCommand := version.NewCommand()
+	upgradeCommand := upgrade.NewCommand()
 	teamsCommand := teams.NewCommand(buildRuntime)
 
 	daemonCommand := daemoncmd.NewCommand(buildRuntime)
@@ -148,6 +150,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	configCommand.GroupID = "core"
 	completionCommand.GroupID = "core"
 	versionCommand.GroupID = "core"
+	upgradeCommand.GroupID = "core"
 	teamsCommand.GroupID = "core"
 
 	daemonCommand.GroupID = "core"
@@ -175,6 +178,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	root.AddCommand(configCommand)
 	root.AddCommand(completionCommand)
 	root.AddCommand(versionCommand)
+	root.AddCommand(upgradeCommand)
 	root.AddCommand(teamsCommand)
 	root.AddCommand(daemonCommand)
 	root.AddCommand(agentCommand)
