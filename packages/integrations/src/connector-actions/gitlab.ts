@@ -6,9 +6,49 @@ export const gitlabActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "gitlab",
   actions: [
     {
+      id: "project_list",
+      name: "List Projects",
+      description:
+        "List GitLab projects the current user is a member of. Returns up to 100 projects ordered by last activity with id, name, full path, and visibility. Call this FIRST before issue_create or merge_request_create to discover the required numeric projectId. Do NOT guess project IDs.",
+      connectorType: "gitlab",
+      resource: "project",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      idempotent: true,
+      inputs: [
+        {
+          id: "visibility",
+          name: "Visibility",
+          type: "string",
+          required: false,
+          description:
+            "Filter by visibility: 'public', 'internal', or 'private'.",
+        },
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Max projects to return (1-100, default 50).",
+        },
+      ],
+      outputs: [
+        {
+          id: "projects",
+          name: "Projects",
+          type: "array",
+          description:
+            "Array of { id, name, path, visibility }. Use 'id' as the projectId input to issue_create or merge_request_create.",
+        },
+      ],
+    },
+    {
       id: "issue_create",
       name: "Create Issue",
-      description: "Create a new issue in a project",
+      description:
+        "Create a new issue in a GitLab project. Requires projectId (numeric) — call project_list first to discover available projects. Returns the issue URL.",
       connectorType: "gitlab",
       resource: "issue",
       category: "create",
@@ -107,7 +147,8 @@ export const gitlabActionsRegistry: ConnectorActionsRegistry = {
     {
       id: "merge_request_create",
       name: "Create Merge Request",
-      description: "Create a merge request between branches",
+      description:
+        "Create a merge request between branches in a GitLab project. Requires projectId (numeric) — call project_list first to discover available projects. Also requires source and target branch names.",
       connectorType: "gitlab",
       resource: "merge_request",
       category: "create",
