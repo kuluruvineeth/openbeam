@@ -49,6 +49,19 @@ archives:
         dst: completions
         strip_parent: true
 
+dockers_v2:
+  - id: openbeam
+    ids: [openbeam]
+    images:
+      - "ghcr.io/kuluruvineeth/openbeam-cli"
+    tags:
+      - "{{ .Version }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    dockerfile: Dockerfile
+
 nfpms:
   - id: openbeam
     package_name: openbeam

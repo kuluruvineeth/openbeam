@@ -350,7 +350,7 @@ jobs:
           distribution: goreleaser
           version: "~> v2"
           workdir: apps/cli
-          args: release --snapshot --clean --skip=publish,sign,sbom,homebrew,scoop,winget
+          args: release --snapshot --clean --skip=publish,sign,sbom,homebrew,scoop,winget,docker
         env:
           HOMEBREW_TAP_PAT: dummy
 
