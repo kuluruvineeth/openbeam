@@ -134,13 +134,33 @@ release:
   header: |
     ## OpenBeam CLI {{ .Version }}
 
-    Install via the one-liner:
+    ### Install
 
     ```sh
+    # macOS / Linux
     curl -fsSL https://get.openbeam.com/install.sh | bash
+
+    # Windows (PowerShell)
+    irm https://get.openbeam.com/install.ps1 | iex
+
+    # Homebrew (macOS, Linux)
+    brew install kuluruvineeth/tap/openbeam
+
+    # Scoop (Windows)
+    scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket
+    scoop install openbeam
+
+    # Winget (Windows)
+    winget install kuluruvineeth.openbeam
+
+    # Docker
+    docker pull ghcr.io/kuluruvineeth/openbeam-cli:{{ .Version }}
     ```
 
-    Or pick your package manager below.
+    Upgrade an existing install with `openbeam upgrade`.
+    Troubleshoot with `openbeam doctor`.
+
+    Full changelog below.
   footer: |
     ---
 
