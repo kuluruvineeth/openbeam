@@ -1,0 +1,96 @@
+name: "Test: CLI installer"
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - "apps/cli/scripts/install.sh"
+      - "apps/cli/scripts/install.ps1"
+      - ".github/workflows/test-cli-install.yml"
+  pull_request:
+    paths:
+      - "apps/cli/scripts/install.sh"
+      - "apps/cli/scripts/install.ps1"
+      - ".github/workflows/test-cli-install.yml"
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: test-cli-install-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-latest:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      has-release: ${{ steps.resolve.outputs.has-release }}
+    steps:
+      - id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag=$(gh release list --repo ${{ github.repository }} --limit 30 --json tagName --jq '[.[] | select(.tagName | startswith("cli-v"))] | .[0].tagName // empty')
+          if [ -z "$tag" ]; then
+            echo "has-release=false" >> "$GITHUB_OUTPUT"
+            echo "No cli-v* release present yet — install test will be skipped." >&2
+          else
+            echo "has-release=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            echo "Resolved tag: $tag"
+          fi
+
+  posix:
+    needs: resolve-latest
+    if: needs.resolve-latest.outputs.has-release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm, macos-14, macos-13]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run installer
+        env:
+          OPENBEAM_REPO: ${{ github.repository }}
+          OPENBEAM_VERSION: ${{ needs.resolve-latest.outputs.tag }}
+          OPENBEAM_NO_PATH_UPDATE: "1"
+        run: bash apps/cli/scripts/install.sh
+
+      - name: Verify binary runs
+        run: |
+          export PATH="$HOME/.openbeam/bin:$PATH"
+          openbeam version
+          openbeam --help | head -5
+
+      - name: Uninstall
+        run: rm -rf "$HOME/.openbeam"
+
+  windows:
+    needs: resolve-latest
+    if: needs.resolve-latest.outputs.has-release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run installer
+        shell: pwsh
+        env:
+          OPENBEAM_REPO: ${{ github.repository }}
+        run: apps/cli/scripts/install.ps1 -Version ${{ needs.resolve-latest.outputs.tag }} -NoPathUpdate
+
+      - name: Verify binary runs
+        shell: pwsh
+        run: |
+          $env:Path = "$env:USERPROFILE\.openbeam\bin;$env:Path"
+          openbeam version
+          openbeam --help | Select-Object -First 5
