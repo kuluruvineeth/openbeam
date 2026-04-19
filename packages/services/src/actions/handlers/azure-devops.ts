@@ -1,6 +1,7 @@
 import {
   addWorkItemComment,
   createWorkItem,
+  listProjects,
   updateWorkItem,
 } from "../../azure-devops/actions";
 import {
@@ -17,6 +18,15 @@ type Handler = (
 ) => Promise<ActionExecutionResult>;
 
 const actions: Record<string, Handler> = {
+  async project_list(client, p) {
+    const limit = typeof p.limit === "number" ? p.limit : undefined;
+    const r = await listProjects(client, { limit });
+    if (!r.success) {
+      return { success: false, data: {}, error: r.error };
+    }
+    return { success: true, data: { projects: r.projects } };
+  },
+
   async workitem_create(client, p) {
     const r = await createWorkItem(
       client,

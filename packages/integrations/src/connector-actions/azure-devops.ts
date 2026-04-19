@@ -6,6 +6,37 @@ export const azureDevOpsActionsRegistry: ConnectorActionsRegistry = {
   connectorIcon: "azure-devops",
   actions: [
     {
+      id: "project_list",
+      name: "List Projects",
+      description:
+        "List Azure DevOps projects in the organization. Returns id, name, state, description, and url. Call this FIRST before work_item_create or work_item_update to discover the exact project NAME (not ID — Azure DevOps work-item APIs use the project name in the URL path). Do NOT guess project names.",
+      connectorType: "azure_devops",
+      resource: "project",
+      category: "list",
+      stakes: "low",
+      reversible: true,
+      batchSupport: false,
+      idempotent: true,
+      inputs: [
+        {
+          id: "limit",
+          name: "Limit",
+          type: "number",
+          required: false,
+          description: "Max projects to return (1-500, default 100).",
+        },
+      ],
+      outputs: [
+        {
+          id: "projects",
+          name: "Projects",
+          type: "array",
+          description:
+            "Array of { id, name, state, description, url }. Use 'name' as the project input to work_item_create / work_item_update.",
+        },
+      ],
+    },
+    {
       id: "work_item_create",
       name: "Create Work Item",
       description: "Create a new work item in an Azure DevOps project",
