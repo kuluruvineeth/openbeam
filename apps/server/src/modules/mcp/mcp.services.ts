@@ -1,3 +1,4 @@
+import { completionService } from "@openbeam/ai";
 import db from "@openbeam/db";
 import {
   ContextSearchService,
@@ -17,7 +18,7 @@ export function getContextStore(): ContextStore {
 }
 
 export function getContextSearchService(): ContextSearchService {
-  _contextSearch ??= new ContextSearchService();
+  _contextSearch ??= new ContextSearchService(completionService);
   return _contextSearch;
 }
 

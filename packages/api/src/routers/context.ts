@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { completionService } from "@openbeam/ai";
 import {
   addContextSessionMessage,
   createContextRelation,
@@ -15,6 +16,13 @@ import {
   upsertContextEntry,
 } from "@openbeam/db";
 import { ContextSearchService, getContextAnalytics } from "@openbeam/services";
+
+let _searchService: ContextSearchService | null = null;
+function getSearchService(): ContextSearchService {
+  _searchService ??= new ContextSearchService(completionService);
+  return _searchService;
+}
+
 import {
   CreateContextEntrySchema,
   UpdateContextEntrySchema,
@@ -146,7 +154,7 @@ export const contextRouter = createTRPCRouter({
       })
     )
     .query(({ ctx, input }) => {
-      const searchService = new ContextSearchService();
+      const searchService = getSearchService();
       return searchService.find(input.query, ctx.teamId, {
         contextType: input.contextType as
           | "resource"
@@ -168,7 +176,7 @@ export const contextRouter = createTRPCRouter({
       })
     )
     .query(({ ctx, input }) => {
-      const searchService = new ContextSearchService();
+      const searchService = getSearchService();
       return searchService.find(input.query, ctx.teamId, {
         contextType: input.contextType as
           | "resource"
