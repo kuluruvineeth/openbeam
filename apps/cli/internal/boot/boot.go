@@ -35,6 +35,7 @@ import (
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
 	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/update"
 )
 
 type rootFlags struct {
@@ -83,11 +84,20 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 		})
 	}
 
+	errFD := runtime.InvalidFD
+	if file, ok := errOut.(interface{ Fd() uintptr }); ok {
+		errFD = file.Fd()
+	}
+	updateChecker := update.New(version.Version)
+
 	root := &cobra.Command{
 		Use:           "openbeam",
 		Short:         "OpenBeam CLI",
 		SilenceErrors: true,
 		SilenceUsage:  true,
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			emitUpdateNotice(cmd, updateChecker, errFD, errOut, flags.NonInteractive)
+		},
 	}
 	root.SetIn(in)
 	root.SetOut(out)
@@ -204,4 +214,30 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 
 func MapErrorToExitCode(err error) exitcode.Code {
 	return errs.ExitCode(err)
+}
+
+func emitUpdateNotice(cmd *cobra.Command, checker *update.Checker, errFD uintptr, errOut io.Writer, nonInteractive bool) {
+	if nonInteractive {
+		return
+	}
+	subcommand := firstCommand(cmd)
+	if skip, _ := checker.ShouldSkip(errFD, subcommand); skip {
+		return
+	}
+	notice := checker.Notice(cmd.Context())
+	if notice == "" {
+		return
+	}
+	_, _ = io.WriteString(errOut, "\n"+notice+"\n")
+}
+
+func firstCommand(cmd *cobra.Command) string {
+	current := cmd
+	for current != nil && current.Parent() != nil && current.Parent().Name() != "openbeam" {
+		current = current.Parent()
+	}
+	if current == nil {
+		return ""
+	}
+	return current.Name()
 }
