@@ -69,7 +69,7 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/sdk
-        run: npm publish --access public --tag ${{ inputs.tag }}
+        run: npm publish --access public --provenance --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
