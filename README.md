@@ -8,14 +8,15 @@
 
 <p>The open source Glean alternative for the physical world</p>
 
-<a href="https://openbeam.work">Website</a> · <a href="https://docs.openbeam.work">Docs</a> · <a href="https://github.com/kuluruvineeth/openbeam/issues">Issues</a>
+<a href="https://openbeam.work">Website</a> · <a href="https://docs.openbeam.work">Docs</a> · <a href="https://github.com/kuluruvineeth/openbeam/releases/latest">Releases</a> · <a href="https://github.com/kuluruvineeth/openbeam/issues">Issues</a>
 
 <br />
 
 [![GitHub Stars](https://img.shields.io/github/stars/kuluruvineeth/openbeam?style=social)](https://github.com/kuluruvineeth/openbeam)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Latest Release](https://img.shields.io/github/v/release/kuluruvineeth/openbeam?label=release&color=green)](https://github.com/kuluruvineeth/openbeam/releases/latest)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue?logo=docker)](https://github.com/kuluruvineeth/openbeam/pkgs/container/openbeam-cli)
 [![Last Commit](https://img.shields.io/github/last-commit/kuluruvineeth/openbeam)](https://github.com/kuluruvineeth/openbeam/commits/dev)
-[![Contributors](https://img.shields.io/github/contributors/kuluruvineeth/openbeam)](https://github.com/kuluruvineeth/openbeam/graphs/contributors)
 
 </div>
 
@@ -35,8 +36,10 @@ Glean proved the digital half at a $7.2B valuation. Nobody has built the physica
 
 - **Unified Search** — Hybrid semantic + keyword search across all connected sources, sub-200ms p99 latency
 - **AI Agents** — Tool-use agents that search, analyze, and act across your entire knowledge base with 100+ composable tools
+- **Computer** — Six pre-built autonomous agents on Temporal cron schedules with approval gating and persistent memory
 - **Physical + Digital** — The only platform bridging SaaS tools and physical operations data in one query
-- **25+ Connectors** — Gmail, Slack, GitHub, Google Drive, Notion, Linear, MQTT, OPC-UA, BACnet, AWS IoT, and growing
+- **87 Connectors** — Slack, GitHub, Notion, Linear, Salesforce, Jira, Gmail, plus IoT (Samsara, Verkada, AWS IoT) and industrial protocols (MQTT, OPC-UA, BACnet)
+- **MCP Server** — First-class Model Context Protocol server for Claude Code, Cursor, Codex, and any MCP client
 - **RAG Pipeline** — Grounded AI answers with citation and source attribution
 - **Real-time Sync** — Webhooks and incremental sync keep your index fresh
 - **Permission-Aware** — Respects source permissions — users only see what they have access to
@@ -50,19 +53,31 @@ Glean proved the digital half at a $7.2B valuation. Nobody has built the physica
 <td width="25%">
 
 **Digital Knowledge**
-- Google Drive
-- Gmail
 - Notion
-- Linear
+- Confluence
+- Coda
+- Evernote
+- Airtable
+- Smartsheet
+- Google Sites
+- OneNote
+
+</td>
+<td width="25%">
+
+**Communication**
 - Slack
-- GitHub
+- Microsoft Teams
+- Gmail
+- Outlook
+- Google Chat
+- Intercom
 
 </td>
 <td width="25%">
 
 **IoT Platforms**
 - AWS IoT Core
-- Azure IoT Hub
 - SmartThings
 - Samsara
 - Verkada
@@ -78,19 +93,64 @@ Glean proved the digital half at a $7.2B valuation. Nobody has built the physica
 - Node-RED
 
 </td>
-<td width="25%">
-
-**Coming Soon**
-- Jira
-- Confluence
-- Microsoft 365
-- Salesforce
-- Matterport
-- FHIR (Healthcare)
-
-</td>
 </tr>
 </table>
+
+Plus 60+ more across CRM (Salesforce, HubSpot, Pipedrive, Zendesk), Code (GitHub, GitLab, Bitbucket, Jenkins), Storage (Google Drive, Dropbox, Box, S3, SharePoint), Project Management (Linear, Jira, Asana, ClickUp, Monday), Design (Figma, Canva, Miro), HR (Workday, BambooHR, Greenhouse), and more. [Full connector list →](https://docs.openbeam.work/connectors)
+
+## Install the CLI
+
+Cross-platform Go binary, signed with cosign, with SLSA Level 3 build provenance.
+
+```bash
+# macOS — Homebrew
+brew install kuluruvineeth/tap/openbeam
+
+# Linux / macOS — curl
+curl -fsSL https://openbeam.work/install.sh | bash
+
+# Windows — Scoop
+scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket
+scoop install openbeam
+
+# Docker
+docker run --rm ghcr.io/kuluruvineeth/openbeam-cli:latest version
+```
+
+Or download `.deb`, `.rpm`, `.apk`, Arch, or platform binaries from the [latest release](https://github.com/kuluruvineeth/openbeam/releases/latest).
+
+```bash
+openbeam auth login --api-key op_live_xxx
+openbeam search query "kubernetes upgrade runbook"
+openbeam upgrade           # self-update
+openbeam doctor            # diagnose install + auth + connectivity
+openbeam computer run knowledge-digest --wait
+```
+
+[CLI documentation →](https://docs.openbeam.work/cli/install)
+
+## Computer — Autonomous Agents
+
+Six pre-built agents that run on a schedule, ask for approval before any write, and remember context across runs.
+
+| Agent | What it does |
+|---|---|
+| **Knowledge Digest** | Weekly summary of new content across every connected source |
+| **Stale Content Detector** | Flags docs older than 90 days for archival or refresh |
+| **Connector Health** | Watches sync failures and re-auths expiring OAuth tokens |
+| **Search Quality** | Audits failed queries and proposes connector + index fixes |
+| **Onboarding Curator** | Generates personalized reading lists for new hires |
+| **Compliance Watchdog** | Alerts on exposed credentials or PII in indexed content |
+
+Each agent is durable via Temporal, multi-surface (CLI / Dashboard / Chat / API / MCP), and approval-gated for any third-party write action. Custom agents are defined by a prompt and a tool list.
+
+```bash
+openbeam computer enable knowledge-digest --schedule "0 9 * * MON"
+openbeam computer run knowledge-digest --wait
+openbeam computer approve <run-id> --actions "archive,notify"
+```
+
+[Computer documentation →](https://docs.openbeam.work/computer)
 
 ## Quick Start
 
@@ -126,7 +186,7 @@ See the [Self-Hosting Guide](https://docs.openbeam.work/docs/self-hosting) for c
 | **Cache/Queue** | Redis |
 | **Storage** | S3 / MinIO |
 | **Auth** | Better Auth |
-| **CLI** | Go 1.24, Cobra |
+| **CLI** | Go 1.24, Cobra, GoReleaser |
 | **Mobile** | React Native (Expo) |
 | **Desktop** | Tauri |
 | **Observability** | Prometheus, Grafana, Loki |
@@ -161,6 +221,7 @@ packages/
 ├── vespa/        # Vespa search client
 ├── redis/        # Redis utilities
 ├── storage/      # S3/R2 client
+├── sdk/          # @openbeam/sdk (TypeScript)
 ├── ui/           # Shared UI components
 └── edge-*/       # Edge deployment (core, search, AI)
 ```
@@ -188,28 +249,6 @@ bun test          # Run tests
 | Grafana | [localhost:3002](http://localhost:3002) |
 | MinIO Console | [localhost:9001](http://localhost:9001) |
 
-## Roadmap
-
-- [x] Hybrid search (semantic + keyword, sub-200ms)
-- [x] 25+ connectors (SaaS, IoT, industrial protocols)
-- [x] AI agents with 100+ composable tools
-- [x] RAG with grounded citations
-- [x] Real-time sync via webhooks
-- [x] Permission-aware search
-- [x] Go CLI with MCP server
-- [x] IoT protocol gateway (MQTT, OPC-UA, BACnet)
-- [x] Edge deployment (offline SQLite, local search)
-- [x] Voice pipeline (STT/TTS)
-- [ ] Matterport spatial connector
-- [ ] FHIR healthcare connector
-- [ ] Microsoft 365 (Outlook, Teams, OneDrive, SharePoint)
-- [ ] Salesforce connector
-- [ ] Robotics knowledge API (REST + gRPC)
-- [ ] Multi-tenant SaaS mode
-- [ ] Fine-tuned embedding models
-- [ ] Mobile app (iOS/Android) — in progress
-- [ ] Desktop app (macOS/Windows/Linux) — in progress
-
 ## Why Open Source?
 
 Enterprise search touches your most sensitive data — every message, document, sensor reading, and credential. You should be able to read every line of code that processes it.
@@ -226,7 +265,17 @@ cd openbeam
 make setup && make apps
 ```
 
-Check the [`good first issue`](https://github.com/kuluruvineeth/openbeam/labels/good%20first%20issue) label to get started.
+Connectors are the fastest path to a merged PR — each takes about 2-3 hours. Check the [`good first issue`](https://github.com/kuluruvineeth/openbeam/labels/good%20first%20issue) label to get started.
+
+## Star History
+
+<a href="https://www.star-history.com/#kuluruvineeth/openbeam&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date" />
+  </picture>
+</a>
 
 ## License
 
