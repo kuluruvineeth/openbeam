@@ -131,7 +131,7 @@ export function buildDigestBlocks(
         {
           type: "button",
           text: { type: "plain_text", text: "Open OpenBeam", emoji: true },
-          url: process.env.WEB_APP_URL ?? "https://app.openbeam.com",
+          url: process.env.WEB_APP_URL ?? "https://app.openbeam.work",
           action_id: "open_app",
         },
         {

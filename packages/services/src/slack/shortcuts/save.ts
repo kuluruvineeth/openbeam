@@ -243,6 +243,6 @@ function truncate(text: string, maxLength: number): string {
 }
 
 function getOpenBeamUrl(itemId: string): string {
-  const baseUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.com";
+  const baseUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.work";
   return `${baseUrl}/saved/${itemId}`;
 }

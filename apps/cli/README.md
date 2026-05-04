@@ -5,10 +5,10 @@ Enterprise search and AI assistant from the command line.
 ## Install
 
 ```sh
-curl -fsSL https://get.openbeam.com/install.sh | bash
+curl -fsSL https://get.openbeam.work/install.sh | bash
 ```
 
-See [installation docs](https://docs.openbeam.com/cli/install) for Homebrew, Scoop, Winget, npm, and Docker.
+See [installation docs](https://docs.openbeam.work/cli/install) for Homebrew, Scoop, Winget, npm, and Docker.
 
 ## Quick start
 
@@ -61,4 +61,4 @@ gh attestation verify openbeam_<version>_<os>_<arch>.tar.gz \
 
 ## Documentation
 
-Full reference: https://docs.openbeam.com/cli
+Full reference: https://docs.openbeam.work/cli

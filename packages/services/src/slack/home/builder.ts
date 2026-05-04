@@ -612,7 +612,7 @@ function getScopeLabel(scope: string): string {
 }
 
 function getAppUrl(): string {
-  return process.env.WEB_APP_URL ?? "https://app.openbeam.com";
+  return process.env.WEB_APP_URL ?? "https://app.openbeam.work";
 }
 
 function getHelpUrl(): string {

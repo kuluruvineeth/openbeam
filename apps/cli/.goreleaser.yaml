@@ -66,10 +66,10 @@ nfpms:
   - id: openbeam
     package_name: openbeam
     vendor: OpenBeam
-    homepage: https://openbeam.com
-    maintainer: OpenBeam <support@openbeam.com>
+    homepage: https://openbeam.work
+    maintainer: OpenBeam <support@openbeam.work>
     description: OpenBeam CLI — enterprise search and AI assistant
-    license: MIT
+    license: AGPL-3.0
     formats: [apk, deb, rpm, archlinux]
     bindir: /usr/bin
     section: utils
@@ -138,10 +138,10 @@ release:
 
     ```sh
     # macOS / Linux
-    curl -fsSL https://get.openbeam.com/install.sh | bash
+    curl -fsSL https://get.openbeam.work/install.sh | bash
 
     # Windows (PowerShell)
-    irm https://get.openbeam.com/install.ps1 | iex
+    irm https://get.openbeam.work/install.ps1 | iex
 
     # Homebrew (macOS, Linux)
     brew install kuluruvineeth/tap/openbeam
@@ -190,9 +190,9 @@ homebrew_casks:
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_PAT }}"
-    homepage: https://openbeam.com
+    homepage: https://openbeam.work
     description: OpenBeam CLI — enterprise search and AI assistant
-    license: MIT
+    license: AGPL-3.0
     manpages:
       - manpages/openbeam.1.gz
     completions:
@@ -216,17 +216,17 @@ scoops:
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_PAT }}"
     directory: bucket
-    homepage: https://openbeam.com
+    homepage: https://openbeam.work
     description: OpenBeam CLI — enterprise search and AI assistant
-    license: MIT
+    license: AGPL-3.0
 
 winget:
   - name: openbeam
     publisher: kuluruvineeth
     package_identifier: kuluruvineeth.openbeam
     short_description: OpenBeam CLI — enterprise search and AI assistant
-    license: MIT
-    homepage: https://openbeam.com
+    license: AGPL-3.0
+    homepage: https://openbeam.work
     skip_upload: '{{ if eq .Env.HOMEBREW_TAP_PAT "" }}true{{ else }}false{{ end }}'
     repository:
       owner: kuluruvineeth

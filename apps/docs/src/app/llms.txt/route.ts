@@ -4,7 +4,7 @@ export const revalidate = false;
 
 export function GET() {
   const pages = source.getPages();
-  const baseUrl = "https://openbeam.com/docs";
+  const baseUrl = "https://openbeam.work/docs";
 
   const sections: Record<string, { title: string; url: string }[]> = {};
 
@@ -91,7 +91,7 @@ export function GET() {
   lines.push("## API");
   lines.push("");
   lines.push(
-    "- Base URL: `http://localhost:3000` (self-hosted) or `https://api.openbeam.com`"
+    "- Base URL: `http://localhost:3000` (self-hosted) or `https://api.openbeam.work`"
   );
   lines.push("- Authentication: Bearer token via `Authorization` header");
   lines.push(
@@ -105,7 +105,7 @@ export function GET() {
   lines.push("");
   lines.push("## Full Documentation");
   lines.push("");
-  lines.push("- [Full text of all docs](https://openbeam.com/llms-full.txt)");
+  lines.push("- [Full text of all docs](https://openbeam.work/llms-full.txt)");
   lines.push("");
 
   return new Response(lines.join("\n"), {

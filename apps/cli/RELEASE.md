@@ -146,9 +146,9 @@ HOMEBREW_TAP_PAT=dummy goreleaser release \
 
 ## Windows install script hosting
 
-`install.sh` and `install.ps1` live in `apps/cli/scripts/`. To host at `https://get.openbeam.com/install.{sh,ps1}`:
+`install.sh` and `install.ps1` live in `apps/cli/scripts/`. To host at `https://get.openbeam.work/install.{sh,ps1}`:
 
-1. Set up a Cloudflare Worker (or equivalent) that redirects `get.openbeam.com/install.sh` → `raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh`.
+1. Set up a Cloudflare Worker (or equivalent) that redirects `get.openbeam.work/install.sh` → `raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh`.
 2. Same for `install.ps1`.
 3. Serve with `content-type: text/plain` and cache for no more than 5 minutes.
 

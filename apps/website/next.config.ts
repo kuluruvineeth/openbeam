@@ -18,6 +18,20 @@ const config: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
   skipTrailingSlashRedirect: true,
+  rewrites() {
+    return Promise.resolve([
+      {
+        source: "/install.sh",
+        destination:
+          "https://raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh",
+      },
+      {
+        source: "/install.ps1",
+        destination:
+          "https://raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.ps1",
+      },
+    ]);
+  },
 };
 
 export default config;

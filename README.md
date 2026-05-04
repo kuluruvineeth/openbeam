@@ -32,7 +32,10 @@
 
 <br />
 
-<img src="apps/website/public/hero-screenshot.png" alt="OpenBeam — enterprise search across SaaS and IoT" width="92%" />
+<a href="https://www.youtube.com/watch?v=J-72LXIYXK4">
+  <img src="https://img.youtube.com/vi/J-72LXIYXK4/maxresdefault.jpg" alt="OpenBeam — watch the demo" width="92%" />
+</a>
+<sub><em>Click to watch the 90-second demo</em></sub>
 
 </div>
 
@@ -83,7 +86,7 @@ openbeam search query "Q2 pricing decision" --connectors SLACK,NOTION,LINEAR
 | Platform | Command |
 |---|---|
 | **macOS** (Homebrew) | `brew install kuluruvineeth/tap/openbeam` |
-| **Linux / macOS** (curl) | `curl -fsSL https://raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh \| bash` |
+| **Linux / macOS** (curl) | `curl -fsSL https://openbeam.work/install.sh \| bash` |
 | **Windows** (Scoop) | `scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket; scoop install openbeam` |
 | **Docker** | `docker run --rm ghcr.io/kuluruvineeth/openbeam-cli:latest version` |
 | **Direct** | [Latest release →](https://github.com/kuluruvineeth/openbeam/releases/latest) (.tar.gz, .deb, .rpm, .apk, Arch, .zip) |
@@ -477,7 +480,11 @@ Connector work is the fastest path to a merged PR. Browse [good first issues →
 
 ## Stats
 
+![Repobeats analytics](https://repobeats.axiom.co/api/embed/openbeam-readme.svg "Repobeats")
+
 [![Star History Chart](https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date)](https://www.star-history.com/#kuluruvineeth/openbeam&Date)
+
+<sub>Repobeats activity chart updates after enabling the integration at <a href="https://repobeats.axiom.co/">repobeats.axiom.co</a> for this repo.</sub>
 
 <br />
 

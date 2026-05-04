@@ -182,7 +182,7 @@ async function showConnectorsMessage(
   client: SlackClient,
   ctx: HandlerContext
 ): Promise<void> {
-  const appUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.com";
+  const appUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.work";
   const connectors = await listConnectorsByTeam(prisma, ctx.teamId);
 
   const blocks: Array<{

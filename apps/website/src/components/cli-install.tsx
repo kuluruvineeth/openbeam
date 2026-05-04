@@ -26,8 +26,7 @@ const TABS: Record<TabId, Tab> = {
   linux: {
     label: "Linux",
     prompt: "$",
-    command:
-      "curl -fsSL https://raw.githubusercontent.com/kuluruvineeth/openbeam/dev/apps/cli/scripts/install.sh | bash",
+    command: "curl -fsSL https://openbeam.work/install.sh | bash",
     hint: ".deb, .rpm, .apk, Arch packages also available on the GitHub release.",
   },
   windows: {

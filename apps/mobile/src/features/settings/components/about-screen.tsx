@@ -99,7 +99,7 @@ export function AboutScreen() {
           icon={<ExternalLink color="#6b7280" size={16} strokeWidth={2} />}
           label="Website"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openbeam.com")}
+          onPress={() => void Linking.openURL("https://openbeam.work")}
           type="action"
         />
         <SettingsDivider />
@@ -131,7 +131,7 @@ export function AboutScreen() {
           icon={<FileText color="#6b7280" size={16} strokeWidth={2} />}
           label="Privacy Policy"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openbeam.com/privacy")}
+          onPress={() => void Linking.openURL("https://openbeam.work/privacy")}
           type="action"
         />
         <SettingsDivider />
@@ -139,7 +139,7 @@ export function AboutScreen() {
           icon={<FileText color="#6b7280" size={16} strokeWidth={2} />}
           label="Terms of Service"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openbeam.com/terms")}
+          onPress={() => void Linking.openURL("https://openbeam.work/terms")}
           type="action"
         />
       </SettingsSection>

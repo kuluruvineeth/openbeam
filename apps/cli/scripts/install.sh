@@ -21,7 +21,7 @@ case "$platform" in
   'Darwin arm64')    target=darwin_arm64;  archive_ext=tar.gz ;;
   'Linux x86_64')    target=linux_x86_64;  archive_ext=tar.gz ;;
   'Linux aarch64'|'Linux arm64') target=linux_arm64; archive_ext=tar.gz ;;
-  MINGW*|MSYS*|CYGWIN*|Windows*) error "Run install.ps1 on Windows (irm https://get.openbeam.com/install.ps1 | iex)" ;;
+  MINGW*|MSYS*|CYGWIN*|Windows*) error "Run install.ps1 on Windows (irm https://get.openbeam.work/install.ps1 | iex)" ;;
   *) error "Unsupported platform: $platform" ;;
 esac
 

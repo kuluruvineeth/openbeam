@@ -8,13 +8,13 @@ description: Install the OpenBeam CLI on macOS, Linux, or Windows.
 ### macOS / Linux
 
 ```sh
-curl -fsSL https://get.openbeam.com/install.sh | bash
+curl -fsSL https://get.openbeam.work/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-irm https://get.openbeam.com/install.ps1 | iex
+irm https://get.openbeam.work/install.ps1 | iex
 ```
 
 Both installers detect your OS + architecture, download the right binary from [GitHub Releases](https://github.com/kuluruvineeth/openbeam/releases), verify SHA256 checksums, and install to `~/.openbeam/bin/openbeam` (or `%USERPROFILE%\.openbeam\bin\openbeam.exe`). If `cosign` is on your `PATH`, signature verification runs automatically.
@@ -22,11 +22,11 @@ Both installers detect your OS + architecture, download the right binary from [G
 Pin a specific version:
 
 ```sh
-OPENBEAM_VERSION=v0.2.0 curl -fsSL https://get.openbeam.com/install.sh | bash
+OPENBEAM_VERSION=v0.2.0 curl -fsSL https://get.openbeam.work/install.sh | bash
 ```
 
 ```powershell
-iex "& { $(irm https://get.openbeam.com/install.ps1) } -Version v0.2.0"
+iex "& { $(irm https://get.openbeam.work/install.ps1) } -Version v0.2.0"
 ```
 
 ## Homebrew (macOS, Linux)
