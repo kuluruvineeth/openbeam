@@ -195,35 +195,58 @@ See the [Self-Hosting Guide](https://docs.openbeam.work/docs/self-hosting) for c
 
 ```
 apps/
-├── web/          # Next.js frontend           (:3001)
-├── server/       # Hono API server            (:3000)
-├── worker/       # Temporal workers
-├── engine/       # Python ML service          (:8000 CPU, :8001 GPU)
-├── daemon/       # Local agent orchestration daemon
-├── cli/          # Go CLI (openbeam command)
-├── gateway/      # IoT protocol gateway
-├── docs/         # Documentation site         (:4000)
-├── website/      # Marketing site             (:3002)
-├── mobile/       # React Native (Expo)
-├── desktop/      # Tauri desktop app
-├── voice/        # Voice pipeline (STT/TTS)
-└── extension/    # Browser extension
+├── web/              # Next.js frontend             (:3001)
+├── server/           # Hono API server              (:3000)
+├── worker/           # Temporal workers
+├── engine/           # Python ML service            (:8000 CPU, :8001 GPU)
+├── daemon/           # Local agent orchestration daemon
+├── cli/              # Go CLI (openbeam command)
+├── gateway/          # IoT protocol gateway
+├── sandbox-gateway/  # Sandbox execution gateway
+├── docs/             # Documentation site           (:4000)
+├── website/          # Marketing site               (:3002)
+├── mobile/           # React Native (Expo)
+├── desktop/          # Tauri desktop app
+├── voice/            # Voice pipeline (STT/TTS)
+├── extension/        # Browser extension
+├── bot/              # Slack bot
+└── video/            # Remotion changelog videos
 
 packages/
-├── ai/           # AI tools, agents, RAG engine
-├── api/          # tRPC routers
-├── auth/         # Authentication
-├── db/           # Prisma schema & queries
-├── integrations/ # OAuth configs, app registry
-├── services/     # Connector business logic
-├── temporal/     # Workflows & activities
-├── types/        # Shared TypeScript types
-├── vespa/        # Vespa search client
-├── redis/        # Redis utilities
-├── storage/      # S3/R2 client
-├── sdk/          # @openbeam/sdk (TypeScript)
-├── ui/           # Shared UI components
-└── edge-*/       # Edge deployment (core, search, AI)
+├── ai/              # AI tools, agents, RAG engine
+├── api/             # tRPC routers
+├── auth/            # Authentication (Better Auth)
+├── db/              # Prisma schema & queries
+├── types/           # Shared TypeScript types
+├── config/          # Shared configuration
+├── ui/              # Shared UI components
+│
+├── services/        # Connector business logic (87 connectors)
+├── integrations/    # OAuth configs, app registry
+├── temporal/        # Workflows & activities
+├── computer/        # Autonomous agent platform
+├── orchestrations/  # Multi-agent orchestration
+│
+├── vespa/           # Vespa search client
+├── redis/           # Redis utilities
+├── storage/         # S3 / R2 client
+├── media/           # TwelveLabs video processing
+│
+├── mcp/             # @openbeam/mcp server
+├── mcp-apps/        # MCP UI apps for Claude Desktop
+├── sdk/             # @openbeam/sdk (TypeScript)
+├── analytics/       # PostHog integration & metrics
+├── observability/   # Telemetry & monitoring
+├── sandbox/         # Sandbox runtime
+├── relay/           # Daemon ↔ client bridge
+│
+├── edge-core/       # Edge runtime (bun:sqlite + WAL)
+├── edge-search/     # Edge hybrid search (FTS5 + vector)
+├── edge-ai/         # On-device RAG
+│
+├── spatial-core/    # Spatial AI primitives
+├── spatial-editor/  # Spatial scene editor
+└── spatial-viewer/  # Spatial scene viewer
 ```
 
 ## Development
