@@ -44,6 +44,7 @@ const FEATURES = [
 
 const NAV_ITEMS = [
   { label: "Connectors", href: "/connectors/" },
+  { label: "Computer", href: "/computer/" },
   { label: "Changelog", href: "/changelog/" },
   { label: "Pitch", href: "/pitch/" },
   { label: "Memo", href: "/memo/" },
