@@ -66,6 +66,22 @@ if [[ ! -x "$DEPLOY_SCRIPT" ]]; then
   die "Deploy script not found or not executable: $DEPLOY_SCRIPT"
 fi
 
+LOCATION=$(grep -E '^\s*location\s*=' "$TF_DIR/terraform.tfvars" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+LOCATION="${LOCATION:-westus2}"
+QUOTA_MIN=24
+DASV5_LIMIT=$(az vm list-usage --location "$LOCATION" --query "[?name.value=='standardDASv5Family'].limit | [0]" -o tsv 2>/dev/null || echo "0")
+DASV5_USED=$(az vm list-usage --location "$LOCATION" --query "[?name.value=='standardDASv5Family'].currentValue | [0]" -o tsv 2>/dev/null || echo "0")
+DASV5_FREE=$(( DASV5_LIMIT - DASV5_USED ))
+if (( DASV5_FREE < QUOTA_MIN )); then
+  err "Insufficient standardDASv5Family vCPU quota in $LOCATION: $DASV5_FREE free, need ${QUOTA_MIN}+"
+  err "Either:"
+  err "  1. Wait — recently-deleted resource quotas can take 4-24h to release"
+  err "  2. Request increase: https://portal.azure.com/#view/Microsoft_Azure_Capacity/QuotaMenuBlade"
+  err "  3. Switch to another VM family in infra/azure/modules/aks/main.tf"
+  die "Cannot proceed without vCPU quota."
+fi
+ok "vCPU quota: $DASV5_FREE free in standardDASv5Family ($LOCATION)"
+
 ok "Tools, auth, and config ready"
 
 step "Plan summary"
