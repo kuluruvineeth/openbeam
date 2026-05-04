@@ -10,44 +10,41 @@
 <h1>OpenBeam</h1>
 
 <p>
-  <strong>The open-source enterprise search and AI agent platform —<br/>an alternative to Glean for SaaS <em>and</em> the physical world.</strong>
+  <strong>Open-source Glean — for SaaS <em>and</em> the physical world.</strong>
 </p>
 
 <p>
   <a href="https://openbeam.work">Website</a> ·
   <a href="https://docs.openbeam.work">Docs</a> ·
   <a href="https://github.com/kuluruvineeth/openbeam/releases/latest">Releases</a> ·
-  <a href="https://github.com/kuluruvineeth/openbeam/issues">Issues</a> ·
   <a href="https://x.com/kuluruvineeth">Twitter</a>
 </p>
 
 <p>
-  <a href="https://github.com/kuluruvineeth/openbeam/blob/dev/LICENSE"><img src="https://img.shields.io/badge/license-AGPL_3.0-blue.svg" alt="License: AGPL v3" /></a>
-  <a href="https://github.com/kuluruvineeth/openbeam"><img src="https://img.shields.io/github/stars/kuluruvineeth/openbeam?style=flat&label=stars&color=yellow" alt="GitHub stars" /></a>
-  <a href="https://github.com/kuluruvineeth/openbeam/releases/latest"><img src="https://img.shields.io/github/v/release/kuluruvineeth/openbeam?label=release&color=green" alt="Latest release" /></a>
+  <a href="https://github.com/kuluruvineeth/openbeam/blob/dev/LICENSE"><img src="https://img.shields.io/badge/license-AGPL_3.0-blue.svg" alt="License" /></a>
+  <a href="https://github.com/kuluruvineeth/openbeam"><img src="https://img.shields.io/github/stars/kuluruvineeth/openbeam?style=flat&label=stars&color=yellow" alt="Stars" /></a>
+  <a href="https://github.com/kuluruvineeth/openbeam/releases/latest"><img src="https://img.shields.io/github/v/release/kuluruvineeth/openbeam?label=release&color=green" alt="Release" /></a>
   <a href="https://github.com/kuluruvineeth/openbeam/pkgs/container/openbeam-cli"><img src="https://img.shields.io/badge/docker-ghcr.io-blue?logo=docker" alt="Docker" /></a>
   <a href="https://github.com/kuluruvineeth/openbeam/commits/dev"><img src="https://img.shields.io/github/last-commit/kuluruvineeth/openbeam" alt="Last commit" /></a>
-  <a href="https://github.com/kuluruvineeth/openbeam/graphs/contributors"><img src="https://img.shields.io/github/contributors/kuluruvineeth/openbeam" alt="Contributors" /></a>
 </p>
 
 <br />
 
 <a href="https://www.youtube.com/watch?v=J-72LXIYXK4">
-  <img src="https://img.youtube.com/vi/J-72LXIYXK4/maxresdefault.jpg" alt="OpenBeam — watch the demo" width="92%" />
+  <img src="https://img.youtube.com/vi/J-72LXIYXK4/maxresdefault.jpg" alt="Demo" width="92%" />
 </a>
-<sub><em>Click to watch the 90-second demo</em></sub>
 
 </div>
 
 <br />
 
-Enterprise knowledge is trapped in silos. Slack, GitHub, Notion, Gmail don't talk to each other — and none of them talk to the IoT sensors, industrial controllers, and camera feeds that run the physical side of your business. **OpenBeam unifies all of it into one searchable, agent-ready layer.** One query across sensors and SaaS. Grounded answers in 200ms. Runs on your servers.
+OpenBeam is enterprise search that indexes both the SaaS tools your company runs (Slack, GitHub, Notion, Gmail, Salesforce, …) **and** the physical-world systems Glean ignores (MQTT brokers, OPC-UA controllers, IoT fleets, security cameras). One query, hybrid search across all of it, sub-200ms p99, citations on every answer. Self-hosted. AGPL-3.0.
 
-Glean proved the digital half at a $7.2B valuation. Nobody has built the physical half. We're building both — in the open.
+87 connectors today. 6 pre-built autonomous agents. CLI, MCP server, and TypeScript SDK out of the box.
 
 <br />
 
-## Build an autonomous agent across your entire company in 15 lines
+## In 15 lines
 
 ```typescript
 import OpenBeam from "@openbeam/sdk";
@@ -60,20 +57,18 @@ const { data } = await ob.agents.ask(
 );
 
 console.log(data.answer);
-//  "The team aligned on a 12% increase for enterprise tiers, effective May 1.
-//   Self-serve pricing stays flat. Decision finalized in the Apr 18 pricing sync."
+//  "12% increase for enterprise tiers, effective May 1.
+//   Self-serve unchanged. Finalized in the Apr 18 pricing sync."
 
 console.log(data.citations);
 //  [
-//    { title: "Q2 Pricing Decision",  source: "Notion",  uri: "...", snippet: "..." },
-//    { title: "#pricing-sync thread", source: "Slack",   uri: "...", snippet: "..." },
-//    { title: "ENG-2174 Pricing API", source: "Linear",  uri: "...", snippet: "..." }
+//    { title: "Q2 Pricing Decision",  source: "Notion",  uri: "..." },
+//    { title: "#pricing-sync thread", source: "Slack",   uri: "..." },
+//    { title: "ENG-2174 Pricing API", source: "Linear",  uri: "..." }
 //  ]
 ```
 
-Hybrid retrieval across 87 connectors. RAG-grounded. Citations for every claim. No vector DB to manage, no prompt engineering to write.
-
-**Same answer, from your terminal:**
+Same answer, from a terminal:
 
 ```bash
 openbeam search query "Q2 pricing decision" --connectors SLACK,NOTION,LINEAR
@@ -85,15 +80,13 @@ openbeam search query "Q2 pricing decision" --connectors SLACK,NOTION,LINEAR
 
 | Platform | Command |
 |---|---|
-| **macOS** (Homebrew) | `brew install kuluruvineeth/tap/openbeam` |
+| **macOS** | `brew install kuluruvineeth/tap/openbeam` |
 | **Linux / macOS** (curl) | `curl -fsSL https://openbeam.work/install.sh \| bash` |
-| **Windows** (Scoop) | `scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket; scoop install openbeam` |
+| **Windows** | `scoop bucket add openbeam https://github.com/kuluruvineeth/scoop-bucket; scoop install openbeam` |
 | **Docker** | `docker run --rm ghcr.io/kuluruvineeth/openbeam-cli:latest version` |
-| **Direct** | [Latest release →](https://github.com/kuluruvineeth/openbeam/releases/latest) (.tar.gz, .deb, .rpm, .apk, Arch, .zip) |
+| **Direct** | [Latest release](https://github.com/kuluruvineeth/openbeam/releases/latest) — `.tar.gz`, `.deb`, `.rpm`, `.apk`, Arch, `.zip` |
 
-Every release is signed with [cosign](https://docs.sigstore.dev/cosign/) (keyless OIDC) and carries a [SLSA Level 3](https://slsa.dev/spec/v1.0/levels#build-l3) build provenance attestation. Verify with `gh attestation verify`.
-
-**From zero to your first grounded answer in 3 commands:**
+Releases are signed with [cosign](https://docs.sigstore.dev/cosign/) (keyless OIDC) and carry [SLSA Level 3](https://slsa.dev/spec/v1.0/levels#build-l3) build provenance. Verify with `gh attestation verify`.
 
 ```bash
 openbeam auth login --api-key op_live_xxx
@@ -103,59 +96,51 @@ openbeam computer run knowledge-digest --wait
 
 <br />
 
-## Features
+## What's in the box
 
-- **🔍 Agentic RAG** — Hybrid semantic + keyword search across all connected sources via [Vespa](https://vespa.ai). Sub-200ms p99. Permission-aware: users only see what they're authorized to see, enforced at the index level.
-- **🤖 Computer** — Autonomous AI agents with cron schedules, durable [Temporal](https://temporal.io) execution, approval gating, and persistent memory. Six pre-built agents shipped today; custom agents emerge from prompts.
-- **🔌 87 Connectors** — Across SaaS, IoT, and industrial protocols. Real production connectors with OAuth refresh, incremental sync, webhooks, and rate limiting — not API stubs.
-- **🧠 Context Database** — Hierarchical L0/L1/L2 context layer (inspired by ByteDance's OpenViking) with session memory and auto-extraction. 80–96% token reduction vs flat RAG.
-- **🛠️ MCP Server, first-class** — Built-in Model Context Protocol server. Claude Desktop, Cursor, Codex, and any MCP-compatible client get the full OpenBeam tool surface.
-- **📦 Multi-surface** — Web, CLI, mobile, desktop, browser extension, voice, MCP. Same index, same permissions, same agents — every surface.
-- **🛡️ Supply-chain security** — Cosign keyless signing, SLSA L3 attestations, SBOMs, signed Docker images on `ghcr.io`. Verify any release before you trust it.
-- **🌐 Edge-ready** — Pure-TypeScript edge stack (`@openplane/edge-core`, `edge-search`, `edge-ai`) with bun:sqlite WAL + FTS5 + vector hybrid + BLAKE3 Merkle sync + on-device RAG. Deploy without round-tripping the cloud.
+- **Hybrid search** — BM25 + dense vectors on [Vespa](https://vespa.ai). Permission-aware at the index, so users see only what they're entitled to.
+- **Computer** — autonomous agents on a cron, durable via [Temporal](https://temporal.io), with approval gating for write actions and memory across runs. Six agents pre-built ([catalog ↓](#computer)).
+- **87 connectors** — OAuth refresh, incremental sync, webhooks, rate limits ([list ↓](#connectors)). Includes IoT (Samsara, Verkada, AWS IoT, SmartThings) and industrial protocols (MQTT, OPC-UA, BACnet) — nothing else open-source covers these.
+- **Context Database** — hierarchical L0/L1/L2 retrieval inspired by ByteDance's OpenViking. ~80–95% token savings vs flat RAG on long sessions.
+- **MCP server** — built in. Claude Desktop, Cursor, Codex, anything that speaks Model Context Protocol gets the same tool surface as the dashboard.
+- **Multi-surface** — Web, CLI (Go), TypeScript SDK, mobile, desktop, browser extension, voice, MCP. Same index, same auth, same agents.
+- **Edge runtime** — pure-TS stack with bun:sqlite + FTS5 + vector hybrid + BLAKE3 Merkle sync + on-device RAG. 533 tests passing.
 
 <br />
 
-## How we compare
-
-We benchmark against the best — [Glean](https://glean.com) (proprietary leader, $7.2B valuation), [Onyx](https://onyx.app) (closest open-source peer), and [Atlassian Rovo](https://www.atlassian.com/software/rovo) (the incumbent most teams already pay for). Verify any row yourself.
+## Compared to
 
 | | **OpenBeam** | **Glean** | **Onyx** | **Confluence + Rovo** |
 |---|---|---|---|---|
 | License | AGPL-3.0 | Proprietary | MIT | Proprietary |
-| Self-hosted | ✅ | ❌ cloud only | ✅ | ✅ Data Center ($$$) |
-| Pricing entry | Free, no sales call | Sales call, ~$50K+ | Free OSS / paid Pro | Bundled in Standard+ tier |
-| Connector count | **87** | 100+ | 50+ | ~15 native |
+| Self-hosted | ✅ | ❌ cloud-only | ✅ | ✅ Data Center ($$$) |
+| Pricing entry | Free | Sales call, ~$50K+ | Free OSS / paid Pro | Bundled in Standard+ |
+| Connectors | **87** | 100+ | 50+ | ~15 native |
 | IoT + industrial data | ✅ MQTT, OPC-UA, BACnet, AWS IoT, Verkada, Samsara | ❌ | ❌ | ❌ |
-| Hybrid search engine | Vespa (BM25 + HNSW) | Proprietary | Vespa | Lucene |
-| Sub-200ms p99 search | ✅ | ✅ claimed | ✅ claimed | ⚠️ varies |
-| Autonomous AI agents | ✅ Computer (6 pre-built + custom) | ⚠️ limited | ⚠️ limited | ⚠️ Rovo agents (beta) |
-| MCP server (Claude/Cursor) | ✅ first-class | ❌ | ⚠️ supported | ❌ |
-| CLI | ✅ Go, signed binary, 5 install paths | ❌ | ⚠️ install script only | ❌ |
+| Search engine | Vespa (BM25 + HNSW) | proprietary | Vespa | Lucene |
+| Autonomous agents | ✅ Computer (6 pre-built) | ⚠️ limited | ⚠️ limited | ⚠️ Rovo (beta) |
+| MCP server | ✅ first-class | ❌ | ⚠️ supported | ❌ |
+| CLI | ✅ Go, signed | ❌ | ⚠️ install script | ❌ |
 | TypeScript SDK | ✅ `@openbeam/sdk` | REST only | REST only | REST only |
-| Edge / offline deployment | ✅ pure-TS edge stack with offline RAG | ❌ | ❌ | ❌ |
-| Permission-aware search | ✅ | ✅ | ✅ | ✅ |
-| SOC 2 / enterprise security | ⚠️ in progress (audit yourself, AGPL) | ✅ | ⚠️ paid tier | ✅ |
+| Edge / offline | ✅ | ❌ | ❌ | ❌ |
 | Vendor lock-in | None — own your data | High | Low | High |
 
-<sub>Last verified 2026-05-04. PRs welcome to keep this honest.</sub>
+<sub>Last verified 2026-05-04. PRs to keep this honest are welcome.</sub>
 
 <br />
 
-## Computer — autonomous agents that work while you don't
+## <a id="computer"></a>Computer
 
-Six pre-built agents, ready to run on a schedule:
+Six agents you can enable today. Each runs on a schedule, asks for approval before writing anywhere, and remembers context across runs.
 
-| Agent | What it does |
+| Agent | Job |
 |---|---|
-| **Knowledge Digest** | Weekly summary of new content across all your sources |
+| **Knowledge Digest** | Weekly summary of new content across every source |
 | **Stale Content Detector** | Flags docs older than 90 days for archival or refresh |
-| **Connector Health** | Watches sync failures and re-auths expiring tokens before they break |
-| **Search Quality** | Audits failed queries weekly, proposes connector + index fixes |
+| **Connector Health** | Watches sync failures and re-auths expiring tokens |
+| **Search Quality** | Audits failed queries, proposes connector + index fixes |
 | **Onboarding Curator** | Generates personalized reading lists for new hires |
-| **Compliance Watchdog** | Alerts when documents contain exposed credentials or PII |
-
-Each runs on a cron schedule, surfaces proposals (write actions need explicit approval), keeps memory across runs, and notifies via Slack, email, or webhook. Trigger from the dashboard, the chat, the CLI, or via MCP from Claude Code:
+| **Compliance Watchdog** | Alerts on exposed credentials or PII in indexed content |
 
 ```bash
 openbeam computer enable knowledge-digest --schedule "0 9 * * MON"
@@ -163,13 +148,13 @@ openbeam computer run knowledge-digest --wait
 openbeam computer approve <run-id> --actions "archive,notify"
 ```
 
-[Browse the agent catalog →](https://openbeam.work/computer)
+Custom agents are defined by prompt — see [docs.openbeam.work/computer](https://docs.openbeam.work/computer).
 
 <br />
 
-## Connectors
+## <a id="connectors"></a>Connectors
 
-**OpenBeam ships with 87 connectors today.** OpenBeam is the only open-source enterprise search platform that indexes physical-world data alongside SaaS — IoT fleets, smart devices, and edge sensors are first-class data sources, not an afterthought.
+87 shipped. The full list:
 
 <table>
 <tr><th colspan="5" align="left">Productivity & Docs</th></tr>
@@ -385,7 +370,7 @@ openbeam computer approve <run-id> --actions "archive,notify"
 </table>
 
 <table>
-<tr><th colspan="5" align="left">IoT & Physical World — only OSS doing this</th></tr>
+<tr><th colspan="5" align="left">IoT & Physical World</th></tr>
 <tr>
   <td>Samsara</td>
   <td>Verkada</td>
@@ -395,110 +380,91 @@ openbeam computer approve <run-id> --actions "archive,notify"
 </tr>
 </table>
 
-<sub>Industrial protocols (MQTT, OPC-UA, BACnet, ThingsBoard, Node-RED) ship as a separate gateway app — see <a href="./apps/iot-gateway"><code>apps/iot-gateway</code></a>.</sub>
-
-[See full connector list with auth, sync, and webhook support →](https://docs.openbeam.work/connectors)
+<sub>Industrial protocols (MQTT, OPC-UA, BACnet, ThingsBoard, Node-RED) ship via the IoT gateway app — see <a href="./apps/iot-gateway"><code>apps/iot-gateway</code></a>. Don't see what you need? Connectors are ~2–3 hours of focused work each — <a href="https://github.com/kuluruvineeth/openbeam/issues">open an issue</a> or send a PR.</sub>
 
 <br />
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Surfaces:  Web · CLI · Mobile · Desktop · Browser ext · MCP    │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ tRPC + REST (Hono)
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Server (apps/server) ─► Temporal workflows ─► Vercel AI SDK    │
-│     │                          │                                │
-│     ▼                          ▼                                │
-│  PostgreSQL                Computer agents (cron, signals)      │
-│  Redis                                                           │
-└──────────────┬──────────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Vespa (BM25 + HNSW hybrid search, sub-200ms p99)               │
-└─────────────────────────────────────────────────────────────────┘
-                               ▲
-                               │ Connector sync (Temporal)
-                               │
-┌─────────────────────────────────────────────────────────────────┐
-│  87 connectors  ·  IoT gateway  ·  Industrial protocols         │
-└─────────────────────────────────────────────────────────────────┘
+Surfaces:  Web · CLI · Mobile · Desktop · Browser ext · MCP
+                                │
+                                │  tRPC + REST (Hono)
+                                ▼
+                  Server ── Temporal workflows ── Vercel AI SDK
+                    │              │
+                    ▼              ▼
+                Postgres     Computer agents (cron, signals)
+                Redis
+                                │
+                                │  documents
+                                ▼
+                  Vespa  (BM25 + HNSW, sub-200ms p99)
+                                ▲
+                                │  Temporal sync
+                                │
+                  87 connectors · IoT gateway · Industrial protocols
 ```
 
-Editable Excalidraw diagrams: [system context](apps/docs/public/diagrams/excalidraw/system-context.excalidraw) · [ER schema](apps/docs/public/diagrams/excalidraw/er-diagram.excalidraw) · [sync flow](apps/docs/public/diagrams/excalidraw/flow-connector-sync.excalidraw) · [search flow](apps/docs/public/diagrams/excalidraw/flow-search-request.excalidraw) · [deployment topology](apps/docs/public/diagrams/excalidraw/deployment-topology.excalidraw)
+Editable Excalidraw diagrams: [system context](apps/docs/public/diagrams/excalidraw/system-context.excalidraw) · [ER schema](apps/docs/public/diagrams/excalidraw/er-diagram.excalidraw) · [sync flow](apps/docs/public/diagrams/excalidraw/flow-connector-sync.excalidraw) · [search flow](apps/docs/public/diagrams/excalidraw/flow-search-request.excalidraw) · [deployment](apps/docs/public/diagrams/excalidraw/deployment-topology.excalidraw)
 
 <br />
 
 ## Tech stack
 
-[**TypeScript**](https://www.typescriptlang.org) · [**Bun 1.3**](https://bun.com) · [**Next.js 16**](https://nextjs.org) · [**React 19**](https://react.dev) · [**Hono**](https://hono.dev) · [**tRPC 11**](https://trpc.io) · [**Prisma**](https://www.prisma.io) + [**PostgreSQL**](https://www.postgresql.org) · [**Redis**](https://redis.io) · [**Vespa**](https://vespa.ai) · [**Temporal**](https://temporal.io) · [**Vercel AI SDK**](https://sdk.vercel.ai) · [**Better Auth**](https://www.better-auth.com) · [**Tailwind 4**](https://tailwindcss.com) · [**Go + Cobra**](https://github.com/spf13/cobra) (CLI) · [**GoReleaser**](https://goreleaser.com) · [**Helm**](https://helm.sh) + [**Terraform**](https://www.terraform.io) (infra) · [**Remotion**](https://www.remotion.dev) (changelog videos)
+[TypeScript](https://www.typescriptlang.org) · [Bun 1.3](https://bun.com) · [Next.js 16](https://nextjs.org) · [React 19](https://react.dev) · [Hono](https://hono.dev) · [tRPC 11](https://trpc.io) · [Prisma](https://www.prisma.io) + [PostgreSQL](https://www.postgresql.org) · [Redis](https://redis.io) · [Vespa](https://vespa.ai) · [Temporal](https://temporal.io) · [Vercel AI SDK](https://sdk.vercel.ai) · [Better Auth](https://www.better-auth.com) · [Tailwind 4](https://tailwindcss.com) · [Go + Cobra](https://github.com/spf13/cobra) (CLI) · [GoReleaser](https://goreleaser.com) · [Helm](https://helm.sh) + [Terraform](https://www.terraform.io) · [Remotion](https://www.remotion.dev)
 
 <br />
 
 ## Roadmap
 
-We ship in public.
-
-| Quarter | Theme | Headline |
+| Quarter | Focus | Items |
 |---|---|---|
-| **Q2 2026** ⏳ in flight | Production stability, autonomous agents | Computer (6 agents shipped) · CLI v1 (brew/scoop/winget/curl/Docker + cosign + SLSA L3) · Context DB Phase 5 wiring · close 29 missing connector lookup actions · `@openbeam/sdk` npm publish |
-| **Q3 2026** 📋 planned | Physical AI integration | Matterport, FHIR, Viam, NVIDIA Omniverse, Apple Vision Pro · Robot Knowledge API · 7 spatial agent tools · PHI de-identification |
-| **Q4 2026** 📋 planned | Vertical depth + surfaces | AgroBeam (farm data platform, 8 phase plans) · spatial editor + viewer · browser extension polish · public security datasets (CISA KEV, OWASP, MITRE ATT&CK ✅ ; NVD 338K syncing) |
-| **2027+** 📋 vision | Distribution & enterprise | Mobile + desktop GA · connector marketplace · SAML / SCIM · SOC 2 Type II · self-hosted edge runtime (foundation already shipped) |
+| **Q2 2026** ⏳ | Stability & autonomous agents | Computer (6 agents shipped) · CLI v1 (brew/scoop/winget/curl/Docker, cosign, SLSA L3) · close 29 missing connector lookup actions · `@openbeam/sdk` to npm |
+| **Q3 2026** 📋 | Physical AI | Matterport · FHIR · Viam · NVIDIA Omniverse · Apple Vision Pro · Robot Knowledge API · spatial agent tools · PHI de-identification |
+| **Q4 2026** 📋 | Vertical depth | AgroBeam (farm data, 8 phase plans) · spatial editor + viewer · browser extension polish · public security datasets |
+| **2027+** 📋 | Distribution & enterprise | Mobile + desktop GA · connector marketplace · SAML / SCIM · SOC 2 Type II · self-hosted edge GA |
 
-Already shipped this cycle: 87 connectors, 533 passing edge-runtime tests, Computer agents with Temporal-backed runs, MCP server with rich UI views, signed CLI release pipeline.
+Shipped this cycle: 87 connectors, edge runtime (533 tests passing), Computer agents on Temporal, MCP server with rich UI views, signed CLI release pipeline.
 
 <br />
 
 ## Community
 
-We're early. There's no Discord yet, no 10,000-member Slack, no Twitter Space tomorrow. What there is: a repo, a small group of contributors, and a founder who reads every issue. If you build with us now, your name shows up next to ours when this gets big.
+- Issues — [github.com/kuluruvineeth/openbeam/issues](https://github.com/kuluruvineeth/openbeam/issues)
+- Twitter — [@kuluruvineeth](https://x.com/kuluruvineeth)
+- Web — [openbeam.work](https://openbeam.work) · [docs.openbeam.work](https://docs.openbeam.work)
+- Security — file a private advisory on the repo
 
-- **GitHub Issues** — [github.com/kuluruvineeth/openbeam/issues](https://github.com/kuluruvineeth/openbeam/issues) — bugs, feature requests, design discussions
-- **Twitter / X** — [@kuluruvineeth](https://x.com/kuluruvineeth) — release notes, demos, ship logs
-- **Web** — [openbeam.work](https://openbeam.work) · [docs.openbeam.work](https://docs.openbeam.work)
-- **Security disclosures** — file a private security advisory on the repo
+This project is in its first year. There's no Discord yet. If you build with it now, the founder reads every issue.
 
 <br />
 
 ## Contributing
 
-The 30-second version (full guide in [CONTRIBUTING.md](./CONTRIBUTING.md)):
+Full guide in [CONTRIBUTING.md](./CONTRIBUTING.md). The short version:
 
-1. Pick a connector under `packages/services/` to extend or fix — the `/connector` slash command in Claude Code automates ~80% of the boilerplate.
+1. Pick a connector under `packages/services/` to extend or add — the `/connector` slash command in Claude Code automates ~80% of the boilerplate.
 2. `bun install && bun run dev`
-3. Open a PR against the `dev` branch using conventional commits — `feat(connector): add foo`, one line, no body.
-4. Be kind in code review. We optimize for craft, not for being right.
+3. PR against `dev` with conventional commits (`feat(connector): add foo` — one line, no body).
 
-Connector work is the fastest path to a merged PR. Browse [good first issues →](https://github.com/kuluruvineeth/openbeam/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+Connector work is the fastest path to a merged PR. Browse [good first issues](https://github.com/kuluruvineeth/openbeam/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
 
 <br />
 
 ## Stats
 
-![Repobeats analytics](https://repobeats.axiom.co/api/embed/openbeam-readme.svg "Repobeats")
+![Repobeats](https://repobeats.axiom.co/api/embed/openbeam-readme.svg "Repobeats")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date)](https://www.star-history.com/#kuluruvineeth/openbeam&Date)
-
-<sub>Repobeats activity chart updates after enabling the integration at <a href="https://repobeats.axiom.co/">repobeats.axiom.co</a> for this repo.</sub>
+[![Star History](https://api.star-history.com/svg?repos=kuluruvineeth/openbeam&type=Date)](https://www.star-history.com/#kuluruvineeth/openbeam&Date)
 
 <br />
 
 ## License
 
-OpenBeam is open source under the **AGPL-3.0** license. We will sell premium support and an Enterprise Edition (SSO, audit log retention, dedicated tenancy, on-prem keys) for organizations that need it. If you're shipping a closed-source SaaS on top of OpenBeam, [talk to us first](https://openbeam.work).
+AGPL-3.0. The full text is in [`LICENSE`](./LICENSE). Premium support and an Enterprise Edition (SSO, audit log retention, dedicated tenancy, on-prem keys) are coming for organizations that need them. Building a closed-source SaaS on top of OpenBeam? [Get in touch first](https://openbeam.work).
 
-A `LICENSE` file lands with the next release; until then, the badge in the header reflects intent and the `package.json` declarations are the source of truth.
-
-### Acknowledgements
-
-Inspired by [**Glean**](https://glean.com), [**Onyx**](https://onyx.app), [**Midday Computer**](https://midday.ai), [**Notion**](https://notion.so), and [**Linear**](https://linear.app) — the bar we measure ourselves against on connector coverage, agent depth, and craft.
-
-Connector implementations reference the public OAuth and REST documentation of each provider — no proprietary SDKs reverse-engineered.
+Inspired by [Glean](https://glean.com), [Onyx](https://onyx.app), [Midday](https://midday.ai), [Notion](https://notion.so), [Linear](https://linear.app). Connector implementations reference each provider's public OAuth and REST documentation only.
 
 <br />
 
